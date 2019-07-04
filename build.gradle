@@ -60,8 +60,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0"
     compile 'org.apache.avro:avro:1.9.0'
-    testCompile "io.kotlintest:kotlintest-runner-junit5:3.3.3"
-    testCompile "io.kotlintest:kotlintest-assertions-json:3.3.3"
+    testCompile "io.kotlintest:kotlintest-runner-junit5:3.4.0.2278-SNAPSHOT"
+    testCompile "io.kotlintest:kotlintest-assertions-json:3.4.0.2278-SNAPSHOT"
 }
 
 test {
@@ -72,6 +72,9 @@ repositories {
     mavenLocal()
     mavenCentral()
     jcenter()
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 publishing {

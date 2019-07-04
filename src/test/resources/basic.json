@@ -1,0 +1,39 @@
+{
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel.avro4k.schema.BasicSchemaTest.<init>.<anonymous>.<anonymous>",
+  "fields": [
+    {
+      "name": "a",
+      "type": "string"
+    },
+    {
+      "name": "b",
+      "type": "double"
+    },
+    {
+      "name": "c",
+      "type": "boolean"
+    },
+    {
+      "name": "d",
+      "type": "float"
+    },
+    {
+      "name": "e",
+      "type": "long"
+    },
+    {
+      "name": "f",
+      "type": "int"
+    },
+    {
+      "name": "g",
+      "type": "int"
+    },
+    {
+      "name": "h",
+      "type": "int"
+    }
+  ]
+}

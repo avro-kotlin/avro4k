@@ -1,9 +1,12 @@
 package com.sksamuel.avro4k
 
+import kotlinx.serialization.PrimitiveKind
+import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.SerialKind
+import kotlinx.serialization.StructureKind
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import java.nio.ByteBuffer
-import kotlin.reflect.KType
 
 interface SchemaFor<T> {
   fun schema(namingStrategy: NamingStrategy): Schema
@@ -30,18 +33,33 @@ interface SchemaFor<T> {
   }
 }
 
-fun schemaFor(ktype: KType) = when (ktype.classifier) {
-  String::class -> SchemaFor.StringSchemaFor
-  Long::class -> SchemaFor.LongSchemaFor
-  Int::class -> SchemaFor.IntSchemaFor
-  Short::class -> SchemaFor.ShortSchemaFor
-  Byte::class -> SchemaFor.ByteSchemaFor
-  Double::class -> SchemaFor.DoubleSchemaFor
-  Float::class -> SchemaFor.FloatSchemaFor
-  Boolean::class -> SchemaFor.BooleanSchemaFor
-  Array<Byte>::class -> SchemaFor.ByteArraySchemaFor
-  ByteBuffer::class -> SchemaFor.ByteBufferSchemaFor
-  else -> throw UnsupportedOperationException()
+class ClassSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> {
+  override fun schema(namingStrategy: NamingStrategy): Schema {
+    val builder = SchemaBuilder.record(descriptor.name)
+        .doc(null)
+        .namespace(descriptor.kind.javaClass.`package`.name)
+        .fields()
+    val builderWithProps = (0 until descriptor.elementsCount).fold(builder) { acc, index ->
+      val schemaFor = schemaFor(descriptor.getElementDescriptor(index))
+      acc.name(descriptor.getElementName(index)).type(schemaFor.schema(DefaultNamingStrategy)).noDefault()
+    }
+    return builderWithProps.endRecord()
+  }
+}
+
+fun schemaFor(descriptor: SerialDescriptor) = when (descriptor.kind) {
+  PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
+  PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
+  PrimitiveKind.INT -> SchemaFor.IntSchemaFor
+  PrimitiveKind.SHORT -> SchemaFor.ShortSchemaFor
+  PrimitiveKind.BYTE -> SchemaFor.ByteSchemaFor
+  PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
+  PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
+  PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
+  StructureKind.CLASS -> ClassSchemaFor(descriptor)
+  //-> SchemaFor.ByteArraySchemaFor
+  /// ByteBuffer::class -> SchemaFor.ByteBufferSchemaFor
+  else -> throw UnsupportedOperationException("Cannot find schemaFor for $descriptor")
 }
 
 interface NamingStrategy {

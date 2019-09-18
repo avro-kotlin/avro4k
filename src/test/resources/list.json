@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "NestedListString",
+  "namespace": "com.sksamuel.avro4k.schema.ArraySchemaTest",
+  "fields": [
+    {
+      "name": "list",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  ]
+}

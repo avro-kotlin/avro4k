@@ -75,6 +75,14 @@ class EnumSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> 
   }
 }
 
+class ListSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> {
+  override fun schema(namingStrategy: NamingStrategy): Schema {
+    val elementType = descriptor.getElementDescriptor(0)
+    val elementSchema = schemaFor(elementType).schema(namingStrategy)
+    return Schema.createArray(elementSchema)
+  }
+}
+
 fun schemaFor(descriptor: SerialDescriptor) = when (descriptor.kind) {
   PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
   PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -86,9 +94,8 @@ fun schemaFor(descriptor: SerialDescriptor) = when (descriptor.kind) {
   PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
   StructureKind.CLASS -> ClassSchemaFor(descriptor)
   UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
-  //-> SchemaFor.ByteArraySchemaFor
-  /// ByteBuffer::class -> SchemaFor.ByteBufferSchemaFor
-  else -> throw UnsupportedOperationException("Cannot find schemaFor for $descriptor")
+  StructureKind.LIST -> ListSchemaFor(descriptor)
+  else -> throw UnsupportedOperationException("Cannot find schemaFor for ${descriptor.kind}")
 }
 
 interface NamingStrategy {

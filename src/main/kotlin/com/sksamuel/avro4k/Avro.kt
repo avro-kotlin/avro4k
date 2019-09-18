@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k
 
+import com.sksamuel.avro4k.serializers.BigDecimalSerializer
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
@@ -9,8 +10,10 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.encode
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.modules.serializersModuleOf
 import org.apache.avro.Schema
 import java.io.ByteArrayOutputStream
+import java.math.BigDecimal
 
 data class AvroConfiguration constructor(
     @JvmField internal val encodeDefaults: Boolean = true
@@ -19,7 +22,9 @@ data class AvroConfiguration constructor(
 class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFormat(context), BinaryFormat {
 
   companion object {
-    val default = Avro()
+    private val simpleModule = serializersModuleOf(BigDecimal::class,
+        BigDecimalSerializer())
+    val default = Avro(simpleModule)
   }
 
   override fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
@@ -57,3 +62,4 @@ class AvroEncoder(output: ByteArrayOutputStream) : ElementValueEncoder() {
 class AvroDecoder() : ElementValueDecoder() {
 
 }
+

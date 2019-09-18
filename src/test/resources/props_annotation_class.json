@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "Annotated",
+  "namespace": "com.sksamuel.avro4k.schema.AvroPropSchemaTest",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string"
+    }
+  ],
+  "cold": "play"
+}

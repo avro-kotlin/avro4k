@@ -12,11 +12,6 @@ data class Nested(val goo: String)
 @Serializable
 data class Test(val foo: String, val nested: Nested)
 
-//@Serializable
-//data class RecursiveFoo(val list: List<RecursiveFoo>)
-
-
-@Suppress("BlockingMethodInNonBlockingContext")
 class BasicSchemaTest : FunSpec({
 
   test("schema for basic types") {
@@ -42,12 +37,6 @@ class BasicSchemaTest : FunSpec({
     val schema = Avro.default.schema(Test.serializer())
     schema.toString(true) shouldBe expected.toString(true)
   }
-
-//  test("!support simple recursive types") {
-//    val schema = Avro.default.schema(RecursiveFoo.serializer())
-//    val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive.json"))
-//    schema.toString(true) shouldBe expected.toString(true)
-//  }
 
   test("accept multiple nested case classes") {
 

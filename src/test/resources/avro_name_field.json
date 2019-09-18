@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel.avro4k.schema.AvroNameSchemaTest",
+  "fields": [
+    {
+      "name": "wobble",
+      "type": "string"
+    },
+    {
+      "name": "wubble",
+      "type": "string"
+    }
+  ]
+}

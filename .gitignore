@@ -13,6 +13,7 @@ src_managed/
 project/boot/
 project/plugins/project/
 credentials.sbt
+.gradle
 
 # Scala-IDE specific
 .scala_dependencies

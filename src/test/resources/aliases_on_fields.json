@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "name": "Annotated",
+  "namespace": "com.sksamuel.avro4k.schema.AvroAliasSchemaTest",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string",
+      "aliases": [
+        "cold"
+      ]
+    },
+    {
+      "name": "long",
+      "type": "long",
+      "aliases": [
+        "kate"
+      ]
+    },
+    {
+      "name": "int",
+      "type": "int"
+    }
+  ]
+}

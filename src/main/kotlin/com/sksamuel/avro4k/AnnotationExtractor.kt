@@ -11,5 +11,6 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
   fun namespace(): String? = annotations.filterIsInstance<AvroNamespace>().firstOrNull()?.value
   fun name(): String? = annotations.filterIsInstance<AvroName>().firstOrNull()?.value
   fun doc(): String? = annotations.filterIsInstance<AvroDoc>().firstOrNull()?.value
+  fun aliases(): List<String> = annotations.filterIsInstance<AvroAlias>().map { it.value }
 }
 

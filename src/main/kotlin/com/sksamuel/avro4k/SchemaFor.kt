@@ -48,6 +48,7 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
       val field = Schema.Field(descriptor.getElementName(index), schema, annos.doc(), null)
       val props = descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
       props.forEach { field.addProp(it.key, it.value) }
+      annos.aliases().forEach { field.addAlias(it) }
       field
     }
 
@@ -55,8 +56,7 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
     val naming = NameExtractor(descriptor)
     val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)
     record.fields = fields
-
-    // aliases.foreach(record.addAlias)
+    annos.aliases().forEach { record.addAlias(it) }
 
     val props = descriptor.getEntityAnnotations().filterIsInstance<AvroProp>()
     props.forEach { record.addProp(it.key, it.value) }

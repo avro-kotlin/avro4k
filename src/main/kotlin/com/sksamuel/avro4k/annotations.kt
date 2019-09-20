@@ -17,3 +17,7 @@ annotation class AvroName(val value: String)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDoc(val value: String)
+
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroAlias(val value: String)

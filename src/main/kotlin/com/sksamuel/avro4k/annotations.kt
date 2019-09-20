@@ -8,9 +8,12 @@ annotation class AvroProp(val key: String, val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroNamespace(val name: String)
+annotation class AvroNamespace(val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroName(val name: String)
+annotation class AvroName(val value: String)
 
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroDoc(val value: String)

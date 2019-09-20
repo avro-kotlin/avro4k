@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "Annotated",
+  "namespace": "com.sksamuel.avro4k.schema.AvroDocSchemaTest",
+  "doc" : "hello; is it me youre looking for",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string"
+    }
+  ]
+}

@@ -43,18 +43,17 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
       // val schemaWithResolvedNamespace = extractor.namespace
       //   .map(SchemaHelper.overrideNamespace(schemaWithOrderedUnion, _))
       // .getOrElse(schemaWithOrderedUnion)
-
+      val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
       val schema = schemaFor(descriptor.getElementDescriptor(index)).schema(DefaultNamingStrategy)
-
-      val field = Schema.Field(descriptor.getElementName(index), schema, null, null)
-
+      val field = Schema.Field(descriptor.getElementName(index), schema, annos.doc(), null)
       val props = descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
       props.forEach { field.addProp(it.key, it.value) }
       field
     }
 
+    val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
     val naming = NameExtractor(descriptor)
-    val record = Schema.createRecord(naming.name(), null, naming.namespace(), false)
+    val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)
     record.fields = fields
 
     // aliases.foreach(record.addAlias)

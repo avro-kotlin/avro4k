@@ -88,37 +88,6 @@ class ArraySchemaTest : WordSpec({
 //      val schema = Avro.default.schema(Test.serializer())
 //      schema.toString(true) shouldBe expected.toString(true)
 //    }
-//    "support array of maps" {
-//      data class Test(array: Array[Map[String, String]])
-//      val expected = org . apache . avro . Schema . Parser ().parse(javaClass.getResourceAsStream("/array_of_maps.json"))
-//      val schema = AvroSchema[Test]
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
-//    "support lists of maps" {
-//      data class Test(list: List[Map[String, String]])
-//      val expected = org . apache . avro . Schema . Parser ().parse(javaClass.getResourceAsStream("/list_of_maps.json"))
-//      val schema = AvroSchema[Test]
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
-//    "support seq of maps" {
-//      data class Test(seq: Seq[Map[String, String]])
-//      val expected = org . apache . avro . Schema . Parser ().parse(javaClass.getResourceAsStream("/seq_of_maps.json"))
-//      val schema = AvroSchema[Test]
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
-//    "support vector of maps" {
-//      data class Test(vector: Vector[Map[String, String]])
-//      val expected = org . apache . avro . Schema . Parser ().parse(javaClass.getResourceAsStream("/vector_of_maps.json"))
-//      val schema = AvroSchema[Test]
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
-//    "support data class of seq of data class with maps" {
-//      data class Ship(map: scala.collection.immutable.Map[String, String])
-//      data class Test(ship: List[scala.collection.immutable.Map[String, String]])
-//      val expected = org . apache . avro . Schema . Parser ().parse(javaClass.getResourceAsStream("/class_of_list_of_maps.json"))
-//      val schema = AvroSchema[Test]
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
   }
 
 })

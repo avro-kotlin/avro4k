@@ -6,9 +6,8 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.UnionKind
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import java.nio.ByteBuffer
 
-interface SchemaFor<T> {
+interface SchemaFor {
   fun schema(namingStrategy: NamingStrategy): Schema
 
   companion object {
@@ -16,24 +15,24 @@ interface SchemaFor<T> {
     /**
      * Creates a [SchemaFor] that always returns the given constant schema.
      */
-    fun <T> const(schema: Schema) = object : SchemaFor<T> {
+    fun const(schema: Schema) = object : SchemaFor {
       override fun schema(namingStrategy: NamingStrategy) = schema
     }
 
-    val StringSchemaFor: SchemaFor<String> = const(SchemaBuilder.builder().stringType())
-    val LongSchemaFor: SchemaFor<Long> = const(SchemaBuilder.builder().longType())
-    val IntSchemaFor: SchemaFor<Int> = const(SchemaBuilder.builder().intType())
-    val ShortSchemaFor: SchemaFor<Short> = const(SchemaBuilder.builder().intType())
-    val ByteSchemaFor: SchemaFor<Byte> = const(SchemaBuilder.builder().intType())
-    val DoubleSchemaFor: SchemaFor<Double> = const(SchemaBuilder.builder().doubleType())
-    val FloatSchemaFor: SchemaFor<Float> = const(SchemaBuilder.builder().floatType())
-    val BooleanSchemaFor: SchemaFor<Boolean> = const(SchemaBuilder.builder().booleanType())
-    val ByteArraySchemaFor: SchemaFor<Array<Byte>> = const(SchemaBuilder.builder().bytesType())
-    val ByteBufferSchemaFor: SchemaFor<ByteBuffer> = const(SchemaBuilder.builder().bytesType())
+    val StringSchemaFor: SchemaFor = const(SchemaBuilder.builder().stringType())
+    val LongSchemaFor: SchemaFor = const(SchemaBuilder.builder().longType())
+    val IntSchemaFor: SchemaFor = const(SchemaBuilder.builder().intType())
+    val ShortSchemaFor: SchemaFor = const(SchemaBuilder.builder().intType())
+    val ByteSchemaFor: SchemaFor = const(SchemaBuilder.builder().intType())
+    val DoubleSchemaFor: SchemaFor = const(SchemaBuilder.builder().doubleType())
+    val FloatSchemaFor: SchemaFor = const(SchemaBuilder.builder().floatType())
+    val BooleanSchemaFor: SchemaFor = const(SchemaBuilder.builder().booleanType())
+    val ByteArraySchemaFor: SchemaFor = const(SchemaBuilder.builder().bytesType())
+    val ByteBufferSchemaFor: SchemaFor = const(SchemaBuilder.builder().bytesType())
   }
 }
 
-class ClassSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> {
+class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
   override fun schema(namingStrategy: NamingStrategy): Schema {
 
     val fields = (0 until descriptor.elementsCount).map { index ->
@@ -67,7 +66,7 @@ class ClassSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T>
   }
 }
 
-class EnumSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> {
+class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
   override fun schema(namingStrategy: NamingStrategy): Schema {
     val naming = NameExtractor(descriptor)
     val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
@@ -75,7 +74,7 @@ class EnumSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<T> 
   }
 }
 
-class ListSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<List<T>> {
+class ListSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
   override fun schema(namingStrategy: NamingStrategy): Schema {
     val elementType = descriptor.getElementDescriptor(0)
     return when (elementType.kind) {
@@ -88,19 +87,45 @@ class ListSchemaFor<T>(private val descriptor: SerialDescriptor) : SchemaFor<Lis
   }
 }
 
-fun schemaFor(descriptor: SerialDescriptor) = when (descriptor.kind) {
-  PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
-  PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
-  PrimitiveKind.INT -> SchemaFor.IntSchemaFor
-  PrimitiveKind.SHORT -> SchemaFor.ShortSchemaFor
-  PrimitiveKind.BYTE -> SchemaFor.ByteSchemaFor
-  PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
-  PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
-  PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-  StructureKind.CLASS -> ClassSchemaFor(descriptor)
-  UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
-  StructureKind.LIST -> ListSchemaFor<Any>(descriptor)
-  else -> throw UnsupportedOperationException("Cannot find schemaFor for ${descriptor.kind}")
+class MapSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
+  override fun schema(namingStrategy: NamingStrategy): Schema {
+    val keyType = descriptor.getElementDescriptor(0)
+    when (keyType.kind) {
+      is PrimitiveKind.STRING -> {
+        val valueType = descriptor.getElementDescriptor(1)
+        val valueSchema = schemaFor(valueType).schema(namingStrategy)
+        return Schema.createMap(valueSchema)
+      }
+      else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
+    }
+  }
+}
+
+class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
+  override fun schema(namingStrategy: NamingStrategy): Schema {
+    val elementSchema = schemaFor.schema(namingStrategy)
+    val nullSchema = SchemaBuilder.builder().nullType()
+    return SchemaHelper.createSafeUnion(elementSchema, nullSchema)
+  }
+}
+
+fun schemaFor(descriptor: SerialDescriptor): SchemaFor {
+  val schemaFor = when (descriptor.kind) {
+    PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
+    PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
+    PrimitiveKind.INT -> SchemaFor.IntSchemaFor
+    PrimitiveKind.SHORT -> SchemaFor.ShortSchemaFor
+    PrimitiveKind.BYTE -> SchemaFor.ByteSchemaFor
+    PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
+    PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
+    PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
+    StructureKind.CLASS -> ClassSchemaFor(descriptor)
+    UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
+    StructureKind.LIST -> ListSchemaFor(descriptor)
+    StructureKind.MAP -> MapSchemaFor(descriptor)
+    else -> throw UnsupportedOperationException("Cannot find schemaFor for ${descriptor.kind}")
+  }
+  return if (descriptor.isNullable) NullableSchemaFor(schemaFor) else schemaFor
 }
 
 interface NamingStrategy {

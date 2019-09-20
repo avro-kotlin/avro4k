@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.sksamuel.avro4k.schema.MapSchemaTest",
+  "fields": [
+    {
+      "name": "map",
+      "type": {
+        "type": "map",
+        "values": "string"
+      }
+    }
+  ]
+}

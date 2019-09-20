@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.sksamuel.avro4k.schema.NullableSchemaTest",
+  "fields": [
+    {
+      "name": "nullableString",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "nullableBoolean",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    }
+  ]
+}

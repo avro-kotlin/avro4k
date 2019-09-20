@@ -35,7 +35,9 @@ interface SchemaFor {
 class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
   override fun schema(namingStrategy: NamingStrategy): Schema {
 
-    val fields = (0 until descriptor.elementsCount).map { index ->
+    val fields = (0 until descriptor.elementsCount)
+        .filterNot { descriptor.isElementOptional(it) }
+        .map { index ->
 
       // the field can override the containingNamespace if the Namespace annotation is present on the field
       // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied

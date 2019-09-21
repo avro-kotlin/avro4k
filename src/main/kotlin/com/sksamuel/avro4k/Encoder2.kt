@@ -70,6 +70,36 @@ class AvroEncoder(
     values.add(encoded)
   }
 
+  override fun encodeDouble(value: Double) {
+    val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeBoolean(value: Boolean) {
+    val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeShort(value: Short) {
+    val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeByte(value: Byte) {
+    val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeFloat(value: Float) {
+    val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeInt(value: Int) {
+    val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
   /**
    * Returns the build built by this encoder.
    */

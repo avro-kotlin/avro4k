@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k
 
 import kotlinx.serialization.CompositeDecoder
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.NamedValueDecoder
@@ -43,12 +44,22 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
 
   var index = 0
 
+  override fun decodeTaggedNotNullMark(tag: String): Boolean {
+    return record.get(tag) != null
+  }
+
   override fun decodeElementIndex(desc: SerialDescriptor): Int {
     println("decodeElementIndex $desc $index")
-    if (index == desc.elementsCount) return CompositeDecoder.READ_DONE
-    val k = index
-    index++
-    return k
+    while (index < desc.elementsCount) {
+      if (desc.isElementOptional(index)) {
+        index++
+      } else {
+        val k = index
+        index++
+        return k
+      }
+    }
+    return CompositeDecoder.READ_DONE
   }
 
   private val lists = mutableListOf<Array<Any>>()

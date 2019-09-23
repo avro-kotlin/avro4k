@@ -13,4 +13,9 @@ object SchemaHelper {
     val (nulls, rest) = flattened.partition { it.type == Schema.Type.NULL }
     return Schema.createUnion(nulls + rest)
   }
+
+  fun findSubschema(schema: Schema, name: String): Schema? {
+    require(schema.type == Schema.Type.RECORD)
+    return schema.fields.find { it.name() == name }?.schema()
+  }
 }

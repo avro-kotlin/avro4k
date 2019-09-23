@@ -28,8 +28,13 @@ class AvroEncoder(
   object StringEncoder
 
   private val values = ArrayList<Any>()
+  private var index = 0
+  private var encoder: CompositeEncoder? = null
 
   override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
+    this.index = index
+    // we may have delegated in the previous element
+    println("encodeElement ${desc.name} $index")
     if (desc.kind is StructureKind.CLASS) {
       //key = desc.getElementName(index)
     }
@@ -37,27 +42,36 @@ class AvroEncoder(
   }
 
   override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+    println("encodeSerializableValue $serializer $value")
     super.encodeSerializableValue(serializer, value)
   }
 
+  override fun beginCollection(desc: SerialDescriptor,
+                               collectionSize: Int,
+                               vararg typeParams: KSerializer<*>): CompositeEncoder {
+    println("beginCollection ${desc.name} $collectionSize $typeParams")
+    return super.beginCollection(desc, collectionSize, *typeParams)
+  }
+
   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-    when (desc.kind as StructureKind) {
-      is StructureKind.LIST -> TODO(desc.name)
-      is StructureKind.MAP -> {
-      }
-      is StructureKind.CLASS -> {
-      }
+    println("beginStructure ${desc.name}")
+    val subschema = schema.fields[index].schema()
+    return when (desc.kind as StructureKind) {
+      is StructureKind.LIST -> ListEncoder(subschema).apply { encoder = this }
+      else -> super.beginStructure(desc, *typeParams)
     }
-    return super.beginStructure(desc, *typeParams)
   }
 
   override fun endStructure(desc: SerialDescriptor) {
+    println("endStructure ${desc.name} encoder=$encoder")
     when (desc.kind) {
-      is StructureKind.LIST -> TODO(desc.name)
-      is StructureKind.MAP, StructureKind.CLASS -> {
-      }
+      is StructureKind.LIST -> values.add((encoder as ListEncoder).result())
+      else -> super.endStructure(desc)
     }
-    super.endStructure(desc)
+  }
+
+  override fun encodeValue(value: Any) {
+    println("encodeValue $value")
   }
 
   override fun encodeString(value: String) {
@@ -100,11 +114,62 @@ class AvroEncoder(
     values.add(encoded)
   }
 
-  /**
-   * Returns the build built by this encoder.
-   */
   fun record(): Record {
     return ImmutableRecord(schema, values)
+  }
+}
+
+class ListEncoder(private val schema: Schema) : ElementValueEncoder() {
+
+  private val values = mutableListOf<Any>()
+
+  fun result(): GenericData.Array<Any> {
+    println("Building list from $values")
+    return GenericData.Array<Any>(schema, values.toList())
+  }
+
+  override fun endStructure(desc: SerialDescriptor) {
+    println("endStructure ${desc.name} encoder=$this")
+  }
+
+  override fun encodeString(value: String) {
+    val encoded = StringEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeLong(value: Long) {
+    val encoded = LongEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeDouble(value: Double) {
+    val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeBoolean(value: Boolean) {
+    val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeShort(value: Short) {
+    val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeByte(value: Byte) {
+    val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeFloat(value: Float) {
+    val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
+  }
+
+  override fun encodeInt(value: Int) {
+    val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
+    values.add(encoded)
   }
 }
 

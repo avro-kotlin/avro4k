@@ -5,11 +5,13 @@ import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.decode
 import kotlinx.serialization.encode
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
 import kotlinx.serialization.modules.serializersModuleOf
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 
@@ -71,5 +73,10 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
 
   fun <T> schema(serializer: SerializationStrategy<T>): Schema {
     return schemaFor(serializer.descriptor).schema(DefaultNamingStrategy)
+  }
+
+  fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
+                     record: GenericData.Record): T {
+    return RecordDecoder(record).decode(deserializer)
   }
 }

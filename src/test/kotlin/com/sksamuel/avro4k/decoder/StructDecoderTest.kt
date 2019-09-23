@@ -39,30 +39,35 @@ class StructDecoderTest : WordSpec({
           Birthplace(person = "Sammy Sam", town = Town(name = "Hardwick", population = 123))
     }
 
-//    "decode structs" {
-//
-//      val countySchema = Avro.default.schema(County.serializer())
-//      val townSchema = Avro.default.schema(Town.serializer())
-//
-//      val obj = County("Bucks", listOf(Town("Hardwick", 123), Town("Weedon", 225)), true, 12.34, 0.123)
-//
-//      val hardwick = new GenericData . Record (townSchema)
-//      hardwick.put("name", "Hardwick")
-//      hardwick.put("population", 123)
-//
-//      val weedon = new GenericData . Record (townSchema)
-//      weedon.put("name", "Weedon")
-//      weedon.put("population", 225)
-//
-//      val bucks = new GenericData . Record (countySchema)
-//      bucks.put("name", "Bucks")
-//      bucks.put("towns", List(hardwick, weedon).asJava)
-//      bucks.put("ceremonial", true)
-//      bucks.put("lat", 12.34)
-//      bucks.put("long", 0.123)
-//
-//      //   Decoder[County].decode(bucks, countySchema, DefaultFieldMapper) shouldBe obj
-//    }
+    "decode nested list of classes" {
+
+      val countySchema = Avro.default.schema(County.serializer())
+      val townSchema = Avro.default.schema(Town.serializer())
+
+      val hardwick = GenericData.Record(townSchema)
+      hardwick.put("name", "Hardwick")
+      hardwick.put("population", 123)
+
+      val weedon = GenericData.Record(townSchema)
+      weedon.put("name", "Weedon")
+      weedon.put("population", 225)
+
+      val bucks = GenericData.Record(countySchema)
+      bucks.put("name", "Bucks")
+      bucks.put("towns", listOf(hardwick, weedon))
+      bucks.put("ceremonial", true)
+      bucks.put("lat", 12.34)
+      bucks.put("long", 0.123)
+
+      Avro.default.fromRecord(County.serializer(), bucks) shouldBe
+          County(
+              name = "Bucks",
+              towns = listOf(Town(name = "Hardwick", population = 123), Town(name = "Weedon", population = 225)),
+              ceremonial = true,
+              lat = 12.34,
+              long = 0.123
+          )
+    }
 
 //    "decode optional structs" {
 //      val countySchema = AvroSchema[County]

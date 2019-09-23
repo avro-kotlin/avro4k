@@ -56,6 +56,8 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
     println("beginStructure $desc")
     return when (desc.kind as StructureKind) {
+      // if we have a class and the current tag is null, then we are in the "root" class and just use "this" decoder
+      // otherwise we'll recurse into a fresh ClassDecoder
       StructureKind.CLASS -> if (currentTagOrNull == null) this else RecordDecoder(record.get(currentTag) as GenericRecord)
       StructureKind.LIST -> {
         when (val data = record.get(currentTag)) {
@@ -66,15 +68,6 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
       }
       StructureKind.MAP -> this
     }
-  }
-
-  override fun endStructure(desc: SerialDescriptor) {
-    println("endStructure $desc")
-    super.endStructure(desc)
-  }
-
-  override fun decodeCollectionSize(desc: SerialDescriptor): Int {
-    return super.decodeCollectionSize(desc)
   }
 }
 
@@ -100,6 +93,14 @@ class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
 
   override fun decodeFloat(): Float {
     return array[index++] as Float
+  }
+
+  override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+    println("beginStructure $desc")
+    return when (desc.kind as StructureKind) {
+      StructureKind.CLASS -> RecordDecoder(array[index++] as GenericRecord)
+      StructureKind.MAP, StructureKind.LIST -> this
+    }
   }
 
   override fun decodeCollectionSize(desc: SerialDescriptor): Int = array.size

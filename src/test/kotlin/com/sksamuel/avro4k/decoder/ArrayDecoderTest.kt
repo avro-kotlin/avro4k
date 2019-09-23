@@ -84,63 +84,87 @@ class ArrayDecoderTest : WordSpec({
       Avro.default.fromRecord(TestListDoubles.serializer(), record) shouldBe
           TestListDoubles(listOf(12.54, 23.5, 9123.2314))
     }
-//
-//    "support array for a List of records" {
-//
-//      val containerSchema = Avro.default.schema(TestListRecords.serializer())
-//      val recordSchema = Avro.default.schema(Record.serializer())
-//
-//      val record1 = GenericData.Record(recordSchema)
-//      record1.put("str", "qwe")
-//      record1.put("double", 123.4)
-//
-//      val record2 = GenericData.Record(recordSchema)
-//      record2.put("str", "wer")
-//      record2.put("double", 8234.324)
-//
-//      val container = GenericData.Record(containerSchema)
-//      container.put("records", arrayOf(record1, record2))
-//
-//      //Decoder[TestListRecords].decode(container, containerSchema, DefaultFieldMapper) shouldBe TestListRecords(List(Record("qwe", 123.4), Record("wer", 8234.324)))
-//    }
-//
-//    "support array for an Array of records" {
-//
-//      val containerSchema = Avro.default.schema(TestArrayRecords.serializer())
-//      val recordSchema = Avro.default.schema(Record.serializer())
-//
-//      val record1 = GenericData.Record(recordSchema)
-//      record1.put("str", "qwe")
-//      record1.put("double", 123.4)
-//
-//      val record2 = GenericData.Record(recordSchema)
-//      record2.put("str", "wer")
-//      record2.put("double", 8234.324)
-//
-//      val container = GenericData.Record(containerSchema)
-//      container.put("records", arrayOf(record1, record2))
-//
-//      //Decoder[TestArrayRecords].decode(container, containerSchema, DefaultFieldMapper).records.toVector shouldBe Vector(Record("qwe", 123.4), Record("wer", 8234.324))
-//    }
-//
-//    "support array for a Set of records" {
-//
-//      val containerSchema = Avro.default.schema(TestSetRecords.serializer())
-//      val recordSchema = Avro.default.schema(Record.serializer())
-//
-//      val record1 = GenericData.Record(recordSchema)
-//      record1.put("str", "qwe")
-//      record1.put("double", 123.4)
-//
-//      val record2 = GenericData.Record(recordSchema)
-//      record2.put("str", "wer")
-//      record2.put("double", 8234.324)
-//
-//      val container = GenericData.Record(containerSchema)
-//      container.put("records", arrayOf(record1, record2))
-//
-//      //Decoder[TestSetRecords].decode(container, containerSchema, DefaultFieldMapper) shouldBe TestSetRecords(Set(Record("qwe", 123.4), Record("wer", 8234.324)))
-//    }
+
+    "support array for a List of records" {
+
+      val containerSchema = Avro.default.schema(TestListRecords.serializer())
+      val recordSchema = Avro.default.schema(Record.serializer())
+
+      val record1 = GenericData.Record(recordSchema)
+      record1.put("str", "qwe")
+      record1.put("double", 123.4)
+
+      val record2 = GenericData.Record(recordSchema)
+      record2.put("str", "wer")
+      record2.put("double", 8234.324)
+
+      val container = GenericData.Record(containerSchema)
+      container.put("records", arrayOf(record1, record2))
+
+      Avro.default.fromRecord(TestListRecords.serializer(), container) shouldBe
+          TestListRecords(listOf(Record("qwe", 123.4), Record("wer", 8234.324)))
+    }
+
+    "support list for a List of records" {
+
+      val containerSchema = Avro.default.schema(TestListRecords.serializer())
+      val recordSchema = Avro.default.schema(Record.serializer())
+
+      val record1 = GenericData.Record(recordSchema)
+      record1.put("str", "qwe")
+      record1.put("double", 123.4)
+
+      val record2 = GenericData.Record(recordSchema)
+      record2.put("str", "wer")
+      record2.put("double", 8234.324)
+
+      val container = GenericData.Record(containerSchema)
+      container.put("records", listOf(record1, record2))
+
+      Avro.default.fromRecord(TestListRecords.serializer(), container) shouldBe
+          TestListRecords(listOf(Record("qwe", 123.4), Record("wer", 8234.324)))
+    }
+
+    "support array for a Set of records" {
+
+      val containerSchema = Avro.default.schema(TestSetRecords.serializer())
+      val recordSchema = Avro.default.schema(Record.serializer())
+
+      val record1 = GenericData.Record(recordSchema)
+      record1.put("str", "qwe")
+      record1.put("double", 123.4)
+
+      val record2 = GenericData.Record(recordSchema)
+      record2.put("str", "wer")
+      record2.put("double", 8234.324)
+
+      val container = GenericData.Record(containerSchema)
+      container.put("records", arrayOf(record1, record2))
+
+      Avro.default.fromRecord(TestSetRecords.serializer(), container) shouldBe
+          TestSetRecords(setOf(Record("qwe", 123.4), Record("wer", 8234.324)))
+    }
+
+    "support GenericData.Array for a Set of records" {
+
+      val containerSchema = Avro.default.schema(TestSetRecords.serializer())
+      val recordSchema = Avro.default.schema(Record.serializer())
+
+      val record1 = GenericData.Record(recordSchema)
+      record1.put("str", "qwe")
+      record1.put("double", 123.4)
+
+      val record2 = GenericData.Record(recordSchema)
+      record2.put("str", "wer")
+      record2.put("double", 8234.324)
+
+      val container = GenericData.Record(containerSchema)
+      container.put("records",
+          GenericData.Array(Schema.createArray(Schema.create(Schema.Type.STRING)), listOf(record1, record2)))
+
+      Avro.default.fromRecord(TestSetRecords.serializer(), container) shouldBe
+          TestSetRecords(setOf(Record("qwe", 123.4), Record("wer", 8234.324)))
+    }
 
     "support array for a Set of strings" {
       val schema = Avro.default.schema(TestSetString.serializer())

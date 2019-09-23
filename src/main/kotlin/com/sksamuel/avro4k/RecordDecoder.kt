@@ -8,9 +8,11 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
+import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
+import java.nio.ByteBuffer
 
 class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
 
@@ -48,7 +50,12 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
     return when (val v = record.get(tag)) {
       is String -> v
       is Utf8 -> v.toString()
-      else -> throw SerializationException("Unsupported value for String: $v")
+      is GenericData.Fixed -> String(v.bytes())
+      is ByteArray -> String(v)
+      is CharSequence -> v.toString()
+      is ByteBuffer -> String(v.array())
+      null -> throw SerializationException("Cannot decode <null> as a string")
+      else -> throw SerializationException("Unsupported type for String ${v.javaClass}")
     }
   }
 

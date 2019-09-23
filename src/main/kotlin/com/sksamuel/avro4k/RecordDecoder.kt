@@ -1,13 +1,14 @@
 package com.sksamuel.avro4k
 
 import kotlinx.serialization.CompositeDecoder
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.NamedValueDecoder
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
+import kotlinx.serialization.internal.EnumDescriptor
+import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
@@ -31,6 +32,15 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
 
   override fun decodeTaggedInt(tag: String): Int {
     return record.get(tag) as Int
+  }
+
+  override fun decodeTaggedEnum(tag: String, enumDescription: EnumDescriptor): Int {
+    val symbol = when (val v = record.get(tag)) {
+      is GenericEnumSymbol<*> -> v.toString()
+      is String -> v
+      else -> v.toString()
+    }
+    return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
   }
 
   override fun decodeTaggedString(tag: String): String {

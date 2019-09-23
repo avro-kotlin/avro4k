@@ -5,10 +5,12 @@ import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.NamedValueDecoder
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
-import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericRecord
+import org.apache.avro.util.Utf8
 
-class RecordDecoder(val record: GenericData.Record) : NamedValueDecoder() {
+class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
 
   override fun decodeTaggedDouble(tag: String): Double {
     return record.get(tag) as Double
@@ -32,7 +34,11 @@ class RecordDecoder(val record: GenericData.Record) : NamedValueDecoder() {
 
   override fun decodeTaggedString(tag: String): String {
     println(tag)
-    return record.get(tag) as String
+    return when (val v = record.get(tag)) {
+      is String -> v
+      is Utf8 -> v.toString()
+      else -> throw SerializationException("Unsupported value for String: $v")
+    }
   }
 
   var index = 0
@@ -50,7 +56,7 @@ class RecordDecoder(val record: GenericData.Record) : NamedValueDecoder() {
   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
     println("beginStructure $desc")
     return when (desc.kind as StructureKind) {
-      StructureKind.CLASS -> this
+      StructureKind.CLASS -> if (currentTagOrNull == null) this else RecordDecoder(record.get(currentTag) as GenericRecord)
       StructureKind.LIST -> {
         when (val data = record.get(currentTag)) {
           is List<*> -> ListDecoder(data)

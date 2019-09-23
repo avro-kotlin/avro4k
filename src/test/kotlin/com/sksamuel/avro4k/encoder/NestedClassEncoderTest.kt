@@ -14,7 +14,7 @@ data class County(val name: String, val towns: List<Town>, val ceremonial: Boole
 data class Town(val name: String, val population: Int)
 
 @Serializable
-data class Foo(val a: String, val town: Town)
+data class Birthplace(val a: String, val town: Town)
 
 class NestedClassEncoderTest : FunSpec({
 
@@ -24,8 +24,8 @@ class NestedClassEncoderTest : FunSpec({
   val weedon = ImmutableRecord(townSchema, arrayListOf(Utf8("Weedon"), Integer.valueOf(225)))
 
   test("encode nested class") {
-    val foo = Foo("wibble", Town("Hardwick", 123))
-    val record = Avro.default.toRecord(Foo.serializer(), foo)
+    val foo = Birthplace("wibble", Town("Hardwick", 123))
+    val record = Avro.default.toRecord(Birthplace.serializer(), foo)
     record shouldBe ImmutableRecord(countySchema, arrayListOf(Utf8("wibble"), hardwick))
   }
 

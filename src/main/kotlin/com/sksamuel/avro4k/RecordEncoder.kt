@@ -4,6 +4,7 @@ import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.NamedValueEncoder
+import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
@@ -29,8 +30,14 @@ class RecordEncoder(private val schema: Schema,
       return when (desc.kind) {
          StructureKind.LIST -> {
             val fieldName = popTag()
-            val s = schema.getField(fieldName).schema()
-            ListEncoder(s) { builder.add(fieldName, it) }
+            when (desc.getElementDescriptor(0).kind) {
+               PrimitiveKind.BYTE -> ByteArrayEncoder { builder.add(fieldName, it) }
+               else -> {
+                  val s = schema.getField(fieldName).schema()
+                  ListEncoder(s) { builder.add(fieldName, it) }
+               }
+            }
+
          }
          StructureKind.CLASS -> {
             val fieldName = popTag()
@@ -87,6 +94,20 @@ class RecordEncoder(private val schema: Schema,
 
    override fun encodeTaggedFloat(tag: String, value: Float) {
       builder.add(tag, value)
+   }
+}
+
+class ByteArrayEncoder(private val callback: (ByteBuffer) -> Unit) : ElementValueEncoder() {
+
+   private val bytes = mutableListOf<Byte>()
+
+   override fun encodeByte(value: Byte) {
+      bytes.add(value)
+   }
+
+   override fun endStructure(desc: SerialDescriptor) {
+      val bb = ByteBuffer.allocate(bytes.size).put(bytes.toByteArray())
+      callback(bb)
    }
 }
 

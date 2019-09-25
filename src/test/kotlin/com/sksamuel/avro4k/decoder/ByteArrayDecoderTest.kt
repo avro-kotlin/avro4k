@@ -27,8 +27,7 @@ class ByteArrayDecoderTest : FunSpec({
 
    test("decode ByteBuffer to List<Byte>") {
       val schema = Avro.default.schema(ListByteTest.serializer())
-      val record = GenericData.Record(schema
-      )
+      val record = GenericData.Record(schema)
       record.put("z", ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
       Avro.default.fromRecord(ListByteTest.serializer(), record).z shouldBe listOf<Byte>(1, 4, 9)
    }

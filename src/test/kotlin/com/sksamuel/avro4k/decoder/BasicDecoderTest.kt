@@ -24,6 +24,9 @@ data class FooLong(val l: Long)
 @Serializable
 data class FooInt(val i: Int)
 
+@Serializable
+data class FooByte(val b: Byte)
+
 class BasicDecoderTest : WordSpec({
 
   "Decoder" should {
@@ -62,6 +65,12 @@ class BasicDecoderTest : WordSpec({
       val record = GenericData.Record(schema)
       record.put("i", 123)
       Avro.default.fromRecord(FooInt.serializer(),record) shouldBe FooInt(123)
+    }
+    "decode bytes" {
+      val schema = Avro.default.schema(FooByte.serializer())
+      val record = GenericData.Record(schema)
+      record.put("b", 123)
+      Avro.default.fromRecord(FooByte.serializer(),record) shouldBe FooByte(123)
     }
   }
 })

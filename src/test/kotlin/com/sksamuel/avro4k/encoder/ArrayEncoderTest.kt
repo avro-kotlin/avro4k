@@ -1,39 +1,64 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.ArrayListRecord
+import com.sksamuel.avro4k.MapRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.WordSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
 
 class ArrayEncoderTest : WordSpec({
 
-  "Encoder" should {
-//    "generate array for an Array of primitives" {
-//      @Serializable
-//      data class Test(val array: Array<Boolean>)
-//
-//      val schema = Avro.default.schema(Test.serializer())
-//      val record = Avro.default.toRecord(Test.serializer(), Test(arrayOf(true, false, true)))
-//      record shouldBe ImmutableRecord(schema, arrayListOf(arrayListOf(true, false, true)))
-//    }
-    "support array for an Array of primitives with other fields" {
-      @Serializable
-      data class Test(val a: String, val array: Array<Boolean>, val c: Long)
+   "Encoder" should {
+      "generate GenericData.Array for an Array<Boolean>" {
+         @Serializable
+         data class Test(val a: Array<Boolean>)
 
-      val schema = Avro.default.schema(Test.serializer())
-      val record = Avro.default.toRecord(Test.serializer(), Test("wibble", arrayOf(true, false, true), 123L))
-      record shouldBe ArrayListRecord(schema, arrayListOf(Utf8("wibble"), arrayListOf(true, false, true), 123L))
-    }
-//    "generate array for a List of primitives" {
-//      @Serializable
-//      data class Test(val list: List<String>)
-//
-//      val schema = Avro.default.schema(Test.serializer())
-//      val record = Avro.default.toRecord(Test.serializer(), Test(listOf("we23", "54")))
-//      record shouldBe ImmutableRecord(schema, arrayListOf(Utf8("we23"), Utf8("54")))
-//    }
+         val schema = Avro.default.schema(Test.serializer())
+         val arraySchema = schema.getField("a").schema()
+         val record = Avro.default.toRecord(Test.serializer(), Test(arrayOf(true, false, true)))
+         record shouldBe MapRecord(schema, mapOf("a" to GenericData.Array(arraySchema, listOf(true, false, true))))
+      }
+      "support GenericData.Array for an Array<Boolean> with other fields" {
+         @Serializable
+         data class Test(val a: String, val b: Array<Boolean>, val c: Long)
+
+         val schema = Avro.default.schema(Test.serializer())
+         val arraySchema = schema.getField("b").schema()
+         val record = Avro.default.toRecord(Test.serializer(), Test("foo", arrayOf(true, false, true), 123L))
+         record shouldBe MapRecord(
+            schema,
+            mapOf(
+               "a" to Utf8("foo"),
+               "b" to GenericData.Array(arraySchema, listOf(true, false, true)),
+               "c" to 123L
+            )
+         )
+      }
+      "generate GenericData.Array for a List<String>" {
+         @Serializable
+         data class Test(val a: List<String>)
+
+         val schema = Avro.default.schema(Test.serializer())
+         val arraySchema = schema.getField("a").schema()
+         val record = Avro.default.toRecord(Test.serializer(), Test(listOf("we23", "54z")))
+         record shouldBe MapRecord(
+            schema,
+            mapOf("a" to
+               GenericData.Array(arraySchema, listOf(Utf8("we23"), Utf8("54z")))
+            )
+         )
+      }
+      "generate GenericData.Array for a Set<Long>" {
+         @Serializable
+         data class Test(val a: Set<Long>)
+
+         val schema = Avro.default.schema(Test.serializer())
+         val arraySchema = schema.getField("a").schema()
+         val record = Avro.default.toRecord(Test.serializer(), Test(setOf(123L, 643L, 912L)))
+         record shouldBe MapRecord(schema, mapOf("a" to GenericData.Array(arraySchema, listOf(123L, 643L, 912))))
+      }
 //    "generate array for an Array of records" {
 //      @Serializable
 //      data class Nested(val goo: String)
@@ -97,31 +122,6 @@ class ArrayEncoderTest : WordSpec({
 //          )
 //      )
 //    }
-//    "generate array for a Set of strings" {
-//
-//      @Serializable
-//      data class Test(val set: Set<String>)
-//
-//      val schema = Avro.default.schema(Test.serializer())
-//      val record = Avro.default.toRecord(Test.serializer(), Test(setOf("qwe", "dfsg")))
-//      record shouldBe ImmutableRecord(
-//          schema,
-//          arrayListOf(Utf8("qwe"), Utf8("dfsg"))
-//      )
-//    }
-//    "generate array for a Set of doubles" {
-//
-//      @Serializable
-//      data class Test(val set: Set<Double>)
-//
-//      val schema = Avro.default.schema(Test.serializer())
-//      val record = Avro.default.toRecord(Test.serializer(), Test(setOf(45.4, 26.26, 9214.6, 124.56)))
-//      record shouldBe ImmutableRecord(
-//          schema,
-//          arrayListOf(45.4, 26.26, 9214.6, 124.56)
-//      )
-//    }
-  }
-
+   }
 })
 

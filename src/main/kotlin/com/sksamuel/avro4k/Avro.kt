@@ -37,8 +37,8 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
 
       val output = ByteArrayOutputStream()
 
-      val encoder = RecordEncoder(schema)
-      encoder.encode(serializer, obj)
+  //    val encoder = RecordEncoder(schema)
+  //    encoder.encode(serializer, obj)
 
       return output.toByteArray()
    }
@@ -67,7 +67,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
       val builder = RecordBuilder(schema)
-      val encoder = REncoder(schema, builder)
+      val encoder = RecordEncoder(schema, builder)
       encoder.encode(serializer, obj)
       return builder.record()
    }

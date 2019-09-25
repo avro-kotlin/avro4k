@@ -20,196 +20,194 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 import java.util.*
 
-class AvroEncoder(
-    private val schema: Schema,
-    override val context: SerialModule = EmptyModule
+class RecordEncoder(
+   private val schema: Schema,
+   override val context: SerialModule = EmptyModule
 ) : ElementValueEncoder() {
 
-  object StringEncoder
+   object StringEncoder
 
-  private val values = ArrayList<Any>()
-  private var index = 0
-  private var encoder: CompositeEncoder? = null
+   private val values = ArrayList<Any>()
+   private var index = 0
+   private var encoder: CompositeEncoder? = null
 
-  override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
-    this.index = index
-    // we may have delegated in the previous element
-    println("encodeElement ${desc.name} $index")
-    if (desc.kind is StructureKind.CLASS) {
-      //key = desc.getElementName(index)
-    }
-    return true
-  }
+   override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
+      this.index = index
+      // we may have delegated in the previous element
+      println("encodeElement ${desc.name} $index")
+      if (desc.kind is StructureKind.CLASS) {
+         //key = desc.getElementName(index)
+      }
+      return true
+   }
 
-  override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
-    println("encodeSerializableValue $serializer $value")
-    super.encodeSerializableValue(serializer, value)
-  }
+   override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+      println("encodeSerializableValue $serializer $value")
+      super.encodeSerializableValue(serializer, value)
+   }
 
-  override fun beginCollection(desc: SerialDescriptor,
-                               collectionSize: Int,
-                               vararg typeParams: KSerializer<*>): CompositeEncoder {
-    println("beginCollection ${desc.name} $collectionSize $typeParams")
-    return super.beginCollection(desc, collectionSize, *typeParams)
-  }
+   override fun beginCollection(desc: SerialDescriptor,
+                                collectionSize: Int,
+                                vararg typeParams: KSerializer<*>): CompositeEncoder {
+      println("beginCollection ${desc.name} $collectionSize $typeParams")
+      return super.beginCollection(desc, collectionSize, *typeParams)
+   }
 
-  override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-    println("beginStructure ${desc.name}")
-    val subschema = schema.fields[index].schema()
-    return when (desc.kind as StructureKind) {
-      is StructureKind.LIST -> ListEncoder(subschema).apply { encoder = this }
-      else -> super.beginStructure(desc, *typeParams)
-    }
-  }
+   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
+      println("beginStructure ${desc.name}")
+      val subschema = schema.fields[index].schema()
+      return when (desc.kind as StructureKind) {
+         is StructureKind.LIST -> ListEncoder(subschema).apply { encoder = this }
+         else -> super.beginStructure(desc, *typeParams)
+      }
+   }
 
-  override fun endStructure(desc: SerialDescriptor) {
-    println("endStructure ${desc.name} encoder=$encoder")
-    when (desc.kind) {
-      is StructureKind.LIST -> values.add((encoder as ListEncoder).result())
-      else -> super.endStructure(desc)
-    }
-  }
+   override fun endStructure(desc: SerialDescriptor) {
+      println("endStructure ${desc.name} encoder=$encoder")
+      when (desc.kind) {
+         is StructureKind.LIST -> values.add((encoder as ListEncoder).result())
+         else -> super.endStructure(desc)
+      }
+   }
 
-  override fun encodeValue(value: Any) {
-    println("encodeValue $value")
-  }
+   override fun encodeValue(value: Any) {
+      println("encodeValue $value")
+   }
 
-  override fun encodeString(value: String) {
-    val encoded = com.sksamuel.avro4k.StringEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeString(value: String) {
+      val encoded = com.sksamuel.avro4k.StringEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeLong(value: Long) {
-    val encoded = LongEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeLong(value: Long) {
+      val encoded = LongEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeDouble(value: Double) {
-    val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeDouble(value: Double) {
+      val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeBoolean(value: Boolean) {
-    val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeBoolean(value: Boolean) {
+      val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeShort(value: Short) {
-    val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeShort(value: Short) {
+      val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeByte(value: Byte) {
-    val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeByte(value: Byte) {
+      val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeFloat(value: Float) {
-    val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeFloat(value: Float) {
+      val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeInt(value: Int) {
-    val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeInt(value: Int) {
+      val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  fun record(): Record {
-    return ImmutableRecord(schema, values)
-  }
+   fun record(): Record = TODO()
 }
 
 class ListEncoder(private val schema: Schema) : ElementValueEncoder() {
 
-  private val values = mutableListOf<Any>()
+   private val values = mutableListOf<Any>()
 
-  fun result(): GenericData.Array<Any> {
-    println("Building list from $values")
-    return GenericData.Array<Any>(schema, values.toList())
-  }
+   fun result(): GenericData.Array<Any> {
+      println("Building list from $values")
+      return GenericData.Array<Any>(schema, values.toList())
+   }
 
-  override fun endStructure(desc: SerialDescriptor) {
-    println("endStructure ${desc.name} encoder=$this")
-  }
+   override fun endStructure(desc: SerialDescriptor) {
+      println("endStructure ${desc.name} encoder=$this")
+   }
 
-  override fun encodeString(value: String) {
-    val encoded = StringEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeString(value: String) {
+      val encoded = StringEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeLong(value: Long) {
-    val encoded = LongEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeLong(value: Long) {
+      val encoded = LongEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeDouble(value: Double) {
-    val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeDouble(value: Double) {
+      val encoded = DoubleEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeBoolean(value: Boolean) {
-    val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeBoolean(value: Boolean) {
+      val encoded = BooleanEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeShort(value: Short) {
-    val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeShort(value: Short) {
+      val encoded = ShortEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeByte(value: Byte) {
-    val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeByte(value: Byte) {
+      val encoded = ByteEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeFloat(value: Float) {
-    val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeFloat(value: Float) {
+      val encoded = FloatEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 
-  override fun encodeInt(value: Int) {
-    val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
-    values.add(encoded)
-  }
+   override fun encodeInt(value: Int) {
+      val encoded = IntEncoder.encode(value, schema, DefaultNamingStrategy)
+      values.add(encoded)
+   }
 }
 
 interface Encoder2<T> {
 
-  /**
-   * @param namingStrategy the [[NamingStrategy]] is used when encoding container types
-   *                    with nested fields. Fields may have a different name in the
-   *                    outgoing message compared to the class field names, and the
-   *                    fieldMapper is used to map between them.
-   */
-  fun encode(value: T, schema: Schema, namingStrategy: NamingStrategy): Any
+   /**
+    * @param namingStrategy the [[NamingStrategy]] is used when encoding container types
+    *                    with nested fields. Fields may have a different name in the
+    *                    outgoing message compared to the class field names, and the
+    *                    fieldMapper is used to map between them.
+    */
+   fun encode(value: T, schema: Schema, namingStrategy: NamingStrategy): Any
 
-  fun <S> comap(f: (S) -> T): Encoder2<S> = object : Encoder2<S> {
-    override fun encode(value: S, schema: Schema, namingStrategy: NamingStrategy): Any =
-        this@Encoder2.encode(f(value), schema, namingStrategy)
-  }
+   fun <S> comap(f: (S) -> T): Encoder2<S> = object : Encoder2<S> {
+      override fun encode(value: S, schema: Schema, namingStrategy: NamingStrategy): Any =
+         this@Encoder2.encode(f(value), schema, namingStrategy)
+   }
 }
 
 inline fun <reified T> encoderFor(): Encoder2<T> = when (T::class) {
-  String::class -> StringEncoder as Encoder2<T>
-  Long::class -> LongEncoder as Encoder2<T>
-  Int::class -> IntEncoder as Encoder2<T>
-  Double::class -> DoubleEncoder as Encoder2<T>
-  Float::class -> FloatEncoder as Encoder2<T>
-  Boolean::class -> BooleanEncoder as Encoder2<T>
-  LocalDate::class -> LocalDateEncoder as Encoder2<T>
-  Instant::class -> InstantEncoder as Encoder2<T>
-  LocalTime::class -> LocalTimeEncoder as Encoder2<T>
-  Timestamp::class -> TimestampEncoder as Encoder2<T>
-  Date::class -> DateEncoder as Encoder2<T>
-  UUID::class -> UUIDEncoder as Encoder2<T>
-  else -> throw IllegalArgumentException("No encoder available for type ${T::class}")
+   String::class -> StringEncoder as Encoder2<T>
+   Long::class -> LongEncoder as Encoder2<T>
+   Int::class -> IntEncoder as Encoder2<T>
+   Double::class -> DoubleEncoder as Encoder2<T>
+   Float::class -> FloatEncoder as Encoder2<T>
+   Boolean::class -> BooleanEncoder as Encoder2<T>
+   LocalDate::class -> LocalDateEncoder as Encoder2<T>
+   Instant::class -> InstantEncoder as Encoder2<T>
+   LocalTime::class -> LocalTimeEncoder as Encoder2<T>
+   Timestamp::class -> TimestampEncoder as Encoder2<T>
+   Date::class -> DateEncoder as Encoder2<T>
+   UUID::class -> UUIDEncoder as Encoder2<T>
+   else -> throw IllegalArgumentException("No encoder available for type ${T::class}")
 }
 
 class ClassEncoder<T>(private val descriptor: SerialDescriptor) : Encoder2<T> {
 
-  override fun encode(value: T, schema: Schema, namingStrategy: NamingStrategy): Any {
-    TODO()
-  }
+   override fun encode(value: T, schema: Schema, namingStrategy: NamingStrategy): Any {
+      TODO()
+   }
 
 //  /**
 //   * Takes the encoded values from the fields of a type T and builds
@@ -224,54 +222,54 @@ class ClassEncoder<T>(private val descriptor: SerialDescriptor) : Encoder2<T> {
 }
 
 object StringEncoder : Encoder2<String> {
-  override fun encode(value: String, schema: Schema, namingStrategy: NamingStrategy): Any {
-    return when (schema.type) {
-      Schema.Type.FIXED -> {
-        if (value.toByteArray().size > schema.fixedSize)
-          throw RuntimeException("Cannot write string with ${value.toByteArray().size} bytes to fixed type of size ${schema.fixedSize}")
-        GenericData.get().createFixed(
-            null,
-            ByteBuffer.allocate(schema.fixedSize).put(value.toByteArray()).array(),
-            schema
-        )
+   override fun encode(value: String, schema: Schema, namingStrategy: NamingStrategy): Any {
+      return when (schema.type) {
+         Schema.Type.FIXED -> {
+            if (value.toByteArray().size > schema.fixedSize)
+               throw RuntimeException("Cannot write string with ${value.toByteArray().size} bytes to fixed type of size ${schema.fixedSize}")
+            GenericData.get().createFixed(
+               null,
+               ByteBuffer.allocate(schema.fixedSize).put(value.toByteArray()).array(),
+               schema
+            )
+         }
+         Schema.Type.BYTES -> ByteBuffer.wrap(value.toByteArray())
+         else -> Utf8(value)
       }
-      Schema.Type.BYTES -> ByteBuffer.wrap(value.toByteArray())
-      else -> Utf8(value)
-    }
-  }
+   }
 }
 
 object BooleanEncoder : Encoder2<Boolean> {
-  override fun encode(value: Boolean, schema: Schema, namingStrategy: NamingStrategy): Boolean =
+   override fun encode(value: Boolean, schema: Schema, namingStrategy: NamingStrategy): Boolean =
       java.lang.Boolean.valueOf(value)
 }
 
 object IntEncoder : Encoder2<Int> {
-  override fun encode(value: Int, schema: Schema, namingStrategy: NamingStrategy): Int = Integer.valueOf(value)
+   override fun encode(value: Int, schema: Schema, namingStrategy: NamingStrategy): Int = Integer.valueOf(value)
 }
 
 object LongEncoder : Encoder2<Long> {
-  override fun encode(value: Long, schema: Schema, namingStrategy: NamingStrategy): Long =
+   override fun encode(value: Long, schema: Schema, namingStrategy: NamingStrategy): Long =
       java.lang.Long.valueOf(value)
 }
 
 object FloatEncoder : Encoder2<Float> {
-  override fun encode(value: Float, schema: Schema, namingStrategy: NamingStrategy): Float =
+   override fun encode(value: Float, schema: Schema, namingStrategy: NamingStrategy): Float =
       java.lang.Float.valueOf(value)
 }
 
 object DoubleEncoder : Encoder2<Double> {
-  override fun encode(value: Double, schema: Schema, namingStrategy: NamingStrategy): Double =
+   override fun encode(value: Double, schema: Schema, namingStrategy: NamingStrategy): Double =
       java.lang.Double.valueOf(value)
 }
 
 object ShortEncoder : Encoder2<Short> {
-  override fun encode(value: Short, schema: Schema, namingStrategy: NamingStrategy): Short =
+   override fun encode(value: Short, schema: Schema, namingStrategy: NamingStrategy): Short =
       java.lang.Short.valueOf(value)
 }
 
 object ByteEncoder : Encoder2<Byte> {
-  override fun encode(value: Byte, schema: Schema, namingStrategy: NamingStrategy): Byte =
+   override fun encode(value: Byte, schema: Schema, namingStrategy: NamingStrategy): Byte =
       java.lang.Byte.valueOf(value)
 }
 

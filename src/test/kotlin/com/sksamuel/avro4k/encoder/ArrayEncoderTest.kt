@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.ImmutableRecord
+import com.sksamuel.avro4k.ArrayListRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.WordSpec
 import kotlinx.serialization.Serializable
@@ -24,7 +24,7 @@ class ArrayEncoderTest : WordSpec({
 
       val schema = Avro.default.schema(Test.serializer())
       val record = Avro.default.toRecord(Test.serializer(), Test("wibble", arrayOf(true, false, true), 123L))
-      record shouldBe ImmutableRecord(schema, arrayListOf(Utf8("wibble"), arrayListOf(true, false, true), 123L))
+      record shouldBe ArrayListRecord(schema, arrayListOf(Utf8("wibble"), arrayListOf(true, false, true), 123L))
     }
 //    "generate array for a List of primitives" {
 //      @Serializable

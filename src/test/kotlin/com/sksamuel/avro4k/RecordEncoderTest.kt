@@ -4,7 +4,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 
-class AvroEncoderTest : FunSpec({
+class RecordEncoderTest : FunSpec({
 
   test("encoding basic data class") {
 

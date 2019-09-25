@@ -52,6 +52,15 @@ class RecordEncoder(private val schema: Schema,
       builder.add(tag, generic)
    }
 
+   override fun encodeTaggedNull(tag: String) {
+      val s = schema.getField(tag).schema()
+      if (s.containsNull()) {
+         builder.add(tag, null)
+      } else {
+         throw AvroRuntimeException("Cannot use null value for schema $s")
+      }
+   }
+
    override fun encodeTaggedDouble(tag: String, value: Double) {
       builder.add(tag, value)
    }

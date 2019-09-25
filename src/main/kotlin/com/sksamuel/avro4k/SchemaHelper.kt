@@ -19,3 +19,6 @@ object SchemaHelper {
     return schema.fields.find { it.name() == name }?.schema()
   }
 }
+
+fun Schema.containsNull(): Boolean =
+   type == Schema.Type.UNION && types.any { it.type == Schema.Type.NULL }

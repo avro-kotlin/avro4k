@@ -6,6 +6,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.NamedValueEncoder
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.StructureKind
+import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -41,8 +42,14 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun endEncode(desc: SerialDescriptor) {
-      super.endEncode(desc)
       callback(builder.record())
+   }
+
+   override fun encodeTaggedEnum(tag: String, enumDescription: EnumDescriptor, ordinal: Int) {
+      val s = schema.getField(tag).schema()
+      val symbol = enumDescription.getElementName(ordinal)
+      val generic = GenericData.get().createEnum(symbol, s)
+      builder.add(tag, generic)
    }
 
    override fun encodeTaggedDouble(tag: String, value: Double) {

@@ -66,10 +66,10 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
                     schema: Schema,
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
-      val builder = RecordBuilder(schema)
-      val encoder = RecordEncoder(schema, builder)
+      var record: Record? = null
+      val encoder = RecordEncoder(schema) { record = it }
       encoder.encode(serializer, obj)
-      return builder.record()
+      return record!!
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {

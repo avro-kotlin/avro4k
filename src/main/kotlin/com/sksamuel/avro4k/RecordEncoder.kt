@@ -13,35 +13,36 @@ import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 class RecordEncoder(private val schema: Schema,
-                    val builder: RecordBuilder) : NamedValueEncoder() {
+                    val callback: (Record) -> Unit) : NamedValueEncoder() {
+
+   private val builder = RecordBuilder(schema)
 
    override fun encodeTaggedString(tag: String, value: String) {
-      val s = schema.getField(tag).schema()
+      val f = schema.getField(tag) ?: throw AvroRuntimeException("Cannot find field $tag in schema $schema")
+      val s = f.schema()
       builder.add(tag, StringToValue.toValue(s, value))
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      println("beginStructure $desc")
+      if (currentTagOrNull == null) return this
       return when (desc.kind) {
          StructureKind.LIST -> {
             val fieldName = popTag()
             val s = schema.getField(fieldName).schema()
             ListEncoder(s) { builder.add(fieldName, it) }
          }
+         StructureKind.CLASS -> {
+            val fieldName = popTag()
+            val s = schema.getField(fieldName).schema()
+            RecordEncoder(s) { builder.add(fieldName, it) }
+         }
          else -> super.beginStructure(desc, *typeParams)
       }
    }
 
    override fun endEncode(desc: SerialDescriptor) {
-      println("endEncode $desc")
       super.endEncode(desc)
-   }
-
-   override fun beginCollection(desc: SerialDescriptor,
-                                collectionSize: Int,
-                                vararg typeParams: KSerializer<*>): CompositeEncoder {
-      println("beginCollection $desc $collectionSize")
-      return super.beginCollection(desc, collectionSize, *typeParams)
+      callback(builder.record())
    }
 
    override fun encodeTaggedDouble(tag: String, value: Double) {
@@ -78,12 +79,7 @@ class ListEncoder(private val schema: Schema,
 
    private val list = mutableListOf<Any?>()
 
-   init {
-      println("Created list encoder $schema")
-   }
-
    override fun endStructure(desc: SerialDescriptor) {
-      println("End structure $desc")
       val generic = GenericData.Array(schema, list.toList())
       callback(generic)
    }

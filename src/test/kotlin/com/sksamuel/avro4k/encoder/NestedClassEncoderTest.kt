@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.ArrayListRecord
+import com.sksamuel.avro4k.MapRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
@@ -18,33 +18,24 @@ data class Birthplace(val name: String, val town: Town)
 
 class NestedClassEncoderTest : FunSpec({
 
-  val countySchema = Avro.default.schema(County.serializer())
-  val townSchema = Avro.default.schema(Town.serializer())
-  val birthplaceSchema = Avro.default.schema(Birthplace.serializer())
-  val hardwick = ArrayListRecord(townSchema, arrayListOf(Utf8("Hardwick"), Integer.valueOf(123)))
-  val weedon = ArrayListRecord(townSchema, arrayListOf(Utf8("Weedon"), Integer.valueOf(225)))
+   val townSchema = Avro.default.schema(Town.serializer())
+   val birthplaceSchema = Avro.default.schema(Birthplace.serializer())
 
-  test("encode nested class") {
-    val b = Birthplace("sammy", Town("Hardwick", 123))
-    val record = Avro.default.toRecord(Birthplace.serializer(), b)
-    record shouldBe ArrayListRecord(birthplaceSchema, arrayListOf(Utf8("wibble"), hardwick))
-  }
-
-//  test("encode lists of nested classes") {
-//
-//    val county = County("Bucks", listOf(Town("Hardwick", 123), Town("Weedon", 225)), true, 12.34, 0.123)
-//    val record = Avro.default.toRecord(County.serializer(), county)
-//    record shouldBe ImmutableRecord(countySchema, arrayListOf(true))
-//
-//    record shouldBe ImmutableRecord(
-//        countySchema,
-//        arrayListOf(
-//            Utf8("Bucks"),
-//            listOf(hardwick, weedon),
-//            true,
-//            12.34,
-//            0.123
-//        )
-//    )
-//  }
+   test("encode nested class") {
+      val b = Birthplace("sammy", Town("Hardwick", 123))
+      val record = Avro.default.toRecord(Birthplace.serializer(), b)
+      record shouldBe MapRecord(
+         birthplaceSchema,
+         mapOf(
+            "name" to Utf8("sammy"),
+            "town" to MapRecord(
+               townSchema,
+               mapOf(
+                  "name" to Utf8("Hardwick"),
+                  "population" to 123
+               )
+            )
+         )
+      )
+   }
 })

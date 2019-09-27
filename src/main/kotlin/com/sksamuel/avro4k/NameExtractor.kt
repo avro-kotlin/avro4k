@@ -2,11 +2,23 @@ package com.sksamuel.avro4k
 
 import kotlinx.serialization.SerialDescriptor
 
-class NameExtractor(descriptor: SerialDescriptor) {
+class NameExtractor(name: String, annotations: List<Annotation>) {
 
-  private val annotations = AnnotationExtractor.entity(descriptor)
+   companion object {
+      operator fun invoke(descriptor: SerialDescriptor): NameExtractor = NameExtractor(
+         descriptor.name,
+         descriptor.getEntityAnnotations()
+      )
 
-  private val className = descriptor.name
+      operator fun invoke(descriptor: SerialDescriptor, index: Int): NameExtractor = NameExtractor(
+         descriptor.getElementName(index),
+         descriptor.getElementAnnotations(index)
+      )
+   }
+
+   private val annotations = AnnotationExtractor(annotations)
+
+   private val className = name
       .replace(".<init>", "")
       .replace(".<anonymous>", "")
 

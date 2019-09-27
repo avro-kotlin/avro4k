@@ -18,7 +18,7 @@ data class Town(val name: String, val population: Int)
 @Serializable
 data class Birthplace(val person: String, val town: Town)
 
-class StructDecoderTest : WordSpec({
+class NestedClassDecoderTest : WordSpec({
 
   "Decoder" should {
 

@@ -11,7 +11,7 @@ class AvroNameSchemaTest : FunSpec({
   test("generate field names using @AvroName") {
 
     @Serializable
-    data class Foo(@AvroName("wibble") val wobble: String, val wubble: String)
+    data class Foo(@AvroName("foo") val wibble: String, val wobble: String)
 
     val schema = Avro.default.schema(Foo.serializer())
     val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_name_field.json"))

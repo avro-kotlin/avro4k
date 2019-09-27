@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k
 
+import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.specific.SpecificRecord
@@ -49,7 +50,10 @@ data class MapRecord(val s: Schema, val map: Map<String, Any?>) : Record {
    override fun put(i: Int, v: Any): Unit =
       throw  UnsupportedOperationException("This implementation of Record is immutable")
 
-   override fun get(key: String): Any? = map[key]
+   override fun get(key: String): Any? {
+      val field = schema.getField(key) ?: throw AvroRuntimeException("Not a valid schema field: $key")
+      return map[key]
+   }
 
    override fun get(i: Int): Any? = map[s.fields[i].name()]
 }

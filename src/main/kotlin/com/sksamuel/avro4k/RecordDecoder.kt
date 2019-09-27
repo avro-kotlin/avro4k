@@ -17,77 +17,19 @@ import java.nio.ByteBuffer
 
 class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
 
-   override fun decodeTaggedDouble(tag: String): Double {
-      return record.get(tag) as Double
-   }
-
-   override fun decodeTaggedLong(tag: String): Long {
-      return record.get(tag) as Long
-   }
-
-   override fun decodeTaggedFloat(tag: String): Float {
-      return record.get(tag) as Float
-   }
-
-   override fun decodeTaggedBoolean(tag: String): Boolean {
-      return record.get(tag) as Boolean
-   }
-
-   override fun decodeTaggedInt(tag: String): Int {
-      return record.get(tag) as Int
-   }
-
-   override fun decodeTaggedEnum(tag: String, enumDescription: EnumDescriptor): Int {
-      val symbol = when (val v = record.get(tag)) {
-         is GenericEnumSymbol<*> -> v.toString()
-         is String -> v
-         else -> v.toString()
-      }
-      return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
-   }
-
-   override fun decodeTaggedString(tag: String): String {
-      println(tag)
-      return when (val v = record.get(tag)) {
-         is String -> v
-         is Utf8 -> v.toString()
-         is GenericData.Fixed -> String(v.bytes())
-         is ByteArray -> String(v)
-         is CharSequence -> v.toString()
-         is ByteBuffer -> String(v.array())
-         null -> throw SerializationException("Cannot decode <null> as a string")
-         else -> throw SerializationException("Unsupported type for String ${v.javaClass}")
-      }
-   }
-
-   var index = 0
-
-   override fun decodeTaggedNotNullMark(tag: String): Boolean {
-      return record.get(tag) != null
-   }
-
-   override fun decodeElementIndex(desc: SerialDescriptor): Int {
-      println("decodeElementIndex $desc $index")
-      while (index < desc.elementsCount) {
-         if (desc.isElementOptional(index)) {
-            index++
-         } else {
-            val k = index
-            index++
-            return k
-         }
-      }
-      return CompositeDecoder.READ_DONE
-   }
-
-   private val lists = mutableListOf<Array<Any>>()
+   private var currentIndex = 0
+   private var currentDesc: SerialDescriptor? = null
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       println("beginStructure $desc")
+      if (currentTagOrNull == null) {
+         currentDesc = desc
+         return this
+      }
       return when (desc.kind as StructureKind) {
          // if we have a class and the current tag is null, then we are in the "root" class and just use "this" decoder
          // otherwise we'll recurse into a fresh ClassDecoder
-         StructureKind.CLASS -> if (currentTagOrNull == null) this else RecordDecoder(record.get(currentTag) as GenericRecord)
+         StructureKind.CLASS -> RecordDecoder(record.get(currentTag) as GenericRecord)
          StructureKind.MAP -> this
          StructureKind.LIST -> {
             val decoder: CompositeDecoder = if (desc.getElementDescriptor(1).kind == PrimitiveKind.BYTE) {
@@ -108,6 +50,74 @@ class RecordDecoder(val record: GenericRecord) : NamedValueDecoder() {
             decoder
          }
       }
+   }
+
+   private fun resolvedName(): String {
+      // the tag is the name of the field in the data class, but the record can have the field
+      // stored under another name defined by @AvroName
+      // so we must look up the name defined by the annotation from the descriptor annotations
+      val naming = NameExtractor(currentDesc!!, currentIndex - 1)
+      return naming.name()
+   }
+
+   override fun decodeTaggedDouble(tag: String): Double {
+      return record.get(resolvedName()) as Double
+   }
+
+   override fun decodeTaggedLong(tag: String): Long {
+      return record.get(resolvedName()) as Long
+   }
+
+   override fun decodeTaggedFloat(tag: String): Float {
+      return record.get(resolvedName()) as Float
+   }
+
+   override fun decodeTaggedBoolean(tag: String): Boolean {
+      return record.get(resolvedName()) as Boolean
+   }
+
+   override fun decodeTaggedInt(tag: String): Int {
+      return record.get(resolvedName()) as Int
+   }
+
+   override fun decodeTaggedEnum(tag: String, enumDescription: EnumDescriptor): Int {
+      val symbol = when (val v = record.get(resolvedName())) {
+         is GenericEnumSymbol<*> -> v.toString()
+         is String -> v
+         else -> v.toString()
+      }
+      return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
+   }
+
+   override fun decodeTaggedString(tag: String): String {
+      return when (val v = record.get(resolvedName())) {
+         is String -> v
+         is Utf8 -> v.toString()
+         is GenericData.Fixed -> String(v.bytes())
+         is ByteArray -> String(v)
+         is CharSequence -> v.toString()
+         is ByteBuffer -> String(v.array())
+         null -> throw SerializationException("Cannot decode <null> as a string")
+         else -> throw SerializationException("Unsupported type for String ${v.javaClass}")
+      }
+   }
+
+   override fun decodeTaggedNotNullMark(tag: String): Boolean {
+      return record.get(tag) != null
+   }
+
+   override fun decodeElementIndex(desc: SerialDescriptor): Int {
+      println("decodeElementIndex $desc $currentIndex")
+      while (currentIndex < desc.elementsCount) {
+         if (desc.isElementOptional(currentIndex)) {
+            currentIndex++
+         } else {
+            val k = currentIndex
+            currentIndex++
+            return k
+         }
+      }
+      return CompositeDecoder.READ_DONE
    }
 }
 

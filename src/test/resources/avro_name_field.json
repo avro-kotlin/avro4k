@@ -4,11 +4,11 @@
   "namespace": "com.sksamuel.avro4k.schema.AvroNameSchemaTest",
   "fields": [
     {
-      "name": "wobble",
+      "name": "foo",
       "type": "string"
     },
     {
-      "name": "wubble",
+      "name": "wobble",
       "type": "string"
     }
   ]

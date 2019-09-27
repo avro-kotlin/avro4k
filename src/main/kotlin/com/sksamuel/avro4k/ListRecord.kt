@@ -11,7 +11,9 @@ import org.apache.avro.specific.SpecificRecord
  */
 interface Record : GenericRecord, SpecificRecord
 
-data class ArrayListRecord(val s: Schema, val values: ArrayList<Any?>) : Record {
+data class ListRecord(val s: Schema, val values: List<Any?>) : Record {
+
+   constructor(s: Schema, vararg values: Any?) : this(s, values.asList())
 
    init {
       require(schema.type == Schema.Type.RECORD) { "Cannot create an ArrayListRecord with a schema that is not a RECORD" }

@@ -3,7 +3,6 @@ package com.sksamuel.avro4k
 import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.NamedValueEncoder
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.StructureKind
@@ -15,85 +14,54 @@ import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 class RecordEncoder(private val schema: Schema,
-                    val callback: (Record) -> Unit) : NamedValueEncoder() {
+                    val callback: (Record) -> Unit) : ElementValueEncoder() {
 
-   private val builder = RecordBuilder(schema)
+   private lateinit var currentDesc: SerialDescriptor
+   private val builder = ArrayRecordBuilder(schema)
+   private var currentIndex = -1
 
-   override fun encodeTaggedString(tag: String, value: String) {
-      val f = schema.getField(tag) ?: throw AvroRuntimeException("Cannot find field $tag in schema $schema")
-      val s = f.schema()
-      builder.add(tag, StringToValue.toValue(s, value))
+   private fun fieldSchema() = schema.fields[currentIndex].schema()
+
+   override fun encodeString(value: String) {
+      builder.add(StringToValue.toValue(fieldSchema(), value))
+   }
+
+   override fun encodeValue(value: Any) {
+      builder.add(value)
+   }
+
+   override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
+      currentIndex = index
+      return super.encodeElement(desc, index)
+   }
+
+   override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
+      val field = schema.fields[currentIndex]
+      val symbol = enumDescription.getElementName(ordinal)
+      val generic = GenericData.get().createEnum(symbol, field.schema())
+      builder.add(generic)
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      if (currentTagOrNull == null) return this
+      if (currentIndex == -1) return this
       return when (desc.kind) {
          StructureKind.LIST -> {
-            val fieldName = popTag()
             when (desc.getElementDescriptor(0).kind) {
-               PrimitiveKind.BYTE -> ByteArrayEncoder { builder.add(fieldName, it) }
-               else -> {
-                  val s = schema.getField(fieldName).schema()
-                  ListEncoder(s) { builder.add(fieldName, it) }
-               }
+               PrimitiveKind.BYTE -> ByteArrayEncoder { builder.add(it) }
+               else -> ListEncoder(fieldSchema()) { builder.add(it) }
             }
-
          }
-         StructureKind.CLASS -> {
-            val fieldName = popTag()
-            val s = schema.getField(fieldName).schema()
-            RecordEncoder(s) { builder.add(fieldName, it) }
-         }
-         else -> super.beginStructure(desc, *typeParams)
+         StructureKind.CLASS -> RecordEncoder(fieldSchema()) { builder.add(it) }
+         else -> this
       }
    }
 
-   override fun endEncode(desc: SerialDescriptor) {
+   override fun endStructure(desc: SerialDescriptor) {
       callback(builder.record())
    }
 
-   override fun encodeTaggedEnum(tag: String, enumDescription: EnumDescriptor, ordinal: Int) {
-      val s = schema.getField(tag).schema()
-      val symbol = enumDescription.getElementName(ordinal)
-      val generic = GenericData.get().createEnum(symbol, s)
-      builder.add(tag, generic)
-   }
-
-   override fun encodeTaggedNull(tag: String) {
-      val s = schema.getField(tag).schema()
-      if (s.containsNull()) {
-         builder.add(tag, null)
-      } else {
-         throw AvroRuntimeException("Cannot use null value for schema $s")
-      }
-   }
-
-   override fun encodeTaggedDouble(tag: String, value: Double) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedLong(tag: String, value: Long) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedByte(tag: String, value: Byte) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedBoolean(tag: String, value: Boolean) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedShort(tag: String, value: Short) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedInt(tag: String, value: Int) {
-      builder.add(tag, value)
-   }
-
-   override fun encodeTaggedFloat(tag: String, value: Float) {
-      builder.add(tag, value)
+   override fun encodeNull() {
+      builder.add(null)
    }
 }
 
@@ -154,7 +122,7 @@ class ListEncoder(private val schema: Schema,
    }
 }
 
-class RecordBuilder(private val schema: Schema) {
+class MapRecordBuilder(private val schema: Schema) {
 
    private val map = mutableMapOf<String, Any?>()
 
@@ -165,6 +133,15 @@ class RecordBuilder(private val schema: Schema) {
    fun record(): Record {
       return MapRecord(schema, map)
    }
+}
+
+class ArrayRecordBuilder(private val schema: Schema) {
+
+   private val values = arrayListOf<Any?>()
+
+   fun add(value: Any?) = values.add(value)
+
+   fun record(): Record = ListRecord(schema, values)
 }
 
 interface ToValue<T> {

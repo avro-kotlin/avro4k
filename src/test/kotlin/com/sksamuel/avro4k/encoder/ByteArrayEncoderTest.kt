@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.MapRecord
+import com.sksamuel.avro4k.ListRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
@@ -24,7 +24,7 @@ class ByteArrayEncoderTest : FunSpec({
       val record = GenericData.Record(schema)
       record.put("z", ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
       Avro.default.toRecord(ByteArrayTest.serializer(), ByteArrayTest(byteArrayOf(1, 4, 9))) shouldBe
-         MapRecord(schema, mapOf("z" to ByteBuffer.allocate(3).put(1).put(4).put(9)))
+         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
    }
 
    test("encode List<Byte> to ByteBuffer") {
@@ -32,7 +32,7 @@ class ByteArrayEncoderTest : FunSpec({
       val record = GenericData.Record(schema)
       record.put("z", ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
       Avro.default.toRecord(ListByteTest.serializer(), ListByteTest(listOf(1, 4, 9))) shouldBe
-         MapRecord(schema, mapOf("z" to ByteBuffer.allocate(3).put(1).put(4).put(9)))
+         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
    }
 
    test("encode Array<Byte> to ByteBuffer") {
@@ -40,6 +40,6 @@ class ByteArrayEncoderTest : FunSpec({
       val record = GenericData.Record(schema)
       record.put("z", ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
       Avro.default.toRecord(ArrayByteTest.serializer(), ArrayByteTest(arrayOf(1, 4, 9))) shouldBe
-         MapRecord(schema, mapOf("z" to ByteBuffer.allocate(3).put(1).put(4).put(9)))
+         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
    }
 })

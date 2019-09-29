@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.MapRecord
+import com.sksamuel.avro4k.ListRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
@@ -24,17 +24,13 @@ class NestedClassEncoderTest : FunSpec({
    test("encode nested class") {
       val b = Birthplace("sammy", Town("Hardwick", 123))
       val record = Avro.default.toRecord(Birthplace.serializer(), b)
-      record shouldBe MapRecord(
+      record shouldBe ListRecord(
          birthplaceSchema,
-         mapOf(
-            "name" to Utf8("sammy"),
-            "town" to MapRecord(
-               townSchema,
-               mapOf(
-                  "name" to Utf8("Hardwick"),
-                  "population" to 123
-               )
-            )
+         Utf8("sammy"),
+         ListRecord(
+            townSchema,
+            Utf8("Hardwick"),
+            123
          )
       )
    }

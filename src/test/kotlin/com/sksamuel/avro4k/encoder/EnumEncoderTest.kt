@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.MapRecord
+import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.decoder.MyWine
 import com.sksamuel.avro4k.decoder.NullableWine
 import com.sksamuel.avro4k.schema.Wine
@@ -14,11 +14,9 @@ class EnumEncoderTest : FunSpec({
    test("support enums") {
       val schema = Avro.default.schema(MyWine.serializer())
       Avro.default.toRecord(MyWine.serializer(), schema, MyWine(Wine.Malbec)) shouldBe
-         MapRecord(
+         ListRecord(
             schema,
-            mapOf(
-               "wine" to GenericData.EnumSymbol(schema.getField("wine").schema(), "Malbec")
-            )
+            GenericData.EnumSymbol(schema.getField("wine").schema(), "Malbec")
          )
    }
 

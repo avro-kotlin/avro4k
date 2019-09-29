@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Foo",
-  "namespace": "com.sksamuel.avro4k.schema.BasicSchemaTest.<init>.<anonymous>.<anonymous>",
+  "namespace": "com.sksamuel.avro4k.schema.BasicSchemaTest",
   "fields": [
     {
       "name": "a",

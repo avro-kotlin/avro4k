@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.MapRecord
+import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.decoder.NullableBoolean
 import com.sksamuel.avro4k.decoder.NullableString
 import io.kotlintest.shouldBe
@@ -14,22 +14,22 @@ class NullableEncoderTest : FunSpec({
       val schema = Avro.default.schema(NullableString.serializer())
 
       Avro.default.toRecord(NullableString.serializer(), NullableString("hello")) shouldBe
-         MapRecord(schema, mapOf("s" to Utf8("hello")))
+         ListRecord(schema, Utf8("hello"))
 
       Avro.default.toRecord(NullableString.serializer(), NullableString(null)) shouldBe
-         MapRecord(schema, mapOf("s" to null))
+         ListRecord(schema, null)
    }
 
    test("encode nullable booleans") {
       val schema = Avro.default.schema(NullableBoolean.serializer())
 
       Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(true)) shouldBe
-         MapRecord(schema, mapOf("b" to true))
+         ListRecord(schema, true)
 
       Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(false)) shouldBe
-         MapRecord(schema, mapOf("b" to false))
+         ListRecord(schema, false)
 
       Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(null)) shouldBe
-         MapRecord(schema, mapOf("b" to null))
+         ListRecord(schema, null)
    }
 })

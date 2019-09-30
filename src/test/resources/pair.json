@@ -1,0 +1,11 @@
+{
+   "type": "record",
+   "name": "Annotated",
+   "namespace": "com.sksamuel.avro4k.schema.PairSchemaTest",
+   "fields": [
+      {
+         "name": "p",
+         "type": "string"
+      }
+   ]
+}

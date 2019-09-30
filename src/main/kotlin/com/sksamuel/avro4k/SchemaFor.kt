@@ -39,16 +39,19 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
          .filterNot { descriptor.isElementOptional(it) }
          .map { index ->
 
-            // the field can override the containingNamespace if the Namespace annotation is present on the field
-            // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
-            // to any schemas we have generated for this field
-            // val schemaWithResolvedNamespace = extractor.namespace
-            //   .map(SchemaHelper.overrideNamespace(schemaWithOrderedUnion, _))
-            // .getOrElse(schemaWithOrderedUnion)
             val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
             val naming = NameExtractor(descriptor, index)
             val schema = schemaFor(descriptor.getElementDescriptor(index)).schema(DefaultNamingStrategy)
-            val field = Schema.Field(naming.name(), schema, annos.doc(), null)
+
+            // the field can override the containingNamespace if the Namespace annotation is present on the field
+            // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
+            // to any schemas we have generated for this field
+            val schemaWithResolvedNamespace = when (val ns = annos.namespace()) {
+               null -> schema
+               else -> schema.overrideNamespace(ns)
+            }
+
+            val field = Schema.Field(naming.name(), schemaWithResolvedNamespace, annos.doc(), null)
             val props = descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
             props.forEach { field.addProp(it.key, it.value) }
             annos.aliases().forEach { field.addAlias(it) }
@@ -73,6 +76,14 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
       val naming = NameExtractor(descriptor)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
       return SchemaBuilder.enumeration(naming.name()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
+   }
+}
+
+class PairSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
+   override fun schema(namingStrategy: NamingStrategy): Schema {
+      val a = schemaFor(descriptor.getElementDescriptor(0)).schema(namingStrategy)
+      val b = schemaFor(descriptor.getElementDescriptor(1)).schema(namingStrategy)
+      return SchemaBuilder.unionOf().type(a).and().type(b).endUnion()
    }
 }
 
@@ -121,7 +132,10 @@ fun schemaFor(descriptor: SerialDescriptor): SchemaFor {
       PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
       PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
       PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-      StructureKind.CLASS -> ClassSchemaFor(descriptor)
+      StructureKind.CLASS -> when (descriptor.name) {
+         "kotlin.Pair" -> PairSchemaFor(descriptor)
+         else -> ClassSchemaFor(descriptor)
+      }
       UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
       StructureKind.LIST -> ListSchemaFor(descriptor)
       StructureKind.MAP -> MapSchemaFor(descriptor)

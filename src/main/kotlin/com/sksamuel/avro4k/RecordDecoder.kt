@@ -7,7 +7,9 @@ import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
+import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
@@ -48,24 +50,6 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder() {
       }
    }
 
-   private fun resolvedName(): String {
-      // the tag is the name of the field in the data class, but the record can have the field
-      // stored under another name defined by @AvroName
-      // so we must look up the name defined by the annotation from the descriptor annotations
-      val naming = NameExtractor(currentDesc!!, currentIndex - 1)
-      return naming.name()
-   }
-
-
-//   override fun decodeTaggedEnum(tag: String, enumDescription: EnumDescriptor): Int {
-//      val symbol = when (val v = record.get(resolvedName())) {
-//         is GenericEnumSymbol<*> -> v.toString()
-//         is String -> v
-//         else -> v.toString()
-//      }
-//      return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
-//   }
-
    override fun decodeString(): String {
       return when (val v = record[currentIndex]) {
          is String -> v
@@ -94,6 +78,19 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder() {
          null -> throw SerializationException("Cannot decode <null> as a Byte")
          else -> throw SerializationException("Unsupported type for Byte ${v.javaClass}")
       }
+   }
+
+   override fun decodeNotNullMark(): Boolean {
+      return record[currentIndex] != null
+   }
+
+   override fun decodeEnum(enumDescription: EnumDescriptor): Int {
+      val symbol = when (val v = record[currentIndex]) {
+         is GenericEnumSymbol<*> -> v.toString()
+         is String -> v
+         else -> v.toString()
+      }
+      return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
    }
 
    override fun decodeFloat(): Float {

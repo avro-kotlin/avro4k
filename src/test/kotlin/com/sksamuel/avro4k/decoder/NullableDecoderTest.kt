@@ -15,10 +15,7 @@ data class NullableString(val s: String?)
 @Serializable
 data class RequiredString(val s: String)
 
-//case class OptionStringDefault(s: Option[String] = Option("cupcat"))
-// data class OptionEnumDefault(s: Option[CupcatOptionEnum] = Option(CuppersOptionEnum))
-
-class OptionDecoderTest : WordSpec({
+class NullableDecoderTest : WordSpec({
 
   "Decoder" should {
     "support nullable strings"  {

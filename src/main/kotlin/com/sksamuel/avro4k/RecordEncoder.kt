@@ -16,7 +16,6 @@ import java.nio.ByteBuffer
 class RecordEncoder(private val schema: Schema,
                     val callback: (Record) -> Unit) : ElementValueEncoder() {
 
-   private lateinit var currentDesc: SerialDescriptor
    private val builder = ArrayRecordBuilder(schema)
    private var currentIndex = -1
 

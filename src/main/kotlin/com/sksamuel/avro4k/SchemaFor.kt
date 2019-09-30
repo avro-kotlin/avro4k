@@ -1,5 +1,11 @@
 package com.sksamuel.avro4k
 
+import com.sksamuel.avro4k.serializers.DateSerializer
+import com.sksamuel.avro4k.serializers.InstantSerializer
+import com.sksamuel.avro4k.serializers.LocalDateSerializer
+import com.sksamuel.avro4k.serializers.LocalDateTimeSerializer
+import com.sksamuel.avro4k.serializers.LocalTimeSerializer
+import com.sksamuel.avro4k.serializers.TimestampSerializer
 import com.sksamuel.avro4k.serializers.UUIDSerializer
 import kotlinx.serialization.PrimitiveDescriptorWithName
 import kotlinx.serialization.PrimitiveKind
@@ -11,6 +17,7 @@ import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import java.time.LocalDateTime
 
 interface SchemaFor {
    fun schema(namingStrategy: NamingStrategy): Schema
@@ -158,12 +165,24 @@ class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
    }
 }
 
+fun Schema.toSchemaFor() = SchemaFor.const(this)
+
 fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor): SchemaFor {
 
    val schemaFor: SchemaFor = when (descriptor) {
       is PrimitiveDescriptorWithName -> when (descriptor.name) {
-         UUIDSerializer.name -> SchemaFor.const(LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()))
+         UUIDSerializer.name -> LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()).toSchemaFor()
+         DateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+         TimestampSerializer.name ->
+            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
+         LocalDateTimeSerializer.name ->
+            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
+         LocalDateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+         LocalTimeSerializer.name ->
+            LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+         InstantSerializer.name ->
+            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
          else -> throw SerializationException("Unsupported logical type ${descriptor.name}")
       }
       else -> when (descriptor.kind) {

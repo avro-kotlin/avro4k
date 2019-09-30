@@ -49,7 +49,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * Writes values of <T> using a [Schema] derived from the type.
     */
    override fun <T> dump(serializer: SerializationStrategy<T>, obj: T): ByteArray {
-      TODO()//return dump(serializer, obj, schema(serializer))
+      return dump(serializer, obj, schema(serializer))
    }
 
    /**
@@ -58,7 +58,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
-      TODO()//   return toRecord(serializer, schema(serializer), obj, namingStrategy)
+      return toRecord(serializer, schema(serializer), obj, namingStrategy)
    }
 
    /**

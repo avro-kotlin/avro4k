@@ -1,0 +1,15 @@
+{
+   "type": "record",
+   "name": "Foo",
+   "namespace": "com.sksamuel.avro4k.schema.AvroFixedSchemaTest",
+   "fields": [
+      {
+         "name": "z",
+         "type": {
+            "type": "fixed",
+            "name": "FixedClass",
+            "size": 8
+         }
+      }
+   ]
+}

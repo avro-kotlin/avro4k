@@ -33,41 +33,68 @@ interface SchemaFor {
 }
 
 class ClassSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
+
    override fun schema(namingStrategy: NamingStrategy): Schema {
-
-      val fields = (0 until descriptor.elementsCount)
-         .filterNot { descriptor.isElementOptional(it) }
-         .map { index ->
-
-            val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
-            val naming = NameExtractor(descriptor, index)
-            val schema = schemaFor(descriptor.getElementDescriptor(index)).schema(DefaultNamingStrategy)
-
-            // the field can override the containingNamespace if the Namespace annotation is present on the field
-            // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
-            // to any schemas we have generated for this field
-            val schemaWithResolvedNamespace = when (val ns = annos.namespace()) {
-               null -> schema
-               else -> schema.overrideNamespace(ns)
-            }
-
-            val field = Schema.Field(naming.name(), schemaWithResolvedNamespace, annos.doc(), null)
-            val props = descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
-            props.forEach { field.addProp(it.key, it.value) }
-            annos.aliases().forEach { field.addAlias(it) }
-            field
-         }
 
       val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
       val naming = NameExtractor(descriptor)
+
+      val fields = (0 until descriptor.elementsCount)
+         .filterNot { descriptor.isElementOptional(it) }
+         .map { index -> buildField(index, naming.namespace()) }
+
       val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)
       record.fields = fields
       annos.aliases().forEach { record.addAlias(it) }
-
-      val props = descriptor.getEntityAnnotations().filterIsInstance<AvroProp>()
-      props.forEach { record.addProp(it.key, it.value) }
-
+      annos.props().forEach { (k, v) -> record.addProp(k, v) }
       return record
+   }
+
+   fun buildField(index: Int, containingNamespace: String): Schema.Field {
+
+      val fieldDescriptor = descriptor.getElementDescriptor(index)
+      val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
+      val naming = NameExtractor(descriptor, index)
+      val schema = schemaFor(fieldDescriptor).schema(DefaultNamingStrategy)
+
+      // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
+      // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear
+      // in addition, someone could annotate the target type, so we need to check into that too
+      val (size, name) = when (val a = annos.fixed()) {
+         null -> {
+            val fieldAnnos = AnnotationExtractor(fieldDescriptor.getEntityAnnotations())
+            val fieldNaming = NameExtractor(fieldDescriptor)
+            when (val b = fieldAnnos.fixed()) {
+               null -> 0 to naming.name()
+               else -> b to fieldNaming.name()
+            }
+         }
+         else -> a to naming.name()
+      }
+      val schemaOrFixed = when (size) {
+         0 -> schema
+         else ->
+            SchemaBuilder
+               .fixed(name)
+               .doc(annos.doc())
+               .namespace(annos.namespace() ?: containingNamespace)
+               .size(size)
+      }
+
+      // the field can override the containingNamespace if the Namespace annotation is present on the field
+      // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
+      // to any schemas we have generated for this field
+      val schemaWithResolvedNamespace = when (val ns = annos.namespace()) {
+         null -> schemaOrFixed
+         else -> schemaOrFixed.overrideNamespace(ns)
+      }
+
+      val field = Schema.Field(naming.name(), schemaWithResolvedNamespace, annos.doc(), null)
+      val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
+      props.forEach { field.addProp(it.key, it.value) }
+      annos.aliases().forEach { field.addAlias(it) }
+
+      return field
    }
 }
 

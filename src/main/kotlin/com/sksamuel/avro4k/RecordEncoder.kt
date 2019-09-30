@@ -5,6 +5,7 @@ import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.AvroRuntimeException
@@ -46,7 +47,7 @@ class RecordEncoder(private val schema: Schema,
       return when (desc.kind) {
          StructureKind.LIST -> {
             when (desc.getElementDescriptor(0).kind) {
-               PrimitiveKind.BYTE -> ByteArrayEncoder { builder.add(it) }
+               PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema()) { builder.add(it) }
                else -> ListEncoder(fieldSchema()) { builder.add(it) }
             }
          }
@@ -64,7 +65,8 @@ class RecordEncoder(private val schema: Schema,
    }
 }
 
-class ByteArrayEncoder(private val callback: (ByteBuffer) -> Unit) : ElementValueEncoder() {
+class ByteArrayEncoder(private val schema: Schema,
+                       private val callback: (Any) -> Unit) : ElementValueEncoder() {
 
    private val bytes = mutableListOf<Byte>()
 
@@ -73,8 +75,12 @@ class ByteArrayEncoder(private val callback: (ByteBuffer) -> Unit) : ElementValu
    }
 
    override fun endStructure(desc: SerialDescriptor) {
-      val bb = ByteBuffer.allocate(bytes.size).put(bytes.toByteArray())
-      callback(bb)
+      when (schema.type) {
+         Schema.Type.FIXED -> callback(GenericData.get().createFixed(null, bytes.toByteArray(), schema))
+         Schema.Type.BYTES -> callback(ByteBuffer.allocate(bytes.size).put(bytes.toByteArray()))
+         else -> throw SerializationException("Cannot encode byte array when schema is ${schema.type}")
+      }
+
    }
 }
 

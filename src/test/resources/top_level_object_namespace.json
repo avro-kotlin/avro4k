@@ -1,0 +1,15 @@
+{
+   "type": "record",
+   "name": "Inner",
+   "namespace": "com.sksamuel.avro4k.schema.Outer",
+   "fields": [
+      {
+         "name": "a",
+         "type": "string"
+      },
+      {
+         "name": "b",
+         "type": "boolean"
+      }
+   ]
+}

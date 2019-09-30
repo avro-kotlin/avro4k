@@ -1,6 +1,6 @@
 package com.sksamuel.avro4k
 
-import com.sksamuel.avro4k.serializers.BigDecimalSerializer
+import com.sksamuel.avro4k.serializers.UUIDSerializer
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
@@ -13,7 +13,7 @@ import kotlinx.serialization.modules.serializersModuleOf
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import java.io.ByteArrayOutputStream
-import java.math.BigDecimal
+import java.util.*
 
 data class AvroConfiguration constructor(
    @JvmField internal val encodeDefaults: Boolean = true
@@ -22,7 +22,9 @@ data class AvroConfiguration constructor(
 class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFormat(context), BinaryFormat {
 
    companion object {
-      private val simpleModule = serializersModuleOf(BigDecimal::class, BigDecimalSerializer())
+      private val simpleModule = serializersModuleOf(mapOf(
+         UUID::class to UUIDSerializer())
+      )
       val default = Avro(simpleModule)
    }
 
@@ -47,7 +49,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * Writes values of <T> using a [Schema] derived from the type.
     */
    override fun <T> dump(serializer: SerializationStrategy<T>, obj: T): ByteArray {
-      return dump(serializer, obj, schema(serializer))
+      TODO()//return dump(serializer, obj, schema(serializer))
    }
 
    /**
@@ -56,7 +58,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
-      return toRecord(serializer, schema(serializer), obj, namingStrategy)
+      TODO()//   return toRecord(serializer, schema(serializer), obj, namingStrategy)
    }
 
    /**
@@ -67,13 +69,13 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
       var record: Record? = null
-      val encoder = RecordEncoder(schema) { record = it }
+      val encoder = RecordEncoder(schema, context) { record = it }
       encoder.encode(serializer, obj)
       return record!!
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {
-      return schemaFor(serializer.descriptor).schema(DefaultNamingStrategy)
+      return schemaFor(context, serializer.descriptor).schema(DefaultNamingStrategy)
    }
 
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,

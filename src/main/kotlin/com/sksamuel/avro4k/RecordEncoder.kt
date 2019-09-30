@@ -8,6 +8,7 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
+import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -15,6 +16,7 @@ import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 class RecordEncoder(private val schema: Schema,
+                    override val context: SerialModule,
                     val callback: (Record) -> Unit) : ElementValueEncoder() {
 
    private val builder = ArrayRecordBuilder(schema)
@@ -47,11 +49,11 @@ class RecordEncoder(private val schema: Schema,
       return when (desc.kind) {
          StructureKind.LIST -> {
             when (desc.getElementDescriptor(0).kind) {
-               PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema()) { builder.add(it) }
-               else -> ListEncoder(fieldSchema()) { builder.add(it) }
+               PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), context) { builder.add(it) }
+               else -> ListEncoder(fieldSchema(), context) { builder.add(it) }
             }
          }
-         StructureKind.CLASS -> RecordEncoder(fieldSchema()) { builder.add(it) }
+         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context) { builder.add(it) }
          else -> this
       }
    }
@@ -66,6 +68,7 @@ class RecordEncoder(private val schema: Schema,
 }
 
 class ByteArrayEncoder(private val schema: Schema,
+                       override val context: SerialModule,
                        private val callback: (Any) -> Unit) : ElementValueEncoder() {
 
    private val bytes = mutableListOf<Byte>()
@@ -85,6 +88,7 @@ class ByteArrayEncoder(private val schema: Schema,
 }
 
 class ListEncoder(private val schema: Schema,
+                  override val context: SerialModule,
                   private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder() {
 
    private val list = mutableListOf<Any?>()

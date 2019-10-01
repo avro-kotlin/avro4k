@@ -74,8 +74,90 @@ Where the generated schema is as follows:
 ```
 You can see that the schema generator handles nested data classes, lists, primitives, etc. For a full list of supported object types, see the table later.
 
+### Adding properties and docs to a Schema
 
-#### Decimal scale, precision and rounding mode
+Avro allows a doc field, and arbitrary key/values to be added to generated schemas.
+Avro4k supports this through the use of `@AvroDoc` and `@AvroProp` annotations.
+
+These properties works on either complex or simple types - in other words, on both fields and classes. 
+
+For example, the following code:
+
+```kotlin
+package com.sksamuel
+
+@AvroDoc("hello, is it me you're looking for?")
+data class Foo(@AvroDoc("I am a string")  val str: String, 
+               @AvroDoc("I am a long")    val long: Long, 
+                                          val int: Int)
+```
+
+Would result in the following schema:
+
+```json
+{  
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel",
+  "doc":"hello, is it me you're looking for?",
+  "fields": [  
+    {  
+      "name": "str",
+      "type": "string",
+      "doc" : "I am a string"
+    },
+    {  
+      "name": "long",
+      "type": "long",
+      "doc" : "I am a long"
+    },
+    {  
+      "name": "int",
+      "type": "int"
+    }
+  ]
+}
+```
+
+Similarly, for properties:
+
+```kotlin
+package com.sksamuel
+
+@AvroProp("jack", "bruce")
+data class Annotated(@AvroProp("richard", "ashcroft") val str: String, 
+                     @AvroProp("kate", "bush")        val long: Long, 
+                                                      val int: Int)
+```
+
+```json
+Would generate this schema:
+
+{
+  "type": "record",
+  "name": "Annotated",
+  "namespace": "com.sksamuel",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string",
+      "richard": "ashcroft"
+    },
+    {
+      "name": "long",
+      "type": "long",
+      "kate": "bush"
+    },
+    {
+      "name": "int",
+      "type": "int"
+    }
+  ],
+  "jack": "bruce"
+}
+```
+
+### Decimal scale, precision and rounding mode
 
 In order to customize the scale and precision used by BigDecimal schema generators, 
 you can add the `@ScalePrecision` annotation to instances of BigDecimal.

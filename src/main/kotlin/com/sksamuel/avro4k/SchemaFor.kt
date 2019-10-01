@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k
 
+import com.sksamuel.avro4k.serializers.BigDecimalSerializer
 import com.sksamuel.avro4k.serializers.DateSerializer
 import com.sksamuel.avro4k.serializers.InstantSerializer
 import com.sksamuel.avro4k.serializers.LocalDateSerializer
@@ -7,7 +8,6 @@ import com.sksamuel.avro4k.serializers.LocalDateTimeSerializer
 import com.sksamuel.avro4k.serializers.LocalTimeSerializer
 import com.sksamuel.avro4k.serializers.TimestampSerializer
 import com.sksamuel.avro4k.serializers.UUIDSerializer
-import kotlinx.serialization.PrimitiveDescriptorWithName
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
@@ -17,7 +17,6 @@ import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import java.time.LocalDateTime
 
 interface SchemaFor {
    fun schema(namingStrategy: NamingStrategy): Schema
@@ -68,7 +67,8 @@ class ClassSchemaFor(private val context: SerialModule,
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
       val naming = NameExtractor(descriptor, index)
-      val schema = schemaFor(context, fieldDescriptor).schema(DefaultNamingStrategy)
+      val schema = schemaFor(context, fieldDescriptor, descriptor.getElementAnnotations(index))
+         .schema(DefaultNamingStrategy)
 
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
       // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear
@@ -122,9 +122,9 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
 class PairSchemaFor(private val context: SerialModule,
                     private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(namingStrategy: NamingStrategy): Schema {
-      val a = schemaFor(context, descriptor.getElementDescriptor(0)).schema(namingStrategy)
-      val b = schemaFor(context, descriptor.getElementDescriptor(1)).schema(namingStrategy)
-      return SchemaBuilder.unionOf().type(a).and().type(b).endUnion()
+      val a = schemaFor(context, descriptor.getElementDescriptor(0), descriptor.getElementAnnotations(0))
+      val b = schemaFor(context, descriptor.getElementDescriptor(1), descriptor.getElementAnnotations(1))
+      return SchemaBuilder.unionOf().type(a.schema(namingStrategy)).and().type(b.schema(namingStrategy)).endUnion()
    }
 }
 
@@ -135,7 +135,8 @@ class ListSchemaFor(private val context: SerialModule,
       return when (elementType.kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
-            val elementSchema = schemaFor(context, elementType).schema(namingStrategy)
+            val elementSchema = schemaFor(context, elementType, descriptor.getElementAnnotations(0))
+               .schema(namingStrategy)
             return Schema.createArray(elementSchema)
          }
       }
@@ -149,7 +150,7 @@ class MapSchemaFor(private val context: SerialModule,
       when (keyType.kind) {
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
-            val valueSchema = schemaFor(context, valueType).schema(namingStrategy)
+            val valueSchema = schemaFor(context, valueType, descriptor.getElementAnnotations(1)).schema(namingStrategy)
             return Schema.createMap(valueSchema)
          }
          else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
@@ -168,22 +169,20 @@ class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
 fun Schema.toSchemaFor() = SchemaFor.const(this)
 
 fun schemaFor(context: SerialModule,
-              descriptor: SerialDescriptor): SchemaFor {
+              descriptor: SerialDescriptor,
+              annos: List<Annotation>): SchemaFor {
 
-   val schemaFor: SchemaFor = when (descriptor) {
-      is PrimitiveDescriptorWithName -> when (descriptor.name) {
-         UUIDSerializer.name -> LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()).toSchemaFor()
-         DateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
-         TimestampSerializer.name ->
-            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-         LocalDateTimeSerializer.name ->
-            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-         LocalDateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
-         LocalTimeSerializer.name ->
-            LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
-         InstantSerializer.name ->
-            LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-         else -> throw SerializationException("Unsupported logical type ${descriptor.name}")
+   val schemaFor: SchemaFor = when (descriptor.name) {
+      UUIDSerializer.name -> LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()).toSchemaFor()
+      DateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+      TimestampSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
+      LocalDateTimeSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
+      LocalDateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+      LocalTimeSerializer.name -> LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
+      InstantSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
+      BigDecimalSerializer.name -> {
+         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
+         LogicalTypes.decimal(precision, scale).addToSchema(SchemaBuilder.builder().bytesType()).toSchemaFor()
       }
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
@@ -201,7 +200,7 @@ fun schemaFor(context: SerialModule,
          UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
          StructureKind.LIST -> ListSchemaFor(context, descriptor)
          StructureKind.MAP -> MapSchemaFor(context, descriptor)
-         else -> throw SerializationException("Unsupported type ${descriptor.kind}")
+         else -> throw SerializationException("Unsupported type ${descriptor.name} of ${descriptor.kind}")
       }
    }
    return if (descriptor.isNullable) NullableSchemaFor(schemaFor) else schemaFor

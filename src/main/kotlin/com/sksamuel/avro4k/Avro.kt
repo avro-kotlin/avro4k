@@ -75,7 +75,8 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {
-      return schemaFor(context, serializer.descriptor).schema(DefaultNamingStrategy)
+      return schemaFor(context, serializer.descriptor, serializer.descriptor.getEntityAnnotations())
+         .schema(DefaultNamingStrategy)
    }
 
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,

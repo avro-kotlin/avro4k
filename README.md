@@ -73,3 +73,37 @@ Where the generated schema is as follows:
 }
 ```
 You can see that the schema generator handles nested data classes, lists, primitives, etc. For a full list of supported object types, see the table later.
+
+
+#### Decimal scale, precision and rounding mode
+
+In order to customize the scale and precision used by BigDecimal schema generators, 
+you can add the `@ScalePrecision` annotation to instances of BigDecimal.
+
+For example, this code:
+
+```kotlin
+@Serializable
+data class Test(@ScalePrecision(1, 4) val decimal: BigDecimal)
+
+val schema = Avro.default.schema(Test.serializer())
+```
+
+Would generate the following schema:
+
+```json
+{
+  "type":"record",
+  "name":"Test",
+  "namespace":"com.foo",
+  "fields":[{
+    "name":"d",
+    "type":{
+      "type":"bytes",
+      "logicalType":"decimal",
+      "scale":"1",
+      "precision":"4"
+    }
+  }]
+}
+```

@@ -25,6 +25,8 @@ interface AvroInputStream<T : Any> : AutoCloseable {
     */
    fun next(): T?
 
+   fun nextOrThrow(): T = next() ?: throw SerializationException("No next entity found")
+
    companion object {
 
       /**

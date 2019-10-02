@@ -1,25 +1,28 @@
 package com.sksamuel.avro4k.streams.input
 
 import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.streams.AvroInputStream
 import io.kotlintest.shouldBe
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
 import java.io.ByteArrayOutputStream
 
-fun <T> writeRead(t: T, serializer: SerializationStrategy<T>) {
+fun <T : Any> writeRead(t: T, serializer: KSerializer<T>) {
    val a = writeData(t, serializer)
    readData(a, serializer) shouldBe t
    val b = writeBinary(t, serializer)
    readBinary(b, serializer) shouldBe t
 }
 
-fun <T> writeRead(t: T, expected: T, serializer: SerializationStrategy<T>) {
+fun <T : Any> writeRead(t: T, expected: T, serializer: KSerializer<T>) {
    val a = writeData(t, serializer)
    readData(a, serializer) shouldBe expected
    val b = writeBinary(t, serializer)
    readBinary(b, serializer) shouldBe expected
 }
 
-fun <T> writeData(t: T, serializer: SerializationStrategy<T>): ByteArrayOutputStream {
+fun <T : Any> writeData(t: T, serializer: SerializationStrategy<T>): ByteArrayOutputStream {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
    // val avro = AvroOutputStream.data[T].to(out).build(schema)
@@ -28,15 +31,14 @@ fun <T> writeData(t: T, serializer: SerializationStrategy<T>): ByteArrayOutputSt
    return out
 }
 
-fun <T> readData(out: ByteArrayOutputStream, serializer: SerializationStrategy<T>): T =
-   readData(out.toByteArray(), serializer)
+fun <T : Any> readData(out: ByteArrayOutputStream, deserializer: DeserializationStrategy<T>): T =
+   readData(out.toByteArray(), deserializer)
 
-fun <T> readData(bytes: ByteArray, serializer: SerializationStrategy<T>): T {
-   // AvroInputStream.data.from(bytes).build(implicitly[SchemaFor[T]].schema(DefaultFieldMapper)).iterator.next()
-   TODO()
+fun <T : Any> readData(bytes: ByteArray, deserializer: DeserializationStrategy<T>): T {
+   return AvroInputStream.data(deserializer).from(bytes).nextOrThrow()
 }
 
-fun <T> writeBinary(t: T, serializer: SerializationStrategy<T>): ByteArrayOutputStream {
+fun <T : Any> writeBinary(t: T, serializer: SerializationStrategy<T>): ByteArrayOutputStream {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
    //val avro = AvroOutputStream.binary[T].to(out).build(schema)
@@ -45,10 +47,9 @@ fun <T> writeBinary(t: T, serializer: SerializationStrategy<T>): ByteArrayOutput
    return out
 }
 
-fun <T> readBinary(baos: ByteArrayOutputStream, serializer: SerializationStrategy<T>): T =
-   readBinary(baos.toByteArray(), serializer)
+fun <T : Any> readBinary(baos: ByteArrayOutputStream, deserializer: DeserializationStrategy<T>): T =
+   readBinary(baos.toByteArray(), deserializer)
 
-fun <T> readBinary(bytes: ByteArray, serializer: SerializationStrategy<T>): T {
-  // AvroInputStream.binary.from(bytes).build(implicitly[SchemaFor[T]].schema(DefaultFieldMapper)).iterator.next()
-   TODO()
+fun <T : Any> readBinary(bytes: ByteArray, deserializer: DeserializationStrategy<T>): T {
+   return AvroInputStream.binary(deserializer).from(bytes).nextOrThrow()
 }

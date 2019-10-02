@@ -194,3 +194,76 @@ Would generate the following schema:
   }]
 }
 ```
+
+### Avro Fixed
+
+Avro supports the idea of fixed length byte arrays.
+To use these we can either override the schema generated for a type to return Schema.Type.Fixed. 
+This will work for types like String or UUID. 
+You can also annotate a field with `@AvroFixed(size)`. 
+
+For example:
+
+```kotlin
+package com.sksamuel
+
+data class Foo(@AvroFixed(7) val mystring: String)
+
+val schema = Avro.default.schema(Foo.serializer())
+```
+
+Will generate the following schema:
+
+```json
+{
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel",
+  "fields": [
+    {
+      "name": "mystring",
+      "type": {
+        "type": "fixed",
+        "name": "mystring",
+        "size": 7
+      }
+    }
+  ]
+}
+```
+
+If you have a type that you always want to be represented as fixed, then rather than annotate every single location
+ it is used, you can annotate the type itself.
+
+```kotlin
+package com.sksamuel
+
+@AvroFixed(4)
+@Serializable
+data class FixedA(val bytes: ByteArray)
+
+@Serializable
+data class Foo(val a: FixedA)
+
+val schema = Avro.default.schema(Foo.serializer())
+```
+
+And this would generate:
+
+```json
+{
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel",
+  "fields": [
+    {
+      "name": "a",
+      "type": {
+        "type": "fixed",
+        "name": "FixedA",
+        "size": 4
+      }
+    }
+  ]
+}
+```

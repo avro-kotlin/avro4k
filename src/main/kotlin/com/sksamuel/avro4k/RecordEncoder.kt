@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k
 
+import com.sksamuel.avro4k.serializers.BigDecimalEncoder
 import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
@@ -17,12 +18,16 @@ import java.nio.ByteBuffer
 
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
-                    val callback: (Record) -> Unit) : ElementValueEncoder() {
+                    val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder {
 
    private val builder = ArrayRecordBuilder(schema)
    private var currentIndex = -1
 
-   private fun fieldSchema() = schema.fields[currentIndex].schema()
+   override fun fieldSchema() = schema.fields[currentIndex].schema()
+
+   override fun addValue(value: Any) {
+      builder.add(value)
+   }
 
    override fun encodeString(value: String) {
       builder.add(StringToValue.toValue(fieldSchema(), value))
@@ -89,13 +94,19 @@ class ByteArrayEncoder(private val schema: Schema,
 
 class ListEncoder(private val schema: Schema,
                   override val context: SerialModule,
-                  private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder() {
+                  private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder(), BigDecimalEncoder {
 
    private val list = mutableListOf<Any?>()
 
    override fun endStructure(desc: SerialDescriptor) {
       val generic = GenericData.Array(schema, list.toList())
       callback(generic)
+   }
+
+   override fun fieldSchema(): Schema  = schema
+
+   override fun addValue(value: Any) {
+      list.add(value)
    }
 
    override fun encodeString(value: String) {

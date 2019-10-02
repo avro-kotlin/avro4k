@@ -89,6 +89,7 @@ For example, the following code:
 ```kotlin
 package com.sksamuel
 
+@Serializable
 @AvroDoc("hello, is it me you're looking for?")
 data class Foo(@AvroDoc("I am a string")  val str: String, 
                @AvroDoc("I am a long")    val long: Long, 
@@ -127,15 +128,16 @@ Similarly, for properties:
 ```kotlin
 package com.sksamuel
 
+@Serializable
 @AvroProp("jack", "bruce")
 data class Annotated(@AvroProp("richard", "ashcroft") val str: String, 
                      @AvroProp("kate", "bush")        val long: Long, 
                                                       val int: Int)
 ```
 
-```json
 Would generate this schema:
 
+```json
 {
   "type": "record",
   "name": "Annotated",

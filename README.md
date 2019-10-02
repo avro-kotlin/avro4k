@@ -12,7 +12,10 @@ Unlike say Json, Avro is a schema based format. You'll find yourself wanting to 
 Let's define some classes.
 
 ```kotlin
+@Serializable
 data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+
+@Serializable
 data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
 ```
 
@@ -22,7 +25,7 @@ In other words:
 
 ```kotlin
 import com.sksamuel
-val schema = AvroSchema[Pizza]
+val schema = Avro.default.schema(Pizza.serializer())
 ```
 
 Where the generated schema is as follows:
@@ -179,7 +182,7 @@ Would generate the following schema:
   "name":"Test",
   "namespace":"com.foo",
   "fields":[{
-    "name":"d",
+    "name":"decimal",
     "type":{
       "type":"bytes",
       "logicalType":"decimal",

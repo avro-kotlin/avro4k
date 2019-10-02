@@ -23,7 +23,7 @@ class RecordEncoder(private val schema: Schema,
    private val builder = ArrayRecordBuilder(schema)
    private var currentIndex = -1
 
-   override fun fieldSchema() = schema.fields[currentIndex].schema()
+   override fun fieldSchema(): Schema = schema.fields[currentIndex].schema()
 
    override fun addValue(value: Any) {
       builder.add(value)
@@ -84,7 +84,15 @@ class ByteArrayEncoder(private val schema: Schema,
 
    override fun endStructure(desc: SerialDescriptor) {
       when (schema.type) {
-         Schema.Type.FIXED -> callback(GenericData.get().createFixed(null, bytes.toByteArray(), schema))
+         Schema.Type.FIXED -> {
+            // the array passed in must be padded to size
+            val padding = schema.fixedSize - bytes.size
+            val padded = ByteBuffer.allocate(schema.fixedSize)
+               .put(ByteArray(padding) { 0 })
+               .put(bytes.toByteArray())
+               .array()
+            callback(GenericData.get().createFixed(null, padded, schema))
+         }
          Schema.Type.BYTES -> callback(ByteBuffer.allocate(bytes.size).put(bytes.toByteArray()))
          else -> throw SerializationException("Cannot encode byte array when schema is ${schema.type}")
       }

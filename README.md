@@ -267,3 +267,28 @@ And this would generate:
   ]
 }
 ```
+
+### Using avro4s in your project
+
+Gradle
+```compile 'com.sksamuel.avro4k:avro4k:xxx'```
+
+Maven
+```xml
+<dependency>
+    <groupId>com.sksamuel.avro4k</groupId>
+    <artifactId>avro4k</artifactId>
+    <version>xxx</version>
+</dependency>
+```
+
+Check the latest released version on Maven Central
+
+###Contributions
+
+Contributions to avro4s are always welcome. Good ways to contribute include:
+
+- Raising bugs and feature requests
+- Fixing bugs and enhancing the DSL
+- Improving the performance of avro4k
+= Adding to the documentation

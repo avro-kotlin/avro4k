@@ -157,7 +157,7 @@ Would generate this schema:
 }
 ```
 
-### Decimal scale, precision and rounding mode
+### Decimal scale and precision
 
 In order to customize the scale and precision used by BigDecimal schema generators, 
 you can add the `@ScalePrecision` annotation to instances of BigDecimal.

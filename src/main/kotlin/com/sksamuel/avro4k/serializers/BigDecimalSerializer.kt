@@ -48,6 +48,10 @@ interface BigDecimalEncoder : FieldEncoder {
    }
 }
 
+interface BigDecimalDecoder {
+   fun decodeBigDecimal(): BigDecimal
+}
+
 @Serializer(forClass = BigDecimal::class)
 class BigDecimalSerializer : KSerializer<BigDecimal> {
 
@@ -62,6 +66,6 @@ class BigDecimalSerializer : KSerializer<BigDecimal> {
    }
 
    override fun deserialize(decoder: Decoder): BigDecimal {
-      return BigDecimal(decoder.decodeString())
+      return (decoder as BigDecimalDecoder).decodeBigDecimal()
    }
 }

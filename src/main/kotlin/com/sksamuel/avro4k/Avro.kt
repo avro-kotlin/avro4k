@@ -11,7 +11,7 @@ import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
 import kotlinx.serialization.modules.serializersModuleOf
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericRecord
 import java.io.ByteArrayOutputStream
 import java.util.*
 
@@ -80,7 +80,13 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
-                      record: GenericData.Record): T {
+                      record: GenericRecord): T {
+      return RecordDecoder(record).decode(deserializer)
+   }
+
+   fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
+                      schema: Schema,
+                      record: GenericRecord): T {
       return RecordDecoder(record).decode(deserializer)
    }
 }

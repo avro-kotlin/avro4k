@@ -20,7 +20,7 @@ class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
                     val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder {
 
-   private val builder = ArrayRecordBuilder(schema)
+   private val builder = RecordBuilder(schema)
    private var currentIndex = -1
 
    override fun fieldSchema(): Schema = schema.fields[currentIndex].schema()
@@ -150,20 +150,7 @@ class ListEncoder(private val schema: Schema,
    }
 }
 
-class MapRecordBuilder(private val schema: Schema) {
-
-   private val map = mutableMapOf<String, Any?>()
-
-   fun add(key: String, value: Any?) {
-      map[key] = value
-   }
-
-   fun record(): Record {
-      return MapRecord(schema, map)
-   }
-}
-
-class ArrayRecordBuilder(private val schema: Schema) {
+class RecordBuilder(private val schema: Schema) {
 
    private val values = arrayListOf<Any?>()
 

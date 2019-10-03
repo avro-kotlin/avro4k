@@ -1,9 +1,9 @@
-package com.sksamuel.avro4k.streams.input
+package com.sksamuel.avro4k.streams
 
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 
-class BasicInputStreamTest : FunSpec() {
+class BasicStreamTest : FunSpec() {
    init {
 
       @Serializable

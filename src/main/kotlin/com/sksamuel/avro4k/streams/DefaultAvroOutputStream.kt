@@ -43,5 +43,5 @@ class AvroBinaryOutputStream<T>(output: OutputStream,
 class AvroJsonOutputStream<T>(output: OutputStream,
                               serializer: SerializationStrategy<T>,
                               schema: Schema) : DefaultAvroOutputStream<T>(output, serializer, schema) {
-   override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output)
+   override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output, true)
 }

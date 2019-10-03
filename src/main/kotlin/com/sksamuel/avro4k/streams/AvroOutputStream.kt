@@ -66,7 +66,7 @@ class AvroOutputStreamBuilder<T>(private val schema: Schema,
 
    fun to(output: OutputStream): AvroOutputStream<T> = when (format) {
       AvroFormat.DataFormat -> AvroDataOutputStream(output, serializer, schema, codec)
-      AvroFormat.JsonFormat -> AvroBinaryOutputStream(output, serializer, schema)
+      AvroFormat.JsonFormat -> AvroJsonOutputStream(output, serializer, schema)
       AvroFormat.BinaryFormat -> AvroBinaryOutputStream(output, serializer, schema)
    }
 }

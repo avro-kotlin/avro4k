@@ -23,7 +23,6 @@ fun <T> writeRead(t: T, serializer: KSerializer<T>) {
       t shouldBe tt
    }
    writeJson(t, serializer).apply {
-      println(String(this))
       val record = readJson(this, serializer)
       val tt = Avro.default.fromRecord(serializer, record)
       t shouldBe tt

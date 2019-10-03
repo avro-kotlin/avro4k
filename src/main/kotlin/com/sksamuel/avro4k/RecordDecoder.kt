@@ -26,7 +26,6 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
    
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      println("beginStructure $desc")
       if (currentIndex == -1) {
          return this
       }
@@ -151,7 +150,6 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
    }
 
    override fun decodeElementIndex(desc: SerialDescriptor): Int {
-      println("decodeElementIndex $desc $currentIndex")
       currentIndex++
       while (currentIndex < desc.elementsCount) {
          if (desc.isElementOptional(currentIndex)) {
@@ -179,10 +177,6 @@ class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
 
    private var index = 0
 
-   init {
-      println(array)
-   }
-
    override fun decodeBoolean(): Boolean {
       return array[index++] as Boolean
    }
@@ -208,7 +202,6 @@ class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      println("beginStructure $desc")
       return when (desc.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(array[index++] as GenericRecord)
          StructureKind.MAP, StructureKind.LIST -> this

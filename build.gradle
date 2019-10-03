@@ -39,9 +39,9 @@ targetCompatibility = 1.8
 group = "com.sksamuel.avro4k"
 
 if (isTravis) {
-   version "0.10.0" + travisBuildNumber + "-SNAPSHOT"
+   version "0.12.0" + travisBuildNumber + "-SNAPSHOT"
 } else {
-   version "0.10.0"
+   version "0.11.0"
 }
 
 task javadocJar(type: Jar) {

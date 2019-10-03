@@ -1,6 +1,8 @@
 package com.sksamuel.avro4k.streams
 
+import com.sksamuel.avro4k.Avro
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import org.apache.avro.Schema
 import java.io.ByteArrayInputStream
@@ -35,42 +37,54 @@ interface AvroInputStream<T> : AutoCloseable {
 
    companion object {
 
-      operator fun <T> invoke(format: AvroFormat, deserializer: DeserializationStrategy<T>) = when (format) {
-         AvroFormat.BinaryFormat -> binary(deserializer)
-         AvroFormat.JsonFormat -> json(deserializer)
-         AvroFormat.DataFormat -> data(deserializer)
-      }
-
       /**
        * Creates an [AvroInputStreamBuilder] that will read from binary
        * encoded files.
+       *
+       * Binary encoded files do not include the schema, and therefore
+       * require a schema to make sense of the data. This is known as the
+       * 'writer schema' or in other words, the schema that was originally
+       * used when creating the data.
+       *
+       * This writer schema can be supplied here, or if omitted, then a schema
+       * will be generated from the class using [Avro.schema]. This of course
+       * requires that the types have not changed between writing the original
+       * data and reading it back in here. Otherwise the schemas will not match.
        */
-      fun <T> binary(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
-         AvroInputStreamBuilder(deserializer, AvroFormat.BinaryFormat, null, null)
+      fun <T> binary(serializer: KSerializer<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> {
+         val writer = writerSchema ?: Avro.default.schema(serializer)
+         return AvroInputStreamBuilder(serializer, AvroFormat.BinaryFormat, writer, null)
+      }
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from binary
        * encoded files with the schema present.
        */
-      fun <T> data(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
-         AvroInputStreamBuilder(deserializer, AvroFormat.DataFormat, null, null)
+      fun <T> data(serializer: DeserializationStrategy<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> =
+         AvroInputStreamBuilder(serializer, AvroFormat.DataFormat, writerSchema, null)
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from json
        * encoded files.
+       *
+       * JSON encoded files do not include the schema, and therefore
+       * require a schema to make sense of the data. This is the writer schema, which is
+       * the schema that was originally used when writing the data.
        */
-      fun <T> json(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
-         AvroInputStreamBuilder(deserializer, AvroFormat.JsonFormat, null, null)
+      fun <T> json(serializer: KSerializer<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> {
+         val writer = writerSchema ?: Avro.default.schema(serializer)
+         return AvroInputStreamBuilder(serializer, AvroFormat.JsonFormat, writer, null)
+      }
    }
 }
 
 class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrategy<T>,
                                 private val format: AvroFormat,
-                                private val readerSchema: Schema?,
-                                private val writerSchema: Schema?) {
+                                private val writerSchema: Schema?,
+                                private val readerSchema: Schema?) {
 
-   fun withWriterSchema(schema: Schema?) = AvroInputStreamBuilder(deserializer, format, readerSchema, schema)
-   fun withReaderSchema(schema: Schema?) = AvroInputStreamBuilder(deserializer, format, schema, writerSchema)
+   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, readerSchema)
+   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, writerSchema, schema)
 
    fun from(path: Path): AvroInputStream<T> = from(Files.newInputStream(path))
    fun from(path: String): AvroInputStream<T> = from(Paths.get(path))
@@ -80,22 +94,8 @@ class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrateg
 
    fun from(source: InputStream): AvroInputStream<T> {
       return when (format) {
-         AvroFormat.BinaryFormat -> when {
-            writerSchema != null && readerSchema != null ->
-               AvroBinaryInputStream(source, deserializer, writerSchema, readerSchema)
-            writerSchema != null ->
-               AvroBinaryInputStream(source, deserializer, writerSchema, writerSchema)
-            else ->
-               throw SerializationException("Must specify a schema for binary formats")
-         }
-         AvroFormat.JsonFormat -> when {
-            writerSchema != null && readerSchema != null ->
-               AvroJsonInputStream(source, deserializer, writerSchema, readerSchema)
-            writerSchema != null ->
-               AvroJsonInputStream(source, deserializer, writerSchema, writerSchema)
-            else ->
-               throw SerializationException("Must specify a schema for json formats")
-         }
+         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, writerSchema!!, readerSchema)
+         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, writerSchema!!, readerSchema)
          AvroFormat.DataFormat -> when {
             writerSchema != null && readerSchema != null ->
                AvroDataInputStream(source, deserializer, writerSchema, readerSchema)

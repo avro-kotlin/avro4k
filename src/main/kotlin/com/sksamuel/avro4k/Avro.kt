@@ -32,19 +32,12 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    /**
-    * Loads an instance of <T> from the given ByteArray, with the assertion that the record was stored
-    * using [AvroFormat.DataFormat]. If the byte array represents another format, use the overloaded
-    * version and specify the format.
+    * Loads an instance of <T> from the given ByteArray, with the assumption that the record was stored
+    * using [AvroFormat.DataFormat]. If the byte array represents another format, create an instance
+    * of the appropriate [AvroInputStream] using the functions on that companion object.
     */
    override fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
       return AvroInputStream.data(deserializer).from(bytes).nextOrThrow()
-   }
-
-   /**
-    * Loads an instance of <T> from the given ByteArray using the specified format.
-    */
-   fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray, format: AvroFormat): T {
-      return AvroInputStream(format, deserializer).from(bytes).nextOrThrow()
    }
 
    /**

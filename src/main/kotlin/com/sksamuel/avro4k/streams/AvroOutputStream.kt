@@ -36,20 +36,20 @@ interface AvroOutputStream<T> : AutoCloseable {
        * in the messages for downstream clients.
        */
       fun <T> binary(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, serializer, AvroFormat.BinaryFormat)
+         AvroOutputStreamBuilder(schema, serializer, AvroFormat.BinaryFormat)
 
       /**
        * An [AvroOutputStream] that writes as JSON.
        * The schema is not included.
        */
       fun <T> json(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, serializer, AvroFormat.JsonFormat)
+         AvroOutputStreamBuilder(schema, serializer, AvroFormat.JsonFormat)
 
       /**
        * An [AvroOutputStream] that writes as binary with the inclusion of the schema.
        */
       fun <T> data(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, serializer, AvroFormat.DataFormat)
+         AvroOutputStreamBuilder(schema, serializer, AvroFormat.DataFormat)
    }
 }
 
@@ -58,14 +58,14 @@ class AvroOutputStreamBuilder<T>(private val schema: Schema,
                                  private val format: AvroFormat,
                                  private val codec: CodecFactory = CodecFactory.nullCodec()) {
 
-   fun withCodec(codec: CodecFactory) = AvroOutputStreamBuilder<T>(schema, serializer, format, codec)
+   fun withCodec(codec: CodecFactory) = AvroOutputStreamBuilder(schema, serializer, format, codec)
 
    fun to(path: Path): AvroOutputStream<T> = to(Files.newOutputStream(path))
    fun to(path: String): AvroOutputStream<T> = to(Paths.get(path))
    fun to(file: File): AvroOutputStream<T> = to(file.toPath())
 
    fun to(output: OutputStream): AvroOutputStream<T> = when (format) {
-      AvroFormat.DataFormat -> AvroDataOutputStream(output, schema, codec)
+      AvroFormat.DataFormat -> AvroDataOutputStream(output, serializer, schema, codec)
       AvroFormat.JsonFormat -> AvroBinaryOutputStream(output, serializer, schema)
       AvroFormat.BinaryFormat -> AvroBinaryOutputStream(output, serializer, schema)
    }

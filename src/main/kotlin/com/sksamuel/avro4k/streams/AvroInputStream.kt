@@ -11,17 +11,23 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-interface AvroInputStream<T : Any> : AutoCloseable {
+interface AvroInputStream<T> : AutoCloseable {
 
    /**
     * Returns a [Sequence] for the values of T in the stream.
     * This function should not be invoked if using [next].
     */
-   fun seq(): Sequence<T> = generateSequence { next() }
+   fun iterator(): Iterator<T> = iterator<T> {
+      var next = next()
+      while (next != null) {
+         yield(next)
+         next = next()
+      }
+   }
 
    /**
     * Returns the next value of T in the stream.
-    * This function should not be invoked if using [seq].
+    * This function should not be invoked if using [iterator].
     */
    fun next(): T?
 
@@ -29,33 +35,39 @@ interface AvroInputStream<T : Any> : AutoCloseable {
 
    companion object {
 
+      operator fun <T> invoke(format: AvroFormat, deserializer: DeserializationStrategy<T>) = when (format) {
+         AvroFormat.BinaryFormat -> binary(deserializer)
+         AvroFormat.JsonFormat -> json(deserializer)
+         AvroFormat.DataFormat -> data(deserializer)
+      }
+
       /**
        * Creates an [AvroInputStreamBuilder] that will read from binary
        * encoded files.
        */
-      fun <T : Any> binary(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
+      fun <T> binary(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
          AvroInputStreamBuilder(deserializer, AvroFormat.BinaryFormat, null, null)
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from binary
        * encoded files with the schema present.
        */
-      fun <T : Any> data(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
+      fun <T> data(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
          AvroInputStreamBuilder(deserializer, AvroFormat.DataFormat, null, null)
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from json
        * encoded files.
        */
-      fun <T : Any> json(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
+      fun <T> json(deserializer: DeserializationStrategy<T>): AvroInputStreamBuilder<T> =
          AvroInputStreamBuilder(deserializer, AvroFormat.JsonFormat, null, null)
    }
 }
 
-class AvroInputStreamBuilder<T : Any>(private val deserializer: DeserializationStrategy<T>,
-                                      private val format: AvroFormat,
-                                      private val readerSchema: Schema?,
-                                      private val writerSchema: Schema?) {
+class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrategy<T>,
+                                private val format: AvroFormat,
+                                private val readerSchema: Schema?,
+                                private val writerSchema: Schema?) {
 
    fun withWriterSchema(schema: Schema?) = AvroInputStreamBuilder(deserializer, format, readerSchema, schema)
    fun withReaderSchema(schema: Schema?) = AvroInputStreamBuilder(deserializer, format, schema, writerSchema)

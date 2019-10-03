@@ -10,10 +10,10 @@ import org.apache.avro.io.DatumReader
 import java.io.InputStream
 
 @Suppress("UNCHECKED_CAST")
-class AvroDataInputStream<T : Any>(private val source: InputStream,
-                                   private val deserializer: DeserializationStrategy<T>,
-                                   writerSchema: Schema?,
-                                   private val readerSchema: Schema?) : AvroInputStream<T> {
+class AvroDataInputStream<T>(private val source: InputStream,
+                             private val deserializer: DeserializationStrategy<T>,
+                             writerSchema: Schema?,
+                             private val readerSchema: Schema?) : AvroInputStream<T> {
 
    // if no reader or writer schema is specified, then we create a reader that uses what's present in the files
    private val datumReader = when {

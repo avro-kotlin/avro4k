@@ -1,6 +1,9 @@
 package com.sksamuel.avro4k
 
 import com.sksamuel.avro4k.serializers.UUIDSerializer
+import com.sksamuel.avro4k.streams.AvroFormat
+import com.sksamuel.avro4k.streams.AvroInputStream
+import com.sksamuel.avro4k.streams.AvroOutputStream
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
@@ -28,21 +31,31 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       val default = Avro(simpleModule)
    }
 
+   /**
+    * Loads an instance of <T> from the given ByteArray, with the assertion that the record was stored
+    * using [AvroFormat.DataFormat]. If the byte array represents another format, use the overloaded
+    * version and specify the format.
+    */
    override fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
-      TODO()
+      return AvroInputStream.data(deserializer).from(bytes).nextOrThrow()
+   }
+
+   /**
+    * Loads an instance of <T> from the given ByteArray using the specified format.
+    */
+   fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray, format: AvroFormat): T {
+      return AvroInputStream(format, deserializer).from(bytes).nextOrThrow()
    }
 
    /**
     * Writes values of <T> to a [ByteArray] using the given [Schema].
     */
    fun <T> dump(serializer: SerializationStrategy<T>, obj: T, schema: Schema): ByteArray {
-
-      val output = ByteArrayOutputStream()
-
-  //    val encoder = RecordEncoder(schema)
-  //    encoder.encode(serializer, obj)
-
-      return output.toByteArray()
+      val baos = ByteArrayOutputStream()
+      val output = AvroOutputStream.data(schema, serializer).to(baos)
+      output.write(obj)
+      output.close()
+      return baos.toByteArray()
    }
 
    /**
@@ -74,11 +87,6 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       return record!!
    }
 
-   fun <T> schema(serializer: SerializationStrategy<T>): Schema {
-      return schemaFor(context, serializer.descriptor, serializer.descriptor.getEntityAnnotations())
-         .schema(DefaultNamingStrategy)
-   }
-
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
                       record: GenericRecord): T {
       return RecordDecoder(record).decode(deserializer)
@@ -89,4 +97,10 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
                       record: GenericRecord): T {
       return RecordDecoder(record).decode(deserializer)
    }
+
+   fun <T> schema(serializer: SerializationStrategy<T>): Schema {
+      return schemaFor(context, serializer.descriptor, serializer.descriptor.getEntityAnnotations())
+         .schema(DefaultNamingStrategy)
+   }
+
 }

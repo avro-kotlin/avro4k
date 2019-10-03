@@ -284,7 +284,7 @@ Maven
 
 Check the latest released version on Maven Central
 
-###Contributions
+### Contributions
 
 Contributions to avro4s are always welcome. Good ways to contribute include:
 

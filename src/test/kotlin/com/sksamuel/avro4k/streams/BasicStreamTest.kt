@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k.streams
 
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 
@@ -26,6 +27,12 @@ class BasicStreamTest : FunSpec() {
 
       test("read write out booleans") {
          writeRead(BooleanTest(true), BooleanTest.serializer())
+         writeRead(BooleanTest(false), BooleanTest.serializer()) {
+            it["z"] shouldBe false
+         }
+         writeRead(BooleanTest(true), BooleanTest.serializer()) {
+            it["z"] shouldBe true
+         }
       }
 
       test("read write out strings") {

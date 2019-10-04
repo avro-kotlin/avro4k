@@ -40,8 +40,7 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
-      val symbol = enumDescription.getElementName(ordinal)
-      builder.add(EnumToAvroValue.toValue(fieldSchema(), symbol))
+      builder.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {

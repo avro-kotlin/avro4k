@@ -20,7 +20,7 @@ class EnumEncoderTest : FunSpec({
          )
    }
 
-   test("!support nullable enums") {
+   test("support nullable enums") {
       val schema = Avro.default.schema(NullableWine.serializer())
 
       val record1 = GenericData.Record(schema)

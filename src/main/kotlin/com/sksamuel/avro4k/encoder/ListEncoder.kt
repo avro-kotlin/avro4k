@@ -59,7 +59,6 @@ class ListEncoder(private val schema: Schema,
    }
 
    override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
-      val symbol = enumDescription.getElementName(ordinal)
-      list.add(EnumToAvroValue.toValue(fieldSchema(), symbol))
+      list.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
    }
 }

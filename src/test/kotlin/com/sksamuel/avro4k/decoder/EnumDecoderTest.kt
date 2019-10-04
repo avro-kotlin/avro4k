@@ -3,7 +3,7 @@ package com.sksamuel.avro4k.decoder
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.schema.Wine
 import io.kotlintest.shouldBe
-import io.kotlintest.specs.WordSpec
+import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericData
 
@@ -13,9 +13,8 @@ data class MyWine(val wine: Wine)
 @Serializable
 data class NullableWine(val wine: Wine?)
 
-class EnumDecoderTest : WordSpec({
+class EnumDecoderTest : StringSpec({
 
-  "Decoder" should {
     "support enums" {
       val schema = Avro.default.schema(MyWine.serializer())
       val record = GenericData.Record(schema)
@@ -33,6 +32,5 @@ class EnumDecoderTest : WordSpec({
       record2.put("wine", null)
       Avro.default.fromRecord(NullableWine.serializer(), record2) shouldBe NullableWine(null)
     }
-  }
 
 })

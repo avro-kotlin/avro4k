@@ -42,15 +42,15 @@ class EnumIoTest : StringSpec({
       }
    }
 
-   "!read / write nullable enums" {
+   "read / write nullable enums" {
 
       @Serializable
       data class EnumTest(val a: Cream?)
 
       writeRead(EnumTest(null), EnumTest.serializer())
       writeRead(EnumTest(Cream.Bruce), EnumTest.serializer())
-      writeRead(EnumTest(null), EnumTest.serializer()) {
-         it["a"] shouldBe null
+      writeRead(EnumTest(Cream.Bruce), EnumTest.serializer()) {
+         it["a"] shouldBe Cream.Bruce
       }
    }
 })

@@ -10,7 +10,8 @@ import org.apache.avro.specific.SpecificRecord
  */
 interface Record : GenericRecord, SpecificRecord
 
-data class ListRecord(val s: Schema, val values: List<Any?>) : Record {
+data class ListRecord(private val s: Schema,
+                      private val values: List<Any?>) : Record {
 
    constructor(s: Schema, vararg values: Any?) : this(s, values.toList())
 

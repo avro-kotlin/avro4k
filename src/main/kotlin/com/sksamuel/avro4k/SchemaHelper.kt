@@ -23,6 +23,11 @@ object SchemaHelper {
 fun Schema.containsNull(): Boolean =
    type == Schema.Type.UNION && types.any { it.type == Schema.Type.NULL }
 
+fun Schema.extractNonNull(): Schema = when (this.type) {
+   Schema.Type.UNION -> this.types.first { it.type != Schema.Type.NULL }
+   else -> this
+}
+
 /**
  * Takes an Avro schema, and overrides the namespace of that schema with the given namespace.
  */

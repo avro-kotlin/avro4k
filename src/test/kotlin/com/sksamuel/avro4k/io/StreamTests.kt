@@ -44,17 +44,17 @@ fun <T> writeRead(t: T, expected: T, serializer: KSerializer<T>) {
 
 fun <T> writeRead(t: T, serializer: KSerializer<T>, test: (GenericRecord) -> Any) {
    writeData(t, serializer).apply {
-   //   val record = readData(this, serializer)
-   //   test(record)
+      val record = readData(this, serializer)
+      test(record)
    }
-//   writeBinary(t, serializer).apply {
-//      val record = readBinary(this, serializer)
-//      test(record)
-//   }
-//   writeJson(t, serializer).apply {
-//      val record = readJson(this, serializer)
-//      test(record)
-//   }
+   writeBinary(t, serializer).apply {
+      val record = readBinary(this, serializer)
+      test(record)
+   }
+   writeJson(t, serializer).apply {
+      val record = readJson(this, serializer)
+      test(record)
+   }
 }
 
 fun <T> writeData(t: T, serializer: SerializationStrategy<T>): ByteArray {

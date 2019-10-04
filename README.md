@@ -403,6 +403,95 @@ Would result in the following schema:
 }
 ```
 
+
+
+## Input / Output
+
+### Formats
+
+Avro supports four different encoding types [serializing records](https://avro.apache.org/docs/current/spec.html#Data+Serialization+and+Deserialization).
+
+These are binary with schema, binary without schema, json and single object encoding.
+
+In avro4k these are represented by an `AvroFormat` enum with three values - `AvroFormat.Binary` (binary no schema), `AvroFormat.Data` (binary with schema), and `AvroFormat.Json`.
+The single object encoding is currently not supported. 
+
+Binary encoding without the schema does not include field names, self-contained information about the types of individual bytes, nor field or record separators.
+Therefore readers are wholly reliant on the schema used when the data was encoded but the format is by far the most compact. Binary encodings are [fast](https://www.slideshare.net/oom65/orc-files?next_slideshow=1).
+
+Binary encoding with the schema is still quick to deserialize, but is obviously less compact. However, as the schema is included readers do not need to have access to the original schema.   
+
+Json encoding is the largest and slowest, but the easist to work with outside of Avro, and of course is easy to view on the wire (if that is a concern).
+
+
+### Serializing
+
+Avro4k allows us to easily serialize data classes using an instance of `AvroOutputStream` which we write to, and close, just like you would any regular output stream. 
+When creating an output stream we specify the format to be used, and then the target, such as a File, Path, or another output stream.
+The writer schema must also be provided. This schema must be compatible with the values being written.
+
+In a purely Kotlin environment it is easy to create the schema for the output stream from the `Serializer`. 
+
+For example, to serialize instances of the `Pizza` class:
+
+```kotlin
+@Serializable
+data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+
+@Serializable
+data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
+
+val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
+val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
+
+val schema = Avro.default.schema(Pizza.serializer())
+
+val os = AvroOutputStream.binary(schema, Pizza.serializer()).to(File("pizzas.avro"))
+os.write(listOf(veg, hawaiian))
+os.flush()
+```
+
+### Deserializing
+
+We can easily deserialize a file back into data classes using instances of `AvroInputStream` which work in a similar way to the output stream version.
+Given the `pizzas.avro` file we generated in the previous section on serialization, we will read the records back in as instances of the `Pizza` class. 
+First create an instance of the input stream specifying the types we will read back, the source, and the writer schema that was used.
+
+`AvroInputStream` has functions to get the next single value, or to return all values as an iterator.
+
+For example, the following code:
+
+```kotlin
+@Serializable
+data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+
+@Serializable
+data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
+
+val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
+val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
+
+val schema = Avro.default.schema(Pizza.serializer())
+
+val output = AvroOutputStream.binary(schema, Pizza.serializer()).to(File("pizzas.avro"))
+output.write(listOf(veg, hawaiian))
+output.close()
+
+val input = AvroInputStream.binary(Pizza.serializer(), schema).from(File("pizzas.avro"))
+input.iterator().forEach { println(it) }
+input.close()
+```
+
+Will print out the following:
+
+```text
+Pizza(name=veg, ingredients=[Ingredient(name=peppers, sugar=0.1, fat=0.3), Ingredient(name=onion, sugar=1.0, fat=0.4)], vegetarian=true, kcals=265)
+Pizza(name=hawaiian, ingredients=[Ingredient(name=ham, sugar=1.5, fat=5.6), Ingredient(name=pineapple, sugar=5.2, fat=0.2)], vegetarian=false, kcals=391)
+```
+
+
+
+
 ### Using avro4k in your project
 
 Gradle

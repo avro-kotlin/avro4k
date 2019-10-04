@@ -9,6 +9,7 @@ import org.apache.avro.io.BinaryDecoder
 import org.apache.avro.io.Decoder
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.JsonDecoder
+import java.io.EOFException
 import java.io.InputStream
 
 /**
@@ -31,7 +32,11 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
    override fun close(): Unit = input.close()
 
    override fun next(): T? {
-      val record = datumReader.read(null, decoder)
+      val record = try {
+         datumReader.read(null, decoder)
+      } catch (e: EOFException) {
+         null
+      }
       return when {
          record == null -> null
          readerSchema == null -> Avro.default.fromRecord(deserializer, record)

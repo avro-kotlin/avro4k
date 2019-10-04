@@ -5,6 +5,8 @@ import io.kotlintest.properties.assertAll
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.generic.GenericArray
+import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
 class CollectionsIoTest : StringSpec({
@@ -60,6 +62,25 @@ class CollectionsIoTest : StringSpec({
             it["a"] shouldBe listOf(a, b)
             it["b"] shouldBe listOf(c, d)
          }
+      }
+   }
+
+   "read / write lists of records" {
+
+      @Serializable
+      data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+
+      @Serializable
+      data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
+
+      val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
+
+      writeRead(hawaiian, Pizza.serializer()) {
+         it["name"] shouldBe Utf8("hawaiian")
+         it["vegetarian"] shouldBe false
+         it["kcals"] shouldBe 391
+         (it["ingredients"] as GenericArray<GenericRecord>)[0]["name"] shouldBe Utf8("ham")
+         (it["ingredients"] as GenericArray<GenericRecord>)[1]["sugar"] shouldBe 5.2
       }
    }
 })

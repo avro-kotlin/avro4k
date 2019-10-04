@@ -13,9 +13,25 @@ import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 
+interface StructureEncoder : FieldEncoder {
+
+   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
+      return when (desc.kind) {
+         StructureKind.LIST -> {
+            when (desc.getElementDescriptor(0).kind) {
+               PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), context) { addValue(it) }
+               else -> ListEncoder(fieldSchema(), context) { addValue(it) }
+            }
+         }
+         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context) { addValue(it) }
+         else -> this as CompositeEncoder
+      }
+   }
+}
+
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
-                    val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder {
+                    val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder, StructureEncoder {
 
    private val builder = RecordBuilder(schema)
    private var currentIndex = -1
@@ -44,19 +60,7 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      if (currentIndex == -1) return this
-      return when (desc.kind) {
-         StructureKind.LIST -> {
-            when (desc.getElementDescriptor(0).kind) {
-               PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), context) {
-                  builder.add(it)
-               }
-               else -> ListEncoder(fieldSchema(), context) { builder.add(it) }
-            }
-         }
-         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context) { builder.add(it) }
-         else -> this
-      }
+      return if (currentIndex == -1) return this else super<StructureEncoder>.beginStructure(desc, *typeParams)
    }
 
    override fun endStructure(desc: SerialDescriptor) {

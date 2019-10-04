@@ -1,7 +1,9 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.serializer.BigDecimalEncoder
+import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
@@ -10,8 +12,8 @@ import org.apache.avro.generic.GenericData
 
 class ListEncoder(private val schema: Schema,
                   override val context: SerialModule,
-                  private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder(),
-   BigDecimalEncoder {
+                  private val callback: (GenericData.Array<Any?>) -> Unit) :
+   ElementValueEncoder(), BigDecimalEncoder, StructureEncoder {
 
    private val list = mutableListOf<Any?>()
 
@@ -20,7 +22,11 @@ class ListEncoder(private val schema: Schema,
       callback(generic)
    }
 
-   override fun fieldSchema(): Schema = schema
+   override fun fieldSchema(): Schema = schema.elementType
+
+   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
+      return super<StructureEncoder>.beginStructure(desc, *typeParams)
+   }
 
    override fun addValue(value: Any) {
       list.add(value)

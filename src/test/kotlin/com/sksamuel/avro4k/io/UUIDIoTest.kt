@@ -13,7 +13,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
 import java.util.*
 
-class UUIDStreamTest : StringSpec({
+class UUIDIoTest : StringSpec({
 
    "read / write UUID" {
 

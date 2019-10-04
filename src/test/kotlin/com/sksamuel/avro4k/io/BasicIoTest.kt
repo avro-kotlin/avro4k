@@ -5,7 +5,7 @@ import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.util.Utf8
 
-class BasicStreamTest : FunSpec() {
+class BasicIoTest : FunSpec() {
    init {
 
       @Serializable

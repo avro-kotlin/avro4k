@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k.io
 
 import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.AvroName
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
@@ -29,7 +30,7 @@ class AvroNameIoTest : StringSpec({
       output.close()
 
       @Serializable
-      data class Composer(val name: String, val status: String)
+      data class Composer(@AvroName("fullname") val name: String, val status: String)
 
       val schema2 = Avro.default.schema(Composer.serializer())
       val input = AvroInputStream.binary(Composer.serializer(), schema2).from(file)

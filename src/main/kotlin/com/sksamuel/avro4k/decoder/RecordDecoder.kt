@@ -25,6 +25,7 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       if (currentIndex == -1) {
+         currentDesc = desc
          return this
       }
       return when (desc.kind as StructureKind) {

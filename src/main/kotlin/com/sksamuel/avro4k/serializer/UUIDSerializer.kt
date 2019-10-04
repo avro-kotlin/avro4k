@@ -1,4 +1,4 @@
-package com.sksamuel.avro4k.serializers
+package com.sksamuel.avro4k.serializer
 
 import kotlinx.serialization.Decoder
 import kotlinx.serialization.Encoder

@@ -1,9 +1,11 @@
 package com.sksamuel.avro4k
 
-import com.sksamuel.avro4k.serializers.UUIDSerializer
-import com.sksamuel.avro4k.streams.AvroFormat
-import com.sksamuel.avro4k.streams.AvroInputStream
-import com.sksamuel.avro4k.streams.AvroOutputStream
+import com.sksamuel.avro4k.decoder.RecordDecoder
+import com.sksamuel.avro4k.encoder.RecordEncoder
+import com.sksamuel.avro4k.serializer.UUIDSerializer
+import com.sksamuel.avro4k.io.AvroFormat
+import com.sksamuel.avro4k.io.AvroInputStream
+import com.sksamuel.avro4k.io.AvroOutputStream
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy

@@ -1,6 +1,6 @@
-package com.sksamuel.avro4k.serializers
+package com.sksamuel.avro4k.serializer
 
-import com.sksamuel.avro4k.FieldEncoder
+import com.sksamuel.avro4k.encoder.FieldEncoder
 import kotlinx.serialization.Decoder
 import kotlinx.serialization.Encoder
 import kotlinx.serialization.KSerializer

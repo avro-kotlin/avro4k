@@ -1,6 +1,6 @@
-package com.sksamuel.avro4k
+package com.sksamuel.avro4k.decoder
 
-import com.sksamuel.avro4k.serializers.BigDecimalDecoder
+import com.sksamuel.avro4k.serializer.BigDecimalDecoder
 import kotlinx.serialization.CompositeDecoder
 import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
@@ -11,7 +11,6 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
-import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
@@ -55,18 +54,7 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
       }
    }
 
-   override fun decodeString(): String {
-      return when (val v = record[currentIndex]) {
-         is String -> v
-         is Utf8 -> v.toString()
-         is GenericData.Fixed -> String(v.bytes())
-         is ByteArray -> String(v)
-         is CharSequence -> v.toString()
-         is ByteBuffer -> String(v.array())
-         null -> throw SerializationException("Cannot decode <null> as a string")
-         else -> throw SerializationException("Unsupported type for String ${v.javaClass}")
-      }
-   }
+   override fun decodeString(): String = StringFromValue.fromValue(record[currentIndex])
 
    override fun decodeBigDecimal(): BigDecimal {
 
@@ -162,51 +150,3 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
    }
 }
 
-class ByteArrayDecoder(val data: ByteArray) : ElementValueDecoder() {
-
-   private var index = 0
-
-   override fun decodeCollectionSize(desc: SerialDescriptor): Int = data.size
-
-   override fun decodeByte(): Byte {
-      return data[index++]
-   }
-}
-
-class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
-
-   private var index = 0
-
-   override fun decodeBoolean(): Boolean {
-      return array[index++] as Boolean
-   }
-
-   override fun decodeLong(): Long {
-      return array[index++] as Long
-   }
-
-   override fun decodeString(): String {
-      return array[index++] as String
-   }
-
-   override fun decodeDouble(): Double {
-      return array[index++] as Double
-   }
-
-   override fun decodeFloat(): Float {
-      return array[index++] as Float
-   }
-
-   override fun decodeByte(): Byte {
-      return array[index++] as Byte
-   }
-
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      return when (desc.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(array[index++] as GenericRecord)
-         StructureKind.MAP, StructureKind.LIST -> this
-      }
-   }
-
-   override fun decodeCollectionSize(desc: SerialDescriptor): Int = array.size
-}

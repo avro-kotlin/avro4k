@@ -1,8 +1,9 @@
-package com.sksamuel.avro4k.streams
+package com.sksamuel.avro4k.io
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.util.Utf8
 
 class BasicStreamTest : FunSpec() {
    init {
@@ -37,10 +38,16 @@ class BasicStreamTest : FunSpec() {
 
       test("read write out strings") {
          writeRead(StringTest("Hello world"), StringTest.serializer())
+         writeRead(StringTest("Hello world"), StringTest.serializer()) {
+            it["z"] shouldBe Utf8("Hello world")
+         }
       }
 
       test("read write out longs") {
          writeRead(LongTest(65653L), LongTest.serializer())
+         writeRead(LongTest(65653L), LongTest.serializer()) {
+            it["z"] shouldBe 65653L
+         }
       }
 
       test("read write out ints") {

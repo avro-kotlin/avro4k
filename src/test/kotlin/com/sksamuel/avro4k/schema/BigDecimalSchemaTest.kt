@@ -4,7 +4,7 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.ScalePrecision
-import com.sksamuel.avro4k.serializers.BigDecimalSerializer
+import com.sksamuel.avro4k.serializer.BigDecimalSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable

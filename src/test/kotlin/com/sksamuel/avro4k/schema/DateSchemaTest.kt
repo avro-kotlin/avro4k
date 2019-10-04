@@ -10,12 +10,12 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.serializers.InstantSerializer
-import com.sksamuel.avro4k.serializers.LocalDateSerializer
-import com.sksamuel.avro4k.serializers.LocalDateTimeSerializer
-import com.sksamuel.avro4k.serializers.LocalTimeSerializer
-import com.sksamuel.avro4k.serializers.TimestampSerializer
-import com.sksamuel.avro4k.serializers.DateSerializer
+import com.sksamuel.avro4k.serializer.InstantSerializer
+import com.sksamuel.avro4k.serializer.LocalDateSerializer
+import com.sksamuel.avro4k.serializer.LocalDateTimeSerializer
+import com.sksamuel.avro4k.serializer.LocalTimeSerializer
+import com.sksamuel.avro4k.serializer.TimestampSerializer
+import com.sksamuel.avro4k.serializer.DateSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable

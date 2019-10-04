@@ -1,4 +1,4 @@
-package com.sksamuel.avro4k.streams
+package com.sksamuel.avro4k.io
 
 sealed class AvroFormat {
 

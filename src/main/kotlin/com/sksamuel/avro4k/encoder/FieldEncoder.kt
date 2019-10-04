@@ -1,4 +1,4 @@
-package com.sksamuel.avro4k
+package com.sksamuel.avro4k.encoder
 
 import org.apache.avro.Schema
 

@@ -1,4 +1,4 @@
-package com.sksamuel.avro4k.streams
+package com.sksamuel.avro4k.io
 
 import kotlinx.serialization.SerializationStrategy
 import org.apache.avro.Schema

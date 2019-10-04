@@ -374,7 +374,36 @@ And this would generate:
 }
 ```
 
-### Using avro4s in your project
+### Transient Fields
+
+The kotlinx.serialization framework does not support the standard @transient anotation to mark a field as ignored, but instead supports its own `@kotlinx.serialization.Transient` annotation to do the same job.
+ Any field marked with this will be excluded from the generated schema.
+
+For example, the following code:
+
+```kotlin
+package com.sksamuel
+
+data class Foo(val a: String, @AvroTransient val b: String)
+```
+
+Would result in the following schema:
+
+```json
+{  
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.sksamuel",
+  "fields": [  
+    {  
+      "name": "a",
+      "type": "string"
+    }
+  ]
+}
+```
+
+### Using avro4k in your project
 
 Gradle
 ```compile 'com.sksamuel.avro4k:avro4k:xxx'```

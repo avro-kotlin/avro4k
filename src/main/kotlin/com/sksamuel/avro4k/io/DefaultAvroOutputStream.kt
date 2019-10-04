@@ -12,7 +12,7 @@ import org.apache.avro.io.JsonEncoder
 import java.io.OutputStream
 
 abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
-                                          private val serializer: SerializationStrategy<T>,
+                                          private val converter: (T) -> GenericRecord,
                                           schema: Schema) : AvroOutputStream<T> {
 
    val datumWriter = GenericDatumWriter<GenericRecord>(schema)
@@ -28,20 +28,24 @@ abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
    override fun fSync() {}
 
    override fun write(t: T) {
-      val record = Avro.default.toRecord(serializer, t)
-      datumWriter.write(record, encoder)
+      datumWriter.write(converter(t), encoder)
    }
 }
 
 class AvroBinaryOutputStream<T>(output: OutputStream,
-                                serializer: SerializationStrategy<T>,
-                                schema: Schema) : DefaultAvroOutputStream<T>(output, serializer, schema) {
-
+                                converter: (T) -> GenericRecord,
+                                schema: Schema) : DefaultAvroOutputStream<T>(output, converter, schema) {
+   constructor(output: OutputStream,
+               serializer: SerializationStrategy<T>,
+               schema: Schema) : this(output, { Avro.default.toRecord(serializer, it) }, schema)
    override val encoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(output, null)
 }
 
 class AvroJsonOutputStream<T>(output: OutputStream,
-                              serializer: SerializationStrategy<T>,
-                              schema: Schema) : DefaultAvroOutputStream<T>(output, serializer, schema) {
+                              converter: (T) -> GenericRecord,
+                              schema: Schema) : DefaultAvroOutputStream<T>(output, converter, schema) {
+   constructor(output: OutputStream,
+               serializer: SerializationStrategy<T>,
+               schema: Schema) : this(output, { Avro.default.toRecord(serializer, it) }, schema)
    override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output, true)
 }

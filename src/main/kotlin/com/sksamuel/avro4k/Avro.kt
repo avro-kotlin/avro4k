@@ -65,7 +65,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     */
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     obj: T,
-                    namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
+                    namingStrategy: NamingStrategy = DefaultNamingStrategy): GenericRecord {
       return toRecord(serializer, schema(serializer), obj, namingStrategy)
    }
 
@@ -75,7 +75,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     schema: Schema,
                     obj: T,
-                    namingStrategy: NamingStrategy = DefaultNamingStrategy): Record {
+                    namingStrategy: NamingStrategy = DefaultNamingStrategy): GenericRecord {
       var record: Record? = null
       val encoder = RecordEncoder(schema, context) { record = it }
       encoder.encode(serializer, obj)

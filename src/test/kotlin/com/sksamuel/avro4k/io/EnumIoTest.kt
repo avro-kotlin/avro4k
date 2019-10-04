@@ -7,6 +7,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
 
 enum class Cream {
@@ -50,7 +51,7 @@ class EnumIoTest : StringSpec({
       writeRead(EnumTest(null), EnumTest.serializer())
       writeRead(EnumTest(Cream.Bruce), EnumTest.serializer())
       writeRead(EnumTest(Cream.Bruce), EnumTest.serializer()) {
-         it["a"] shouldBe Cream.Bruce
+         (it["a"] as GenericData.EnumSymbol).toString() shouldBe "Bruce"
       }
    }
 })

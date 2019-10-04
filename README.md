@@ -24,8 +24,8 @@ To generate an Avro Schema, we need to use the `Avro` object, invoking `schema` 
 In other words:
 
 ```kotlin
-import com.sksamuel
 val schema = Avro.default.schema(Pizza.serializer())
+println(schema.toString(true))
 ```
 
 Where the generated schema is as follows:

@@ -73,7 +73,6 @@ fun <T> readJson(bytes: ByteArray, serializer: KSerializer<T>): GenericRecord {
    return datumReader.read(null, decoder)
 }
 
-
 fun <T> writeJson(t: T, serializer: KSerializer<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val baos = ByteArrayOutputStream()

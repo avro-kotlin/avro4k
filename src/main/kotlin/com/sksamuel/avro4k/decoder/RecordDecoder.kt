@@ -11,7 +11,6 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
-import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
@@ -54,7 +53,7 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
       }
    }
 
-   override fun decodeString(): String = StringFromValue.fromValue(record[currentIndex])
+   override fun decodeString(): String = StringFromAvroValue.fromValue(record[currentIndex])
 
    override fun decodeBigDecimal(): BigDecimal {
 
@@ -95,11 +94,7 @@ class RecordDecoder(val record: GenericRecord) : ElementValueDecoder(), BigDecim
    }
 
    override fun decodeEnum(enumDescription: EnumDescriptor): Int {
-      val symbol = when (val v = record[currentIndex]) {
-         is GenericEnumSymbol<*> -> v.toString()
-         is String -> v
-         else -> v.toString()
-      }
+      val symbol = EnumFromAvroValue.fromValue(record[currentIndex])
       return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
    }
 

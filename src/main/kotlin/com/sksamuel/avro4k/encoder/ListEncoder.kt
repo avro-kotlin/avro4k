@@ -3,6 +3,7 @@ package com.sksamuel.avro4k.encoder
 import com.sksamuel.avro4k.serializer.BigDecimalEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -26,7 +27,7 @@ class ListEncoder(private val schema: Schema,
    }
 
    override fun encodeString(value: String) {
-      list.add(StringToValue.toValue(schema, value))
+      list.add(StringToAvroValue.toValue(schema, value))
    }
 
    override fun encodeLong(value: Long) {
@@ -55,5 +56,10 @@ class ListEncoder(private val schema: Schema,
 
    override fun encodeInt(value: Int) {
       list.add(value)
+   }
+
+   override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
+      val symbol = enumDescription.getElementName(ordinal)
+      list.add(EnumToAvroValue.toValue(fieldSchema(), symbol))
    }
 }

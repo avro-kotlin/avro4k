@@ -2,14 +2,15 @@ package com.sksamuel.avro4k.decoder
 
 import kotlinx.serialization.SerializationException
 import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
-interface FromValue<T> {
-   fun fromValue(value: Any?): T
+interface FromAvroValue<T, R> {
+   fun fromValue(value: T): R
 }
 
-object StringFromValue : FromValue<String> {
+object StringFromAvroValue : FromAvroValue<Any?, String> {
    override fun fromValue(value: Any?): String {
       return when (value) {
          is String -> value
@@ -20,6 +21,16 @@ object StringFromValue : FromValue<String> {
          is ByteBuffer -> String(value.array())
          null -> throw SerializationException("Cannot decode <null> as a string")
          else -> throw SerializationException("Unsupported type for String ${value.javaClass}")
+      }
+   }
+}
+
+object EnumFromAvroValue : FromAvroValue<Any, String> {
+   override fun fromValue(value: Any): String {
+      return when (value) {
+         is GenericEnumSymbol<*> -> value.toString()
+         is String -> value
+         else -> value.toString()
       }
    }
 }

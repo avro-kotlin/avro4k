@@ -6,11 +6,11 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
-interface ToValue<T> {
-   fun toValue(schema: Schema, t: T): Any
+interface ToAvroValue<T, R> {
+   fun toValue(schema: Schema, t: T): R
 }
 
-object StringToValue : ToValue<String> {
+object StringToAvroValue : ToAvroValue<String, Any> {
    override fun toValue(schema: Schema, t: String): Any {
       return when (schema.type) {
          Schema.Type.FIXED -> {
@@ -24,5 +24,11 @@ object StringToValue : ToValue<String> {
          Schema.Type.BYTES -> ByteBuffer.wrap(t.toByteArray())
          else -> Utf8(t)
       }
+   }
+}
+
+object EnumToAvroValue : ToAvroValue<String, GenericData.EnumSymbol> {
+   override fun toValue(schema: Schema, t: String): GenericData.EnumSymbol {
+      return GenericData.get().createEnum(t, schema) as GenericData.EnumSymbol
    }
 }

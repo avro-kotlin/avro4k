@@ -12,7 +12,6 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericData
 
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
@@ -28,7 +27,7 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun encodeString(value: String) {
-      builder.add(StringToValue.toValue(fieldSchema(), value))
+      builder.add(StringToAvroValue.toValue(fieldSchema(), value))
    }
 
    override fun encodeValue(value: Any) {
@@ -41,10 +40,8 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
-      val field = schema.fields[currentIndex]
       val symbol = enumDescription.getElementName(ordinal)
-      val generic = GenericData.get().createEnum(symbol, field.schema())
-      builder.add(generic)
+      builder.add(EnumToAvroValue.toValue(fieldSchema(), symbol))
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {

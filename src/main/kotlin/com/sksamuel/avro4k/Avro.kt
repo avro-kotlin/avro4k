@@ -1,6 +1,6 @@
 package com.sksamuel.avro4k
 
-import com.sksamuel.avro4k.decoder.RecordDecoder
+import com.sksamuel.avro4k.decoder.RootRecordDecoder
 import com.sksamuel.avro4k.encoder.RecordEncoder
 import com.sksamuel.avro4k.serializer.UUIDSerializer
 import com.sksamuel.avro4k.io.AvroFormat
@@ -84,13 +84,13 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
 
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
                       record: GenericRecord): T {
-      return RecordDecoder(record).decode(deserializer)
+      return RootRecordDecoder(record).decode(deserializer)
    }
 
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
                       schema: Schema,
                       record: GenericRecord): T {
-      return RecordDecoder(record).decode(deserializer)
+      return RootRecordDecoder(record).decode(deserializer)
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {

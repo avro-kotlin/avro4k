@@ -42,7 +42,7 @@ class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (desc.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(array[index++] as GenericRecord)
+         StructureKind.CLASS -> RecordDecoder(desc, array[index++] as GenericRecord)
          StructureKind.LIST -> ListDecoder(array[index++] as GenericArray<*>)
          StructureKind.MAP -> this
       }

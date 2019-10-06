@@ -6,6 +6,9 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
 
    companion object {
       fun entity(descriptor: SerialDescriptor) = AnnotationExtractor(descriptor.getEntityAnnotations())
+
+      operator fun invoke(descriptor: SerialDescriptor, index: Int): AnnotationExtractor =
+         AnnotationExtractor(descriptor.getElementAnnotations(index))
    }
 
    fun fixed(): Int? = annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size

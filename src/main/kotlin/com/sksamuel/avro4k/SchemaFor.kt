@@ -49,7 +49,7 @@ class ClassSchemaFor(private val context: SerialModule,
    override fun schema(namingStrategy: NamingStrategy): Schema {
 
       val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
-      val naming = NameExtractor(descriptor)
+      val naming = RecordNaming(descriptor)
 
       val fields = (0 until descriptor.elementsCount)
          .filterNot { descriptor.isElementOptional(it) }
@@ -66,7 +66,7 @@ class ClassSchemaFor(private val context: SerialModule,
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
-      val naming = NameExtractor(descriptor, index)
+      val naming = RecordNaming(descriptor, index)
       val schema = schemaFor(context, fieldDescriptor, descriptor.getElementAnnotations(index))
          .schema(DefaultNamingStrategy)
 
@@ -76,7 +76,7 @@ class ClassSchemaFor(private val context: SerialModule,
       val (size, name) = when (val a = annos.fixed()) {
          null -> {
             val fieldAnnos = AnnotationExtractor(fieldDescriptor.getEntityAnnotations())
-            val fieldNaming = NameExtractor(fieldDescriptor)
+            val fieldNaming = RecordNaming(fieldDescriptor)
             when (val b = fieldAnnos.fixed()) {
                null -> 0 to naming.name()
                else -> b to fieldNaming.name()
@@ -113,7 +113,7 @@ class ClassSchemaFor(private val context: SerialModule,
 
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(namingStrategy: NamingStrategy): Schema {
-      val naming = NameExtractor(descriptor)
+      val naming = RecordNaming(descriptor)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
       return SchemaBuilder.enumeration(naming.name()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
    }

@@ -2,15 +2,15 @@ package com.sksamuel.avro4k
 
 import kotlinx.serialization.SerialDescriptor
 
-class NameExtractor(name: String, annotations: List<Annotation>) {
+class RecordNaming(name: String, annotations: List<Annotation>) {
 
    companion object {
-      operator fun invoke(descriptor: SerialDescriptor): NameExtractor = NameExtractor(
+      operator fun invoke(descriptor: SerialDescriptor): RecordNaming = RecordNaming(
          descriptor.name,
          descriptor.getEntityAnnotations()
       )
 
-      operator fun invoke(descriptor: SerialDescriptor, index: Int): NameExtractor = NameExtractor(
+      operator fun invoke(descriptor: SerialDescriptor, index: Int): RecordNaming = RecordNaming(
          descriptor.getElementName(index),
          descriptor.getElementAnnotations(index)
       )

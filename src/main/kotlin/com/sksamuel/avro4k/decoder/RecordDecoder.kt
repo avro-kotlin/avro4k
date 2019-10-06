@@ -12,6 +12,7 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
+import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
@@ -49,26 +50,30 @@ class RecordDecoder(private val desc: SerialDescriptor,
       }
    }
 
-   private fun fieldValue(): Any? = record[avroFieldName()]
+   private fun fieldValue(): Any? = record[resolvedFieldName()]
 
-   private fun avroFieldName(): String = FieldNaming(desc, currentIndex).name()
+   private fun resolvedFieldName(): String = FieldNaming(desc, currentIndex).name()
+
+   private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
+
+   private fun fieldSchema(): Schema = field().schema()
 
    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValue())
 
    override fun decodeBigDecimal(): BigDecimal {
 
-      val field = desc.getElementDescriptor(currentIndex)
-      val schema = record.schema.getField(field.name).schema()
-      fun logical() = when (schema.logicalType) {
-         is LogicalTypes.Decimal -> schema.logicalType
-         else -> throw SerializationException("Cannot decode to BigDecimal when field schema does not define Decimal logical type")
+      val fieldSchema = fieldSchema()
+
+      fun logical() = when (val l = fieldSchema.logicalType) {
+         is LogicalTypes.Decimal -> l
+         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$fieldSchema] does not define Decimal logical type [$l]")
       }
 
       return when (val v = fieldValue()) {
          is Utf8 -> BigDecimal(v.toString())
-         is ByteArray -> Conversions.DecimalConversion().fromBytes(ByteBuffer.wrap(v), schema, logical())
-         is ByteBuffer -> Conversions.DecimalConversion().fromBytes(v, schema, logical())
-         is GenericFixed -> Conversions.DecimalConversion().fromFixed(v, schema, logical())
+         is ByteArray -> Conversions.DecimalConversion().fromBytes(ByteBuffer.wrap(v), fieldSchema, logical())
+         is ByteBuffer -> Conversions.DecimalConversion().fromBytes(v, fieldSchema, logical())
+         is GenericFixed -> Conversions.DecimalConversion().fromFixed(v, fieldSchema, logical())
          else -> throw SerializationException("Unsupported BigDecimal type [$v]")
       }
    }

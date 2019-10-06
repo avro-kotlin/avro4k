@@ -12,7 +12,27 @@ import java.io.File
 
 class AvroNameIoTest : StringSpec({
 
-   "using avro name to read a record back in" {
+   "using @AvroName to write out a record" {
+
+      @Serializable
+      data class Composer(@AvroName("fullname") val name: String, val status: String)
+
+      val ennio = Composer("Ennio Morricone", "Maestro")
+
+      // writing out using the schema derived from Compose means fullname should be used
+      val bytes = Avro.default.dump(Composer.serializer(), ennio)
+
+      // using a custom schema to check that fullname was definitely used
+      val schema = SchemaBuilder.record("Composer").fields()
+         .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()
+         .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
+         .endRecord()
+
+      AvroInputStream.data(Composer.serializer(), schema).from(bytes).nextOrThrow() shouldBe ennio
+
+   }
+
+   "using @AvroName to read a record back in" {
 
       val schema1 = SchemaBuilder.record("Composer").fields()
          .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()

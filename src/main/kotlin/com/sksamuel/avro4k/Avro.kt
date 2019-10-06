@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k
 
 import com.sksamuel.avro4k.decoder.RootRecordDecoder
-import com.sksamuel.avro4k.encoder.RecordEncoder
+import com.sksamuel.avro4k.encoder.RootRecordEncoder
 import com.sksamuel.avro4k.serializer.UUIDSerializer
 import com.sksamuel.avro4k.io.AvroFormat
 import com.sksamuel.avro4k.io.AvroInputStream
@@ -77,7 +77,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
                     obj: T,
                     namingStrategy: NamingStrategy = DefaultNamingStrategy): GenericRecord {
       var record: Record? = null
-      val encoder = RecordEncoder(schema, context) { record = it }
+      val encoder = RootRecordEncoder(schema, context) { record = it }
       encoder.encode(serializer, obj)
       return record!!
    }

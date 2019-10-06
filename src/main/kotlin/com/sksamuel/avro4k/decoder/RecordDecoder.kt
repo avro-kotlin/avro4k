@@ -18,16 +18,6 @@ import org.apache.avro.util.Utf8
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 
-class RootRecordDecoder(private val record: GenericRecord) : ElementValueDecoder() {
-
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      return when (desc.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(desc, record)
-         else -> throw SerializationException("Non-class structure passed to root record decoder")
-      }
-   }
-}
-
 class RecordDecoder(private val desc: SerialDescriptor,
                     private val record: GenericRecord) : ElementValueDecoder(), BigDecimalDecoder {
 

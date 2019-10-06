@@ -23,7 +23,7 @@ interface StructureEncoder : FieldEncoder {
                else -> ListEncoder(fieldSchema(), context) { addValue(it) }
             }
          }
-         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context) { addValue(it) }
+         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, desc) { addValue(it) }
          else -> this as CompositeEncoder
       }
    }
@@ -31,6 +31,7 @@ interface StructureEncoder : FieldEncoder {
 
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
+                    private val desc: SerialDescriptor,
                     val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder, StructureEncoder {
 
    private val builder = RecordBuilder(schema)
@@ -60,7 +61,7 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      return if (currentIndex == -1) return this else super<StructureEncoder>.beginStructure(desc, *typeParams)
+      return super<StructureEncoder>.beginStructure(desc, *typeParams)
    }
 
    override fun endStructure(desc: SerialDescriptor) {

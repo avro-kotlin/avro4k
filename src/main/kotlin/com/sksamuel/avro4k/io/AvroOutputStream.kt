@@ -63,7 +63,15 @@ interface AvroOutputStream<T> : AutoCloseable {
       /**
        * An [AvroOutputStream] that writes as binary with the inclusion of the schema.
        */
-      fun <T> data(schema: Schema) = AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.DataFormat)
+      fun data(schema: Schema) =
+         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.DataFormat)
+
+      fun <T> data(serializer: SerializationStrategy<T>) =
+         AvroOutputStreamBuilder<T>(
+            Avro.default.schema(serializer),
+            { Avro.default.toRecord(serializer, it) },
+            AvroFormat.DataFormat
+         )
 
       /**
        * An [AvroOutputStream] that writes as binary with the inclusion of the schema.

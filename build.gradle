@@ -63,9 +63,10 @@ dependencies {
    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion"
    compile 'org.apache.avro:avro:1.9.1'
-   testCompile "io.kotlintest:kotlintest-runner-junit5:$kotlinTestVersion"
-   testCompile "io.kotlintest:kotlintest-assertions:$kotlinTestVersion"
-   testCompile "io.kotlintest:kotlintest-assertions-json:$kotlinTestVersion"
+   testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlinTestVersion"
+   testImplementation "io.kotlintest:kotlintest-assertions:$kotlinTestVersion"
+   testImplementation "io.kotlintest:kotlintest-assertions-json:$kotlinTestVersion"
+   testImplementation 'org.xerial.snappy:snappy-java:1.1.7.3'
 }
 
 test {

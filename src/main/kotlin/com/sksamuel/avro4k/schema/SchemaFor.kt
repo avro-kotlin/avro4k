@@ -127,10 +127,5 @@ fun schemaFor(context: SerialModule,
       }
    }
 
-//      BigDecimalSerializer.name -> {
-//
-//         (SchemaBuilder.builder().()).toSchemaFor()
-//      }
-
    return if (descriptor.isNullable) NullableSchemaFor(schemaFor) else schemaFor
 }

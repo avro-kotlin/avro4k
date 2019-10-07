@@ -5,6 +5,15 @@
 [<img src="https://img.shields.io/maven-central/v/com.sksamuel.avro4k/avro4k.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
 [<img src="https://img.shields.io/nexus/s/https/oss.sonatype.org/com.sksamuel.avro4k/avro4k.svg?label=latest%20snapshot&style=plastic"/>](https://oss.sonatype.org/content/repositories/snapshots/com/sksamuel/avro4k/)
 
+
+## Introduction
+
+With avro4k you can:
+
+- [Generate schemas](https://github.com/sksamuel/avro4k#schemas) from Kotlin data classes
+- Marshall data classes to / from instances of Avro Generic Records
+- [Read / Write](https://github.com/sksamuel/avro4k#input--output) data classes as binary or json
+
 ## Schemas
 
 Unlike say Json, Avro is a schema based format. You'll find yourself wanting to generate schemas frequently, and writing these by hand or through the Java based `SchemaBuilder` classes can be tedious for complex domain models. Avro4k allows us to generate schemas directly from data classes at compile time using the Kotlin Serialization library. This gives you both the convenience of generated code, without the annoyance of having to run a code generation step, as well as avoiding the peformance penalty of runtime reflection based code.

@@ -8,15 +8,19 @@
 
 ## Introduction
 
-With avro4k you can:
+Avro4k is a Kotlin library that brings support for Avro to the Kotlin Serialization framework. This library supports reading and writing to/from binary and json streams as well as supporting Avro schema generation. 
 
-- [Generate schemas](https://github.com/sksamuel/avro4k#schemas) from Kotlin data classes
-- Marshall data classes to / from instances of Avro Generic Records
-- [Read / Write](https://github.com/sksamuel/avro4k#input--output) data classes as binary or json
+- [Generate schemas](https://github.com/sksamuel/avro4k#schemas) from Kotlin data classes. This allows you to use data classes as the canonical source for the schemas and generate Avro schemas from _them_, rather than define schemas externally and then generate (or manually write) data classes to match.
+- Marshall data classes to / from instances of Avro Generic Records. The basic _structure type_ in Avro is the _IndexedRecord_ or it's more common subclass, the _GenericRecord_. This library will marshall data to and from Avro records. This can be useful for interop with frameworks like Kafka which provide serializers which work at the record level.
+- [Read / Write](https://github.com/sksamuel/avro4k#input--output) data classes to input or output streams. Avro records can be serialized as binary (with or without embedded schema) or json, and this library provides _AvroInputStream_ and _AvroOutputStream_ classes to support data classes directly.
+- Support logical types. This library provides support for the Avro [logical types](https://avro.apache.org/docs/1.8.0/spec.html#Logical+Types) out of the box, in addition to the _standard_ types supported by the Kotlin serialization framework.
+- Add custom serializer for other types. With Avro4k you can easily add your own _AvroSerializer_ instances that provides schemas and serialization for types not supported by default.
 
 ## Schemas
 
-Unlike say Json, Avro is a schema based format. You'll find yourself wanting to generate schemas frequently, and writing these by hand or through the Java based `SchemaBuilder` classes can be tedious for complex domain models. Avro4k allows us to generate schemas directly from data classes at compile time using the Kotlin Serialization library. This gives you both the convenience of generated code, without the annoyance of having to run a code generation step, as well as avoiding the peformance penalty of runtime reflection based code.
+Writing schemas manually through the Java based `SchemaBuilder` classes can be tedious for complex domain models. 
+Avro4k allows us to generate schemas directly from data classes at compile time using the Kotlin Serialization library. 
+This gives you both the convenience of generated code, without the annoyance of having to run a code generation step, as well as avoiding the peformance penalty of runtime reflection based code.
 
 Let's define some classes.
 
@@ -411,6 +415,56 @@ Would result in the following schema:
   ]
 }
 ```
+
+
+## Types
+
+Avro4s supports the Avro logical types out of the box as well as other common JDK types.
+
+Avro has no understanding of Kotlin types, or anything outside of it's built in set of supported types, so all values must be converted to something that is compatible with Avro. 
+
+For example a `java.sql.Timestamp` is usually encoded as a `Long`, and a `java.util.UUID` is encoded as a `String`.
+
+Some values can be mapped in multiple ways depending on how the schema was generated. For example a `String`, which is usually encoded as an `org.apache.avro.util.Utf8` could also be encoded as an array of bytes if the generated schema for that field was `Schema.Type.BYTES`. 
+Therefore some serializers will take into account the schema passed to them when choosing the avro compatible type.
+
+The following table shows how types used in your code will be mapped / encoded in the generated Avro schemas and files. 
+If a type can be mapped in multiple ways, it is listed more than once.
+
+| JVM Type                   	| Schema Type   	| Logical Type     	| Encoded Type |
+|------------------------------	|---------------	|------------------	| ------------ |
+| String                       	| STRING        	|                  	| Utf8                      |
+| String                       	| FIXED        	    |                  	| GenericFixed              |
+| String                       	| BYTES        	    |                  	| ByteBuffer                |
+| Boolean                      	| BOOLEAN       	|                  	| java.lang.Boolean |
+| Long                         	| LONG          	|                  	| java.lang.Long |
+| Int                          	| INT           	|                  	| java.lang.Integer |
+| Short                        	| INT           	|                  	| java.lang.Integer |
+| Byte                         	| INT           	|                  	| java.lang.Integer |
+| Double                       	| DOUBLE        	|                  	| java.lang.Double |
+| Float                        	| FLOAT         	|                  	| java.lang.Float |
+| UUID                         	| STRING        	| UUID             	| Utf8 |
+| LocalDate                    	| INT           	| Date             	| java.lang.Int |
+| LocalTime                    	| INT           	| Time-Millis      	| java.lang.Int |
+| LocalDateTime                	| LONG          	| Timestamp-Millis 	| java.lang.Long |
+| Instant                      	| LONG          	| Timestamp-Millis 	| java.lang.Long |
+| Timestamp                    	| LONG          	| Timestamp-Millis 	| java.lang.Long |
+| BigDecimal                   	| BYTES         	| Decimal<8,2>     	| ByteBuffer |
+| BigDecimal                   	| FIXED         	| Decimal<8,2>     	| GenericFixed |
+| BigDecimal                   	| STRING         	| Decimal<8,2>     	| String |
+| T? (nullable type)           	| UNION<null,T> 	|                  	| null, T |
+| ByteArray                  	| BYTES         	|                  	| ByteBuffer |
+| ByteAray                  	| FIXED         	|                  	| GenericFixed |
+| ByteBuffer                   	| BYTES         	|                  	| ByteBuffer |
+| List[Byte]                   	| BYTES         	|                  	| ByteBuffer |
+| Array<T>                     	| ARRAY<T>      	|                  	| Array[T] |
+| List<T>                      	| ARRAY<T>      	|                  	| Array[T] |
+| Set<T>                      	| ARRAY<T>      	|                  	| Array[T] |
+| Map[String, V]              	| MAP<V>        	|                  	| java.util.Map[String, V] |
+| data class T                 	| RECORD        	|                  	| GenericRecord |
+| enum class             	    | ENUM          	|                  	| GenericEnumSymbol |
+
+
 
 
 

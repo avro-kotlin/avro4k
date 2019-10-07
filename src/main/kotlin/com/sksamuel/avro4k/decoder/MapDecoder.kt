@@ -84,6 +84,7 @@ class MapDecoder(private val desc: SerialDescriptor,
       return if (index == entries.size * 2) CompositeDecoder.READ_DONE else index
    }
 
+   @Suppress("UNCHECKED_CAST")
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (desc.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(desc, value() as GenericRecord)

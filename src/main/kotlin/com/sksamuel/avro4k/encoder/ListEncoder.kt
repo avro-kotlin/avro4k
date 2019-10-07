@@ -1,6 +1,5 @@
 package com.sksamuel.avro4k.encoder
 
-import com.sksamuel.avro4k.serializer.BigDecimalEncoder
 import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
@@ -12,8 +11,7 @@ import org.apache.avro.generic.GenericData
 
 class ListEncoder(private val schema: Schema,
                   override val context: SerialModule,
-                  private val callback: (GenericData.Array<Any?>) -> Unit) :
-   ElementValueEncoder(), BigDecimalEncoder, StructureEncoder {
+                  private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder(), StructureEncoder {
 
    private val list = mutableListOf<Any?>()
 

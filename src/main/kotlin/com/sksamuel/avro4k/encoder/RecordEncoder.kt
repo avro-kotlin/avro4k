@@ -2,7 +2,6 @@ package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.Record
-import com.sksamuel.avro4k.serializer.BigDecimalEncoder
 import kotlinx.serialization.CompositeEncoder
 import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
@@ -34,7 +33,7 @@ interface StructureEncoder : FieldEncoder {
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
                     private val desc: SerialDescriptor,
-                    val callback: (Record) -> Unit) : ElementValueEncoder(), BigDecimalEncoder, StructureEncoder {
+                    val callback: (Record) -> Unit) : ElementValueEncoder(), StructureEncoder {
 
    private val builder = RecordBuilder(schema)
    private var currentIndex = -1

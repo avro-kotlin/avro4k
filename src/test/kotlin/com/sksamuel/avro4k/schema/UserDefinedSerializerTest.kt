@@ -1,10 +1,10 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.decoder.ExtendedDecoder
 import com.sksamuel.avro4k.serializer.AvroSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
-import kotlinx.serialization.Decoder
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.Serializable
@@ -23,7 +23,7 @@ class UserDefinedSerializerTest : FunSpec({
             TODO()
          }
 
-         override fun fromAvroValue(schema: Schema, decoder: Decoder): String {
+         override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
             TODO()
          }
 

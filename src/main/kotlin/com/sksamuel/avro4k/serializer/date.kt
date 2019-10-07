@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k.serializer
 
+import com.sksamuel.avro4k.decoder.ExtendedDecoder
 import com.sksamuel.avro4k.schema.AvroDescriptor
-import kotlinx.serialization.Decoder
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
@@ -28,7 +28,7 @@ class LocalDateSerializer : AvroSerializer<LocalDate>() {
    }
 
    override fun toAvroValue(schema: Schema, value: LocalDate): Int = value.toEpochDay().toInt()
-   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalDate = LocalDate.ofEpochDay(decoder.decodeLong())
+   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalDate = LocalDate.ofEpochDay(decoder.decodeLong())
 }
 
 @Serializer(forClass = LocalTime::class)
@@ -45,7 +45,7 @@ class LocalTimeSerializer : AvroSerializer<LocalTime>() {
       return value.toSecondOfDay() * 1000 + value.nano / 1000
    }
 
-   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalTime {
+   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalTime {
       // avro stores times as either millis since midnight or micros since midnight
       return when (schema.logicalType) {
          is LogicalTypes.TimeMicros -> LocalTime.ofNanoOfDay(decoder.decodeInt() * 1000L)
@@ -69,7 +69,7 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
    override fun toAvroValue(schema: Schema, value: LocalDateTime): Any =
       InstantSerializer().toAvroValue(schema, value.toInstant(ZoneOffset.UTC))
 
-   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalDateTime =
+   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalDateTime =
       LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC)
 }
 
@@ -86,7 +86,7 @@ class TimestampSerializer : AvroSerializer<Timestamp>() {
    override fun toAvroValue(schema: Schema, value: Timestamp): Any =
       InstantSerializer().toAvroValue(schema, value.toInstant())
 
-   override fun fromAvroValue(schema: Schema, decoder: Decoder): Timestamp = Timestamp(decoder.decodeLong())
+   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): Timestamp = Timestamp(decoder.decodeLong())
 }
 
 @Serializer(forClass = Instant::class)
@@ -100,5 +100,5 @@ class InstantSerializer : AvroSerializer<Instant>() {
    }
 
    override fun toAvroValue(schema: Schema, value: Instant): Long = value.toEpochMilli()
-   override fun fromAvroValue(schema: Schema, decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
+   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
 }

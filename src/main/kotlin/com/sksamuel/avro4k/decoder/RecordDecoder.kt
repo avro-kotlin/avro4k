@@ -1,8 +1,8 @@
 package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.FieldNaming
-import com.sksamuel.avro4k.serializer.BigDecimalDecoder
 import kotlinx.serialization.CompositeDecoder
+import kotlinx.serialization.Decoder
 import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PrimitiveKind
@@ -10,21 +10,20 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
-import org.apache.avro.Conversions
-import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
-import org.apache.avro.util.Utf8
-import java.math.BigDecimal
 import java.nio.ByteBuffer
 
-interface FieldDecoder {
+interface ExtendedDecoder : Decoder {
+   fun decodeAny(): Any?
+}
+
+interface FieldDecoder : ExtendedDecoder {
    fun fieldSchema(): Schema
 }
 
 class RecordDecoder(private val desc: SerialDescriptor,
-                    private val record: GenericRecord) : ElementValueDecoder(), BigDecimalDecoder, FieldDecoder {
+                    private val record: GenericRecord) : ElementValueDecoder(), FieldDecoder {
 
    private var currentIndex = -1
 
@@ -64,24 +63,6 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValue())
 
-   override fun decodeBigDecimal(): BigDecimal {
-
-      val fieldSchema = fieldSchema()
-
-      fun logical() = when (val l = fieldSchema.logicalType) {
-         is LogicalTypes.Decimal -> l
-         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$fieldSchema] does not define Decimal logical type [$l]")
-      }
-
-      return when (val v = fieldValue()) {
-         is Utf8 -> BigDecimal(v.toString())
-         is ByteArray -> Conversions.DecimalConversion().fromBytes(ByteBuffer.wrap(v), fieldSchema, logical())
-         is ByteBuffer -> Conversions.DecimalConversion().fromBytes(v, fieldSchema, logical())
-         is GenericFixed -> Conversions.DecimalConversion().fromFixed(v, fieldSchema, logical())
-         else -> throw SerializationException("Unsupported BigDecimal type [$v]")
-      }
-   }
-
    override fun decodeBoolean(): Boolean {
       return when (val v = fieldValue()) {
          is Boolean -> v
@@ -89,6 +70,8 @@ class RecordDecoder(private val desc: SerialDescriptor,
          else -> throw SerializationException("Unsupported type for Boolean ${v.javaClass}")
       }
    }
+
+   override fun decodeAny(): Any? = fieldValue()
 
    override fun decodeByte(): Byte {
       return when (val v = fieldValue()) {

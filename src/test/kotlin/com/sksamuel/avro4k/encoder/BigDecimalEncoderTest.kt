@@ -63,7 +63,7 @@ class BigDecimalEncoderTest : FunSpec({
 //      Encoder[Test].encode(Test(12.345), schema, DefaultFieldMapper) shouldBe ImmutableRecord(schema, Vector(bytesRoundedUp))
 //   }
 
-   test("!support nullable big decimals") {
+   test("support nullable big decimals") {
 
       @Serializable
       data class Test(val big: BigDecimal?)

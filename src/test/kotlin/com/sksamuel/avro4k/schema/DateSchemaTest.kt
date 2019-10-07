@@ -36,6 +36,16 @@ class DateSchemaTest : FunSpec({
       schema.toString(true) shouldBe expected.toString(true)
    }
 
+   test("generate date logical type for nullable LocalDate") {
+
+      @Serializable
+      data class LocalDateTest(val date: LocalDate?)
+
+      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate_nullable.json"))
+      val schema = Avro.default.schema(LocalDateTest.serializer())
+      schema.toString(true) shouldBe expected.toString(true)
+   }
+
    test("generate time logical type for LocalTime") {
 
       @Serializable

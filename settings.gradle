@@ -1,0 +1,2 @@
+include  'avro4k-core',
+         'avro4k-arrow'

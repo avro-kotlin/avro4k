@@ -86,4 +86,13 @@ class DateSchemaTest : FunSpec({
       schema.toString(true) shouldBe expected.toString(true)
    }
 
+   test("generate timestamp-millis logical type for nullable Timestamp") {
+
+      @Serializable
+      data class Test(val ts: Timestamp?)
+
+      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/timestamp_nullable.json"))
+      val schema = Avro.default.schema(Test.serializer())
+      schema.toString(true) shouldBe expected.toString(true)
+   }
 })

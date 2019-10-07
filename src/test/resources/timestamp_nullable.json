@@ -1,0 +1,17 @@
+{
+   "type": "record",
+   "name": "Test",
+   "namespace": "com.sksamuel.avro4k.schema.DateSchemaTest",
+   "fields": [
+      {
+         "name": "ts",
+         "type": [
+            "null",
+            {
+               "type": "long",
+               "logicalType": "timestamp-millis"
+            }
+         ]
+      }
+   ]
+}

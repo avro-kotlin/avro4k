@@ -8,6 +8,7 @@ import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
@@ -25,7 +26,7 @@ interface StructureEncoder : FieldEncoder {
          }
          StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, desc) { addValue(it) }
          StructureKind.MAP -> MapEncoder(fieldSchema(), context, desc) { addValue(it) }
-         else -> this as CompositeEncoder
+         else -> throw SerializationException(".beginStructure was called on a non-structure type [$desc]")
       }
    }
 }
@@ -54,7 +55,7 @@ class RecordEncoder(private val schema: Schema,
 
    override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
       currentIndex = index
-      return super.encodeElement(desc, index)
+      return true
    }
 
    override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {

@@ -7,7 +7,6 @@ import com.sksamuel.avro4k.io.AvroFormat
 import com.sksamuel.avro4k.io.AvroInputStream
 import com.sksamuel.avro4k.io.AvroOutputStream
 import com.sksamuel.avro4k.schema.DefaultNamingStrategy
-import com.sksamuel.avro4k.schema.NamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
@@ -67,9 +66,8 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * Convert instance of <T> to an Avro [Record] using a [Schema] derived from the type.
     */
    fun <T> toRecord(serializer: SerializationStrategy<T>,
-                    obj: T,
-                    namingStrategy: NamingStrategy = DefaultNamingStrategy): GenericRecord {
-      return toRecord(serializer, schema(serializer), obj, namingStrategy)
+                    obj: T): GenericRecord {
+      return toRecord(serializer, schema(serializer), obj)
    }
 
    /**
@@ -77,8 +75,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     */
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     schema: Schema,
-                    obj: T,
-                    namingStrategy: NamingStrategy = DefaultNamingStrategy): GenericRecord {
+                    obj: T): GenericRecord {
       var record: Record? = null
       val encoder = RootRecordEncoder(schema, context) { record = it }
       encoder.encode(serializer, obj)

@@ -46,6 +46,7 @@ class ListDecoder(private val schema: Schema,
       return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
    }
 
+   @Suppress("UNCHECKED_CAST")
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (desc.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(desc, array[index++] as GenericRecord)

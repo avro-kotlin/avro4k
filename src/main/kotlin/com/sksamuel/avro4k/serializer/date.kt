@@ -5,17 +5,20 @@ import kotlinx.serialization.Encoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.internal.IntDescriptor
 import kotlinx.serialization.internal.StringDescriptor
 import kotlinx.serialization.withName
+import org.apache.avro.Schema
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.*
 
 @Serializer(forClass = LocalDate::class)
-class LocalDateSerializer : KSerializer<LocalDate> {
+class LocalDateSerializer : AvroSerializer<LocalDate>() {
 
    companion object {
       const val name = "java.time.LocalDate"
@@ -23,25 +26,43 @@ class LocalDateSerializer : KSerializer<LocalDate> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: LocalDate) = TODO()
+   override fun toAvroValue(schema: Schema, value: LocalDate): Any = value.toEpochDay().toInt()
    override fun deserialize(decoder: Decoder): LocalDate = TODO()
 }
 
 @Serializer(forClass = LocalTime::class)
-class LocalTimeSerializer : KSerializer<LocalTime> {
+class LocalTimeSerializer : AvroSerializer<LocalTime>() {
 
    companion object {
       const val name = "java.time.LocalTime"
    }
 
-   override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
+   override val descriptor: SerialDescriptor = IntDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: LocalTime) = TODO()
+   override fun toAvroValue(schema: Schema, value: LocalTime): Int {
+      return value.toSecondOfDay() * 1000 + value.nano / 1000
+   }
+
+   //    val schema = (encoder as FieldEncoder).fieldSchema()
+   //  // avro stores times as either millis since midnight or micros since midnight
+//      when (schema.logicalType) {
+//         is LogicalTypes.TimeMicros -> when (value) {
+//            is Int -> LocalTime.ofNanoOfDay(i.toLong * 1000L)
+//            is Long -> LocalTime.ofNanoOfDay(l * 1000L)
+//         }
+//         is LogicalTypes.TimeMillis ->
+//            value match {
+//               case i : Int => LocalTime . ofNanoOfDay (i.toLong * 1000000L)
+//               case l : Long => LocalTime . ofNanoOfDay (l * 1000000L)
+//            }
+//      }
+
    override fun deserialize(decoder: Decoder): LocalTime = TODO()
 }
 
+
 @Serializer(forClass = LocalDateTime::class)
-class LocalDateTimeSerializer : KSerializer<LocalDateTime> {
+class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
 
    companion object {
       const val name = "java.time.LocalDateTime"
@@ -49,7 +70,9 @@ class LocalDateTimeSerializer : KSerializer<LocalDateTime> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: LocalDateTime) = TODO()
+   override fun toAvroValue(schema: Schema, value: LocalDateTime): Any =
+      InstantSerializer().toAvroValue(schema, value.toInstant(ZoneOffset.UTC))
+
    override fun deserialize(decoder: Decoder): LocalDateTime = TODO()
 }
 
@@ -62,12 +85,14 @@ class TimestampSerializer : KSerializer<Timestamp> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: Timestamp) = TODO()
+   override fun serialize(encoder: Encoder, obj: Timestamp) =
+      InstantSerializer().serialize(encoder, obj.toInstant())
+
    override fun deserialize(decoder: Decoder): Timestamp = TODO()
 }
 
 @Serializer(forClass = Instant::class)
-class InstantSerializer : KSerializer<Instant> {
+class InstantSerializer : AvroSerializer<Instant>() {
 
    companion object {
       const val name = "java.time.Instant"
@@ -75,8 +100,23 @@ class InstantSerializer : KSerializer<Instant> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: Instant) = TODO()
+   override fun toAvroValue(schema: Schema, value: Instant): Any = value.toEpochMilli()
    override fun deserialize(decoder: Decoder): Instant = TODO()
+}
+
+@Serializer(forClass = java.sql.Date::class)
+class SqlDateSerializer : KSerializer<java.sql.Date> {
+
+   companion object {
+      const val name = "java.sql.Date"
+   }
+
+   override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
+
+   override fun serialize(encoder: Encoder, obj: java.sql.Date) =
+      LocalDateSerializer().serialize(encoder, obj.toLocalDate())
+
+   override fun deserialize(decoder: Decoder): java.sql.Date = TODO()
 }
 
 @Serializer(forClass = Date::class)
@@ -88,6 +128,8 @@ class DateSerializer : KSerializer<Date> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: Date) = TODO()
+   override fun serialize(encoder: Encoder, obj: Date) =
+      InstantSerializer().serialize(encoder, Instant.ofEpochMilli(obj.time))
+
    override fun deserialize(decoder: Decoder): Date = TODO()
 }

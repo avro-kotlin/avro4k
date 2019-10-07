@@ -16,7 +16,7 @@ data class ListRecord(private val s: Schema,
    constructor(s: Schema, vararg values: Any?) : this(s, values.toList())
 
    init {
-      require(schema.type == Schema.Type.RECORD) { "Cannot create an ArrayListRecord with a schema that is not a RECORD" }
+      require(schema.type == Schema.Type.RECORD) { "Cannot create a Record with a schema that is not of type Schema.Type.RECORD [was $s]" }
    }
 
    override fun getSchema(): Schema = s

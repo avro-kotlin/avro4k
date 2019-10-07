@@ -13,7 +13,7 @@ Avro4k is a Kotlin library that brings support for Avro to the Kotlin Serializat
 - [Generate schemas](https://github.com/sksamuel/avro4k#schemas) from Kotlin data classes. This allows you to use data classes as the canonical source for the schemas and generate Avro schemas from _them_, rather than define schemas externally and then generate (or manually write) data classes to match.
 - Marshall data classes to / from instances of Avro Generic Records. The basic _structure type_ in Avro is the _IndexedRecord_ or it's more common subclass, the _GenericRecord_. This library will marshall data to and from Avro records. This can be useful for interop with frameworks like Kafka which provide serializers which work at the record level.
 - [Read / Write](https://github.com/sksamuel/avro4k#input--output) data classes to input or output streams. Avro records can be serialized as binary (with or without embedded schema) or json, and this library provides _AvroInputStream_ and _AvroOutputStream_ classes to support data classes directly.
-- Support logical types. This library provides support for the Avro [logical types](https://avro.apache.org/docs/1.8.0/spec.html#Logical+Types) out of the box, in addition to the _standard_ types supported by the Kotlin serialization framework.
+- [Support logical types](https://github.com/sksamuel/avro4k#types). This library provides support for the Avro [logical types](https://avro.apache.org/docs/1.8.0/spec.html#Logical+Types) out of the box, in addition to the _standard_ types supported by the Kotlin serialization framework.
 - Add custom serializer for other types. With Avro4k you can easily add your own _AvroSerializer_ instances that provides schemas and serialization for types not supported by default.
 
 ## Schemas

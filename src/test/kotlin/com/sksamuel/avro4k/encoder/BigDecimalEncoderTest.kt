@@ -19,7 +19,7 @@ import java.math.BigDecimal
 
 class BigDecimalEncoderTest : FunSpec({
 
-   test("f:use byte array for decimal") {
+   test("use byte array for decimal") {
 
       @Serializable
       data class Test(val decimal: BigDecimal)

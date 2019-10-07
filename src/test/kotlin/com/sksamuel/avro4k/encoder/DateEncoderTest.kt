@@ -3,8 +3,7 @@
    LocalDateSerializer::class,
    LocalTimeSerializer::class,
    TimestampSerializer::class,
-   InstantSerializer::class,
-   SqlDateSerializer::class
+   InstantSerializer::class
 )
 
 package com.sksamuel.avro4k.encoder
@@ -12,7 +11,6 @@ package com.sksamuel.avro4k.encoder
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.serializer.InstantSerializer
-import com.sksamuel.avro4k.serializer.SqlDateSerializer
 import com.sksamuel.avro4k.serializer.LocalDateSerializer
 import com.sksamuel.avro4k.serializer.LocalDateTimeSerializer
 import com.sksamuel.avro4k.serializer.LocalTimeSerializer
@@ -26,7 +24,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.sql.Date
 
 class DateEncoderTest : FunSpec({
 
@@ -47,16 +44,6 @@ class DateEncoderTest : FunSpec({
 
       val schema = Avro.default.schema(Foo.serializer())
       Avro.default.toRecord(Foo.serializer(), Foo(LocalDate.of(2018, 9, 10))) shouldBe
-         ListRecord(schema, 17784)
-   }
-
-   test("encode java.sql.Date as an Int") {
-
-      @Serializable
-      data class Foo(val s: Date)
-
-      val schema = Avro.default.schema(Foo.serializer())
-      Avro.default.toRecord(Foo.serializer(), Foo(Date.valueOf(LocalDate.of(2018, 9, 10)))) shouldBe
          ListRecord(schema, 17784)
    }
 

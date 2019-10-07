@@ -1,13 +1,13 @@
 package com.sksamuel.avro4k.serializer
 
 import kotlinx.serialization.Decoder
-import kotlinx.serialization.Encoder
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.internal.IntDescriptor
 import kotlinx.serialization.internal.StringDescriptor
 import kotlinx.serialization.withName
+import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import java.sql.Timestamp
 import java.time.Instant
@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
-import java.util.*
 
 @Serializer(forClass = LocalDate::class)
 class LocalDateSerializer : AvroSerializer<LocalDate>() {
@@ -26,8 +25,8 @@ class LocalDateSerializer : AvroSerializer<LocalDate>() {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun toAvroValue(schema: Schema, value: LocalDate): Any = value.toEpochDay().toInt()
-   override fun deserialize(decoder: Decoder): LocalDate = TODO()
+   override fun toAvroValue(schema: Schema, value: LocalDate): Int = value.toEpochDay().toInt()
+   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalDate = LocalDate.ofEpochDay(decoder.decodeLong())
 }
 
 @Serializer(forClass = LocalTime::class)
@@ -43,21 +42,15 @@ class LocalTimeSerializer : AvroSerializer<LocalTime>() {
       return value.toSecondOfDay() * 1000 + value.nano / 1000
    }
 
-   //    val schema = (encoder as FieldEncoder).fieldSchema()
-   //  // avro stores times as either millis since midnight or micros since midnight
-//      when (schema.logicalType) {
-//         is LogicalTypes.TimeMicros -> when (value) {
-//            is Int -> LocalTime.ofNanoOfDay(i.toLong * 1000L)
-//            is Long -> LocalTime.ofNanoOfDay(l * 1000L)
-//         }
-//         is LogicalTypes.TimeMillis ->
-//            value match {
-//               case i : Int => LocalTime . ofNanoOfDay (i.toLong * 1000000L)
-//               case l : Long => LocalTime . ofNanoOfDay (l * 1000000L)
-//            }
-//      }
-
-   override fun deserialize(decoder: Decoder): LocalTime = TODO()
+   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalTime {
+      // val schema = (encoder as FieldEncoder).fieldSchema()
+      // avro stores times as either millis since midnight or micros since midnight
+      return when (schema.logicalType) {
+         is LogicalTypes.TimeMicros -> LocalTime.ofNanoOfDay(decoder.decodeInt() * 1000L)
+         is LogicalTypes.TimeMillis -> LocalTime.ofNanoOfDay(decoder.decodeInt() * 1000000L)
+         else -> throw SerializationException("Unsupported logical type for LocalTime [${schema.logicalType}]")
+      }
+   }
 }
 
 
@@ -73,11 +66,12 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
    override fun toAvroValue(schema: Schema, value: LocalDateTime): Any =
       InstantSerializer().toAvroValue(schema, value.toInstant(ZoneOffset.UTC))
 
-   override fun deserialize(decoder: Decoder): LocalDateTime = TODO()
+   override fun fromAvroValue(schema: Schema, decoder: Decoder): LocalDateTime =
+      LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC)
 }
 
 @Serializer(forClass = Timestamp::class)
-class TimestampSerializer : KSerializer<Timestamp> {
+class TimestampSerializer : AvroSerializer<Timestamp>() {
 
    companion object {
       const val name = "java.sql.Timestamp"
@@ -85,10 +79,10 @@ class TimestampSerializer : KSerializer<Timestamp> {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun serialize(encoder: Encoder, obj: Timestamp) =
-      InstantSerializer().serialize(encoder, obj.toInstant())
+   override fun toAvroValue(schema: Schema, value: Timestamp): Any =
+      InstantSerializer().toAvroValue(schema, value.toInstant())
 
-   override fun deserialize(decoder: Decoder): Timestamp = TODO()
+   override fun fromAvroValue(schema: Schema, decoder: Decoder): Timestamp = Timestamp(decoder.decodeLong())
 }
 
 @Serializer(forClass = Instant::class)
@@ -100,36 +94,6 @@ class InstantSerializer : AvroSerializer<Instant>() {
 
    override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
 
-   override fun toAvroValue(schema: Schema, value: Instant): Any = value.toEpochMilli()
-   override fun deserialize(decoder: Decoder): Instant = TODO()
-}
-
-@Serializer(forClass = java.sql.Date::class)
-class SqlDateSerializer : KSerializer<java.sql.Date> {
-
-   companion object {
-      const val name = "java.sql.Date"
-   }
-
-   override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
-
-   override fun serialize(encoder: Encoder, obj: java.sql.Date) =
-      LocalDateSerializer().serialize(encoder, obj.toLocalDate())
-
-   override fun deserialize(decoder: Decoder): java.sql.Date = TODO()
-}
-
-@Serializer(forClass = Date::class)
-class DateSerializer : KSerializer<Date> {
-
-   companion object {
-      const val name = "java.util.Date"
-   }
-
-   override val descriptor: SerialDescriptor = StringDescriptor.withName(name)
-
-   override fun serialize(encoder: Encoder, obj: Date) =
-      InstantSerializer().serialize(encoder, Instant.ofEpochMilli(obj.time))
-
-   override fun deserialize(decoder: Decoder): Date = TODO()
+   override fun toAvroValue(schema: Schema, value: Instant): Long = value.toEpochMilli()
+   override fun fromAvroValue(schema: Schema, decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
 }

@@ -19,8 +19,12 @@ import org.apache.avro.util.Utf8
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 
+interface FieldDecoder {
+   fun fieldSchema(): Schema
+}
+
 class RecordDecoder(private val desc: SerialDescriptor,
-                    private val record: GenericRecord) : ElementValueDecoder(), BigDecimalDecoder {
+                    private val record: GenericRecord) : ElementValueDecoder(), BigDecimalDecoder, FieldDecoder {
 
    private var currentIndex = -1
 
@@ -56,7 +60,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
 
-   private fun fieldSchema(): Schema = field().schema()
+   override fun fieldSchema(): Schema = field().schema()
 
    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValue())
 

@@ -3,8 +3,7 @@
    LocalTimeSerializer::class,
    TimestampSerializer::class,
    InstantSerializer::class,
-   LocalDateTimeSerializer::class,
-   DateSerializer::class
+   LocalDateTimeSerializer::class
 )
 
 package com.sksamuel.avro4k.schema
@@ -15,7 +14,6 @@ import com.sksamuel.avro4k.serializer.LocalDateSerializer
 import com.sksamuel.avro4k.serializer.LocalDateTimeSerializer
 import com.sksamuel.avro4k.serializer.LocalTimeSerializer
 import com.sksamuel.avro4k.serializer.TimestampSerializer
-import com.sksamuel.avro4k.serializer.DateSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
@@ -36,16 +34,6 @@ class DateSchemaTest : FunSpec({
 
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate.json"))
       val schema = Avro.default.schema(LocalDateTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate date logical type for Date") {
-
-      @Serializable
-      data class DateTest(val date: Date)
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/date.json"))
-      val schema = Avro.default.schema(DateTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 

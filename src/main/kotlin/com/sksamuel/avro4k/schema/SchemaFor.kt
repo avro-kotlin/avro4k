@@ -3,7 +3,6 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.RecordNaming
 import com.sksamuel.avro4k.serializer.BigDecimalSerializer
-import com.sksamuel.avro4k.serializer.DateSerializer
 import com.sksamuel.avro4k.serializer.InstantSerializer
 import com.sksamuel.avro4k.serializer.LocalDateSerializer
 import com.sksamuel.avro4k.serializer.LocalDateTimeSerializer
@@ -116,7 +115,6 @@ fun schemaFor(context: SerialModule,
 
    val schemaFor: SchemaFor = when (descriptor.name) {
       UUIDSerializer.name -> LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()).toSchemaFor()
-      DateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
       TimestampSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
       LocalDateTimeSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
       LocalDateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()

@@ -24,7 +24,7 @@ class UserDefinedSerializerTest : FunSpec({
             TODO()
          }
 
-         override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
+         override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
             TODO()
          }
 

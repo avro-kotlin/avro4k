@@ -61,7 +61,7 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
       }
    }
 
-   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): BigDecimal {
+   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigDecimal {
 
       fun logical() = when (val l = schema.logicalType) {
          is LogicalTypes.Decimal -> l

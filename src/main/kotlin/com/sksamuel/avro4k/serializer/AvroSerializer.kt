@@ -30,11 +30,11 @@ abstract class AvroSerializer<T> : KSerializer<T> {
 //         Schema.Type.UNION -> schema.extractNonNull()
 //         else -> schema
 //      }
-      return fromAvroValue(schema, decoder)
+      return decodeAvroValue(schema, decoder)
    }
 
    abstract fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: T)
 
-   abstract fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): T
+   abstract fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): T
 }
 

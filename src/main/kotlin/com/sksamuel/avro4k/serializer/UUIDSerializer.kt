@@ -16,7 +16,7 @@ class UUIDSerializer : AvroSerializer<UUID>() {
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: UUID) = encoder.encodeString(obj.toString())
 
-   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): UUID =
+   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): UUID =
       UUID.fromString(decoder.decodeString())
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor("uuid", PrimitiveKind.STRING) {

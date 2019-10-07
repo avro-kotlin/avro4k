@@ -19,7 +19,7 @@ class BigIntegerSerializer : AvroSerializer<BigInteger>() {
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: BigInteger) =
       encoder.encodeString(obj.toString())
 
-   override fun fromAvroValue(schema: Schema, decoder: ExtendedDecoder): BigInteger {
+   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigInteger {
       return BigInteger(decoder.decodeString())
    }
 }

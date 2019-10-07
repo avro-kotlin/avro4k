@@ -8,6 +8,8 @@ import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericFixed
+import java.nio.ByteBuffer
 
 class ListEncoder(private val schema: Schema,
                   override val context: SerialModule,
@@ -48,6 +50,14 @@ class ListEncoder(private val schema: Schema,
 
    override fun encodeShort(value: Short) {
       list.add(value)
+   }
+
+   override fun encodeByteArray(buffer: ByteBuffer) {
+      list.add(buffer)
+   }
+
+   override fun encodeFixed(fixed: GenericFixed) {
+      list.add(fixed)
    }
 
    override fun encodeByte(value: Byte) {

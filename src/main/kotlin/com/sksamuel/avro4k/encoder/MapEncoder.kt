@@ -7,7 +7,9 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
+import java.nio.ByteBuffer
 
 class MapEncoder(schema: Schema,
                  override val context: SerialModule,
@@ -38,6 +40,14 @@ class MapEncoder(schema: Schema,
 
    override fun endStructure(desc: SerialDescriptor) {
       callback(map.toMap())
+   }
+
+   override fun encodeByteArray(buffer: ByteBuffer) {
+      encodeValue(buffer)
+   }
+
+   override fun encodeFixed(fixed: GenericFixed) {
+      encodeValue(fixed)
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {

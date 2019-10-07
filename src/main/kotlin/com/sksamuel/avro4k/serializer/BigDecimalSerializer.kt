@@ -2,6 +2,7 @@ package com.sksamuel.avro4k.serializer
 
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.decoder.ExtendedDecoder
+import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.schema.AvroDescriptor
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
@@ -29,7 +30,7 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
       }
    }
 
-   override fun toAvroValue(schema: Schema, value: BigDecimal): Any {
+   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: BigDecimal) {
 
       // we support encoding big decimals in three ways - fixed, bytes or as a String, depending on the schema passed in
       // the scale and precision should come from the schema and the rounding mode from the implicit
@@ -38,16 +39,20 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
       val rm = RoundingMode.UNNECESSARY
 
       return when (schema.type) {
-         Schema.Type.STRING -> Utf8(value.toString())
+         Schema.Type.STRING -> encoder.encodeString(obj.toString())
          Schema.Type.BYTES -> {
             when (val logical = schema.logicalType) {
-               is LogicalTypes.Decimal -> converter.toBytes(value.setScale(logical.scale, rm), schema, logical)
+               is LogicalTypes.Decimal -> encoder.encodeByteArray(converter.toBytes(obj.setScale(logical.scale, rm),
+                  schema,
+                  logical))
                else -> throw SerializationException("Cannot encode BigDecimal to FIXED for logical type $logical")
             }
          }
          Schema.Type.FIXED -> {
             when (val logical = schema.logicalType) {
-               is LogicalTypes.Decimal -> converter.toFixed(value.setScale(logical.scale, rm), schema, logical)
+               is LogicalTypes.Decimal -> encoder.encodeFixed(converter.toFixed(obj.setScale(logical.scale, rm),
+                  schema,
+                  logical))
                else -> throw SerializationException("Cannot encode BigDecimal to FIXED for logical type $logical")
             }
 

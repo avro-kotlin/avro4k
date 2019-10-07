@@ -11,7 +11,7 @@ import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
 class ListDecoder(private val schema: Schema,
-                  private val array: List<Any?>) : ElementValueDecoder() {
+                  private val array: List<Any?>) : ElementValueDecoder(), FieldDecoder {
 
    init {
       require(schema.type == Schema.Type.ARRAY)
@@ -40,6 +40,12 @@ class ListDecoder(private val schema: Schema,
    override fun decodeByte(): Byte {
       return array[index++] as Byte
    }
+
+   override fun decodeAny(): Any? {
+      return array[index++]
+   }
+
+   override fun fieldSchema(): Schema = schema.elementType
 
    override fun decodeEnum(enumDescription: EnumDescriptor): Int {
       val symbol = EnumFromAvroValue.fromValue(array[index++]!!)

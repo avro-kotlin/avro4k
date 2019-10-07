@@ -8,12 +8,8 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
-interface ToAvroValue<T, R> {
-   fun toValue(schema: Schema, t: T): R
-}
-
-object StringToAvroValue : ToAvroValue<String, Any> {
-   override fun toValue(schema: Schema, t: String): Any {
+object StringToAvroValue {
+   fun toValue(schema: Schema, t: String): Any {
       return when (schema.type) {
          Schema.Type.FIXED -> {
             val size = t.toByteArray().size

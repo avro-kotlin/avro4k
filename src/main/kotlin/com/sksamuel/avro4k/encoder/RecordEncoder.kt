@@ -12,6 +12,8 @@ import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericFixed
+import java.nio.ByteBuffer
 
 interface StructureEncoder : FieldEncoder {
 
@@ -55,6 +57,14 @@ class RecordEncoder(private val schema: Schema,
    override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
       currentIndex = index
       return true
+   }
+
+   override fun encodeByteArray(buffer: ByteBuffer) {
+      builder.add(buffer)
+   }
+
+   override fun encodeFixed(fixed: GenericFixed) {
+      builder.add(fixed)
    }
 
    override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {

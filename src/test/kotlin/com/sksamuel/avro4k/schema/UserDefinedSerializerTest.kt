@@ -2,6 +2,7 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.decoder.ExtendedDecoder
+import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.serializer.AvroSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
@@ -19,7 +20,7 @@ class UserDefinedSerializerTest : FunSpec({
       @Serializer(forClass = String::class)
       class StringAsFixedSerializer : AvroSerializer<String>() {
 
-         override fun toAvroValue(schema: Schema, value: String): Any {
+         override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: String) {
             TODO()
          }
 

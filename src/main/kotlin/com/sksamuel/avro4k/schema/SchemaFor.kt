@@ -1,21 +1,12 @@
 package com.sksamuel.avro4k.schema
 
-import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.RecordNaming
-import com.sksamuel.avro4k.serializer.BigDecimalSerializer
-import com.sksamuel.avro4k.serializer.InstantSerializer
-import com.sksamuel.avro4k.serializer.LocalDateSerializer
-import com.sksamuel.avro4k.serializer.LocalDateTimeSerializer
-import com.sksamuel.avro4k.serializer.LocalTimeSerializer
-import com.sksamuel.avro4k.serializer.TimestampSerializer
-import com.sksamuel.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.UnionKind
 import kotlinx.serialization.modules.SerialModule
-import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
@@ -113,17 +104,8 @@ fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>): SchemaFor {
 
-   val schemaFor: SchemaFor = when (descriptor.name) {
-      UUIDSerializer.name -> LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType()).toSchemaFor()
-      TimestampSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-      LocalDateTimeSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-      LocalDateSerializer.name -> LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
-      LocalTimeSerializer.name -> LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()).toSchemaFor()
-      InstantSerializer.name -> LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()).toSchemaFor()
-      BigDecimalSerializer.name -> {
-         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
-         LogicalTypes.decimal(precision, scale).addToSchema(SchemaBuilder.builder().bytesType()).toSchemaFor()
-      }
+   val schemaFor: SchemaFor = when (descriptor) {
+      is AvroDescriptor -> SchemaFor.const(descriptor.schema(annos))
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -144,5 +126,11 @@ fun schemaFor(context: SerialModule,
          else -> throw SerializationException("Unsupported type ${descriptor.name} of ${descriptor.kind}")
       }
    }
+
+//      BigDecimalSerializer.name -> {
+//
+//         (SchemaBuilder.builder().()).toSchemaFor()
+//      }
+
    return if (descriptor.isNullable) NullableSchemaFor(schemaFor) else schemaFor
 }

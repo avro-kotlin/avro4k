@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.UnionKind
+import kotlinx.serialization.internal.nullable
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -94,7 +95,7 @@ class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
    override fun schema(namingStrategy: NamingStrategy): Schema {
       val elementSchema = schemaFor.schema(namingStrategy)
       val nullSchema = SchemaBuilder.builder().nullType()
-      return SchemaHelper.createSafeUnion(elementSchema, nullSchema)
+      return createSafeUnion(elementSchema, nullSchema)
    }
 }
 
@@ -104,8 +105,16 @@ fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>): SchemaFor {
 
-   val schemaFor: SchemaFor = when (descriptor) {
-      is AvroDescriptor -> SchemaFor.const(descriptor.schema(annos))
+   com.sksamuel.avro4k.serializer.UUIDSerializer().nullable
+
+   val underlying = if (descriptor.javaClass.simpleName == "SerialDescriptorForNullable") {
+      val field = descriptor.javaClass.getDeclaredField("original")
+      field.isAccessible = true
+      field.get(descriptor) as SerialDescriptor
+   } else descriptor
+
+   val schemaFor: SchemaFor = when (underlying) {
+      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos))
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor

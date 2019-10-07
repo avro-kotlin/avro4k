@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.sksamuel.avro4k.io
 
 import io.kotlintest.properties.Gen

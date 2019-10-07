@@ -1,6 +1,6 @@
 package com.sksamuel.avro4k.encoder
 
-import com.sksamuel.avro4k.extractNonNull
+import com.sksamuel.avro4k.schema.extractNonNull
 import kotlinx.serialization.SerialDescriptor
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema

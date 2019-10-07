@@ -24,6 +24,7 @@ interface StructureEncoder : FieldEncoder {
             }
          }
          StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, desc) { addValue(it) }
+         StructureKind.MAP -> MapEncoder(fieldSchema(), context, desc) { addValue(it) }
          else -> this as CompositeEncoder
       }
    }

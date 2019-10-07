@@ -20,9 +20,9 @@ class MapIoTest : StringSpec({
          ),
          Test.serializer()
       ) {
-         it["a"] shouldBe listOf(Utf8("foo"), Utf8("boo"))
-         it["b"] shouldBe listOf(Utf8("goo"), Utf8("moo"))
-         it["c"] shouldBe listOf(Utf8("goo"), Utf8("moo"))
+         it["a"] shouldBe mapOf(Utf8("a") to true, Utf8("b") to false)
+         it["b"] shouldBe mapOf(Utf8("a") to Utf8("x"), Utf8("b") to Utf8("y"))
+         it["c"] shouldBe mapOf(Utf8("a") to 123L, Utf8("b") to 999L)
       }
    }
 })

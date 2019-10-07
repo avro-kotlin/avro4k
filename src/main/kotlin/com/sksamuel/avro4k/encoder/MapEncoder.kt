@@ -7,21 +7,22 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
+import org.apache.avro.util.Utf8
 
 class MapEncoder(schema: Schema,
                  override val context: SerialModule,
                  private val desc: SerialDescriptor,
-                 private val callback: (Map<String, *>) -> Unit) : ElementValueEncoder(),
+                 private val callback: (Map<Utf8, *>) -> Unit) : ElementValueEncoder(),
    CompositeEncoder,
    StructureEncoder {
 
-   private val map = mutableMapOf<String, Any>()
-   private var key: String? = null
+   private val map = mutableMapOf<Utf8, Any>()
+   private var key: Utf8? = null
    private val valueSchema = schema.valueType
 
    override fun encodeString(value: String) {
       val k = key
-      if (k == null) key = value else {
+      if (k == null) key = Utf8(value) else {
          map[k] = StringToAvroValue.toValue(valueSchema, value)
          key = null
       }

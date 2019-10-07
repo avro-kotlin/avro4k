@@ -21,4 +21,14 @@ class BigIntegerSchemaTest : FunSpec({
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigint.json"))
       schema shouldBe expected
    }
+
+   test("accept nullable big integer as String union") {
+
+      @Serializable
+      data class Test(val b: BigInteger?)
+
+      val schema = Avro.default.schema(Test.serializer())
+      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigint_nullable.json"))
+      schema shouldBe expected
+   }
 })

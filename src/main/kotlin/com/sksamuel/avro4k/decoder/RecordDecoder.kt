@@ -28,7 +28,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (desc.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(desc, fieldValue() as GenericRecord)
-         StructureKind.MAP -> this
+         StructureKind.MAP -> MapDecoder(desc, fieldSchema(), fieldValue() as Map<String, *>)
          StructureKind.LIST -> {
             val decoder: CompositeDecoder = if (desc.getElementDescriptor(1).kind == PrimitiveKind.BYTE) {
                when (val data = fieldValue()) {
@@ -40,8 +40,8 @@ class RecordDecoder(private val desc: SerialDescriptor,
                }
             } else {
                when (val data = fieldValue()) {
-                  is List<*> -> ListDecoder(data)
-                  is Array<*> -> ListDecoder(data.asList())
+                  is List<*> -> ListDecoder(fieldSchema(), data)
+                  is Array<*> -> ListDecoder(fieldSchema(), data.asList())
                   else -> this
                }
             }

@@ -6,10 +6,16 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
+import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
-class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
+class ListDecoder(private val schema: Schema,
+                  private val array: List<Any?>) : ElementValueDecoder() {
+
+   init {
+      require(schema.type == Schema.Type.ARRAY)
+   }
 
    private var index = 0
 
@@ -43,8 +49,8 @@ class ListDecoder(private val array: List<Any?>) : ElementValueDecoder() {
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (desc.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(desc, array[index++] as GenericRecord)
-         StructureKind.LIST -> ListDecoder(array[index++] as GenericArray<*>)
-         StructureKind.MAP -> this
+         StructureKind.LIST -> ListDecoder(schema.elementType, array[index++] as GenericArray<*>)
+         StructureKind.MAP -> MapDecoder(desc, schema.elementType, array[index++] as Map<String, *>)
       }
    }
 

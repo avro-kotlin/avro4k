@@ -1,0 +1,14 @@
+{
+   "type": "record",
+   "name": "Test",
+   "namespace": "com.sksamuel.avro4k.schema.URLSchemaTest",
+   "fields": [
+      {
+         "name": "b",
+         "type": [
+            "null",
+            "string"
+         ]
+      }
+   ]
+}

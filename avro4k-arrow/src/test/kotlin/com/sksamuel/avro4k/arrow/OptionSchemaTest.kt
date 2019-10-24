@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 
 class OptionSchemaTest : FunSpec({
 
-   test("options of primitives as basic unions") {
+   test("!options of primitives as basic unions") {
 
       @Serializable
       data class Test(@Serializable(OptionSerializer::class) val b: Option<String>)

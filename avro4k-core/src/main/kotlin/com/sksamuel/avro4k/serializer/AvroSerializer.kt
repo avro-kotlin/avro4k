@@ -10,9 +10,9 @@ import kotlinx.serialization.Encoder
 import kotlinx.serialization.KSerializer
 import org.apache.avro.Schema
 
-abstract class AvroSerializer<T> : KSerializer<T> {
+interface AvroSerializer<T> : KSerializer<T> {
 
-   final override fun serialize(encoder: Encoder, obj: T) {
+   override fun serialize(encoder: Encoder, obj: T) {
       val schema = (encoder as FieldEncoder).fieldSchema()
       // we may be encoding a nullable schema
       val subschema = when (schema.type) {
@@ -22,7 +22,7 @@ abstract class AvroSerializer<T> : KSerializer<T> {
       encodeAvroValue(subschema, encoder, obj)
    }
 
-   final override fun deserialize(decoder: Decoder): T {
+   override fun deserialize(decoder: Decoder): T {
       val schema = (decoder as FieldDecoder).fieldSchema()
 //      // we may be coming from a nullable schema aka a union
 //      val subschema = when (schema.type) {
@@ -32,8 +32,8 @@ abstract class AvroSerializer<T> : KSerializer<T> {
       return decodeAvroValue(schema, decoder)
    }
 
-   abstract fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: T)
+   fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: T)
 
-   abstract fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): T
+   fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): T
 }
 

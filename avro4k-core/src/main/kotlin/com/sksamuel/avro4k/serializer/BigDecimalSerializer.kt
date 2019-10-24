@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import kotlin.reflect.jvm.jvmName
 
 @Serializer(forClass = BigDecimal::class)
-class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
+class BigDecimalSerializer : AvroSerializer<BigDecimal> {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
       override fun schema(annos: List<Annotation>): Schema {

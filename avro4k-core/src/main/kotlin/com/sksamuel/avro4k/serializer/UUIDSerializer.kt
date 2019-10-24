@@ -12,7 +12,7 @@ import org.apache.avro.SchemaBuilder
 import java.util.*
 
 @Serializer(forClass = UUID::class)
-class UUIDSerializer : AvroSerializer<UUID>() {
+class UUIDSerializer : AvroSerializer<UUID> {
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: UUID) = encoder.encodeString(obj.toString())
 

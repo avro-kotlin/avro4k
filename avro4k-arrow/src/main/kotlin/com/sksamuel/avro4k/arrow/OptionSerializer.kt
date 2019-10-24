@@ -1,37 +1,34 @@
 package com.sksamuel.avro4k.arrow
 
 import arrow.core.Option
-import com.sksamuel.avro4k.decoder.ExtendedDecoder
-import com.sksamuel.avro4k.encoder.ExtendedEncoder
-import com.sksamuel.avro4k.serializer.AvroSerializer
+import com.sksamuel.avro4k.decoder.FieldDecoder
+import com.sksamuel.avro4k.encoder.FieldEncoder
+import com.sksamuel.avro4k.schema.extractNonNull
+import kotlinx.serialization.Decoder
 import kotlinx.serialization.Encoder
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import org.apache.avro.Schema
-import java.time.LocalDate
-
-//class Tuple2Serializer : AvroSerializer<Tuple2<*, *>>() {
-//
-//   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Tuple2<*, *>) {
-//   }
-//
-//   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Tuple2<*, *> {
-//      TODO()
-//   }
-//
-//   override val descriptor: SerialDescriptor
-//      get() = TODO()
-//}
-//
 
 @Serializer(forClass = Option::class)
-class OptionSerializer<A> : AvroSerializer<Option<A>>() {
+class OptionSerializer : KSerializer<Option<Any>> {
 
-   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Option<A>) {
+   final override fun serialize(encoder: Encoder, obj: Option<Any>) {
+      val schema = (encoder as FieldEncoder).fieldSchema()
+      val subschema = when (schema.type) {
+         Schema.Type.UNION -> schema.extractNonNull()
+         else -> schema
+      }
+      obj.fold(
+         { encoder.encodeNull() },
+         {
+
+         }
+      )
    }
 
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Option<A> {
+   final override fun deserialize(decoder: Decoder): Option<Any> {
+      val schema = (decoder as FieldDecoder).fieldSchema()
+      TODO()
    }
-
-
 }

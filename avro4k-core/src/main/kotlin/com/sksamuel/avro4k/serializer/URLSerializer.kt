@@ -14,7 +14,7 @@ import java.net.URL
 import kotlin.reflect.jvm.jvmName
 
 @Serializer(forClass = URL::class)
-class URLSerializer : AvroSerializer<URL>() {
+class URLSerializer : AvroSerializer<URL> {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(URL::class.jvmName, PrimitiveKind.STRING) {
       override fun schema(annos: List<Annotation>): Schema =  SchemaBuilder.builder().stringType()

@@ -16,6 +16,12 @@ data class Town(val name: String, val population: Int)
 @Serializable
 data class Birthplace(val name: String, val town: Town)
 
+@Serializable
+data class ProductName(val value: String)
+
+@Serializable
+data class Product(val name: ProductName?)
+
 class NestedClassEncoderTest : FunSpec({
 
    val townSchema = Avro.default.schema(Town.serializer())
@@ -31,6 +37,22 @@ class NestedClassEncoderTest : FunSpec({
             townSchema,
             Utf8("Hardwick"),
             123
+         )
+      )
+   }
+
+   test("encode nested nullable class") {
+
+      val nameSchema = Avro.default.schema(ProductName.serializer())
+      val prodSchema = Avro.default.schema(Product.serializer())
+
+      val p = Product(ProductName("big shoes"))
+      val record = Avro.default.toRecord(Product.serializer(), p)
+      record shouldBe ListRecord(
+         prodSchema,
+         ListRecord(
+            nameSchema,
+            Utf8("big shoes")
          )
       )
    }

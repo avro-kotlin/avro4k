@@ -19,7 +19,7 @@ import java.time.ZoneOffset
 import kotlin.reflect.jvm.jvmName
 
 @Serializer(forClass = LocalDate::class)
-class LocalDateSerializer : AvroSerializer<LocalDate> {
+class LocalDateSerializer : AvroSerializer<LocalDate>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalDate::class.jvmName, PrimitiveKind.INT) {
       override fun schema(annos: List<Annotation>): Schema {
@@ -35,7 +35,7 @@ class LocalDateSerializer : AvroSerializer<LocalDate> {
 }
 
 @Serializer(forClass = LocalTime::class)
-class LocalTimeSerializer : AvroSerializer<LocalTime> {
+class LocalTimeSerializer : AvroSerializer<LocalTime>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalTime::class.jvmName, PrimitiveKind.INT) {
       override fun schema(annos: List<Annotation>): Schema {
@@ -58,7 +58,7 @@ class LocalTimeSerializer : AvroSerializer<LocalTime> {
 }
 
 @Serializer(forClass = LocalDateTime::class)
-class LocalDateTimeSerializer : AvroSerializer<LocalDateTime> {
+class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
 
    override val descriptor: SerialDescriptor =
       object : AvroDescriptor(LocalDateTime::class.jvmName, PrimitiveKind.LONG) {
@@ -76,7 +76,7 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime> {
 }
 
 @Serializer(forClass = Timestamp::class)
-class TimestampSerializer : AvroSerializer<Timestamp> {
+class TimestampSerializer : AvroSerializer<Timestamp>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(Timestamp::class.jvmName, PrimitiveKind.LONG) {
       override fun schema(annos: List<Annotation>): Schema {
@@ -92,7 +92,7 @@ class TimestampSerializer : AvroSerializer<Timestamp> {
 }
 
 @Serializer(forClass = Instant::class)
-class InstantSerializer : AvroSerializer<Instant> {
+class InstantSerializer : AvroSerializer<Instant>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(Instant::class.jvmName, PrimitiveKind.LONG) {
       override fun schema(annos: List<Annotation>): Schema {

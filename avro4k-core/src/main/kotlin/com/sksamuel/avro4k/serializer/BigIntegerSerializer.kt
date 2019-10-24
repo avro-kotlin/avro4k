@@ -10,7 +10,7 @@ import org.apache.avro.Schema
 import java.math.BigInteger
 
 @Serializer(forClass = BigInteger::class)
-class BigIntegerSerializer : AvroSerializer<BigInteger> {
+class BigIntegerSerializer : AvroSerializer<BigInteger>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigInteger::class, PrimitiveKind.STRING) {
       override fun schema(annos: List<Annotation>): Schema = Schema.create(Schema.Type.STRING)

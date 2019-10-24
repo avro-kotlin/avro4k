@@ -15,7 +15,7 @@ abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
                                           private val converter: (T) -> GenericRecord,
                                           schema: Schema) : AvroOutputStream<T> {
 
-   val datumWriter = GenericDatumWriter<GenericRecord>(schema)
+   private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
 
    abstract val encoder: Encoder
 

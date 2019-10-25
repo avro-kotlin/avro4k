@@ -463,7 +463,7 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | Map[String, V]              	| MAP<V>        	|                  	| java.util.Map[String, V] |
 | data class T                 	| RECORD        	|                  	| GenericRecord |
 | enum class             	    | ENUM          	|                  	| GenericEnumSymbol |
-
+| arrow.core.Option<T>          | UNION<null, T>    |                   | null, T |
 
 
 

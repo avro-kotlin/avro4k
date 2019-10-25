@@ -80,11 +80,11 @@ interface AvroInputStream<T> : AutoCloseable {
 
 class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrategy<T>,
                                 private val format: AvroFormat,
-                                private val writerSchema: Schema?,
-                                private val readerSchema: Schema?) {
+                                private val wschema: Schema?,
+                                private val rschema: Schema?) {
 
-   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, readerSchema)
-   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, writerSchema, schema)
+   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, rschema)
+   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, wschema, schema)
 
    fun from(path: Path): AvroInputStream<T> = from(Files.newInputStream(path))
    fun from(path: String): AvroInputStream<T> = from(Paths.get(path))
@@ -94,15 +94,12 @@ class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrateg
 
    fun from(source: InputStream): AvroInputStream<T> {
       return when (format) {
-         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, writerSchema!!, readerSchema)
-         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, writerSchema!!, readerSchema)
+         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, wschema!!, rschema)
+         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, wschema!!, rschema)
          AvroFormat.DataFormat -> when {
-            writerSchema != null && readerSchema != null ->
-               AvroDataInputStream(source, deserializer, writerSchema, readerSchema)
-            writerSchema != null ->
-               AvroDataInputStream(source, deserializer, writerSchema, writerSchema)
-            else ->
-               AvroDataInputStream(source, deserializer, null, null)
+            wschema != null && rschema != null -> AvroDataInputStream(source, deserializer, wschema, rschema)
+            wschema != null -> AvroDataInputStream(source, deserializer, wschema, wschema)
+            else -> AvroDataInputStream(source, deserializer, null, null)
          }
       }
    }

@@ -20,7 +20,7 @@ import java.io.InputStream
 abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
                                             private val deserializer: DeserializationStrategy<T>,
                                             writerSchema: Schema,
-                                            private val readerSchema: Schema?) : AvroInputStream<T> {
+                                            readerSchema: Schema?) : AvroInputStream<T> {
 
    private val datumReader = when (readerSchema) {
       null -> GenericDatumReader<GenericRecord>(writerSchema)

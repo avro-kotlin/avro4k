@@ -1,1 +1,14 @@
-{}
+{
+   "type": "record",
+   "name": "Test",
+   "namespace": "com.sksamuel.avro4k.arrow.OptionSchemaTest",
+   "fields": [
+      {
+         "name": "a",
+         "type": [
+            "null",
+            "string"
+         ]
+      }
+   ]
+}

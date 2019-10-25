@@ -1,34 +1,28 @@
 package com.sksamuel.avro4k.arrow
 
+import arrow.core.None
 import arrow.core.Option
-import com.sksamuel.avro4k.decoder.FieldDecoder
-import com.sksamuel.avro4k.encoder.FieldEncoder
-import com.sksamuel.avro4k.schema.extractNonNull
+import arrow.core.some
 import kotlinx.serialization.Decoder
 import kotlinx.serialization.Encoder
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.Serializer
-import org.apache.avro.Schema
+import kotlinx.serialization.internal.nullable
 
 @Serializer(forClass = Option::class)
-class OptionSerializer : KSerializer<Option<Any>> {
+class OptionSerializer<A : Any>(private val aserializer: KSerializer<A>) : KSerializer<Option<A>> {
 
-   final override fun serialize(encoder: Encoder, obj: Option<Any>) {
-      val schema = (encoder as FieldEncoder).fieldSchema()
-      val subschema = when (schema.type) {
-         Schema.Type.UNION -> schema.extractNonNull()
-         else -> schema
-      }
-      obj.fold(
+   override val descriptor: SerialDescriptor = aserializer.nullable.descriptor
+
+   override fun serialize(encoder: Encoder, obj: Option<A>) {
+      return obj.fold(
          { encoder.encodeNull() },
-         {
-
-         }
+         { aserializer.serialize(encoder, it) }
       )
    }
 
-   final override fun deserialize(decoder: Decoder): Option<Any> {
-      val schema = (decoder as FieldDecoder).fieldSchema()
-      TODO()
+   final override fun deserialize(decoder: Decoder): Option<A> {
+      return if (decoder.decodeNotNullMark()) aserializer.deserialize(decoder).some() else None
    }
 }

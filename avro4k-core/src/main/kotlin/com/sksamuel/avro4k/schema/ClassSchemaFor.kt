@@ -7,17 +7,41 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import kotlin.reflect.KClass
+import kotlin.reflect.full.primaryConstructor
 
 class ClassSchemaFor(private val context: SerialModule,
                      private val descriptor: SerialDescriptor) : SchemaFor {
 
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+   private val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
+   private val naming = RecordNaming(descriptor)
 
-      val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
-      val naming = RecordNaming(descriptor)
+   override fun schema(namingStrategy: NamingStrategy): Schema {
+      // if the class is annotated with @AvroValueType then we need to encode the single field
+      // of that class directly.
+      return when (annos.valueType() || descriptor.isInline) {
+         true -> valueTypeSchema()
+         false -> dataClassSchema()
+      }
+   }
+
+   private val SerialDescriptor.isInline: Boolean
+      get() = kotlin.runCatching { Class.forName(name).kotlin.isInline }.getOrDefault(false)
+
+   private val KClass<*>.isInline: Boolean
+      get() = !isData &&
+         primaryConstructor?.parameters?.size == 1 &&
+         java.declaredMethods.any { it.name == "box-impl" }
+
+   private fun valueTypeSchema(): Schema {
+      require(descriptor.elementsCount == 1) { "A value type must only have a single field" }
+      return buildField(0).schema()
+   }
+
+   private fun dataClassSchema(): Schema {
 
       val fields = (0 until descriptor.elementsCount)
-         .map { index -> buildField(index, naming.namespace()) }
+         .map { index -> buildField(index) }
 
       val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)
       record.fields = fields
@@ -26,15 +50,16 @@ class ClassSchemaFor(private val context: SerialModule,
       return record
    }
 
-   private fun buildField(index: Int, containingNamespace: String): Schema.Field {
+   private fun buildField(index: Int): Schema.Field {
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
       val naming = RecordNaming(descriptor, index)
-      val schema = schemaFor(context,
+      val schema = schemaFor(
+         context,
          fieldDescriptor,
-         descriptor.getElementAnnotations(index))
-         .schema(DefaultNamingStrategy)
+         descriptor.getElementAnnotations(index)
+      ).schema(DefaultNamingStrategy)
 
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
       // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear
@@ -55,7 +80,7 @@ class ClassSchemaFor(private val context: SerialModule,
          else ->
             SchemaBuilder.fixed(name)
                .doc(annos.doc())
-               .namespace(annos.namespace() ?: containingNamespace)
+               .namespace(annos.namespace() ?: naming.namespace())
                .size(size)
       }
 

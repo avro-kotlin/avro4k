@@ -19,6 +19,10 @@ annotation class AvroName(val value: String)
 annotation class ScalePrecision(val scale: Int, val precision: Int)
 
 @SerialInfo
+@Target(AnnotationTarget.CLASS)
+annotation class AvroValueType
+
+@SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDoc(val value: String)
 

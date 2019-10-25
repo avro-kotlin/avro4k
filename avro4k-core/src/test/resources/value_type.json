@@ -1,0 +1,15 @@
+{
+   "type": "record",
+   "name": "Product",
+   "namespace": "com.sksamuel.avro4k.schema.AvroValueTypeSchemaTest",
+   "fields": [
+      {
+         "name": "id",
+         "type": "string"
+      },
+      {
+         "name": "name",
+         "type": "string"
+      }
+   ]
+}

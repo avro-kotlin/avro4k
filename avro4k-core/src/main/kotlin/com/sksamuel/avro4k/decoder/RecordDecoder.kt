@@ -127,14 +127,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    override fun decodeElementIndex(desc: SerialDescriptor): Int {
       currentIndex++
-      while (currentIndex < desc.elementsCount) {
-         if (desc.isElementOptional(currentIndex)) {
-            currentIndex++
-         } else {
-            return currentIndex
-         }
-      }
-      return CompositeDecoder.READ_DONE
+      return if (currentIndex < desc.elementsCount) currentIndex else CompositeDecoder.READ_DONE
    }
 }
 

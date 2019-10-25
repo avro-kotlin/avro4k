@@ -12,9 +12,6 @@ data class NullableBoolean(val b: Boolean?)
 @Serializable
 data class NullableString(val s: String?)
 
-@Serializable
-data class RequiredString(val s: String)
-
 class NullableDecoderTest : WordSpec({
 
   "Decoder" should {

@@ -1,0 +1,29 @@
+{
+   "type": "record",
+   "name": "Foo",
+   "namespace": "com.sksamuel.avro4k.schema",
+   "fields": [
+      {
+         "name": "a",
+         "type": "string"
+      },
+      {
+         "name": "b",
+         "type": "string"
+      },
+      {
+         "name": "c",
+         "type": {
+            "type": "long",
+            "logicalType": "timestamp-millis"
+         }
+      },
+      {
+         "name": "d",
+         "type": {
+            "type": "long",
+            "logicalType": "timestamp-millis"
+         }
+      }
+   ]
+}

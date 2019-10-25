@@ -28,7 +28,7 @@ class AvroDataInputStream<T>(private val source: InputStream,
    override fun next(): T? {
       return if (dataFileReader.hasNext()) {
          val record = dataFileReader.next(null)
-         Avro.default.fromRecord(deserializer, readerSchema ?: record.schema, record)
+         Avro.default.fromRecord(deserializer, record)
       } else null
    }
 

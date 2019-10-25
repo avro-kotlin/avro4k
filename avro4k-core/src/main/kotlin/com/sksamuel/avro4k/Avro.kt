@@ -63,7 +63,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    /**
-    * Convert instance of <T> to an Avro [Record] using a [Schema] derived from the type.
+    * Converts an instance of <T> to an Avro [Record] using a [Schema] derived from the type.
     */
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     obj: T): GenericRecord {
@@ -71,7 +71,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    /**
-    * Convert instance of <T> to an Avro [Record] using the given [Schema].
+    * Converts an instance of <T> to an Avro [Record] using the given [Schema].
     */
    fun <T> toRecord(serializer: SerializationStrategy<T>,
                     schema: Schema,
@@ -82,13 +82,11 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       return record!!
    }
 
+   /**
+    * Converts an Avro [GenericRecord] to an instance of <T> using the schema
+    * present in the record.
+    */
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
-                      record: GenericRecord): T {
-      return RootRecordDecoder(record).decode(deserializer)
-   }
-
-   fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
-                      schema: Schema,
                       record: GenericRecord): T {
       return RootRecordDecoder(record).decode(deserializer)
    }

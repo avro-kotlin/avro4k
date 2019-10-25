@@ -37,10 +37,9 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
       } catch (e: EOFException) {
          null
       }
-      return when {
-         record == null -> null
-         readerSchema == null -> Avro.default.fromRecord(deserializer, record)
-         else -> Avro.default.fromRecord(deserializer, readerSchema, record)
+      return when (record) {
+        null -> null
+        else -> Avro.default.fromRecord(deserializer, record)
       }
    }
 }

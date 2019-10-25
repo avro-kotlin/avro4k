@@ -17,7 +17,6 @@ class ClassSchemaFor(private val context: SerialModule,
       val naming = RecordNaming(descriptor)
 
       val fields = (0 until descriptor.elementsCount)
-         .filterNot { descriptor.isElementOptional(it) }
          .map { index -> buildField(index, naming.namespace()) }
 
       val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)

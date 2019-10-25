@@ -65,45 +65,4 @@ class NestedClassEncoderTest : FunSpec({
          )
       )
    }
-
-   test("complex encoded class") {
-
-      val variant = Variant(
-         retailer = Retailer.Nike,
-         sku = Sku("GTH6645"),
-         parentSku = Sku("HT66"),
-         timestamp = Timestamp.valueOf(LocalDateTime.of(2019, 10, 30, 1, 2, 3)),
-         name = VariantName("Super Sneakers Black"),
-         brand = BrandOrManufacturer("Nike")
-      )
-
-      val schema = Avro.default.schema(Variant.serializer())
-      println(schema.toString(true))
-
-      val bytes = Avro.default.dump(Variant.serializer(), variant)
-      Avro.default.load(Variant.serializer(), bytes) shouldBe variant
-   }
 })
-
-enum class Retailer {
-   Nike, Adidas
-}
-
-@Serializable
-data class Variant(
-   val retailer: Retailer,
-   val sku: Sku,
-   val parentSku: Sku,
-   val name: VariantName,
-   val timestamp: Timestamp = Timestamp.from(Instant.now()),
-   val brand: BrandOrManufacturer?
-)
-
-@Serializable
-data class BrandOrManufacturer(val value: String)
-
-@Serializable
-data class Sku(val value: String)
-
-@Serializable
-data class VariantName(val value: String)

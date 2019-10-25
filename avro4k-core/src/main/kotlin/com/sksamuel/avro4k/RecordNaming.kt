@@ -42,15 +42,6 @@ class RecordNaming(name: String, annotations: List<Annotation>) {
 //  }
 
   /**
-   * Returns the full record name (namespace + name) for use in an Avro
-   * record taking into account annotations and type parameters.
-   */
-  fun fullName(): String = when (val v = namespace().trim()) {
-    "" -> name()
-    else -> v + "." + name()
-  }
-
-  /**
    * Returns the namespace for this type to be used when creating
    * an avro record. This method takes into account @AvroNamespace.
    */

@@ -31,8 +31,6 @@ interface SchemaFor {
       val DoubleSchemaFor: SchemaFor = const(SchemaBuilder.builder().doubleType())
       val FloatSchemaFor: SchemaFor = const(SchemaBuilder.builder().floatType())
       val BooleanSchemaFor: SchemaFor = const(SchemaBuilder.builder().booleanType())
-      val ByteArraySchemaFor: SchemaFor = const(SchemaBuilder.builder().bytesType())
-      val ByteBufferSchemaFor: SchemaFor = const(SchemaBuilder.builder().bytesType())
    }
 }
 
@@ -47,12 +45,16 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
 class PairSchemaFor(private val context: SerialModule,
                     private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(namingStrategy: NamingStrategy): Schema {
-      val a = schemaFor(context,
+      val a = schemaFor(
+         context,
          descriptor.getElementDescriptor(0),
-         descriptor.getElementAnnotations(0))
-      val b = schemaFor(context,
+         descriptor.getElementAnnotations(0)
+      )
+      val b = schemaFor(
+         context,
          descriptor.getElementDescriptor(1),
-         descriptor.getElementAnnotations(1))
+         descriptor.getElementAnnotations(1)
+      )
       return SchemaBuilder.unionOf().type(a.schema(namingStrategy)).and().type(b.schema(namingStrategy)).endUnion()
    }
 }
@@ -64,10 +66,11 @@ class ListSchemaFor(private val context: SerialModule,
       return when (elementType.kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
-            val elementSchema = schemaFor(context,
+            val elementSchema = schemaFor(
+               context,
                elementType,
-               descriptor.getElementAnnotations(0))
-               .schema(namingStrategy)
+               descriptor.getElementAnnotations(0)
+            ).schema(namingStrategy)
             return Schema.createArray(elementSchema)
          }
       }
@@ -81,9 +84,11 @@ class MapSchemaFor(private val context: SerialModule,
       when (keyType.kind) {
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
-            val valueSchema = schemaFor(context,
+            val valueSchema = schemaFor(
+               context,
                valueType,
-               descriptor.getElementAnnotations(1)).schema(namingStrategy)
+               descriptor.getElementAnnotations(1)
+            ).schema(namingStrategy)
             return Schema.createMap(valueSchema)
          }
          else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
@@ -98,8 +103,6 @@ class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
       return createSafeUnion(elementSchema, nullSchema)
    }
 }
-
-fun Schema.toSchemaFor() = SchemaFor.const(this)
 
 fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor,

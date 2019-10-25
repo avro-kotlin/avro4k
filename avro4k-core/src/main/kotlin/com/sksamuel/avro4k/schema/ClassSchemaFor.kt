@@ -13,13 +13,13 @@ import kotlin.reflect.full.primaryConstructor
 class ClassSchemaFor(private val context: SerialModule,
                      private val descriptor: SerialDescriptor) : SchemaFor {
 
-   private val annos = AnnotationExtractor(descriptor.getEntityAnnotations())
+   private val entityAnnotations = AnnotationExtractor(descriptor.getEntityAnnotations())
    private val naming = RecordNaming(descriptor)
 
    override fun schema(namingStrategy: NamingStrategy): Schema {
       // if the class is annotated with @AvroValueType then we need to encode the single field
       // of that class directly.
-      return when (annos.valueType() || descriptor.isInline) {
+      return when (entityAnnotations.valueType() || descriptor.isInline) {
          true -> valueTypeSchema()
          false -> dataClassSchema()
       }
@@ -43,10 +43,10 @@ class ClassSchemaFor(private val context: SerialModule,
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
 
-      val record = Schema.createRecord(naming.name(), annos.doc(), naming.namespace(), false)
+      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
       record.fields = fields
-      annos.aliases().forEach { record.addAlias(it) }
-      annos.props().forEach { (k, v) -> record.addProp(k, v) }
+      entityAnnotations.aliases().forEach { record.addAlias(it) }
+      entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
       return record
    }
 
@@ -54,7 +54,7 @@ class ClassSchemaFor(private val context: SerialModule,
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
-      val naming = RecordNaming(descriptor, index)
+      val fieldNaming = RecordNaming(descriptor, index)
       val schema = schemaFor(
          context,
          fieldDescriptor,
@@ -67,14 +67,15 @@ class ClassSchemaFor(private val context: SerialModule,
       val (size, name) = when (val a = annos.fixed()) {
          null -> {
             val fieldAnnos = AnnotationExtractor(fieldDescriptor.getEntityAnnotations())
-            val fieldNaming = RecordNaming(fieldDescriptor)
+            val n = RecordNaming(fieldDescriptor)
             when (val b = fieldAnnos.fixed()) {
-               null -> 0 to naming.name()
-               else -> b to fieldNaming.name()
+               null -> 0 to n.name()
+               else -> b to n.name()
             }
          }
-         else -> a to naming.name()
+         else -> a to fieldNaming.name()
       }
+
       val schemaOrFixed = when (size) {
          0 -> schema
          else ->
@@ -92,7 +93,7 @@ class ClassSchemaFor(private val context: SerialModule,
          else -> schemaOrFixed.overrideNamespace(ns)
       }
 
-      val field = Schema.Field(naming.name(), schemaWithResolvedNamespace, annos.doc(), null)
+      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), null)
       val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
       props.forEach { field.addProp(it.key, it.value) }
       annos.aliases().forEach { field.addAlias(it) }

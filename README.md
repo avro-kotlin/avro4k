@@ -464,7 +464,7 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | data class T                 	| RECORD        	|                  	| GenericRecord |
 | enum class             	    | ENUM          	|                  	| GenericEnumSymbol |
 | arrow.core.Option<T>          | UNION<null, T>    |                   | null, T |
-| arrow.core.Tuple2<A,B>         | UNION<A,B>       |                   | A,B |
+| arrow.core.Tuple2<A,B>         | RECORD<A,B>       |                   | GenericRecord |
 
 
 

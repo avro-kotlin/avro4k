@@ -22,7 +22,7 @@ class OptionSerializer<A : Any>(private val aserializer: KSerializer<A>) : KSeri
       )
    }
 
-   final override fun deserialize(decoder: Decoder): Option<A> {
+   override fun deserialize(decoder: Decoder): Option<A> {
       return if (decoder.decodeNotNullMark()) aserializer.deserialize(decoder).some() else None
    }
 }

@@ -12,7 +12,8 @@ import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
 interface SchemaFor {
-   fun schema(namingStrategy: NamingStrategy): Schema
+
+   fun schema(): Schema
 
    companion object {
 
@@ -20,7 +21,7 @@ interface SchemaFor {
        * Creates a [SchemaFor] that always returns the given constant schema.
        */
       fun const(schema: Schema) = object : SchemaFor {
-         override fun schema(namingStrategy: NamingStrategy) = schema
+         override fun schema() = schema
       }
 
       val StringSchemaFor: SchemaFor = const(SchemaBuilder.builder().stringType())
@@ -35,60 +36,69 @@ interface SchemaFor {
 }
 
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+   override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
       return SchemaBuilder.enumeration(naming.name()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
    }
 }
 
-class PairSchemaFor(private val context: SerialModule,
-                    private val descriptor: SerialDescriptor) : SchemaFor {
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+class PairSchemaFor(private val descriptor: SerialDescriptor,
+                    private val namingStrategy: NamingStrategy,
+                    private val context: SerialModule) : SchemaFor {
+
+   override fun schema(): Schema {
       val a = schemaFor(
          context,
          descriptor.getElementDescriptor(0),
-         descriptor.getElementAnnotations(0)
+         descriptor.getElementAnnotations(0),
+         namingStrategy
       )
       val b = schemaFor(
          context,
          descriptor.getElementDescriptor(1),
-         descriptor.getElementAnnotations(1)
+         descriptor.getElementAnnotations(1),
+         namingStrategy
       )
-      return SchemaBuilder.unionOf().type(a.schema(namingStrategy)).and().type(b.schema(namingStrategy)).endUnion()
+      return SchemaBuilder.unionOf()
+         .type(a.schema())
+         .and()
+         .type(b.schema())
+         .endUnion()
    }
 }
 
-class ListSchemaFor(private val context: SerialModule,
-                    private val descriptor: SerialDescriptor) : SchemaFor {
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+class ListSchemaFor(private val descriptor: SerialDescriptor,
+                    private val context: SerialModule,
+                    private val namingStrategy: NamingStrategy) : SchemaFor {
+
+   override fun schema(): Schema {
+
       val elementType = descriptor.getElementDescriptor(0)
       return when (elementType.kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
-            val elementSchema = schemaFor(
-               context,
+            val elementSchema = schemaFor(context,
                elementType,
-               descriptor.getElementAnnotations(0)
-            ).schema(namingStrategy)
+               descriptor.getElementAnnotations(0),
+               namingStrategy).schema()
             return Schema.createArray(elementSchema)
          }
       }
    }
 }
 
-class MapSchemaFor(private val context: SerialModule,
-                   private val descriptor: SerialDescriptor) : SchemaFor {
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+class MapSchemaFor(private val descriptor: SerialDescriptor,
+                   private val context: SerialModule,
+                   private val namingStrategy: NamingStrategy) : SchemaFor {
+
+   override fun schema(): Schema {
       val keyType = descriptor.getElementDescriptor(0)
       when (keyType.kind) {
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
-            val valueSchema = schemaFor(
-               context,
-               valueType,
-               descriptor.getElementAnnotations(1)
-            ).schema(namingStrategy)
+            val valueSchema = schemaFor(context, valueType, descriptor.getElementAnnotations(1), namingStrategy)
+               .schema()
             return Schema.createMap(valueSchema)
          }
          else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
@@ -97,8 +107,9 @@ class MapSchemaFor(private val context: SerialModule,
 }
 
 class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
-   override fun schema(namingStrategy: NamingStrategy): Schema {
-      val elementSchema = schemaFor.schema(namingStrategy)
+
+   override fun schema(): Schema {
+      val elementSchema = schemaFor.schema()
       val nullSchema = SchemaBuilder.builder().nullType()
       return createSafeUnion(elementSchema, nullSchema)
    }
@@ -106,7 +117,8 @@ class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
 
 fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor,
-              annos: List<Annotation>): SchemaFor {
+              annos: List<Annotation>,
+              namingStrategy: NamingStrategy): SchemaFor {
 
    com.sksamuel.avro4k.serializer.UUIDSerializer().nullable
 
@@ -117,7 +129,7 @@ fun schemaFor(context: SerialModule,
    } else descriptor
 
    val schemaFor: SchemaFor = when (underlying) {
-      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos))
+      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, context, namingStrategy))
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -130,11 +142,11 @@ fun schemaFor(context: SerialModule,
          UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
          UnionKind.SEALED -> SealedClassSchemaFor(descriptor)
          StructureKind.CLASS -> when (descriptor.name) {
-            "kotlin.Pair" -> PairSchemaFor(context, descriptor)
-            else -> ClassSchemaFor(context, descriptor)
+            "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, context)
+            else -> ClassSchemaFor(descriptor, namingStrategy, context)
          }
-         StructureKind.LIST -> ListSchemaFor(context, descriptor)
-         StructureKind.MAP -> MapSchemaFor(context, descriptor)
+         StructureKind.LIST -> ListSchemaFor(descriptor, context, namingStrategy)
+         StructureKind.MAP -> MapSchemaFor(descriptor, context, namingStrategy)
          else -> throw SerializationException("Unsupported type ${descriptor.name} of ${descriptor.kind}")
       }
    }

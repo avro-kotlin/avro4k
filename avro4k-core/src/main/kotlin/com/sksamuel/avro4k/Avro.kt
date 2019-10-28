@@ -2,12 +2,12 @@ package com.sksamuel.avro4k
 
 import com.sksamuel.avro4k.decoder.RootRecordDecoder
 import com.sksamuel.avro4k.encoder.RootRecordEncoder
-import com.sksamuel.avro4k.serializer.UUIDSerializer
 import com.sksamuel.avro4k.io.AvroFormat
 import com.sksamuel.avro4k.io.AvroInputStream
 import com.sksamuel.avro4k.io.AvroOutputStream
 import com.sksamuel.avro4k.schema.DefaultNamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
+import com.sksamuel.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
@@ -95,7 +95,8 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       return schemaFor(
          context,
          serializer.descriptor,
-         serializer.descriptor.getEntityAnnotations()
-      ).schema(DefaultNamingStrategy)
+         serializer.descriptor.getEntityAnnotations(),
+         DefaultNamingStrategy
+      ).schema()
    }
 }

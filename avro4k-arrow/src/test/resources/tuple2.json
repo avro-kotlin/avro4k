@@ -1,0 +1,14 @@
+{
+   "type": "record",
+   "name": "Test",
+   "namespace": "com.sksamuel.avro4k.arrow.Tuple2SchemaTest",
+   "fields": [
+      {
+         "name": "a",
+         "type": [
+            "string",
+            "boolean"
+         ]
+      }
+   ]
+}

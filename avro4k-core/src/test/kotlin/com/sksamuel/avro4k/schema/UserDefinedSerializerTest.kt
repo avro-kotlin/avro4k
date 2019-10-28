@@ -10,6 +10,7 @@ import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
@@ -29,7 +30,9 @@ class UserDefinedSerializerTest : FunSpec({
          }
 
          override val descriptor: SerialDescriptor = object : AvroDescriptor("fixed-string", PrimitiveKind.STRING) {
-            override fun schema(annos: List<Annotation>): Schema {
+            override fun schema(annos: List<Annotation>,
+                                context: SerialModule,
+                                namingStrategy: NamingStrategy): Schema {
                return Schema.createFixed("foo", null, null, 10)
             }
          }

@@ -10,13 +10,14 @@ import org.apache.avro.SchemaBuilder
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
-class ClassSchemaFor(private val context: SerialModule,
-                     private val descriptor: SerialDescriptor) : SchemaFor {
+class ClassSchemaFor(private val descriptor: SerialDescriptor,
+                     private val namingStrategy: NamingStrategy,
+                     private val context: SerialModule) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.getEntityAnnotations())
    private val naming = RecordNaming(descriptor)
 
-   override fun schema(namingStrategy: NamingStrategy): Schema {
+   override fun schema(): Schema {
       // if the class is annotated with @AvroValueType then we need to encode the single field
       // of that class directly.
       return when (entityAnnotations.valueType() || descriptor.isInline) {
@@ -55,11 +56,8 @@ class ClassSchemaFor(private val context: SerialModule,
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
       val fieldNaming = RecordNaming(descriptor, index)
-      val schema = schemaFor(
-         context,
-         fieldDescriptor,
-         descriptor.getElementAnnotations(index)
-      ).schema(DefaultNamingStrategy)
+      val schema = schemaFor(context, fieldDescriptor, descriptor.getElementAnnotations(index), namingStrategy)
+         .schema()
 
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
       // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear

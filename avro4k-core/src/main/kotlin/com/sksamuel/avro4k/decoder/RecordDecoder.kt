@@ -112,7 +112,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
          is Long -> v
          is Int -> v.toLong()
          null -> throw SerializationException("Cannot decode <null> as a Long")
-         else -> throw SerializationException("Unsupported type for Long ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Long [is ${v.javaClass}]")
       }
    }
 

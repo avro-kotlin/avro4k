@@ -5,10 +5,21 @@
    "fields": [
       {
          "name": "a",
-         "type": [
-            "string",
-            "boolean"
-         ]
+         "type": {
+            "type": "record",
+            "name": "Tuple2",
+            "namespace": "",
+            "fields": [
+               {
+                  "name": "a",
+                  "type": "string"
+               },
+               {
+                  "name": "b",
+                  "type": "boolean"
+               }
+            ]
+         }
       }
    ]
 }

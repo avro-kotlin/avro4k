@@ -26,9 +26,9 @@ class URLSerializer : AvroSerializer<URL>() {
 
    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): URL {
       return when (val v = decoder.decodeAny()) {
-         is Utf8 -> URL(decoder.decodeString())
+         is Utf8 -> URL(v.toString())
          is String -> URL(v)
-         else -> throw SerializationException("Unsupported URL type [$v]")
+         else -> throw SerializationException("Unsupported URL type [$v : ${v?.javaClass?.name}]")
       }
    }
 }

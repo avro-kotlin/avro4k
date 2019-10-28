@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k.decoder
 
 import kotlinx.serialization.CompositeDecoder
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
@@ -27,7 +28,10 @@ class ListDecoder(private val schema: Schema,
       return array[index++] as Long
    }
 
-   override fun decodeString(): String = StringFromAvroValue.fromValue(array[index++])
+   override fun decodeString(): String {
+      val raw = array[index++]
+      return StringFromAvroValue.fromValue(raw)
+   }
 
    override fun decodeDouble(): Double {
       return array[index++] as Double
@@ -50,6 +54,10 @@ class ListDecoder(private val schema: Schema,
    override fun decodeEnum(enumDescription: EnumDescriptor): Int {
       val symbol = EnumFromAvroValue.fromValue(array[index++]!!)
       return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
+   }
+
+   override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
+      return deserializer.deserialize(this)
    }
 
    @Suppress("UNCHECKED_CAST")

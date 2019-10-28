@@ -10,7 +10,7 @@ import org.apache.avro.util.Utf8
 
 class MapDecoderTest : StringSpec({
 
-   "decode a Map<String, Long>" {
+   "decode a Map<String, Long> from strings/longs" {
       @Serializable
       data class Test(val a: Map<String, Long>)
 
@@ -20,6 +20,29 @@ class MapDecoderTest : StringSpec({
       record.put("a", mapOf("x" to 152134L, "y" to 917823L))
 
       Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to 152134L, "y" to 917823L))
+   }
+
+   "decode a Map<String, Long> from utf8s/longs" {
+      @Serializable
+      data class Test(val a: Map<String, Long>)
+
+      val schema = Avro.default.schema(Test.serializer())
+
+      val record = GenericData.Record(schema)
+      record.put("a", mapOf(Utf8("x") to 152134L, Utf8("y") to 917823L))
+
+      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to 152134L, "y" to 917823L))
+   }
+   "decode a Map<String, String> from utf8s/utf8s" {
+      @Serializable
+      data class Test(val a: Map<String, String>)
+
+      val schema = Avro.default.schema(Test.serializer())
+
+      val record = GenericData.Record(schema)
+      record.put("a", mapOf(Utf8("x") to Utf8("a"), Utf8("y") to Utf8("b")))
+
+      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to "a", "y" to "b"))
    }
    "decode a Map of records" {
 

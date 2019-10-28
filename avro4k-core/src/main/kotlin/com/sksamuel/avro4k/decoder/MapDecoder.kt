@@ -12,7 +12,7 @@ import org.apache.avro.generic.GenericRecord
 
 class MapDecoder(private val desc: SerialDescriptor,
                  private val schema: Schema,
-                 map: Map<String, *>) : ElementValueDecoder(), CompositeDecoder {
+                 map: Map<*, *>) : ElementValueDecoder(), CompositeDecoder {
 
    init {
       require(schema.type == Schema.Type.MAP)
@@ -23,7 +23,12 @@ class MapDecoder(private val desc: SerialDescriptor,
    private var key: String? = null
 
    override fun decodeString(): String {
-      return if (index % 2 == 0) entries[index / 2].first else StringFromAvroValue.fromValue(entries[index / 2].second)
+      val entry = entries[index / 2]
+      val value = when {
+         index % 2 == 0 -> entry.first
+         else -> entry.second
+      }
+      return StringFromAvroValue.fromValue(value)
    }
 
    private fun value(): Any? = entries[index / 2].second

@@ -17,6 +17,14 @@ class MapEncoderTest : StringSpec({
       val record = Avro.default.toRecord(Test.serializer(), Test(mapOf("a" to true, "b" to false, "c" to true)))
       record shouldBe ListRecord(schema, mapOf(Utf8("a") to true, Utf8("b") to false, Utf8("c") to true))
    }
+   "encode a Map<String,String>" {
+      @Serializable
+      data class Test(val a: Map<String, String>)
+
+      val schema = Avro.default.schema(Test.serializer())
+      val record = Avro.default.toRecord(Test.serializer(), Test(mapOf("a" to "x", "b" to "y", "c" to "z")))
+      record shouldBe ListRecord(schema, mapOf(Utf8("a") to Utf8("x"), Utf8("b") to Utf8("y"), Utf8("c") to Utf8("z")))
+   }
    "encode a Map of records" {
 
       @Serializable

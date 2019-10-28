@@ -1,12 +1,14 @@
-package com.sksamuel.avro4k.schema
+package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroInline
+import com.sksamuel.avro4k.ListRecord
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.util.Utf8
 
-class AvroInlineSchemaTest : FunSpec({
+class AvroInlineEncoderTest : FunSpec({
 
    test("support @AvroInline") {
 
@@ -17,9 +19,9 @@ class AvroInlineSchemaTest : FunSpec({
       @Serializable
       data class Product(val id: String, val name: Name)
 
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/value_type.json"))
       val schema = Avro.default.schema(Product.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
+      val record = Avro.default.toRecord(Product.serializer(), Product("123", Name("sneakers")))
+      record shouldBe ListRecord(schema, listOf(Utf8("123"), Utf8("sneakers")))
    }
 
 })

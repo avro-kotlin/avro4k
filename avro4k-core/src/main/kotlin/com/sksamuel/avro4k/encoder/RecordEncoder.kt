@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k.encoder
 
+import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.Record
 import com.sksamuel.avro4k.schema.extractNonNull
@@ -80,7 +81,11 @@ class RecordEncoder(private val schema: Schema,
    }
 
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      return super<StructureEncoder>.beginStructure(desc, *typeParams)
+      // if we have a value type, then we don't want to begin a new structure
+      return if (AnnotationExtractor(desc.getEntityAnnotations()).valueType())
+         this
+      else
+         super<StructureEncoder>.beginStructure(desc, *typeParams)
    }
 
    override fun endStructure(desc: SerialDescriptor) {

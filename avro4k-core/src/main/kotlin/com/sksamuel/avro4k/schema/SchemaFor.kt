@@ -6,7 +6,6 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.StructureKind
 import kotlinx.serialization.UnionKind
-import kotlinx.serialization.internal.nullable
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -119,8 +118,6 @@ fun schemaFor(context: SerialModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
               namingStrategy: NamingStrategy): SchemaFor {
-
-   com.sksamuel.avro4k.serializer.UUIDSerializer().nullable
 
    val underlying = if (descriptor.javaClass.simpleName == "SerialDescriptorForNullable") {
       val field = descriptor.javaClass.getDeclaredField("original")

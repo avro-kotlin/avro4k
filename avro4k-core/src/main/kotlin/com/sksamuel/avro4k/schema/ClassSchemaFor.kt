@@ -7,8 +7,6 @@ import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import kotlin.reflect.KClass
-import kotlin.reflect.full.primaryConstructor
 
 class ClassSchemaFor(private val descriptor: SerialDescriptor,
                      private val namingStrategy: NamingStrategy,
@@ -20,19 +18,11 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
    override fun schema(): Schema {
       // if the class is annotated with @AvroValueType then we need to encode the single field
       // of that class directly.
-      return when (entityAnnotations.valueType() || descriptor.isInline) {
+      return when (entityAnnotations.valueType()) {
          true -> valueTypeSchema()
          false -> dataClassSchema()
       }
    }
-
-   private val SerialDescriptor.isInline: Boolean
-      get() = kotlin.runCatching { Class.forName(name).kotlin.isInline }.getOrDefault(false)
-
-   private val KClass<*>.isInline: Boolean
-      get() = !isData &&
-         primaryConstructor?.parameters?.size == 1 &&
-         java.declaredMethods.any { it.name == "box-impl" }
 
    private fun valueTypeSchema(): Schema {
       require(descriptor.elementsCount == 1) { "A value type must only have a single field" }

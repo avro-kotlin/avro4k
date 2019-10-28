@@ -3,19 +3,19 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroValueType
+import com.sksamuel.avro4k.AvroInline
 import com.sksamuel.avro4k.serializer.UUIDSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 
-class AvroValueTypeSchemaTest : FunSpec({
+class AvroInlineSchemaTest : FunSpec({
 
    test("support @AvroValueType") {
 
       @Serializable
-      @AvroValueType
+      @AvroInline
       data class Name(val value: String)
 
       @Serializable

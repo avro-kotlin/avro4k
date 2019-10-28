@@ -3,7 +3,7 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroValueType
+import com.sksamuel.avro4k.AvroInline
 import com.sksamuel.avro4k.serializer.UUIDSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
@@ -15,7 +15,7 @@ class InlineClassSchemaTest : FunSpec({
    test("support inline types") {
 
       @Serializable
-      @AvroValueType
+      @AvroInline
       data class Name(val value: String)
 
       @Serializable

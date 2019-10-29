@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 
 class Tuple2SchemaTest : FunSpec({
 
-   test("tuples of primitives as basic unions") {
+   test("tuples of primitives as record") {
 
       @Serializable
       data class Test(@Serializable(Tuple2Serializer::class)  val a: Tuple2<String, Boolean>)

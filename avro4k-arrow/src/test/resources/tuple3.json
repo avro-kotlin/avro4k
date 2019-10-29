@@ -1,0 +1,29 @@
+{
+   "type": "record",
+   "name": "Test",
+   "namespace": "com.sksamuel.avro4k.arrow.Tuple3SchemaTest",
+   "fields": [
+      {
+         "name": "a",
+         "type": {
+            "type": "record",
+            "name": "Tuple3",
+            "namespace": "",
+            "fields": [
+               {
+                  "name": "a",
+                  "type": "string"
+               },
+               {
+                  "name": "b",
+                  "type": "boolean"
+               },
+               {
+                  "name": "c",
+                  "type": "double"
+               }
+            ]
+         }
+      }
+   ]
+}

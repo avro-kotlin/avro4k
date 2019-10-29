@@ -1,4 +1,4 @@
-package com.sksamuel.avro4k.encoder
+package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroInline
@@ -8,9 +8,9 @@ import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.util.Utf8
 
-class AvroInlineEncoderTest : FunSpec({
+class AvroInlineDecoderTest : FunSpec({
 
-   test("encode @AvroInline") {
+   test("decode @AvroInline") {
 
       @Serializable
       @AvroInline
@@ -20,8 +20,8 @@ class AvroInlineEncoderTest : FunSpec({
       data class Product(val id: String, val name: Name)
 
       val schema = Avro.default.schema(Product.serializer())
-      val record = Avro.default.toRecord(Product.serializer(), Product("123", Name("sneakers")))
-      record shouldBe ListRecord(schema, listOf(Utf8("123"), Utf8("sneakers")))
+      val record =  ListRecord(schema, listOf(Utf8("123"), Utf8("sneakers")))
+      Avro.default.fromRecord(Product.serializer(), record) shouldBe Product("123", Name("sneakers"))
    }
 
 })

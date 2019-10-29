@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k.decoder
 
+import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.FieldNaming
 import kotlinx.serialization.CompositeDecoder
 import kotlinx.serialization.Decoder
@@ -29,22 +30,28 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+      val valueType = AnnotationExtractor(desc.getEntityAnnotations()).valueType()
+      val value = fieldValue()
       return when (desc.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(desc, fieldValue() as GenericRecord)
-         StructureKind.MAP -> MapDecoder(desc, fieldSchema(), fieldValue() as Map<String, *>)
+         StructureKind.CLASS ->
+            if (valueType)
+               InlineDecoder(fieldValue())
+            else
+               RecordDecoder(desc, value as GenericRecord)
+         StructureKind.MAP -> MapDecoder(desc, fieldSchema(), value as Map<String, *>)
          StructureKind.LIST -> {
             val decoder: CompositeDecoder = if (desc.getElementDescriptor(1).kind == PrimitiveKind.BYTE) {
-               when (val data = fieldValue()) {
-                  is List<*> -> ByteArrayDecoder((data as List<Byte>).toByteArray())
-                  is Array<*> -> ByteArrayDecoder((data as Array<Byte>).toByteArray())
-                  is ByteArray -> ByteArrayDecoder(data)
-                  is ByteBuffer -> ByteArrayDecoder(data.array())
+               when (value) {
+                  is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
+                  is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
+                  is ByteArray -> ByteArrayDecoder(value)
+                  is ByteBuffer -> ByteArrayDecoder(value.array())
                   else -> this
                }
             } else {
-               when (val data = fieldValue()) {
-                  is List<*> -> ListDecoder(fieldSchema(), data)
-                  is Array<*> -> ListDecoder(fieldSchema(), data.asList())
+               when (value) {
+                  is List<*> -> ListDecoder(fieldSchema(), value)
+                  is Array<*> -> ListDecoder(fieldSchema(), value.asList())
                   else -> this
                }
             }

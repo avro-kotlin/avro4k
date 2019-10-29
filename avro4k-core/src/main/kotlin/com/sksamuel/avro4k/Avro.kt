@@ -88,7 +88,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     */
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
                       record: GenericRecord): T {
-      return RootRecordDecoder(record).decode(deserializer)
+      return RootRecordDecoder(record).decodeSerializableValue(deserializer)
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {

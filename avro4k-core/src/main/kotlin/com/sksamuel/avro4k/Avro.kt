@@ -132,7 +132,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * When using formats [AvroFormat.JsonFormat] or [AvroFormat.BinaryFormat] then the
     * readerSchema must be set in the configuration function.
     */
-   fun openInputStream(f: AvroInputStreamBuilder<Any>.() -> Unit): AvroInputStreamBuilder<Any> {
+   fun openInputStream(f: AvroInputStreamBuilder<Any>.() -> Unit = {}): AvroInputStreamBuilder<Any> {
       val builder = AvroInputStreamBuilder { it }
       builder.f()
       return builder
@@ -153,7 +153,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * readerSchema must be set in the configuration function.
     */
    fun <T> openInputStream(serializer: DeserializationStrategy<T>,
-                           f: AvroInputStreamBuilder<T>.() -> Unit): AvroInputStreamBuilder<T> {
+                           f: AvroInputStreamBuilder<T>.() -> Unit = {}): AvroInputStreamBuilder<T> {
       val builder = AvroInputStreamBuilder { fromRecord(serializer, it as GenericRecord) }
       builder.f()
       return builder
@@ -187,7 +187,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * be derived from the type using [Avro.schema].
     */
    fun <T> openOutputStream(serializer: SerializationStrategy<T>,
-                            f: AvroOutputStreamBuilder<T>.() -> Unit): AvroOutputStreamBuilder<T> {
+                            f: AvroOutputStreamBuilder<T>.() -> Unit = {}): AvroOutputStreamBuilder<T> {
       val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { toRecord(serializer, schema, it) } }
       builder.f()
       return builder

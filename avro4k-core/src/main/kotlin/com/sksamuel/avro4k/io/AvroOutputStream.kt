@@ -38,52 +38,73 @@ interface AvroOutputStream<T> : AutoCloseable {
        * in the messages for downstream clients.
        */
       fun binary(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
-         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.BinaryFormat)
+         AvroOutputStreamBuilder(schema, { it }, AvroFormat.BinaryFormat)
 
       /**
        * An [AvroOutputStream] that writes as binary without the schema. Use this when
        * you want the smallest messages possible at the cost of not having the schema available
        * in the messages for downstream clients.
        */
-      fun <T> binary(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, { Avro.default.toRecord(serializer, it) }, AvroFormat.BinaryFormat)
+      fun <T> binary(schema: Schema,
+                     serializer: SerializationStrategy<T>,
+                     avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
+         AvroOutputStreamBuilder(schema, { avro.toRecord(serializer, it) }, AvroFormat.BinaryFormat)
+
+      /**
+       * An [AvroOutputStream] that writes as binary without the schema. Use this when
+       * you want the smallest messages possible at the cost of not having the schema available
+       * in the messages for downstream clients.
+       */
+      fun <T> binary(serializer: SerializationStrategy<T>,
+                     avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
+         binary(avro.schema(serializer), serializer, avro)
 
       /**
        * An [AvroOutputStream] that writes [GenericRecord]s as JSON.
        * The schema is not included in the output.
        */
       fun json(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
-         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.JsonFormat)
+         AvroOutputStreamBuilder(schema, { it }, AvroFormat.JsonFormat)
 
       /**
        * An [AvroOutputStream] that writes values of T as JSON.
        * The schema is not included in the output.
        */
-      fun <T> json(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, { Avro.default.toRecord(serializer, it) }, AvroFormat.JsonFormat)
+      fun <T> json(schema: Schema,
+                   serializer: SerializationStrategy<T>,
+                   avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
+         AvroOutputStreamBuilder(schema, { avro.toRecord(serializer, it) }, AvroFormat.JsonFormat)
+
+      /**
+       * An [AvroOutputStream] that writes values of T as JSON.
+       * The schema is not included in the output.
+       */
+      fun <T> json(serializer: SerializationStrategy<T>,
+                   avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
+         json(avro.schema(serializer), serializer, avro)
 
       /**
        * An [AvroOutputStream] that writes [GenericRecord]s as binary with the inclusion of the schema.
        */
       fun data(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
-         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.DataFormat)
+         AvroOutputStreamBuilder(schema, { it }, AvroFormat.DataFormat)
 
       /**
        * An [AvroOutputStream] that writes values of <T> as binary with the inclusion of the schema.
        * The serializer must be supplied so that Ts can be converted to Avro records.
+       * The schema is generated from the serializer.
        */
-      fun <T> data(serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(
-            Avro.default.schema(serializer),
-            { Avro.default.toRecord(serializer, it) },
-            AvroFormat.DataFormat
-         )
+      fun <T> data(serializer: SerializationStrategy<T>,
+                   avro: Avro = Avro.default) =
+         data(avro.schema(serializer), serializer, avro)
 
       /**
-       * An [AvroOutputStream] that writes as binary with the inclusion of the schema.
+       * An [AvroOutputStream] that writes as binary with the inclusion of the given schema.
        */
-      fun <T> data(schema: Schema, serializer: SerializationStrategy<T>) =
-         AvroOutputStreamBuilder<T>(schema, { Avro.default.toRecord(serializer, it) }, AvroFormat.DataFormat)
+      fun <T> data(schema: Schema,
+                   serializer: SerializationStrategy<T>,
+                   avro: Avro = Avro.default) =
+         AvroOutputStreamBuilder<T>(schema, { avro.toRecord(serializer, it) }, AvroFormat.DataFormat)
    }
 }
 

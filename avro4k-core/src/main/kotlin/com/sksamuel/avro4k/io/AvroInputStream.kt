@@ -51,17 +51,21 @@ interface AvroInputStream<T> : AutoCloseable {
        * requires that the types have not changed between writing the original
        * data and reading it back in here. Otherwise the schemas will not match.
        */
-      fun <T> binary(serializer: KSerializer<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> {
-         val writer = writerSchema ?: Avro.default.schema(serializer)
-         return AvroInputStreamBuilder(serializer, AvroFormat.BinaryFormat, writer, null)
+      fun <T> binary(serializer: KSerializer<T>,
+                     writerSchema: Schema? = null,
+                     avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
+         val writer = writerSchema ?: avro.schema(serializer)
+         return AvroInputStreamBuilder(serializer, AvroFormat.BinaryFormat, writer, null, avro)
       }
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from binary
        * encoded files with the schema present.
        */
-      fun <T> data(serializer: DeserializationStrategy<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> =
-         AvroInputStreamBuilder(serializer, AvroFormat.DataFormat, writerSchema, null)
+      fun <T> data(serializer: DeserializationStrategy<T>,
+                   writerSchema: Schema? = null,
+                   avro: Avro = Avro.default): AvroInputStreamBuilder<T> =
+         AvroInputStreamBuilder(serializer, AvroFormat.DataFormat, writerSchema, null, avro)
 
       /**
        * Creates an [AvroInputStreamBuilder] that will read from json
@@ -71,9 +75,11 @@ interface AvroInputStream<T> : AutoCloseable {
        * require a schema to make sense of the data. This is the writer schema, which is
        * the schema that was originally used when writing the data.
        */
-      fun <T> json(serializer: KSerializer<T>, writerSchema: Schema? = null): AvroInputStreamBuilder<T> {
-         val writer = writerSchema ?: Avro.default.schema(serializer)
-         return AvroInputStreamBuilder(serializer, AvroFormat.JsonFormat, writer, null)
+      fun <T> json(serializer: KSerializer<T>,
+                   writerSchema: Schema? = null,
+                   avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
+         val writer = writerSchema ?: avro.schema(serializer)
+         return AvroInputStreamBuilder(serializer, AvroFormat.JsonFormat, writer, null, avro)
       }
    }
 }
@@ -81,10 +87,11 @@ interface AvroInputStream<T> : AutoCloseable {
 class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrategy<T>,
                                 private val format: AvroFormat,
                                 private val wschema: Schema?,
-                                private val rschema: Schema?) {
+                                private val rschema: Schema?,
+                                private val avro: Avro) {
 
-   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, rschema)
-   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, wschema, schema)
+   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, rschema, avro)
+   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, wschema, schema, avro)
 
    fun from(path: Path): AvroInputStream<T> = from(Files.newInputStream(path))
    fun from(path: String): AvroInputStream<T> = from(Paths.get(path))
@@ -94,12 +101,12 @@ class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrateg
 
    fun from(source: InputStream): AvroInputStream<T> {
       return when (format) {
-         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, wschema!!, rschema)
-         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, wschema!!, rschema)
+         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, wschema!!, rschema, avro)
+         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, wschema!!, rschema, avro)
          AvroFormat.DataFormat -> when {
-            wschema != null && rschema != null -> AvroDataInputStream(source, deserializer, wschema, rschema)
-            wschema != null -> AvroDataInputStream(source, deserializer, wschema, wschema)
-            else -> AvroDataInputStream(source, deserializer, null, null)
+            wschema != null && rschema != null -> AvroDataInputStream(source, deserializer, wschema, rschema, avro)
+            wschema != null -> AvroDataInputStream(source, deserializer, wschema, wschema, avro)
+            else -> AvroDataInputStream(source, deserializer, null, null, avro)
          }
       }
    }

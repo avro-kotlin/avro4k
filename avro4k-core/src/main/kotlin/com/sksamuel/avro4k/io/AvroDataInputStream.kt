@@ -13,7 +13,8 @@ import java.io.InputStream
 class AvroDataInputStream<T>(private val source: InputStream,
                              private val deserializer: DeserializationStrategy<T>,
                              writerSchema: Schema?,
-                             private val readerSchema: Schema?) : AvroInputStream<T> {
+                             readerSchema: Schema?,
+                             private val avro: Avro) : AvroInputStream<T> {
 
    // if no reader or writer schema is specified, then we create a reader that uses what's present in the files
    private val datumReader = when {
@@ -28,7 +29,7 @@ class AvroDataInputStream<T>(private val source: InputStream,
    override fun next(): T? {
       return if (dataFileReader.hasNext()) {
          val record = dataFileReader.next(null)
-         Avro.default.fromRecord(deserializer, record)
+         avro.fromRecord(deserializer, record)
       } else null
    }
 

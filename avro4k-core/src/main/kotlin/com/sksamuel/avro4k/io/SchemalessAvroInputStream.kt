@@ -20,7 +20,8 @@ import java.io.InputStream
 abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
                                             private val deserializer: DeserializationStrategy<T>,
                                             writerSchema: Schema,
-                                            readerSchema: Schema?) : AvroInputStream<T> {
+                                            readerSchema: Schema?,
+                                            private val avro: Avro) : AvroInputStream<T> {
 
    private val datumReader = when (readerSchema) {
       null -> GenericDatumReader<GenericRecord>(writerSchema)
@@ -38,8 +39,8 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
          null
       }
       return when (record) {
-        null -> null
-        else -> Avro.default.fromRecord(deserializer, record)
+         null -> null
+         else -> avro.fromRecord(deserializer, record)
       }
    }
 }
@@ -47,8 +48,9 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
 class AvroJsonInputStream<T>(input: InputStream,
                              deserializer: DeserializationStrategy<T>,
                              writerSchema: Schema,
-                             readerSchema: Schema?) :
-   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema) {
+                             readerSchema: Schema?,
+                             avro: Avro) :
+   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema, avro) {
    override val decoder: JsonDecoder = DecoderFactory.get().jsonDecoder(writerSchema, input)
 }
 
@@ -61,7 +63,8 @@ class AvroJsonInputStream<T>(input: InputStream,
 class AvroBinaryInputStream<T>(input: InputStream,
                                deserializer: DeserializationStrategy<T>,
                                writerSchema: Schema,
-                               readerSchema: Schema?) :
-   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema) {
+                               readerSchema: Schema?,
+                               avro: Avro) :
+   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema, avro) {
    override val decoder: BinaryDecoder = DecoderFactory.get().binaryDecoder(input, null)
 }

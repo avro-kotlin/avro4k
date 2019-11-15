@@ -5,6 +5,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericRecord
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
@@ -38,8 +39,8 @@ interface AvroInputStream<T> : AutoCloseable {
    companion object {
 
       /**
-       * Creates an [AvroInputStreamBuilder] that will read from binary
-       * encoded files.
+       * Creates an [AvroInputStreamBuilder] that will read instances of T
+       * from binary encoded files.
        *
        * Binary encoded files do not include the schema, and therefore
        * require a schema to make sense of the data. This is known as the
@@ -51,47 +52,79 @@ interface AvroInputStream<T> : AutoCloseable {
        * requires that the types have not changed between writing the original
        * data and reading it back in here. Otherwise the schemas will not match.
        */
+      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
       fun <T> binary(serializer: KSerializer<T>,
                      writerSchema: Schema? = null,
                      avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
          val writer = writerSchema ?: avro.schema(serializer)
-         return AvroInputStreamBuilder(serializer, AvroFormat.BinaryFormat, writer, null, avro)
+         val converter = { record: Any -> avro.fromRecord(serializer, record as GenericRecord) }
+         return AvroInputStreamBuilder(converter, AvroFormat.BinaryFormat, writer, null)
+      }
+
+      fun binary(writerSchema: Schema): AvroInputStreamBuilder<Any> {
+         return AvroInputStreamBuilder({ it }, AvroFormat.BinaryFormat, writerSchema, null)
       }
 
       /**
-       * Creates an [AvroInputStreamBuilder] that will read from binary
-       * encoded files with the schema present.
+       * Creates an [AvroInputStreamBuilder] that will read instances of T from binary
+       * encoded files with the schema present. To convert to instance of T, the
+       * data source must contain [GenericRecord]s.
        */
+      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
       fun <T> data(serializer: DeserializationStrategy<T>,
                    writerSchema: Schema? = null,
-                   avro: Avro = Avro.default): AvroInputStreamBuilder<T> =
-         AvroInputStreamBuilder(serializer, AvroFormat.DataFormat, writerSchema, null, avro)
+                   avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
+         val converter = { record: Any -> avro.fromRecord(serializer, record as GenericRecord) }
+         return AvroInputStreamBuilder(converter, AvroFormat.DataFormat, writerSchema, null)
+      }
 
       /**
-       * Creates an [AvroInputStreamBuilder] that will read from json
-       * encoded files.
+       * Creates an [AvroInputStreamBuilder] that will read Avro values from binary
+       * encoded files with the schema present.
+       */
+      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      fun data(writerSchema: Schema? = null): AvroInputStreamBuilder<Any> =
+         AvroInputStreamBuilder({ it }, AvroFormat.DataFormat, writerSchema, null)
+
+      /**
+       * Creates an [AvroInputStreamBuilder] that will read instances of T from json
+       * encoded files. To convert to instance of T, the data source must contain [GenericRecord]s.
        *
        * JSON encoded files do not include the schema, and therefore
        * require a schema to make sense of the data. This is the writer schema, which is
        * the schema that was originally used when writing the data.
+       *
+       * This writer schema can be supplied here, or if omitted, then a schema
+       * will be generated from the class using [Avro.schema]. This of course
+       * requires that the types have not changed between writing the original
+       * data and reading it back in here. Otherwise the schemas will not match.
        */
+      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
       fun <T> json(serializer: KSerializer<T>,
                    writerSchema: Schema? = null,
                    avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
-         val writer = writerSchema ?: avro.schema(serializer)
-         return AvroInputStreamBuilder(serializer, AvroFormat.JsonFormat, writer, null, avro)
+         val wschema = writerSchema ?: avro.schema(serializer)
+         val converter = { record: Any -> avro.fromRecord(serializer, record as GenericRecord) }
+         return AvroInputStreamBuilder(converter, AvroFormat.JsonFormat, wschema, null)
       }
+
+      /**
+       * Creates an [AvroInputStreamBuilder] that will read Avro values from json
+       * encoded files.
+       */
+      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      fun json(writerSchema: Schema): AvroInputStreamBuilder<Any> =
+         AvroInputStreamBuilder({ it }, AvroFormat.DataFormat, writerSchema, null)
    }
 }
 
-class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrategy<T>,
+class AvroInputStreamBuilder<T>(private val converter: (Any) -> T,
                                 private val format: AvroFormat,
                                 private val wschema: Schema?,
-                                private val rschema: Schema?,
-                                private val avro: Avro) {
+                                private val rschema: Schema?) {
 
-   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, schema, rschema, avro)
-   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(deserializer, format, wschema, schema, avro)
+   fun withWriterSchema(schema: Schema) = AvroInputStreamBuilder(converter, format, schema, rschema)
+   fun withReaderSchema(schema: Schema) = AvroInputStreamBuilder(converter, format, wschema, schema)
 
    fun from(path: Path): AvroInputStream<T> = from(Files.newInputStream(path))
    fun from(path: String): AvroInputStream<T> = from(Paths.get(path))
@@ -101,12 +134,12 @@ class AvroInputStreamBuilder<T>(private val deserializer: DeserializationStrateg
 
    fun from(source: InputStream): AvroInputStream<T> {
       return when (format) {
-         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, deserializer, wschema!!, rschema, avro)
-         AvroFormat.JsonFormat -> AvroJsonInputStream(source, deserializer, wschema!!, rschema, avro)
+         AvroFormat.BinaryFormat -> AvroBinaryInputStream(source, converter, wschema!!, rschema)
+         AvroFormat.JsonFormat -> AvroJsonInputStream(source, converter, wschema!!, rschema)
          AvroFormat.DataFormat -> when {
-            wschema != null && rschema != null -> AvroDataInputStream(source, deserializer, wschema, rschema, avro)
-            wschema != null -> AvroDataInputStream(source, deserializer, wschema, wschema, avro)
-            else -> AvroDataInputStream(source, deserializer, null, null, avro)
+            wschema != null && rschema != null -> AvroDataInputStream(source, converter, wschema, rschema)
+            wschema != null -> AvroDataInputStream(source, converter, wschema, wschema)
+            else -> AvroDataInputStream(source, converter, null, null)
          }
       }
    }

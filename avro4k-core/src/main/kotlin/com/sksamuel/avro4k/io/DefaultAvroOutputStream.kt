@@ -27,8 +27,9 @@ abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
    override fun flush(): Unit = encoder.flush()
    override fun fSync() {}
 
-   override fun write(t: T) {
+   override fun write(t: T): AvroOutputStream<T> {
       datumWriter.write(converter(t), encoder)
+      return this
    }
 }
 

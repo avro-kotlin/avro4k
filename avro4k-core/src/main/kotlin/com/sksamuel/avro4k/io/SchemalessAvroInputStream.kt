@@ -1,7 +1,5 @@
 package com.sksamuel.avro4k.io
 
-import com.sksamuel.avro4k.Avro
-import kotlinx.serialization.DeserializationStrategy
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericRecord
@@ -18,10 +16,9 @@ import java.io.InputStream
  * be loaded from the input source.
  */
 abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
-                                            private val deserializer: DeserializationStrategy<T>,
+                                            private val converter: (Any) -> T,
                                             writerSchema: Schema,
-                                            readerSchema: Schema?,
-                                            private val avro: Avro) : AvroInputStream<T> {
+                                            readerSchema: Schema?) : AvroInputStream<T> {
 
    private val datumReader = when (readerSchema) {
       null -> GenericDatumReader<GenericRecord>(writerSchema)
@@ -40,17 +37,16 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
       }
       return when (record) {
          null -> null
-         else -> avro.fromRecord(deserializer, record)
+         else -> converter(record)
       }
    }
 }
 
 class AvroJsonInputStream<T>(input: InputStream,
-                             deserializer: DeserializationStrategy<T>,
+                             converter: (Any) -> T,
                              writerSchema: Schema,
-                             readerSchema: Schema?,
-                             avro: Avro) :
-   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema, avro) {
+                             readerSchema: Schema?) :
+   SchemalessAvroInputStream<T>(input, converter, writerSchema, readerSchema) {
    override val decoder: JsonDecoder = DecoderFactory.get().jsonDecoder(writerSchema, input)
 }
 
@@ -61,10 +57,9 @@ class AvroJsonInputStream<T>(input: InputStream,
  * See https://avro.apache.org/docs/current/spec.html#binary_encoding
  */
 class AvroBinaryInputStream<T>(input: InputStream,
-                               deserializer: DeserializationStrategy<T>,
+                               converter: (Any) -> T,
                                writerSchema: Schema,
-                               readerSchema: Schema?,
-                               avro: Avro) :
-   SchemalessAvroInputStream<T>(input, deserializer, writerSchema, readerSchema, avro) {
+                               readerSchema: Schema?) :
+   SchemalessAvroInputStream<T>(input, converter, writerSchema, readerSchema) {
    override val decoder: BinaryDecoder = DecoderFactory.get().binaryDecoder(input, null)
 }

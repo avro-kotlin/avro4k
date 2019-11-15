@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k.io
 
 import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.io.AvroInputStream.Companion.data
 import kotlinx.serialization.SerializationStrategy
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
@@ -27,8 +28,12 @@ interface AvroOutputStream<T> : AutoCloseable {
 
    fun flush()
    fun fSync()
-   fun write(t: T)
-   fun write(ts: List<T>): Unit = ts.forEach(::write)
+   fun write(t: T): AvroOutputStream<T>
+
+   fun write(ts: List<T>): AvroOutputStream<T> {
+      ts.forEach { write(it) }
+      return this
+   }
 
    companion object {
 
@@ -37,6 +42,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * you want the smallest messages possible at the cost of not having the schema available
        * in the messages for downstream clients.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun binary(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
          AvroOutputStreamBuilder(schema, { it }, AvroFormat.BinaryFormat)
 
@@ -45,6 +51,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * you want the smallest messages possible at the cost of not having the schema available
        * in the messages for downstream clients.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> binary(schema: Schema,
                      serializer: SerializationStrategy<T>,
                      avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
@@ -55,6 +62,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * you want the smallest messages possible at the cost of not having the schema available
        * in the messages for downstream clients.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> binary(serializer: SerializationStrategy<T>,
                      avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
          binary(avro.schema(serializer), serializer, avro)
@@ -63,6 +71,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * An [AvroOutputStream] that writes [GenericRecord]s as JSON.
        * The schema is not included in the output.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun json(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
          AvroOutputStreamBuilder(schema, { it }, AvroFormat.JsonFormat)
 
@@ -70,6 +79,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * An [AvroOutputStream] that writes values of T as JSON.
        * The schema is not included in the output.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> json(schema: Schema,
                    serializer: SerializationStrategy<T>,
                    avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
@@ -79,6 +89,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * An [AvroOutputStream] that writes values of T as JSON.
        * The schema is not included in the output.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> json(serializer: SerializationStrategy<T>,
                    avro: Avro = Avro.default): AvroOutputStreamBuilder<T> =
          json(avro.schema(serializer), serializer, avro)
@@ -86,6 +97,7 @@ interface AvroOutputStream<T> : AutoCloseable {
       /**
        * An [AvroOutputStream] that writes [GenericRecord]s as binary with the inclusion of the schema.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun data(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
          AvroOutputStreamBuilder(schema, { it }, AvroFormat.DataFormat)
 
@@ -94,6 +106,7 @@ interface AvroOutputStream<T> : AutoCloseable {
        * The serializer must be supplied so that Ts can be converted to Avro records.
        * The schema is generated from the serializer.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> data(serializer: SerializationStrategy<T>,
                    avro: Avro = Avro.default) =
          data(avro.schema(serializer), serializer, avro)
@@ -101,6 +114,7 @@ interface AvroOutputStream<T> : AutoCloseable {
       /**
        * An [AvroOutputStream] that writes as binary with the inclusion of the given schema.
        */
+      @Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
       fun <T> data(schema: Schema,
                    serializer: SerializationStrategy<T>,
                    avro: Avro = Avro.default) =
@@ -108,6 +122,7 @@ interface AvroOutputStream<T> : AutoCloseable {
    }
 }
 
+@Deprecated("Create an instance of [AvroOutputStream] using the dump method on Avro")
 class AvroOutputStreamBuilder<T>(private val schema: Schema,
                                  private val converter: (T) -> GenericRecord,
                                  private val format: AvroFormat,

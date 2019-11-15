@@ -40,7 +40,8 @@ class AvroDataOutputStream<T>(private val output: OutputStream,
    override fun flush(): Unit = writer.flush()
    override fun fSync(): Unit = writer.fSync()
 
-   override fun write(t: T) {
+   override fun write(t: T): AvroOutputStream<T> {
       writer.append(converter(t))
+      return this
    }
 }

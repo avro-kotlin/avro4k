@@ -1,20 +1,15 @@
 package com.sksamuel.avro4k.io
 
-import com.sksamuel.avro4k.Avro
-import kotlinx.serialization.DeserializationStrategy
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.GenericData
-import org.apache.avro.generic.GenericRecord
-import org.apache.avro.io.DatumReader
 import java.io.InputStream
 
 @Suppress("UNCHECKED_CAST")
 class AvroDataInputStream<T>(private val source: InputStream,
-                             private val deserializer: DeserializationStrategy<T>,
+                             private val converter: (Any) -> T,
                              writerSchema: Schema?,
-                             readerSchema: Schema?,
-                             private val avro: Avro) : AvroInputStream<T> {
+                             readerSchema: Schema?) : AvroInputStream<T> {
 
    // if no reader or writer schema is specified, then we create a reader that uses what's present in the files
    private val datumReader = when {
@@ -24,12 +19,12 @@ class AvroDataInputStream<T>(private val source: InputStream,
       else -> GenericData.get().createDatumReader(writerSchema, readerSchema)
    }
 
-   private val dataFileReader = DataFileStream<GenericRecord>(source, datumReader as DatumReader<GenericRecord>)
+   private val dataFileReader = DataFileStream<Any>(source, datumReader)
 
    override fun next(): T? {
       return if (dataFileReader.hasNext()) {
-         val record = dataFileReader.next(null)
-         avro.fromRecord(deserializer, record)
+         val obj = dataFileReader.next(null)
+         converter(obj)
       } else null
    }
 

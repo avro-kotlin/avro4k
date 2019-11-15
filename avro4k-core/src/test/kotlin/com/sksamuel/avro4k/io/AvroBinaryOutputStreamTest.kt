@@ -21,13 +21,10 @@ class AvroBinaryOutputStreamTest : StringSpec({
 
    "AvroBinaryOutputStream should not write schemas"  {
 
-      val schema = Avro.default.schema(Composer.serializer())
-
       val baos = ByteArrayOutputStream()
-      val output = AvroOutputStream.binary(schema, Composer.serializer()).to(baos)
-      output.write(ennio)
-      output.write(hans)
-      output.close()
+      Avro.default.openOutputStream(Composer.serializer()) {
+         format = AvroFormat.BinaryFormat
+      }.to(baos).write(ennio).write(hans).close()
 
       // the schema should not be written in a binary stream
       listOf("name", "birthplace", "works", "year").forNone {

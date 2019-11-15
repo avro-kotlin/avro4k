@@ -114,7 +114,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * using [AvroFormat.DataFormat]. The schema used will be the embedded schema.
     */
    override fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
-      load(deserializer) {
+      openInputStream(deserializer) {
          format = AvroFormat.DataFormat
       }.from(bytes).nextOrThrow()
 
@@ -123,7 +123,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * Supply a function to this method to configure the builder, eg
     *
     * <pre>
-    * val output = load<T>(serializer) {
+    * val input = openInputStream<T>(serializer) {
     *    format = AvroFormat.DataFormat
     *    readerSchema = mySchema
     * }
@@ -132,7 +132,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * When using formats [AvroFormat.JsonFormat] or [AvroFormat.BinaryFormat] then the
     * readerSchema must be set in the configuration function.
     */
-   fun load(f: AvroInputStreamBuilder<Any>.() -> Unit): AvroInputStreamBuilder<Any> {
+   fun openInputStream(f: AvroInputStreamBuilder<Any>.() -> Unit): AvroInputStreamBuilder<Any> {
       val builder = AvroInputStreamBuilder { it }
       builder.f()
       return builder
@@ -143,7 +143,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * Supply a function to this method to configure the builder, eg
     *
     * <pre>
-    * val output = load<T>(serializer) {
+    * val input = openInputStream<T>(serializer) {
     *    format = AvroFormat.DataFormat
     *    readerSchema = mySchema
     * }
@@ -152,8 +152,8 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * When using formats [AvroFormat.JsonFormat] or [AvroFormat.BinaryFormat] then the
     * readerSchema must be set in the configuration function.
     */
-   fun <T> load(serializer: DeserializationStrategy<T>,
-                f: AvroInputStreamBuilder<T>.() -> Unit): AvroInputStreamBuilder<T> {
+   fun <T> openInputStream(serializer: DeserializationStrategy<T>,
+                           f: AvroInputStreamBuilder<T>.() -> Unit): AvroInputStreamBuilder<T> {
       val builder = AvroInputStreamBuilder { fromRecord(serializer, it as GenericRecord) }
       builder.f()
       return builder
@@ -166,10 +166,9 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     */
    override fun <T> dump(serializer: SerializationStrategy<T>, obj: T): ByteArray {
       val baos = ByteArrayOutputStream()
-      val output = dump<T>(serializer) {
+      openOutputStream(serializer) {
          format = AvroFormat.DataFormat
-      }
-      output.to(baos).write(obj).close()
+      }.to(baos).write(obj).close()
       return baos.toByteArray()
    }
 
@@ -184,9 +183,11 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * }
     * </pre>
     *
+    * If the schema is not supplied in the configuration function then it will
+    * be derived from the type using [Avro.schema].
     */
-   fun <T> dump(serializer: SerializationStrategy<T>,
-                f: AvroOutputStreamBuilder<T>.() -> Unit): AvroOutputStreamBuilder<T> {
+   fun <T> openOutputStream(serializer: SerializationStrategy<T>,
+                            f: AvroOutputStreamBuilder<T>.() -> Unit): AvroOutputStreamBuilder<T> {
       val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { toRecord(serializer, schema, it) } }
       builder.f()
       return builder

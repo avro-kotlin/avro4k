@@ -33,11 +33,12 @@ interface AvroOutputStream<T> : AutoCloseable {
    companion object {
 
       /**
-       * An [AvroOutputStream] that writes as binary without the schema. Use this when
+       * An [AvroOutputStream] that writes [GenericRecord]s as binary without the schema. Use this when
        * you want the smallest messages possible at the cost of not having the schema available
        * in the messages for downstream clients.
        */
-      fun binary(schema: Schema) = AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.BinaryFormat)
+      fun binary(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
+         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.BinaryFormat)
 
       /**
        * An [AvroOutputStream] that writes as binary without the schema. Use this when
@@ -48,24 +49,29 @@ interface AvroOutputStream<T> : AutoCloseable {
          AvroOutputStreamBuilder<T>(schema, { Avro.default.toRecord(serializer, it) }, AvroFormat.BinaryFormat)
 
       /**
-       * An [AvroOutputStream] that writes as JSON.
-       * The schema is not included.
+       * An [AvroOutputStream] that writes [GenericRecord]s as JSON.
+       * The schema is not included in the output.
        */
-      fun <T> json(schema: Schema) = AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.JsonFormat)
+      fun json(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
+         AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.JsonFormat)
 
       /**
-       * An [AvroOutputStream] that writes as JSON.
-       * The schema is not included.
+       * An [AvroOutputStream] that writes values of T as JSON.
+       * The schema is not included in the output.
        */
       fun <T> json(schema: Schema, serializer: SerializationStrategy<T>) =
          AvroOutputStreamBuilder<T>(schema, { Avro.default.toRecord(serializer, it) }, AvroFormat.JsonFormat)
 
       /**
-       * An [AvroOutputStream] that writes as binary with the inclusion of the schema.
+       * An [AvroOutputStream] that writes [GenericRecord]s as binary with the inclusion of the schema.
        */
-      fun data(schema: Schema) =
+      fun data(schema: Schema): AvroOutputStreamBuilder<GenericRecord> =
          AvroOutputStreamBuilder<GenericRecord>(schema, { it }, AvroFormat.DataFormat)
 
+      /**
+       * An [AvroOutputStream] that writes values of <T> as binary with the inclusion of the schema.
+       * The serializer must be supplied so that Ts can be converted to Avro records.
+       */
       fun <T> data(serializer: SerializationStrategy<T>) =
          AvroOutputStreamBuilder<T>(
             Avro.default.schema(serializer),

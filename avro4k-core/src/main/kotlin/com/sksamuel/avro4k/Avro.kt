@@ -12,7 +12,6 @@ import kotlinx.serialization.AbstractSerialFormat
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.decode
 import kotlinx.serialization.encode
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
@@ -45,21 +44,41 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
    }
 
    /**
-    * Writes values of <T> to a [ByteArray] using the given [Schema].
+    * Writes values of <T> to a [ByteArray] using the given [Schema], and the given [AvroFormat].
     */
-   fun <T> dump(serializer: SerializationStrategy<T>, obj: T, schema: Schema): ByteArray {
+   fun <T> dump(serializer: SerializationStrategy<T>, format: AvroFormat, obj: T, schema: Schema): ByteArray {
       val baos = ByteArrayOutputStream()
-      val output = AvroOutputStream.data(schema, serializer).to(baos)
+      val output = when (format) {
+         AvroFormat.BinaryFormat -> AvroOutputStream.binary(schema, serializer).to(baos)
+         AvroFormat.JsonFormat -> AvroOutputStream.json(schema, serializer).to(baos)
+         AvroFormat.DataFormat -> AvroOutputStream.data(schema, serializer).to(baos)
+      }
       output.write(obj)
       output.close()
       return baos.toByteArray()
    }
 
    /**
+    * Writes values of <T> to a [ByteArray] using the given [Schema].
+    * This method will use the [AvroFormat.DataFormat] format.
+    */
+   fun <T> dump(serializer: SerializationStrategy<T>, obj: T, schema: Schema): ByteArray =
+      dump(serializer, AvroFormat.DataFormat, obj, schema)
+
+   /**
     * Writes values of <T> using a [Schema] derived from the type.
+    * This method will use the [AvroFormat.DataFormat] format.
     */
    override fun <T> dump(serializer: SerializationStrategy<T>, obj: T): ByteArray {
       return dump(serializer, obj, schema(serializer))
+   }
+
+   /**
+    * Writes values of <T> using a [Schema] derived from the type and with the
+    * specified [AvroFormat].
+    */
+   fun <T> dump(serializer: SerializationStrategy<T>, format: AvroFormat, obj: T): ByteArray {
+      return dump(serializer, format, obj, schema(serializer))
    }
 
    /**

@@ -12,6 +12,9 @@ data class NullableBoolean(val b: Boolean?)
 @Serializable
 data class NullableString(val s: String?)
 
+@Serializable
+data class NullableNestedRecord(val nl: List<NullableString>?)
+
 class NullableDecoderTest : WordSpec({
 
   "Decoder" should {
@@ -62,7 +65,21 @@ class NullableDecoderTest : WordSpec({
 //      Decoder[OptionEnumDefault].decode(record1, schema, DefaultFieldMapper) shouldBe OptionEnumDefault(Some(
 //          CuppersOptionEnum))
 //    }
+   "support nullable List of nested records" {
+      val nullableStringSchema = Avro.default.schema(NullableString.serializer())
+      val nullableListSchema = Avro.default.schema(NullableNestedRecord.serializer())
 
+      val string = GenericData.Record(nullableStringSchema)
+      string.put("s", "hello")
+      val record1 = GenericData.Record(nullableListSchema)
+      record1.put("nl", listOf(string))
+
+      Avro.default.fromRecord(NullableNestedRecord.serializer(), record1) shouldBe NullableNestedRecord(listOf(NullableString("hello")))
+
+      val record2 = GenericData.Record(nullableListSchema)
+      record2.put("nl", null)
+      Avro.default.fromRecord(NullableNestedRecord.serializer(), record2) shouldBe NullableNestedRecord(null)
+   }
   }
 
 })

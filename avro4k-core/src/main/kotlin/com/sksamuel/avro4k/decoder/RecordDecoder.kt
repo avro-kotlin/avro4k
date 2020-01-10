@@ -2,6 +2,7 @@ package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.FieldNaming
+import com.sksamuel.avro4k.schema.extractNonNull
 import kotlinx.serialization.CompositeDecoder
 import kotlinx.serialization.Decoder
 import kotlinx.serialization.ElementValueDecoder
@@ -66,7 +67,14 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
 
-   override fun fieldSchema(): Schema = field().schema()
+   override fun fieldSchema(): Schema {
+      // if the element is nullable, then we should have a union schema which we can extract the non-null schema from
+      return if (desc.getElementDescriptor(currentIndex).isNullable) {
+         field().schema().extractNonNull()
+      } else {
+         field().schema()
+      }
+   }
 
    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValue())
 

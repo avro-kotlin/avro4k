@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
    api project(":avro4k-core")
-   implementation 'io.arrow-kt:arrow-core-data:0.10.0'
+   implementation 'io.arrow-kt:arrow-core-data:0.10.4'
    testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlinTestVersion"
    testImplementation "io.kotlintest:kotlintest-assertions:$kotlinTestVersion"
    testImplementation "io.kotlintest:kotlintest-assertions-json:$kotlinTestVersion"

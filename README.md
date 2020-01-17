@@ -466,8 +466,21 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | arrow.core.Option<T>          | UNION<null, T>    |                   | null, T |
 | arrow.core.Tuple2<A,B>         | RECORD<A,B>       |                   | GenericRecord |
 
+In order to use logical types, annotate the value with an appropriate Serializer:
 
+```kotlin
+import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.serializer.InstantSerializer
+import kotlinx.serialization.Serializable
+import java.time.Instant
 
+@Serializable
+data class WithInstant(
+   @Serializable(with=InstantSerializer::class) val inst: Instant
+)
+```
+
+All the logical type serializers are available in the package `com.sksamuel.avro4k.serializer`.
 
 ## Input / Output
 

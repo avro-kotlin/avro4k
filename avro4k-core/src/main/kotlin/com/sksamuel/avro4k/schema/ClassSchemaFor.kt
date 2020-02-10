@@ -3,6 +3,7 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.AvroProp
 import com.sksamuel.avro4k.RecordNaming
+import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
@@ -81,7 +82,21 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
          else -> schemaOrFixed.overrideNamespace(ns)
       }
 
-      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), null)
+      val default: Any? = annos.default()?.let {
+         when(fieldDescriptor.kind) {
+            PrimitiveKind.INT -> it.toInt()
+            PrimitiveKind.LONG -> it.toLong()
+            PrimitiveKind.FLOAT -> it.toFloat()
+            PrimitiveKind.BOOLEAN -> it.toBoolean()
+            PrimitiveKind.BYTE -> it.toByte()
+            PrimitiveKind.SHORT -> it.toShort()
+            PrimitiveKind.STRING -> it
+            PrimitiveKind.UNIT -> null
+            else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
+         }
+      }
+
+      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
       val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
       props.forEach { field.addProp(it.key, it.value) }
       annos.aliases().forEach { field.addAlias(it) }

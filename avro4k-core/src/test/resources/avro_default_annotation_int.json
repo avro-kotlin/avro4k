@@ -1,0 +1,16 @@
+{
+   "type": "record",
+   "name": "BarInt",
+   "namespace": "com.sksamuel.avro4k.schema",
+   "fields": [
+      {
+         "name": "a",
+         "type": "string"
+      },
+      {
+         "name": "b",
+         "type": "int",
+         "default": 5
+      }
+   ]
+}

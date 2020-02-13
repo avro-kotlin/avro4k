@@ -72,7 +72,7 @@ class ListEncoder(private val schema: Schema,
       list.add(value)
    }
 
-   override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
+   override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
       list.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
    }
 }

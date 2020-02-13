@@ -76,7 +76,7 @@ class RecordEncoder(private val schema: Schema,
       builder.add(fixed)
    }
 
-   override fun encodeEnum(enumDescription: EnumDescriptor, ordinal: Int) {
+   override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
       builder.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
    }
 

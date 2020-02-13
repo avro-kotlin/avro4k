@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.RecordNaming
+import kotlinx.serialization.PolymorphicKind
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
@@ -137,7 +138,7 @@ fun schemaFor(context: SerialModule,
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
          UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
-         UnionKind.SEALED -> SealedClassSchemaFor(descriptor)
+         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor)
          StructureKind.CLASS -> when (descriptor.name) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, context)
             else -> ClassSchemaFor(descriptor, namingStrategy, context)

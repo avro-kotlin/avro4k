@@ -101,7 +101,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
       return fieldValue() != null
    }
 
-   override fun decodeEnum(enumDescription: EnumDescriptor): Int {
+   override fun decodeEnum(enumDescription: SerialDescriptor): Int {
       val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
       return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
    }

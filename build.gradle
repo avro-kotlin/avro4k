@@ -6,7 +6,7 @@ buildscript {
 
    ext.kotlin_version = '1.3.61'
    ext.serializationVersion = "0.14.0"
-   ext.avroVersion = "1.90.1"
+   ext.avroVersion = "1.90.2"
    ext.kotlinTestVersion = "3.4.2"
 
    repositories {
@@ -40,9 +40,9 @@ allprojects {
    group = "com.sksamuel.avro4k"
 
    if (isTravis) {
-      version "0.21." + travisBuildNumber + "-SNAPSHOT"
+      version "0.22." + travisBuildNumber + "-SNAPSHOT"
    } else {
-      version "0.20.0"
+      version "0.21.0"
    }
 
    tasks.withType(Javadoc) {

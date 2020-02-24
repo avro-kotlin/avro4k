@@ -30,6 +30,10 @@ annotation class AvroDoc(val value: String)
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroAlias(val value: String)
 
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroAliases(val value: Array<String>)
+
 /**
  * [AvroFixed] overrides the schema type for a field or a value class
  * so that the schema is set to org.apache.avro.Schema.Type.FIXED

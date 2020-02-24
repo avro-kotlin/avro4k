@@ -17,7 +17,12 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
    fun name(): String? = annotations.filterIsInstance<AvroName>().firstOrNull()?.value
    fun valueType(): Boolean = annotations.filterIsInstance<AvroInline>().isNotEmpty()
    fun doc(): String? = annotations.filterIsInstance<AvroDoc>().firstOrNull()?.value
-   fun aliases(): List<String> = annotations.filterIsInstance<AvroAlias>().map { it.value }
+   fun aliases(): List<String> =
+      if(annotations.any { it is AvroAlias }){
+         annotations.filterIsInstance<AvroAlias>().map { it.value }
+      }else{
+         annotations.filterIsInstance<AvroAliases>().flatMap { it.value.toList() }
+      }
    fun props(): List<Pair<String, String>> = annotations.filterIsInstance<AvroProp>().map { it.key to it.value }
    fun default(): String? = annotations.filterIsInstance<AvroDefault>().firstOrNull()?.value
 }

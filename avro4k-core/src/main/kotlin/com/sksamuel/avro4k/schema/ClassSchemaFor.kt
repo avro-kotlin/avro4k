@@ -1,6 +1,7 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.AnnotationExtractor
+import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroProp
 import com.sksamuel.avro4k.RecordNaming
 import kotlinx.serialization.PrimitiveKind
@@ -83,16 +84,20 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       }
 
       val default: Any? = annos.default()?.let {
-         when(fieldDescriptor.kind) {
-            PrimitiveKind.INT -> it.toInt()
-            PrimitiveKind.LONG -> it.toLong()
-            PrimitiveKind.FLOAT -> it.toFloat()
-            PrimitiveKind.BOOLEAN -> it.toBoolean()
-            PrimitiveKind.BYTE -> it.toByte()
-            PrimitiveKind.SHORT -> it.toShort()
-            PrimitiveKind.STRING -> it
-            PrimitiveKind.UNIT -> null
-            else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
+         if(it == Avro.NULL){
+            Schema.Field.NULL_DEFAULT_VALUE
+         }else {
+            when (fieldDescriptor.kind) {
+               PrimitiveKind.INT -> it.toInt()
+               PrimitiveKind.LONG -> it.toLong()
+               PrimitiveKind.FLOAT -> it.toFloat()
+               PrimitiveKind.BOOLEAN -> it.toBoolean()
+               PrimitiveKind.BYTE -> it.toByte()
+               PrimitiveKind.SHORT -> it.toShort()
+               PrimitiveKind.STRING -> it
+               PrimitiveKind.UNIT -> null
+               else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
+            }
          }
       }
 

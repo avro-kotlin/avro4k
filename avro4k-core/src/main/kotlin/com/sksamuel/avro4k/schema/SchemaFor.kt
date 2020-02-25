@@ -1,5 +1,7 @@
 package com.sksamuel.avro4k.schema
 
+import com.sksamuel.avro4k.AnnotationExtractor
+import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.RecordNaming
 import kotlinx.serialization.PolymorphicKind
 import kotlinx.serialization.PrimitiveKind
@@ -106,12 +108,19 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
    }
 }
 
-class NullableSchemaFor(private val schemaFor: SchemaFor) : SchemaFor {
+class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotations : List<Annotation>) : SchemaFor {
 
+   private val nullFirst by lazy{
+      //The default value can only be of the first type in the union definition.
+      //Therefore we have to check the default value in order to decide the order of types within the union.
+      //If no default is set, or if the default value is of type "null", nulls will be first.
+      var default = AnnotationExtractor(annotations).default()
+      default == null || default == Avro.NULL
+   }
    override fun schema(): Schema {
       val elementSchema = schemaFor.schema()
       val nullSchema = SchemaBuilder.builder().nullType()
-      return createSafeUnion(elementSchema, nullSchema)
+      return createSafeUnion(nullFirst, elementSchema, nullSchema)
    }
 }
 
@@ -149,5 +158,5 @@ fun schemaFor(context: SerialModule,
       }
    }
 
-   return if (descriptor.isNullable) NullableSchemaFor(schemaFor) else schemaFor
+   return if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
 }

@@ -11,6 +11,16 @@
          "name": "b",
          "type": "string",
          "default": "hello"
+      },
+      {
+         "name": "nullableString",
+         "type": ["null","string"],
+         "default" : null
+      },
+      {
+         "name": "c",
+         "type": ["string","null"],
+         "default": "hello"
       }
    ]
 }

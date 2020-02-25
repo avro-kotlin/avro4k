@@ -6,10 +6,10 @@ import org.apache.avro.Schema
 // union schemas can't contain other union schemas as a direct
 // child, so whenever we create a union, we need to check if our
 // children are unions and flatten
-fun createSafeUnion(vararg schemas: Schema): Schema {
+fun createSafeUnion(nullFirst : Boolean,vararg schemas: Schema): Schema {
    val flattened = schemas.flatMap { schema -> runCatching { schema.types }.getOrElse { listOf(schema) } }
    val (nulls, rest) = flattened.partition { it.type == Schema.Type.NULL }
-   return Schema.createUnion(nulls + rest)
+   return Schema.createUnion(if(nullFirst) nulls + rest else rest + nulls)
 }
 
 fun Schema.findSubschema(name: String): Schema? {

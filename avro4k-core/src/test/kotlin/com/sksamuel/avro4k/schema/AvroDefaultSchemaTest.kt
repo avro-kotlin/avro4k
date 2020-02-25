@@ -33,19 +33,32 @@ class AvroDefaultSchemaTest: FunSpec() {
 data class BarString(
    val a: String,
    @AvroDefault("hello")
-   val b: String
+   val b: String,
+   @AvroDefault(Avro.NULL)
+   val nullableString : String?,
+   @AvroDefault("hello")
+   val c:String?
 )
 
 @Serializable
 data class BarInt(
    val a: String,
    @AvroDefault("5")
-   val b: Int
+   val b: Int,
+   @AvroDefault(Avro.NULL)
+   val nullableInt : Int?,
+   @AvroDefault("5")
+   val c:Int?
 )
 
 @Serializable
 data class BarFloat(
    val a: String,
    @AvroDefault("3.14")
-   val b: Float
+   val b: Float,
+   @AvroDefault(Avro.NULL)
+   val nullableFloat : Float?,
+   @AvroDefault("3.14")
+   val c:Float?
+
 )

@@ -40,9 +40,9 @@ allprojects {
    group = "com.sksamuel.avro4k"
 
    if (isTravis) {
-      version "0.22." + travisBuildNumber + "-SNAPSHOT"
+      version "0.23." + travisBuildNumber + "-SNAPSHOT"
    } else {
-      version "0.21.0"
+      version "0.22.0"
    }
 
    tasks.withType(Javadoc) {

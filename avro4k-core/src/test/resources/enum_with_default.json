@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "EnumWithDocuTest",
+  "namespace": "com.sksamuel.avro4k.schema.EnumSchemaTest",
+  "fields": [
+    {
+      "name": "value",
+      "type": {
+        "type": "enum",
+        "name": "Suit",
+        "aliases" : ["MySuit"],
+        "doc" : "documentation",
+        "namespace": "com.sksamuel.avro4k.schema",
+        "symbols": [
+          "SPADES",
+          "HEARTS",
+          "DIAMONDS",
+          "CLUBS"
+        ]
+      }
+    }
+  ]
+}

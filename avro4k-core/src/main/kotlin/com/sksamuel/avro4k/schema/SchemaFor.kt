@@ -40,8 +40,11 @@ interface SchemaFor {
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
+      val entityAnnotations = AnnotationExtractor(descriptor.getEntityAnnotations())
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
-      return SchemaBuilder.enumeration(naming.name()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
+      val enumSchema = SchemaBuilder.enumeration(naming.name()).doc(entityAnnotations.doc()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
+      entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
+      return enumSchema
    }
 }
 
@@ -114,7 +117,7 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
       //The default value can only be of the first type in the union definition.
       //Therefore we have to check the default value in order to decide the order of types within the union.
       //If no default is set, or if the default value is of type "null", nulls will be first.
-      var default = AnnotationExtractor(annotations).default()
+      val default = AnnotationExtractor(annotations).default()
       default == null || default == Avro.NULL
    }
    override fun schema(): Schema {

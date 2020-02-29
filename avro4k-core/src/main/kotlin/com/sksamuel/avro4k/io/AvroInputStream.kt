@@ -52,7 +52,7 @@ interface AvroInputStream<T> : AutoCloseable {
        * requires that the types have not changed between writing the original
        * data and reading it back in here. Otherwise the schemas will not match.
        */
-      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro.default")
       fun <T> binary(serializer: KSerializer<T>,
                      writerSchema: Schema? = null,
                      avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
@@ -61,6 +61,7 @@ interface AvroInputStream<T> : AutoCloseable {
          return AvroInputStreamBuilder(converter, AvroFormat.BinaryFormat, writer, null)
       }
 
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro.default")
       fun binary(writerSchema: Schema): AvroInputStreamBuilder<Any> {
          return AvroInputStreamBuilder({ it }, AvroFormat.BinaryFormat, writerSchema, null)
       }
@@ -70,7 +71,7 @@ interface AvroInputStream<T> : AutoCloseable {
        * encoded files with the schema present. To convert to instance of T, the
        * data source must contain [GenericRecord]s.
        */
-      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro.default")
       fun <T> data(serializer: DeserializationStrategy<T>,
                    writerSchema: Schema? = null,
                    avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
@@ -82,7 +83,7 @@ interface AvroInputStream<T> : AutoCloseable {
        * Creates an [AvroInputStreamBuilder] that will read Avro values from binary
        * encoded files with the schema present.
        */
-      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro.default")
       fun data(writerSchema: Schema? = null): AvroInputStreamBuilder<Any> =
          AvroInputStreamBuilder({ it }, AvroFormat.DataFormat, writerSchema, null)
 
@@ -99,7 +100,7 @@ interface AvroInputStream<T> : AutoCloseable {
        * requires that the types have not changed between writing the original
        * data and reading it back in here. Otherwise the schemas will not match.
        */
-      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro")
       fun <T> json(serializer: KSerializer<T>,
                    writerSchema: Schema? = null,
                    avro: Avro = Avro.default): AvroInputStreamBuilder<T> {
@@ -112,7 +113,7 @@ interface AvroInputStream<T> : AutoCloseable {
        * Creates an [AvroInputStreamBuilder] that will read Avro values from json
        * encoded files.
        */
-      @Deprecated("Create an instance of [AvroInputStream] using the load method on Avro")
+      @Deprecated("Create an instance of [AvroInputStream] using the openInputStream method on Avro.default")
       fun json(writerSchema: Schema): AvroInputStreamBuilder<Any> =
          AvroInputStreamBuilder({ it }, AvroFormat.DataFormat, writerSchema, null)
    }

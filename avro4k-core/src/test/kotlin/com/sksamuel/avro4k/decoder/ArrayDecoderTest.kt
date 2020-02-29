@@ -190,22 +190,6 @@ class ArrayDecoderTest : WordSpec({
       Avro.default.fromRecord(TestSetString.serializer(), record) shouldBe
           TestSetString(setOf("Qwe", "324", "q"))
     }
-//    //    "support Seq[Tuple2] issue #156" {
-//    //      val schema = SchemaEncoder[TupleTest2]
-//    //    }
-//    //    "support Seq[Tuple3]" {
-//    //      val schema = SchemaEncoder[TupleTest3]
-//    //    }
-////
-////    "support top level Seq<Double>" {
-////      //Decoder[Seq<Double>].decode(Array(1.2, 34.5, 54.3), Avro.default.schema(Seq[Double.serializer())], DefaultFieldMapper) shouldBe Seq(1.2, 34.5, 54.3)
-////    }
-////    "support top level List[Int]" {
-////      //Decoder[List[Int]].decode(Array(1, 4, 9), Avro.default.schema(Seq[Int.serializer())], DefaultFieldMapper) shouldBe List(1, 4, 9)
-////    }
-////    "support top level Set<Boolean>" {
-////      //Decoder[Set<Boolean>].decode(Array(true, false, true), Avro.default.schema(Seq[Boolean.serializer())], DefaultFieldMapper) shouldBe Set(true, false)
-////    }
   }
 
 })

@@ -6,7 +6,6 @@ import kotlinx.serialization.ElementValueDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.StructureKind
-import kotlinx.serialization.internal.EnumDescriptor
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
@@ -43,6 +42,14 @@ class ListDecoder(private val schema: Schema,
 
    override fun decodeByte(): Byte {
       return array[index++] as Byte
+   }
+
+   override fun decodeInt(): Int {
+      return array[index++] as Int
+   }
+
+   override fun decodeChar(): Char {
+      return array[index++] as Char
    }
 
    override fun decodeAny(): Any? {

@@ -4,7 +4,6 @@ import com.sksamuel.avro4k.Avro
 import io.kotlintest.shouldBe
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
-import org.apache.avro.file.DataFileReader
 import org.apache.avro.file.SeekableByteArrayInput
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericRecord
@@ -60,7 +59,10 @@ fun <T> writeRead(t: T, serializer: KSerializer<T>, test: (GenericRecord) -> Any
 fun <T> writeData(t: T, serializer: SerializationStrategy<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
-   val avro = AvroOutputStream.data(schema, serializer).to(out)
+   val avro = Avro.default.openOutputStream(serializer) {
+      format = AvroFormat.DataFormat
+      this.schema = schema
+   }.to(out)
    avro.write(t)
    avro.close()
    return out.toByteArray()
@@ -76,7 +78,10 @@ fun <T> readJson(bytes: ByteArray, serializer: KSerializer<T>): GenericRecord {
 fun <T> writeJson(t: T, serializer: KSerializer<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val baos = ByteArrayOutputStream()
-   val output = AvroOutputStream.json(schema, serializer).to(baos)
+   val output = Avro.default.openOutputStream(serializer) {
+      format = AvroFormat.JsonFormat
+      this.schema = schema
+   }.to(baos)
    output.write(t)
    output.close()
    return baos.toByteArray()
@@ -84,15 +89,20 @@ fun <T> writeJson(t: T, serializer: KSerializer<T>): ByteArray {
 
 fun <T> readData(bytes: ByteArray, serializer: KSerializer<T>): GenericRecord {
    val schema = Avro.default.schema(serializer)
-   val datumReader = GenericDatumReader<GenericRecord>(schema)
-   val dataFileReader = DataFileReader<GenericRecord>(SeekableByteArrayInput(bytes), datumReader)
-   return dataFileReader.next()
+   val avro = Avro.default.openInputStream {
+      format = AvroFormat.DataFormat
+      readerSchema = schema
+   }.from(bytes)
+   return avro.next() as GenericRecord
 }
 
 fun <T> writeBinary(t: T, serializer: SerializationStrategy<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
-   val avro = AvroOutputStream.binary(schema, serializer).to(out)
+   val avro = Avro.default.openOutputStream(serializer) {
+      format = AvroFormat.BinaryFormat
+      this.schema = schema
+   }.to(out)
    avro.write(t)
    avro.close()
    return out.toByteArray()

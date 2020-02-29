@@ -123,7 +123,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       }.from(bytes).nextOrThrow()
 
    /**
-    * Creates an [AvroInputStreamBuilder] that will read avro values.
+    * Creates an [AvroInputStreamBuilder] that will read avro values such as GenericRecord.
     * Supply a function to this method to configure the builder, eg
     *
     * <pre>

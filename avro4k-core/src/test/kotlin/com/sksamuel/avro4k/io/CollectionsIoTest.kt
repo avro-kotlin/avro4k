@@ -8,6 +8,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericArray
+import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
@@ -34,6 +35,17 @@ class CollectionsIoTest : StringSpec({
       writeRead(Test(setOf(true, false), setOf(false, true)), Test.serializer()) {
          it["a"] shouldBe listOf(true, false)
          it["b"] shouldBe listOf(false, true)
+      }
+   }
+
+   "read / write sets of ints" {
+
+      @Serializable
+      data class S(val t: Set<Int>)
+
+      writeRead(S(setOf(1, 3)), S.serializer())
+      writeRead(S(setOf(1, 3)), S.serializer()) {
+         (it["t"] as GenericData.Array<Int>).toSet() shouldBe setOf(1, 3)
       }
    }
 
@@ -77,6 +89,7 @@ class CollectionsIoTest : StringSpec({
 
       val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
 
+      writeRead(hawaiian, Pizza.serializer())
       writeRead(hawaiian, Pizza.serializer()) {
          it["name"] shouldBe Utf8("hawaiian")
          it["vegetarian"] shouldBe false

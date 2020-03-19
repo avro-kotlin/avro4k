@@ -1,8 +1,8 @@
 package com.sksamuel.avro4k.encoder
 
-import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.AbstractEncoder
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 
 class ByteArrayEncoder(private val schema: Schema,
                        override val context: SerialModule,
-                       private val callback: (Any) -> Unit) : ElementValueEncoder() {
+                       private val callback: (Any) -> Unit) : AbstractEncoder() {
 
    private val bytes = mutableListOf<Byte>()
 
@@ -18,7 +18,7 @@ class ByteArrayEncoder(private val schema: Schema,
       bytes.add(value)
    }
 
-   override fun endStructure(desc: SerialDescriptor) {
+   override fun endStructure(descriptor: SerialDescriptor) {
       when (schema.type) {
          Schema.Type.FIXED -> {
             // the array passed in must be padded to size

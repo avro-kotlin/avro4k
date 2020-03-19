@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
 val SerialDescriptor.isInline: Boolean
-   get() = kotlin.runCatching { Class.forName(name).kotlin.isInline }.getOrDefault(false)
+   get() = kotlin.runCatching { Class.forName(serialName).kotlin.isInline }.getOrDefault(false)
 
 val KClass<*>.isInline: Boolean
    get() = !isData &&

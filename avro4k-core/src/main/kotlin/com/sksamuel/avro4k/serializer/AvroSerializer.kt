@@ -12,14 +12,14 @@ import org.apache.avro.Schema
 
 abstract class AvroSerializer<T> : KSerializer<T> {
 
-   final override fun serialize(encoder: Encoder, obj: T) {
+   final override fun serialize(encoder: Encoder, value: T) {
       val schema = (encoder as FieldEncoder).fieldSchema()
       // we may be encoding a nullable schema
       val subschema = when (schema.type) {
          Schema.Type.UNION -> schema.extractNonNull()
          else -> schema
       }
-      encodeAvroValue(subschema, encoder, obj)
+      encodeAvroValue(subschema, encoder, value)
    }
 
    final override fun deserialize(decoder: Decoder): T {

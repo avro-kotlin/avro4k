@@ -3,15 +3,8 @@ package com.sksamuel.avro4k.decoder
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.FieldNaming
 import com.sksamuel.avro4k.schema.extractNonNull
-import kotlinx.serialization.CompositeDecoder
-import kotlinx.serialization.Decoder
-import kotlinx.serialization.ElementValueDecoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.StructureKind
-import kotlinx.serialization.internal.EnumDescriptor
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.AbstractDecoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
@@ -25,39 +18,40 @@ interface FieldDecoder : ExtendedDecoder {
 }
 
 class RecordDecoder(private val desc: SerialDescriptor,
-                    private val record: GenericRecord) : ElementValueDecoder(), FieldDecoder {
+                    private val record: GenericRecord) : AbstractDecoder(), FieldDecoder {
 
    private var currentIndex = -1
 
    @Suppress("UNCHECKED_CAST")
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      val valueType = AnnotationExtractor(desc.getEntityAnnotations()).valueType()
+   override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+      val valueType = AnnotationExtractor(descriptor.annotations).valueType()
       val value = fieldValue()
-      return when (desc.kind as StructureKind) {
-         StructureKind.CLASS ->
-            if (valueType)
-               InlineDecoder(fieldValue())
-            else
-               RecordDecoder(desc, value as GenericRecord)
-         StructureKind.MAP -> MapDecoder(desc, fieldSchema(), value as Map<String, *>)
-         StructureKind.LIST -> {
-            val decoder: CompositeDecoder = if (desc.getElementDescriptor(1).kind == PrimitiveKind.BYTE) {
-               when (value) {
-                  is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
-                  is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
-                  is ByteArray -> ByteArrayDecoder(value)
-                  is ByteBuffer -> ByteArrayDecoder(value.array())
-                  else -> this
+      return when (descriptor.kind as StructureKind) {
+            StructureKind.CLASS ->
+               if (valueType)
+                  InlineDecoder(fieldValue())
+               else
+                  RecordDecoder(descriptor, value as GenericRecord)
+            StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>)
+            StructureKind.LIST -> {
+               val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
+                  when (value) {
+                     is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
+                     is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
+                     is ByteArray -> ByteArrayDecoder(value)
+                     is ByteBuffer -> ByteArrayDecoder(value.array())
+                     else -> this
+                  }
+               } else {
+                  when (value) {
+                     is List<*> -> ListDecoder(fieldSchema(), value)
+                     is Array<*> -> ListDecoder(fieldSchema(), value.asList())
+                     else -> this
+                  }
                }
-            } else {
-               when (value) {
-                  is List<*> -> ListDecoder(fieldSchema(), value)
-                  is Array<*> -> ListDecoder(fieldSchema(), value.asList())
-                  else -> this
-               }
+               decoder
             }
-            decoder
-         }
+            StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
       }
    }
 
@@ -101,9 +95,9 @@ class RecordDecoder(private val desc: SerialDescriptor,
       return fieldValue() != null
    }
 
-   override fun decodeEnum(enumDescription: SerialDescriptor): Int {
+   override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
       val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
-      return (0 until enumDescription.elementsCount).find { enumDescription.getElementName(it) == symbol } ?: -1
+      return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
    }
 
    override fun decodeFloat(): Float {
@@ -140,9 +134,9 @@ class RecordDecoder(private val desc: SerialDescriptor,
       }
    }
 
-   override fun decodeElementIndex(desc: SerialDescriptor): Int {
+   override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
       currentIndex++
-      return if (currentIndex < desc.elementsCount) currentIndex else CompositeDecoder.READ_DONE
+      return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.READ_DONE
    }
 }
 

@@ -1,18 +1,14 @@
 package com.sksamuel.avro4k.decoder
 
-import kotlinx.serialization.CompositeDecoder
-import kotlinx.serialization.ElementValueDecoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.StructureKind
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.AbstractDecoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
 class MapDecoder(private val desc: SerialDescriptor,
                  private val schema: Schema,
-                 map: Map<*, *>) : ElementValueDecoder(), CompositeDecoder {
+                 map: Map<*, *>) : AbstractDecoder(), CompositeDecoder {
 
    init {
       require(schema.type == Schema.Type.MAP)
@@ -84,17 +80,18 @@ class MapDecoder(private val desc: SerialDescriptor,
       }
    }
 
-   override fun decodeElementIndex(desc: SerialDescriptor): Int {
+   override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
       index++
       return if (index == entries.size * 2) CompositeDecoder.READ_DONE else index
    }
 
    @Suppress("UNCHECKED_CAST")
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      return when (desc.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(desc, value() as GenericRecord)
+   override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+      return when (descriptor.kind as StructureKind) {
+         StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord)
          StructureKind.LIST -> ListDecoder(schema.valueType, value() as GenericArray<*>)
-         StructureKind.MAP -> MapDecoder(desc, schema.valueType, value() as Map<String, *>)
+         StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>)
+         StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
       }
    }
 }

@@ -6,8 +6,8 @@ class RecordNaming(name: String, annotations: List<Annotation>) {
 
    companion object {
       operator fun invoke(descriptor: SerialDescriptor): RecordNaming = RecordNaming(
-         descriptor.name,
-         descriptor.getEntityAnnotations()
+         if(descriptor.isNullable) descriptor.serialName.removeSuffix("?") else descriptor.serialName,
+         descriptor.annotations
       )
 
       operator fun invoke(descriptor: SerialDescriptor, index: Int): RecordNaming = RecordNaming(

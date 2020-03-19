@@ -10,6 +10,7 @@ class RootRecordDecoder(private val record: GenericRecord) : AbstractDecoder() {
    override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       return when (descriptor.kind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, record)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,record)
          else -> throw SerializationException("Non-class structure passed to root record decoder")
       }
    }

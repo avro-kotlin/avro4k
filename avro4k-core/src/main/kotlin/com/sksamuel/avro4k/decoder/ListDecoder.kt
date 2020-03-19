@@ -71,10 +71,11 @@ class ListDecoder(private val schema: Schema,
 
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-      return when (descriptor.kind as StructureKind) {
+      return when (descriptor.kind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord)
          StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>)
          StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,array[index] as GenericRecord)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

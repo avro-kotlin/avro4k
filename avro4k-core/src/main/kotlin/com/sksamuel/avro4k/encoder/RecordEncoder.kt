@@ -4,14 +4,8 @@ import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.Record
 import com.sksamuel.avro4k.schema.extractNonNull
-import kotlinx.serialization.CompositeEncoder
-import kotlinx.serialization.ElementValueEncoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.StructureKind
-import kotlinx.serialization.internal.EnumDescriptor
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.AbstractEncoder
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
@@ -19,17 +13,17 @@ import java.nio.ByteBuffer
 
 interface StructureEncoder : FieldEncoder {
 
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      return when (desc.kind) {
+   override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
+      return when (descriptor.kind) {
          StructureKind.LIST -> {
-            when (desc.getElementDescriptor(0).kind) {
+            when (descriptor.getElementDescriptor(0).kind) {
                PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), context) { addValue(it) }
                else -> ListEncoder(fieldSchema(), context) { addValue(it) }
             }
          }
-         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, desc) { addValue(it) }
-         StructureKind.MAP -> MapEncoder(fieldSchema(), context, desc) { addValue(it) }
-         else -> throw SerializationException(".beginStructure was called on a non-structure type [$desc]")
+         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, descriptor) { addValue(it) }
+         StructureKind.MAP -> MapEncoder(fieldSchema(), context, descriptor) { addValue(it) }
+         else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
       }
    }
 }
@@ -37,7 +31,7 @@ interface StructureEncoder : FieldEncoder {
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
                     private val desc: SerialDescriptor,
-                    val callback: (Record) -> Unit) : ElementValueEncoder(), StructureEncoder {
+                    val callback: (Record) -> Unit) : AbstractEncoder(), StructureEncoder {
 
    private val builder = RecordBuilder(schema)
    private var currentIndex = -1
@@ -63,7 +57,7 @@ class RecordEncoder(private val schema: Schema,
       builder.add(value)
    }
 
-   override fun encodeElement(desc: SerialDescriptor, index: Int): Boolean {
+   override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
       currentIndex = index
       return true
    }
@@ -76,19 +70,19 @@ class RecordEncoder(private val schema: Schema,
       builder.add(fixed)
    }
 
-   override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
-      builder.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
+   override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) {
+      builder.add(ValueToEnum.toValue(fieldSchema(), enumDescriptor, index))
    }
 
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
+   override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
       // if we have a value type, then we don't want to begin a new structure
-      return if (AnnotationExtractor(desc.getEntityAnnotations()).valueType())
+      return if (AnnotationExtractor(descriptor.annotations).valueType())
          this
       else
-         super<StructureEncoder>.beginStructure(desc, *typeParams)
+         super<StructureEncoder>.beginStructure(descriptor, *typeSerializers)
    }
 
-   override fun endStructure(desc: SerialDescriptor) {
+   override fun endStructure(descriptor: SerialDescriptor) {
       callback(builder.record())
    }
 

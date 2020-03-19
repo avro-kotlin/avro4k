@@ -4,12 +4,8 @@ import arrow.core.Tuple3
 import com.sksamuel.avro4k.schema.AvroDescriptor
 import com.sksamuel.avro4k.schema.NamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
-import kotlinx.serialization.Decoder
-import kotlinx.serialization.Encoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.StructureKind
+import kotlinx.serialization.*
+import kotlinx.serialization.CompositeDecoder.Companion.UNKNOWN_NAME
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -38,6 +34,18 @@ class Tuple3Serializer<A : Any, B : Any, C : Any>(private val serializerA: KSeri
             .endRecord()
       }
 
+      override val elementsCount: Int
+         get() = 3
+
+      override fun isElementOptional(index: Int): Boolean = getElementDescriptor(index).isNullable
+
+      override fun getElementIndex(name: String) = when(name){
+         "a" -> 0
+         "b" -> 1
+         "c" -> 2
+         else-> UNKNOWN_NAME
+      }
+
       override fun getElementDescriptor(index: Int): SerialDescriptor {
          return when (index) {
             0 -> serializerA.descriptor
@@ -57,11 +65,11 @@ class Tuple3Serializer<A : Any, B : Any, C : Any>(private val serializerA: KSeri
       }
    }
 
-   override fun serialize(encoder: Encoder, obj: Tuple3<A, B, C>) {
+   override fun serialize(encoder: Encoder, value: Tuple3<A, B, C>) {
       val e = encoder.beginStructure(descriptor)
-      e.encodeSerializableElement(serializerA.descriptor, 0, serializerA, obj.a)
-      e.encodeSerializableElement(serializerB.descriptor, 1, serializerB, obj.b)
-      e.encodeSerializableElement(serializerC.descriptor, 2, serializerC, obj.c)
+      e.encodeSerializableElement(serializerA.descriptor, 0, serializerA, value.a)
+      e.encodeSerializableElement(serializerB.descriptor, 1, serializerB, value.b)
+      e.encodeSerializableElement(serializerC.descriptor, 2, serializerC, value.c)
       e.endStructure(descriptor)
    }
 

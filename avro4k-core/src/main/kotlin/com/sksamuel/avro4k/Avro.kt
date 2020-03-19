@@ -2,35 +2,18 @@ package com.sksamuel.avro4k
 
 import com.sksamuel.avro4k.decoder.RootRecordDecoder
 import com.sksamuel.avro4k.encoder.RootRecordEncoder
-import com.sksamuel.avro4k.io.AvroBinaryInputStream
-import com.sksamuel.avro4k.io.AvroBinaryOutputStream
-import com.sksamuel.avro4k.io.AvroDataInputStream
-import com.sksamuel.avro4k.io.AvroDataOutputStream
-import com.sksamuel.avro4k.io.AvroFormat
-import com.sksamuel.avro4k.io.AvroInputStream
-import com.sksamuel.avro4k.io.AvroJsonInputStream
-import com.sksamuel.avro4k.io.AvroJsonOutputStream
-import com.sksamuel.avro4k.io.AvroOutputStream
+import com.sksamuel.avro4k.io.*
 import com.sksamuel.avro4k.schema.DefaultNamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
 import com.sksamuel.avro4k.serializer.UUIDSerializer
-import kotlinx.serialization.AbstractSerialFormat
-import kotlinx.serialization.BinaryFormat
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.encode
+import kotlinx.serialization.*
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
 import kotlinx.serialization.modules.serializersModuleOf
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
@@ -100,7 +83,7 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
    }
 }
 
-class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFormat(context), BinaryFormat {
+class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, BinaryFormat {
 
    companion object {
       private val simpleModule = serializersModuleOf(mapOf(
@@ -168,11 +151,11 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
     * This method will use the [AvroFormat.DataFormat] format.
     * The written object will be returned as a [ByteArray].
     */
-   override fun <T> dump(serializer: SerializationStrategy<T>, obj: T): ByteArray {
+   override fun <T> dump(serializer: SerializationStrategy<T>, value: T): ByteArray {
       val baos = ByteArrayOutputStream()
       openOutputStream(serializer) {
          format = AvroFormat.DataFormat
-      }.to(baos).write(obj).close()
+      }.to(baos).write(value).close()
       return baos.toByteArray()
    }
 
@@ -230,7 +213,7 @@ class Avro(override val context: SerialModule = EmptyModule) : AbstractSerialFor
       return schemaFor(
          context,
          serializer.descriptor,
-         serializer.descriptor.getEntityAnnotations(),
+         serializer.descriptor.annotations,
          DefaultNamingStrategy
       ).schema()
    }

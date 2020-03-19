@@ -1,10 +1,9 @@
 package com.sksamuel.avro4k.encoder
 
 import kotlinx.serialization.CompositeEncoder
-import kotlinx.serialization.ElementValueEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.internal.EnumDescriptor
+import kotlinx.serialization.builtins.AbstractEncoder
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -13,19 +12,19 @@ import java.nio.ByteBuffer
 
 class ListEncoder(private val schema: Schema,
                   override val context: SerialModule,
-                  private val callback: (GenericData.Array<Any?>) -> Unit) : ElementValueEncoder(), StructureEncoder {
+                  private val callback: (GenericData.Array<Any?>) -> Unit) : AbstractEncoder(), StructureEncoder {
 
    private val list = mutableListOf<Any?>()
 
-   override fun endStructure(desc: SerialDescriptor) {
+   override fun endStructure(descriptor: SerialDescriptor) {
       val generic = GenericData.Array(schema, list.toList())
       callback(generic)
    }
 
    override fun fieldSchema(): Schema = schema.elementType
 
-   override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-      return super<StructureEncoder>.beginStructure(desc, *typeParams)
+   override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
+      return super<StructureEncoder>.beginStructure(descriptor, *typeSerializers)
    }
 
    override fun addValue(value: Any) {
@@ -72,7 +71,7 @@ class ListEncoder(private val schema: Schema,
       list.add(value)
    }
 
-   override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
-      list.add(ValueToEnum.toValue(fieldSchema(), enumDescription, ordinal))
+   override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) {
+      list.add(ValueToEnum.toValue(fieldSchema(), enumDescriptor, index))
    }
 }

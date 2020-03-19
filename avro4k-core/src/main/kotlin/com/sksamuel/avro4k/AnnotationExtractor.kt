@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialDescriptor
 class AnnotationExtractor(private val annotations: List<Annotation>) {
 
    companion object {
-      fun entity(descriptor: SerialDescriptor) = AnnotationExtractor(descriptor.getEntityAnnotations())
+      fun entity(descriptor: SerialDescriptor) = AnnotationExtractor(descriptor.annotations)
 
       operator fun invoke(descriptor: SerialDescriptor, index: Int): AnnotationExtractor =
          AnnotationExtractor(descriptor.getElementAnnotations(index))

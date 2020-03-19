@@ -14,7 +14,7 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                      private val namingStrategy: NamingStrategy,
                      private val context: SerialModule) : SchemaFor {
 
-   private val entityAnnotations = AnnotationExtractor(descriptor.getEntityAnnotations())
+   private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
    private val naming = RecordNaming(descriptor)
 
    override fun schema(): Schema {
@@ -56,7 +56,7 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       // in addition, someone could annotate the target type, so we need to check into that too
       val (size, name) = when (val a = annos.fixed()) {
          null -> {
-            val fieldAnnos = AnnotationExtractor(fieldDescriptor.getEntityAnnotations())
+            val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
             val n = RecordNaming(fieldDescriptor)
             when (val b = fieldAnnos.fixed()) {
                null -> 0 to n.name()
@@ -95,7 +95,6 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                PrimitiveKind.BYTE -> it.toByte()
                PrimitiveKind.SHORT -> it.toShort()
                PrimitiveKind.STRING -> it
-               PrimitiveKind.UNIT -> null
                else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
             }
          }

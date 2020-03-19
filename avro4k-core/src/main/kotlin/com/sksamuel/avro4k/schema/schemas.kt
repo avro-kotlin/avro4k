@@ -21,7 +21,7 @@ fun Schema.containsNull(): Boolean =
    type == Schema.Type.UNION && types.any { it.type == Schema.Type.NULL }
 
 fun Schema.extractNonNull(): Schema = when (this.type) {
-   Schema.Type.UNION -> this.types.first { it.type != Schema.Type.NULL }
+   Schema.Type.UNION -> this.types.filter { it.type != Schema.Type.NULL }.let { if(it.size > 1) Schema.createUnion(it) else it[0] }
    else -> this
 }
 

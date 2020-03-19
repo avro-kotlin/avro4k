@@ -4,12 +4,7 @@ import arrow.core.Tuple2
 import com.sksamuel.avro4k.schema.AvroDescriptor
 import com.sksamuel.avro4k.schema.NamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
-import kotlinx.serialization.Decoder
-import kotlinx.serialization.Encoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.StructureKind
+import kotlinx.serialization.*
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -34,12 +29,20 @@ class Tuple2Serializer<A : Any, B : Any>(private val serializerA: KSerializer<A>
             .endRecord()
       }
 
+      override fun isElementOptional(index: Int) = getElementDescriptor(index).isNullable
+
       override fun getElementDescriptor(index: Int): SerialDescriptor {
          return when (index) {
             0 -> serializerA.descriptor
             1 -> serializerB.descriptor
             else -> throw IndexOutOfBoundsException("$index is not a valid index for Tuple2")
          }
+      }
+
+      override fun getElementIndex(name: String) = when(name){
+         "a" -> 0
+         "b" -> 1
+         else -> CompositeDecoder.UNKNOWN_NAME
       }
 
       override fun getElementName(index: Int): String {
@@ -51,10 +54,10 @@ class Tuple2Serializer<A : Any, B : Any>(private val serializerA: KSerializer<A>
       }
    }
 
-   override fun serialize(encoder: Encoder, obj: Tuple2<A, B>) {
+   override fun serialize(encoder: Encoder, value: Tuple2<A, B>) {
       val e = encoder.beginStructure(descriptor)
-      e.encodeSerializableElement(serializerA.descriptor, 0, serializerA, obj.a)
-      e.encodeSerializableElement(serializerB.descriptor, 1, serializerB, obj.b)
+      e.encodeSerializableElement(serializerA.descriptor, 0, serializerA, value.a)
+      e.encodeSerializableElement(serializerB.descriptor, 1, serializerB, value.b)
       e.endStructure(descriptor)
    }
 

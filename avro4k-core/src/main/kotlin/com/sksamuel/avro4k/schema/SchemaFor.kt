@@ -3,12 +3,7 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.RecordNaming
-import kotlinx.serialization.PolymorphicKind
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.StructureKind
-import kotlinx.serialization.UnionKind
+import kotlinx.serialization.*
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -40,7 +35,7 @@ interface SchemaFor {
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
-      val entityAnnotations = AnnotationExtractor(descriptor.getEntityAnnotations())
+      val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
       val enumSchema = SchemaBuilder.enumeration(naming.name()).doc(entityAnnotations.doc()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
       entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
@@ -151,13 +146,13 @@ fun schemaFor(context: SerialModule,
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
          UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
          PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor)
-         StructureKind.CLASS -> when (descriptor.name) {
+         StructureKind.CLASS -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, context)
             else -> ClassSchemaFor(descriptor, namingStrategy, context)
          }
          StructureKind.LIST -> ListSchemaFor(descriptor, context, namingStrategy)
          StructureKind.MAP -> MapSchemaFor(descriptor, context, namingStrategy)
-         else -> throw SerializationException("Unsupported type ${descriptor.name} of ${descriptor.kind}")
+         else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
       }
    }
 

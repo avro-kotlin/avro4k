@@ -26,32 +26,33 @@ class RecordDecoder(private val desc: SerialDescriptor,
    override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
       val valueType = AnnotationExtractor(descriptor.annotations).valueType()
       val value = fieldValue()
-      return when (descriptor.kind as StructureKind) {
-            StructureKind.CLASS ->
-               if (valueType)
-                  InlineDecoder(fieldValue())
-               else
-                  RecordDecoder(descriptor, value as GenericRecord)
-            StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>)
-            StructureKind.LIST -> {
-               val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
-                  when (value) {
-                     is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
-                     is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
-                     is ByteArray -> ByteArrayDecoder(value)
-                     is ByteBuffer -> ByteArrayDecoder(value.array())
-                     else -> this
-                  }
-               } else {
-                  when (value) {
-                     is List<*> -> ListDecoder(fieldSchema(), value)
-                     is Array<*> -> ListDecoder(fieldSchema(), value.asList())
-                     else -> this
-                  }
+      return when (descriptor.kind) {
+         StructureKind.CLASS ->
+            if (valueType)
+               InlineDecoder(fieldValue())
+            else
+               RecordDecoder(descriptor, value as GenericRecord)
+         StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>)
+         StructureKind.LIST -> {
+            val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
+               when (value) {
+                  is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
+                  is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
+                  is ByteArray -> ByteArrayDecoder(value)
+                  is ByteBuffer -> ByteArrayDecoder(value.array())
+                  else -> this
                }
-               decoder
+            } else {
+               when (value) {
+                  is List<*> -> ListDecoder(fieldSchema(), value)
+                  is Array<*> -> ListDecoder(fieldSchema(), value.asList())
+                  else -> this
+               }
             }
-            StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
+            decoder
+         }
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord)
+         else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
       }
    }
 

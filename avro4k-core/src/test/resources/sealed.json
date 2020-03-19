@@ -1,16 +1,43 @@
-{
-  "type": "record",
-  "name": "Test",
-  "namespace": "com.sksamuel.avro4k.schema.BigDecimalSchemaTest",
-  "fields": [
-    {
-      "name": "decimal",
-      "type": {
-        "type": "bytes",
-        "logicalType": "decimal",
-        "precision": 8,
-        "scale": 2
-      }
-    }
-  ]
-}
+[
+   {
+      "type":"record",
+      "name":"Negate",
+      "namespace":"com.sksamuel.avro4k.schema.Operation.Unary",
+      "fields":[
+         {
+            "name":"value",
+            "type":"int"
+         }
+      ]
+   },
+   {
+      "type":"record",
+      "name":"Add",
+      "namespace":"com.sksamuel.avro4k.schema.Operation.Binary",
+      "fields":[
+         {
+            "name":"left",
+            "type":"int"
+         },
+         {
+            "name":"right",
+            "type":"int"
+         }
+      ]
+   },
+   {
+      "type":"record",
+      "name":"Substract",
+      "namespace":"com.sksamuel.avro4k.schema.Operation.Binary",
+      "fields":[
+         {
+            "name":"left",
+            "type":"int"
+         },
+         {
+            "name":"right",
+            "type":"int"
+         }
+      ]
+   }
+]

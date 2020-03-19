@@ -23,6 +23,7 @@ interface StructureEncoder : FieldEncoder {
          }
          StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, descriptor) { addValue(it) }
          StructureKind.MAP -> MapEncoder(fieldSchema(), context, descriptor) { addValue(it) }
+         PolymorphicKind.SEALED -> SealedClassEncoder(fieldSchema(), context, descriptor) { addValue(it) }
          else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
       }
    }

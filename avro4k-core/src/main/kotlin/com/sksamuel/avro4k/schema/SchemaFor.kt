@@ -145,7 +145,7 @@ fun schemaFor(context: SerialModule,
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
          UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
-         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor)
+         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, context)
          StructureKind.CLASS -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, context)
             else -> ClassSchemaFor(descriptor, namingStrategy, context)

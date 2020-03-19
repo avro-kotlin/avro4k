@@ -1,24 +1,55 @@
 package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.AvroDefault
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.Schema
 
 @Serializable
-sealed class Node {
+sealed class Operation {
    @Serializable
-   data class Branch(val left: Node, val right: Node) : Node()
-
+   sealed class Unary() : Operation(){
+      abstract val value : Int
+      @Serializable
+      data class Negate(override val value:Int) : Unary()
+   }
    @Serializable
-   data class Leaf(val value: String) : Node()
+   sealed class Binary() : Operation(){
+      abstract val left : Int
+      abstract val right : Int
+      @Serializable
+      data class Add(override val left : Int, override val right : Int) : Binary()
+      @Serializable
+      data class Substract(override val left : Int, override val right : Int) : Binary()
+   }
 }
+@Serializable
+data class ReferencingSealedClass(
+   val notNullable: Operation
+)
+@Serializable
+data class ReferencingNullableSealedClass(
+   @AvroDefault(Avro.NULL)
+   val nullable : Operation?
+)
 
 class SealedClassSchemaTest : StringSpec({
 
-   "!schema for sealed heirarchy" {
-      val schema = Avro.default.schema(Node.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal.json"))
+   "schema for sealed hierarchy" {
+      val schema = Avro.default.schema(Operation.serializer())
+      val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/sealed.json"))
+      schema shouldBe expected
+   }
+   "referencing a sealed hierarchy"{
+      val schema = Avro.default.schema(ReferencingSealedClass.serializer())
+      val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/sealed_referenced.json"))
+      schema shouldBe expected
+   }
+   "referencing a nullable sealed hierarchy"{
+      val schema = Avro.default.schema(ReferencingNullableSealedClass.serializer())
+      val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/sealed_nullable_referenced.json"))
       schema shouldBe expected
    }
 })

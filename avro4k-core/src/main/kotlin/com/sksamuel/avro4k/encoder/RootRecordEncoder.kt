@@ -13,6 +13,7 @@ class RootRecordEncoder(private val schema: Schema,
    override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
       return when (descriptor.kind) {
          is StructureKind.CLASS -> RecordEncoder(schema, context, descriptor, callback)
+         is PolymorphicKind.SEALED -> SealedClassEncoder(schema,context,descriptor,callback)
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }
    }

@@ -20,7 +20,7 @@ class UnionEncoder(private val unionSchema : Schema,
                val serialName = RecordNaming(descriptor)
                serialName.name() == schemaName.name() && serialName.namespace() == schemaName.namespace()
             }
-            RecordEncoder(leafSchema, context, descriptor, callback)
+            RecordEncoder(leafSchema, context, callback)
          }
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }

@@ -21,9 +21,9 @@ interface StructureEncoder : FieldEncoder {
                else -> ListEncoder(fieldSchema(), context) { addValue(it) }
             }
          }
-         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context, descriptor) { addValue(it) }
+         StructureKind.CLASS -> RecordEncoder(fieldSchema(), context) { addValue(it) }
          StructureKind.MAP -> MapEncoder(fieldSchema(), context, descriptor) { addValue(it) }
-         PolymorphicKind.SEALED -> SealedClassEncoder(fieldSchema(), context, descriptor) { addValue(it) }
+         PolymorphicKind.SEALED -> SealedClassEncoder(fieldSchema(), context) { addValue(it) }
          else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
       }
    }
@@ -31,7 +31,6 @@ interface StructureEncoder : FieldEncoder {
 
 class RecordEncoder(private val schema: Schema,
                     override val context: SerialModule,
-                    private val desc: SerialDescriptor,
                     val callback: (Record) -> Unit) : AbstractEncoder(), StructureEncoder {
 
    private val builder = RecordBuilder(schema)
@@ -39,10 +38,11 @@ class RecordEncoder(private val schema: Schema,
 
    override fun fieldSchema(): Schema {
       // if the element is nullable, then we should have a union schema which we can extract the non-null schema from
-      return if (desc.getElementDescriptor(currentIndex).isNullable) {
-         schema.fields[currentIndex].schema().extractNonNull()
+      val currentFieldSchema = schema.fields[currentIndex].schema()
+      return if (currentFieldSchema.isNullable) {
+         currentFieldSchema.extractNonNull()
       } else {
-         schema.fields[currentIndex].schema()
+         currentFieldSchema
       }
    }
 

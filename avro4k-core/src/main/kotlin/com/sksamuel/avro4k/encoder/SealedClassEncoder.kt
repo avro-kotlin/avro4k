@@ -9,7 +9,6 @@ import org.apache.avro.Schema
 
 class SealedClassEncoder(private val schema: Schema,
                          override val context: SerialModule,
-                         private val desc: SerialDescriptor,
                          private val callback: (Record) -> Unit): AbstractEncoder() {
    override fun encodeString(value: String){
       //No need to encode the string of the concrete type. This will be handled by the UnionEncoder

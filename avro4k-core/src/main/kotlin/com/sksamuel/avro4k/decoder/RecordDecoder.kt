@@ -64,10 +64,11 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    override fun fieldSchema(): Schema {
       // if the element is nullable, then we should have a union schema which we can extract the non-null schema from
-      return if (desc.getElementDescriptor(currentIndex).isNullable) {
-         field().schema().extractNonNull()
+      val schema = field().schema()
+      return if (schema.isNullable) {
+         schema.extractNonNull()
       } else {
-         field().schema()
+         schema
       }
    }
 

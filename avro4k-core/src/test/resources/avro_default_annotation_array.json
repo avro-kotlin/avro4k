@@ -28,7 +28,7 @@
             "type": "array",
             "items": "string"
          },
-         "default": ["1", "2"]
+         "default": ["John", "Doe"]
       },
       {
          "name": "defaultIntArrayWith2Defaults",

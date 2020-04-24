@@ -85,11 +85,22 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
          else -> schemaOrFixed.overrideNamespace(ns)
       }
 
-      val default: Any? = annos.default()?.let {
+      val default: Any? = if (fieldDescriptor.kind == StructureKind.LIST && annos.defaultArray() != null) {
+         defaultArrayValue(annos, fieldDescriptor)
+      } else defaultValue(annos, fieldDescriptor)
+
+      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
+      val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
+      props.forEach { field.addProp(it.key, it.value) }
+      annos.aliases().forEach { field.addAlias(it) }
+
+      return field
+   }
+
+   private fun defaultValue(annos: AnnotationExtractor, fieldDescriptor: SerialDescriptor): Any? {
+      return annos.default()?.let {
          if (it == Avro.NULL) {
             Schema.Field.NULL_DEFAULT_VALUE
-         } else if (it == Avro.EMPTY_LIST) {
-            ArrayList<Any>()
          } else {
             when (fieldDescriptor.kind) {
                PrimitiveKind.INT -> it.toInt()
@@ -99,21 +110,25 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                PrimitiveKind.BYTE -> it.toByte()
                PrimitiveKind.SHORT -> it.toShort()
                PrimitiveKind.STRING -> it
-               StructureKind.LIST -> it.split(",")
-                  .asSequence()
-                  .map { defaultArrayValue -> toArrayOfType(fieldDescriptor, defaultArrayValue) }
-                  .toList()
                else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
             }
          }
       }
+   }
 
-      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
-      val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
-      props.forEach { field.addProp(it.key, it.value) }
-      annos.aliases().forEach { field.addAlias(it) }
-
-      return field
+   private fun defaultArrayValue(annos: AnnotationExtractor, fieldDescriptor: SerialDescriptor): List<Any>? {
+      return annos.defaultArray()?.let {
+         if (it.isEmpty()) {
+            it.toList()
+         } else {
+            when (fieldDescriptor.kind) {
+               is StructureKind.LIST -> it
+                  .map { defaultArrayValue -> toArrayOfType(fieldDescriptor, defaultArrayValue) }
+                  .toList()
+               else -> throw IllegalArgumentException("Cannot use a default array value for type ${fieldDescriptor.kind}")
+            }
+         }
+      }
    }
 
    private fun toArrayOfType(fieldDescriptor: SerialDescriptor, value: String): Any {

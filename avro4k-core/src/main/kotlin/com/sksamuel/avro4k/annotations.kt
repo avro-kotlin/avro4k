@@ -56,3 +56,7 @@ annotation class AvroFixed(val size: Int)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDefault(val value: String)
+
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroDefaultList(val value: Array<String>)

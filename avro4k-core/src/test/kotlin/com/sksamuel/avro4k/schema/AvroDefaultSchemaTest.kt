@@ -2,6 +2,7 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
+import com.sksamuel.avro4k.AvroDefaultList
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
@@ -76,21 +77,21 @@ data class BarFloat(
 
 @Serializable
 data class BarArray(
-   @AvroDefault(Avro.EMPTY_LIST)
+   @AvroDefaultList([])
    val defaultEmptyArray: List<String>,
    @AvroDefault(Avro.NULL)
    val nullableDefaultEmptyArray: List<String>?,
-   @AvroDefault("1,2")
+   @AvroDefaultList(["John", "Doe"])
    val defaultStringArrayWith2Defaults: List<String>,
-   @AvroDefault("1,2")
+   @AvroDefaultList(["1", "2"])
    val defaultIntArrayWith2Defaults: List<Int>,
-   @AvroDefault("3.14, 9.89")
+   @AvroDefaultList(["3.14", "9.89"])
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 
 @Serializable
 data class BarInvalidArrayType(
-   @AvroDefault("foo-bar")
+   @AvroDefaultList(["foo-bar"])
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 

@@ -1,0 +1,50 @@
+{
+   "type": "record",
+   "name": "BarArray",
+   "namespace": "com.sksamuel.avro4k.schema",
+   "fields": [
+      {
+         "name": "defaultEmptyArray",
+         "type": {
+            "type": "array",
+            "items": "string"
+         },
+         "default": []
+      },
+      {
+         "name": "nullableDefaultEmptyArray",
+         "type": [
+            "null",
+            {
+               "type": "array",
+               "items": "string"
+            }
+         ],
+         "default": null
+      },
+      {
+         "name": "defaultStringArrayWith2Defaults",
+         "type": {
+            "type": "array",
+            "items": "string"
+         },
+         "default": ["1", "2"]
+      },
+      {
+         "name": "defaultIntArrayWith2Defaults",
+         "type": {
+            "type": "array",
+            "items": "int"
+         },
+         "default": [1,2]
+      },
+      {
+         "name": "defaultFloatArrayWith2Defaults",
+         "type": {
+            "type": "array",
+            "items": "float"
+         },
+         "default": [3.14, 9.89]
+      }
+   ]
+}

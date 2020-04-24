@@ -6,6 +6,8 @@ import com.sksamuel.avro4k.AvroProp
 import com.sksamuel.avro4k.RecordNaming
 import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.StructureKind
+import kotlinx.serialization.elementDescriptors
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -84,9 +86,11 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       }
 
       val default: Any? = annos.default()?.let {
-         if(it == Avro.NULL){
+         if (it == Avro.NULL) {
             Schema.Field.NULL_DEFAULT_VALUE
-         }else {
+         } else if (it == Avro.EMPTY_LIST) {
+            ArrayList<Any>()
+         } else {
             when (fieldDescriptor.kind) {
                PrimitiveKind.INT -> it.toInt()
                PrimitiveKind.LONG -> it.toLong()
@@ -95,6 +99,10 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                PrimitiveKind.BYTE -> it.toByte()
                PrimitiveKind.SHORT -> it.toShort()
                PrimitiveKind.STRING -> it
+               StructureKind.LIST -> it.split(",")
+                  .asSequence()
+                  .map { defaultArrayValue -> toArrayOfType(fieldDescriptor, defaultArrayValue) }
+                  .toList()
                else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
             }
          }
@@ -106,5 +114,18 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       annos.aliases().forEach { field.addAlias(it) }
 
       return field
+   }
+
+   private fun toArrayOfType(fieldDescriptor: SerialDescriptor, value: String): Any {
+      return when (val kindOfArray = fieldDescriptor.elementDescriptors().single().kind) {
+         PrimitiveKind.INT -> value.toInt()
+         PrimitiveKind.LONG -> value.toLong()
+         PrimitiveKind.FLOAT -> value.toFloat()
+         PrimitiveKind.BOOLEAN -> value.toBoolean()
+         PrimitiveKind.BYTE -> value.toByte()
+         PrimitiveKind.SHORT -> value.toShort()
+         PrimitiveKind.STRING -> value
+         else -> throw IllegalArgumentException("Cannot set a default array value for type $kindOfArray")
+      }
    }
 }

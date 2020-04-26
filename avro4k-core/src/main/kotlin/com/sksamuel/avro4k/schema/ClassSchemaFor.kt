@@ -4,13 +4,13 @@ import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroProp
 import com.sksamuel.avro4k.RecordNaming
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.StructureKind
-import kotlinx.serialization.elementDescriptors
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.list
+import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.SerialModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import java.io.IOException
 
 class ClassSchemaFor(private val descriptor: SerialDescriptor,
                      private val namingStrategy: NamingStrategy,
@@ -18,6 +18,7 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
    private val naming = RecordNaming(descriptor)
+   private val json = Json(JsonConfiguration.Stable)
 
    override fun schema(): Schema {
       // if the class is annotated with @AvroValueType then we need to encode the single field
@@ -85,22 +86,12 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
          else -> schemaOrFixed.overrideNamespace(ns)
       }
 
-      val default: Any? = if (fieldDescriptor.kind == StructureKind.LIST && annos.defaultArray() != null) {
-         defaultArrayValue(annos, fieldDescriptor)
-      } else defaultValue(annos, fieldDescriptor)
 
-      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
-      val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
-      props.forEach { field.addProp(it.key, it.value) }
-      annos.aliases().forEach { field.addAlias(it) }
-
-      return field
-   }
-
-   private fun defaultValue(annos: AnnotationExtractor, fieldDescriptor: SerialDescriptor): Any? {
-      return annos.default()?.let {
+      val default: Any? = annos.default()?.let {
          if (it == Avro.NULL) {
             Schema.Field.NULL_DEFAULT_VALUE
+         } else if (it == Avro.EMPTY_LIST) {
+            emptyList<Any>()
          } else {
             when (fieldDescriptor.kind) {
                PrimitiveKind.INT -> it.toInt()
@@ -110,37 +101,40 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                PrimitiveKind.BYTE -> it.toByte()
                PrimitiveKind.SHORT -> it.toShort()
                PrimitiveKind.STRING -> it
+               StructureKind.LIST -> stringToListOf(fieldDescriptor.elementDescriptors().single().kind
+                  , it)
                else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
             }
          }
       }
+
+      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
+      val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
+      props.forEach { field.addProp(it.key, it.value) }
+      annos.aliases().forEach { field.addAlias(it) }
+
+      return field
    }
 
-   private fun defaultArrayValue(annos: AnnotationExtractor, fieldDescriptor: SerialDescriptor): List<Any>? {
-      return annos.defaultArray()?.let {
-         if (it.isEmpty()) {
-            it.toList()
-         } else {
-            when (fieldDescriptor.kind) {
-               is StructureKind.LIST -> it
-                  .map { defaultArrayValue -> toArrayOfType(fieldDescriptor, defaultArrayValue) }
-                  .toList()
-               else -> throw IllegalArgumentException("Cannot use a default array value for type ${fieldDescriptor.kind}")
-            }
-         }
-      }
+   private fun stringToListOf(arrayFieldType: SerialKind, stringArray: String): List<Any> = try {
+      // expects a string that holds default array values in a valid json format. eg: ['19.88,26.05']
+      // the list entries will be parsed according to their kind
+      json.parse(JsonElementSerializer.list, stringArray).map { stringToKind(it.content, arrayFieldType) }
+   } catch (ioe: IOException) {
+      throw IllegalArgumentException("Cannot use default value $stringArray for list of type ${arrayFieldType}. ${ioe.message}")
+   } catch (jde: JsonDecodingException) {
+      throw IllegalArgumentException("Cannot use default value $stringArray. ${jde.message}")
    }
 
-   private fun toArrayOfType(fieldDescriptor: SerialDescriptor, value: String): Any {
-      return when (val kindOfArray = fieldDescriptor.elementDescriptors().single().kind) {
-         PrimitiveKind.INT -> value.toInt()
-         PrimitiveKind.LONG -> value.toLong()
-         PrimitiveKind.FLOAT -> value.toFloat()
-         PrimitiveKind.BOOLEAN -> value.toBoolean()
-         PrimitiveKind.BYTE -> value.toByte()
-         PrimitiveKind.SHORT -> value.toShort()
-         PrimitiveKind.STRING -> value
-         else -> throw IllegalArgumentException("Cannot set a default array value for type $kindOfArray")
-      }
+   private fun stringToKind(value: String, kind: SerialKind): Any = when (kind) {
+      PrimitiveKind.INT -> value.toInt()
+      PrimitiveKind.LONG -> value.toLong()
+      PrimitiveKind.FLOAT -> value.toFloat()
+      PrimitiveKind.BOOLEAN -> value.toBoolean()
+      PrimitiveKind.BYTE -> value.toByte()
+      PrimitiveKind.SHORT -> value.toShort()
+      PrimitiveKind.STRING -> value
+      else -> throw IllegalArgumentException("Cannot parse default value: $value to type: $kind")
    }
 }
+

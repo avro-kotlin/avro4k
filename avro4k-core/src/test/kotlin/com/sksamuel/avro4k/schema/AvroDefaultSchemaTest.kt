@@ -2,7 +2,6 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
-import com.sksamuel.avro4k.AvroDefaultList
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
@@ -37,6 +36,7 @@ class AvroDefaultSchemaTest : FunSpec() {
       test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
          shouldThrow<NumberFormatException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
          shouldThrow<IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonPrimitiveType.serializer(), BarInvalidNonPrimitiveType()) }
+         shouldThrow<java.lang.IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
       }
    }
 }
@@ -77,21 +77,21 @@ data class BarFloat(
 
 @Serializable
 data class BarArray(
-   @AvroDefaultList([])
+   @AvroDefault(Avro.EMPTY_LIST)
    val defaultEmptyArray: List<String>,
    @AvroDefault(Avro.NULL)
    val nullableDefaultEmptyArray: List<String>?,
-   @AvroDefaultList(["John", "Doe"])
+   @AvroDefault("""["John", "Doe"]""")
    val defaultStringArrayWith2Defaults: List<String>,
-   @AvroDefaultList(["1", "2"])
+   @AvroDefault("""[1, 2]""")
    val defaultIntArrayWith2Defaults: List<Int>,
-   @AvroDefaultList(["3.14", "9.89"])
+   @AvroDefault("""[3.14, 9.89]""")
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 
 @Serializable
 data class BarInvalidArrayType(
-   @AvroDefaultList(["foo-bar"])
+   @com.sksamuel.avro4k.AvroDefault("""["foo-bar"]""")
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 
@@ -102,6 +102,12 @@ class FooBar
 data class BarInvalidNonPrimitiveType(
    @AvroDefault("test-value")
    val defaultBarArrayWithNonWorkingDefaults: List<FooBar> = ArrayList()
+)
+
+@Serializable
+data class BarInvalidNonArrayType(
+   @AvroDefault("{}")
+   val defaultBarArrayWithNonWorkingDefaults: List<Int> = ArrayList()
 )
 
 

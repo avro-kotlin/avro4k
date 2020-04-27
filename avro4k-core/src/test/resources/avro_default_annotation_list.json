@@ -1,10 +1,10 @@
 {
    "type": "record",
-   "name": "BarArray",
+   "name": "BarList",
    "namespace": "com.sksamuel.avro4k.schema",
    "fields": [
       {
-         "name": "defaultEmptyArray",
+         "name": "defaultEmptyList",
          "type": {
             "type": "array",
             "items": "string"
@@ -12,7 +12,7 @@
          "default": []
       },
       {
-         "name": "nullableDefaultEmptyArray",
+         "name": "nullableDefaultEmptyList",
          "type": [
             "null",
             {
@@ -23,7 +23,7 @@
          "default": null
       },
       {
-         "name": "defaultStringArrayWith2Defaults",
+         "name": "defaultStringListWith2Defaults",
          "type": {
             "type": "array",
             "items": "string"
@@ -31,7 +31,7 @@
          "default": ["John", "Doe"]
       },
       {
-         "name": "defaultIntArrayWith2Defaults",
+         "name": "defaultIntListWith2Defaults",
          "type": {
             "type": "array",
             "items": "int"
@@ -39,7 +39,7 @@
          "default": [1,2]
       },
       {
-         "name": "defaultFloatArrayWith2Defaults",
+         "name": "defaultFloatListWith2Defaults",
          "type": {
             "type": "array",
             "items": "float"
@@ -47,7 +47,7 @@
          "default": [3.14, 9.89]
       },
       {
-         "name": "defaultStringArrayWithNullableTypes",
+         "name": "defaultStringListWithNullableTypes",
          "type": {
             "type": "array",
             "items": [ "null", "string" ]

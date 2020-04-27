@@ -27,16 +27,28 @@ class AvroDefaultSchemaTest : FunSpec() {
          schema.toString(true) shouldBe expected.toString(true)
       }
 
+      test("schema for data class with @AvroDefault should include default value as a list") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_list.json"))
+         val schema = Avro.default.schema(BarList.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
       test("schema for data class with @AvroDefault should include default value as an array") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_array.json"))
          val schema = Avro.default.schema(BarArray.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
 
+      test("schema for data class with @AvroDefault should include default value as an set") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_set.json"))
+         val schema = Avro.default.schema(BarSet.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
       test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
-         shouldThrow<NumberFormatException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
-         shouldThrow<IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonPrimitiveType.serializer(), BarInvalidNonPrimitiveType()) }
-         shouldThrow<java.lang.IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
+         shouldThrow<IllegalArgumentException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
+         shouldThrow<NotImplementedError> { Avro.default.toRecord(BarInvalidNonPrimitiveType.serializer(), BarInvalidNonPrimitiveType()) }
+         shouldThrow<IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
       }
    }
 }
@@ -76,17 +88,59 @@ data class BarFloat(
 )
 
 @Serializable
-data class BarArray(
-   @AvroDefault(Avro.EMPTY_LIST)
-   val defaultEmptyArray: List<String>,
+data class BarSet(
+   @AvroDefault("[]")
+   val defaultEmptySet: Set<String>,
    @AvroDefault(Avro.NULL)
-   val nullableDefaultEmptyArray: List<String>?,
+   val nullableDefaultEmptySet: Set<String>?,
    @AvroDefault("""["John", "Doe"]""")
-   val defaultStringArrayWith2Defaults: List<String>,
+   val defaultStringSetWith2Defaults: Set<String>,
    @AvroDefault("""[1, 2]""")
-   val defaultIntArrayWith2Defaults: List<Int>,
+   val defaultIntSetWith2Defaults: Set<Int>,
    @AvroDefault("""[3.14, 9.89]""")
-   val defaultFloatArrayWith2Defaults: List<Float>
+   val defaultFloatSetWith2Defaults: Set<Float>,
+   //Unions are currently not correctly supported by Java-Avro, so for now we do not test with null values in
+   //the default
+   //See https://issues.apache.org/jira/browse/AVRO-2647
+   @AvroDefault("""[null]""")
+   val defaultStringSetWithNullableTypes : Set<String?>
+)
+@Serializable
+data class BarList(
+   @AvroDefault("[]")
+   val defaultEmptyList: List<String>,
+   @AvroDefault(Avro.NULL)
+   val nullableDefaultEmptyList: List<String>?,
+   @AvroDefault("""["John", "Doe"]""")
+   val defaultStringListWith2Defaults: List<String>,
+   @AvroDefault("""[1, 2]""")
+   val defaultIntListWith2Defaults: List<Int>,
+   @AvroDefault("""[3.14, 9.89]""")
+   val defaultFloatListWith2Defaults: List<Float>,
+   //Unions are currently not correctly supported by Java-Avro, so for now we do not test with null values in
+   //the default
+   //See https://issues.apache.org/jira/browse/AVRO-2647
+   @AvroDefault("""[null]""")
+   val defaultStringListWithNullableTypes : List<String?>
+)
+@Suppress("ArrayInDataClass")
+@Serializable
+data class BarArray(
+   @AvroDefault("[]")
+   val defaultEmptyArray: Array<String>,
+   @AvroDefault(Avro.NULL)
+   val nullableDefaultEmptyArray: Array<String>?,
+   @AvroDefault("""["John", "Doe"]""")
+   val defaultStringArrayWith2Defaults: Array<String>,
+   @AvroDefault("""[1, 2]""")
+   val defaultIntArrayWith2Defaults: Array<Int>,
+   @AvroDefault("""[3.14, 9.89]""")
+   val defaultFloatArrayWith2Defaults: Array<Float>,
+   //Unions are currently not correctly supported by Java-Avro, so for now we do not test with null values in
+   //the default
+   //See https://issues.apache.org/jira/browse/AVRO-2647
+   @AvroDefault("""[null]""")
+   val defaultStringArrayWithNullableTypes : Array<String?>
 )
 
 @Serializable

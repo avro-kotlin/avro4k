@@ -1,16 +1,16 @@
 package com.sksamuel.avro4k.schema
 
-import com.sksamuel.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroProp
-import com.sksamuel.avro4k.RecordNaming
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.list
-import kotlinx.serialization.json.*
+import com.sksamuel.avro4k.*
+import kotlinx.serialization.PrimitiveKind
+import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.StructureKind
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.json.JsonDecodingException
 import kotlinx.serialization.modules.SerialModule
+import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import java.io.IOException
 
 class ClassSchemaFor(private val descriptor: SerialDescriptor,
                      private val namingStrategy: NamingStrategy,
@@ -18,7 +18,9 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
    private val naming = RecordNaming(descriptor)
-   private val json = Json(JsonConfiguration.Stable)
+   private val json by lazy {
+      Json(JsonConfiguration.Stable, context)
+   }
 
    override fun schema(): Schema {
       // if the class is annotated with @AvroValueType then we need to encode the single field
@@ -90,8 +92,6 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       val default: Any? = annos.default()?.let {
          if (it == Avro.NULL) {
             Schema.Field.NULL_DEFAULT_VALUE
-         } else if (it == Avro.EMPTY_LIST) {
-            emptyList<Any>()
          } else {
             when (fieldDescriptor.kind) {
                PrimitiveKind.INT -> it.toInt()
@@ -101,8 +101,10 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
                PrimitiveKind.BYTE -> it.toByte()
                PrimitiveKind.SHORT -> it.toShort()
                PrimitiveKind.STRING -> it
-               StructureKind.LIST -> stringToListOf(fieldDescriptor.elementDescriptors().single().kind
+               StructureKind.LIST ->
+                  decodeJsonDefaultAsList(fieldDescriptor
                   , it)
+
                else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
             }
          }
@@ -116,25 +118,14 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       return field
    }
 
-   private fun stringToListOf(arrayFieldType: SerialKind, stringArray: String): List<Any> = try {
-      // expects a string that holds default array values in a valid json format. eg: ['19.88,26.05']
+   private fun  decodeJsonDefaultAsList(listFieldDescriptor: SerialDescriptor, jsonString: String): List<Any> = try {
       // the list entries will be parsed according to their kind
-      json.parse(JsonElementSerializer.list, stringArray).map { stringToKind(it.content, arrayFieldType) }
-   } catch (ioe: IOException) {
-      throw IllegalArgumentException("Cannot use default value $stringArray for list of type ${arrayFieldType}. ${ioe.message}")
+      val decodedValue = json.parse(listFieldDescriptor.serializer(),jsonString)
+      (decodedValue as? List<*>)?.map { it?:JsonProperties.NULL_VALUE } ?: error("Serializer of an array field descriptor did not return a List in its deserialized form.")
    } catch (jde: JsonDecodingException) {
-      throw IllegalArgumentException("Cannot use default value $stringArray. ${jde.message}")
+      throw IllegalArgumentException("Cannot use default value $jsonString. ${jde.message}",jde)
    }
 
-   private fun stringToKind(value: String, kind: SerialKind): Any = when (kind) {
-      PrimitiveKind.INT -> value.toInt()
-      PrimitiveKind.LONG -> value.toLong()
-      PrimitiveKind.FLOAT -> value.toFloat()
-      PrimitiveKind.BOOLEAN -> value.toBoolean()
-      PrimitiveKind.BYTE -> value.toByte()
-      PrimitiveKind.SHORT -> value.toShort()
-      PrimitiveKind.STRING -> value
-      else -> throw IllegalArgumentException("Cannot parse default value: $value to type: $kind")
-   }
+
 }
 

@@ -95,7 +95,6 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
        * Use this constant if you want to explicitly set a default value of a field to avro null
        */
       const val NULL = "com.sksamuel.avro4k.Avro.AVRO_NULL_DEFAULT"
-      const val EMPTY_LIST = "com.sksamuel.avro4k.Avro.AVRO_EMPTY_LIST_DEFAULT"
    }
 
    /**

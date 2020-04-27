@@ -90,6 +90,7 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
          UUID::class to UUIDSerializer())
       )
       val default = Avro(simpleModule)
+
       /**
        * Use this constant if you want to explicitly set a default value of a field to avro null
        */

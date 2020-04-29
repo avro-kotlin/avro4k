@@ -24,19 +24,19 @@ class ByteArrayEncoderTest : FunSpec({
    test("encode ByteArray to ByteBuffer to ") {
       val schema = Avro.default.schema(ByteArrayTest.serializer())
       Avro.default.toRecord(ByteArrayTest.serializer(), ByteArrayTest(byteArrayOf(1, 4, 9))) shouldBe
-         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
+         ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1,4,9)))
    }
 
    test("encode List<Byte> to ByteBuffer") {
       val schema = Avro.default.schema(ListByteTest.serializer())
       Avro.default.toRecord(ListByteTest.serializer(), ListByteTest(listOf(1, 4, 9))) shouldBe
-         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
+         ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1,4,9)))
    }
 
    test("encode Array<Byte> to ByteBuffer") {
       val schema = Avro.default.schema(ArrayByteTest.serializer())
       Avro.default.toRecord(ArrayByteTest.serializer(), ArrayByteTest(arrayOf(1, 4, 9))) shouldBe
-         ListRecord(schema, ByteBuffer.allocate(3).put(1).put(4).put(9))
+         ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1,4,9)))
    }
 
    test("encode ByteArray as FIXED when schema is Type.Fixed") {

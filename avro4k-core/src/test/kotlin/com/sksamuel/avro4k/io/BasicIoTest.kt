@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k.io
 
+import com.sksamuel.avro4k.Avro
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
@@ -26,6 +27,9 @@ class BasicIoTest : FunSpec() {
       @Serializable
       data class LongTest(val z: Long)
 
+      @Suppress("ArrayInDataClass")
+      @Serializable
+      data class ByteArrayTest(val z : ByteArray)
       test("read write out booleans") {
          writeRead(BooleanTest(true), BooleanTest.serializer())
          writeRead(BooleanTest(false), BooleanTest.serializer()) {
@@ -60,6 +64,13 @@ class BasicIoTest : FunSpec() {
 
       test("read write out floats") {
          writeRead(FloatTest(3.4F), FloatTest.serializer())
+      }
+      test("read write out byte arrays") {
+         val expected = ByteArrayTest("ABC".toByteArray())
+         writeRead(expected,ByteArrayTest.serializer()){
+            val deserialized = Avro.default.fromRecord(ByteArrayTest.serializer(),it)
+            expected.z shouldBe deserialized.z
+         }
       }
    }
 }

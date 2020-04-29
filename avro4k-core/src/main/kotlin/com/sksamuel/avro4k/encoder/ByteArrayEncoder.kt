@@ -29,7 +29,8 @@ class ByteArrayEncoder(private val schema: Schema,
                .array()
             callback(GenericData.get().createFixed(null, padded, schema))
          }
-         Schema.Type.BYTES -> callback(ByteBuffer.allocate(bytes.size).put(bytes.toByteArray()).rewind())
+         //Wrapping the resulting byte array directly as this does not duplicate the byte array
+         Schema.Type.BYTES -> callback(ByteBuffer.wrap(bytes.toByteArray()))
          else -> throw SerializationException("Cannot encode byte array when schema is ${schema.type}")
       }
 

@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
    api 'org.apache.avro:avro:1.10.0'
-   implementation 'org.xerial.snappy:snappy-java:1.1.7.5'
+   implementation 'org.xerial.snappy:snappy-java:1.1.7.6'
    testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlinTestVersion"
    testImplementation "io.kotlintest:kotlintest-assertions:$kotlinTestVersion"
    testImplementation "io.kotlintest:kotlintest-assertions-json:$kotlinTestVersion"

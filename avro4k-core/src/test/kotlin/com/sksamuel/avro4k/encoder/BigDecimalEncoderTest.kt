@@ -82,7 +82,8 @@ class BigDecimalEncoderTest : FunSpec({
       @Serializable
       data class Test(val big: BigDecimal)
 
-      val decimal = LogicalTypes.decimal(10, 8).addToSchema(Schema.createFixed("big", null, null, 8))
+      //Schema needs to have the precision of 16 in order to serialize a 8 digit integer with a scale of 8
+      val decimal = LogicalTypes.decimal(16, 8).addToSchema(Schema.createFixed("big", null, null, 8))
 
       val schema = SchemaBuilder.record("Test").fields()
          .name("big").type(decimal).noDefault()

@@ -1,2 +1,1 @@
-include  'avro4k-core',
-         'avro4k-arrow'
+rootProject.name = "avro4k-core"

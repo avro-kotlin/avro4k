@@ -463,8 +463,6 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | Map[String, V]              	| MAP<V>        	|                  	| java.util.Map[String, V] |
 | data class T                 	| RECORD        	|                  	| GenericRecord |
 | enum class             	    | ENUM          	|                  	| GenericEnumSymbol |
-| arrow.core.Option<T>          | UNION<null, T>    |                   | null, T |
-| arrow.core.Tuple2<A,B>         | RECORD<A,B>       |                   | GenericRecord |
 
 In order to use logical types, annotate the value with an appropriate Serializer:
 
@@ -480,7 +478,8 @@ data class WithInstant(
 )
 ```
 
-All the logical type serializers are available in the package `com.sksamuel.avro4k.serializer`.
+All the logical type serializers are available in the package `com.sksamuel.avro4k.serializer`. You can find additional serializers for [arrow](https://arrow-kt.io/) types in the
+[avro4k-arrow](https://github.com/avro-kotlin/avro4k-arrow) project.
 
 ## Input / Output
 

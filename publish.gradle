@@ -34,14 +34,14 @@ publishing {
       }
 
        pom {
-          name = 'avro4k'
+          name = 'avro4k-core'
           description = 'Avro format support for kotlinx.serialization'
-          url = 'http://www.github.com/sksamuel/avro4k'
+          url = 'http://www.github.com/avro-kotlin/avro4k'
 
           scm {
-             connection = 'scm:git:http://www.github.com/sksamuel/avro4k'
-             developerConnection = 'scm:git:http://github.com/sksamuel'
-             url = 'http://www.github.com/sksamuel/avro4k'
+             connection = 'scm:git:http://www.github.com/avro-kotlin/avro4k'
+             developerConnection = 'scm:git:http://github.com/avro-kotlin/avro4k'
+             url = 'http://www.github.com/avro-kotlin/avro4k'
           }
 
           licenses {
@@ -56,6 +56,11 @@ publishing {
                 id = 'sksamuel'
                 name = 'Stephen Samuel'
                 email = 'sam@sksamuel.com'
+             }
+             developer {
+                id = "thake"
+                name = "Thorsten Hake"
+                email = "mail@thorsten-hake.com"
              }
           }
        }

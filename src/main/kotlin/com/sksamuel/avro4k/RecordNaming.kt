@@ -1,7 +1,9 @@
 package com.sksamuel.avro4k
 
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.SerialDescriptor
 
+@ExperimentalSerializationApi
 class RecordNaming(name: String, annotations: List<Annotation>) {
 
    companion object {

@@ -27,7 +27,7 @@ class AvroDataOutputStream<T>(private val output: OutputStream,
 
    private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
    
-   private val writer = DataFileWriter<GenericRecord>(datumWriter).apply {
+   private val writer = DataFileWriter(datumWriter).apply {
       setCodec(codec)
       create(schema, output)
    }

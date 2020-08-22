@@ -7,9 +7,8 @@ import com.sksamuel.avro4k.schema.DefaultNamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
 import com.sksamuel.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.*
-import kotlinx.serialization.modules.EmptyModule
-import kotlinx.serialization.modules.SerialModule
-import kotlinx.serialization.modules.serializersModuleOf
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
@@ -82,13 +81,15 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
       }
    }
 }
-
-class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, BinaryFormat {
+@OptIn(ExperimentalSerializationApi::class)
+class Avro(override val serializersModule: SerializersModule = EmptySerializersModule) : SerialFormat, BinaryFormat {
 
    companion object {
-      private val simpleModule = serializersModuleOf(mapOf(
-         UUID::class to UUIDSerializer())
-      )
+      private val simpleModule = SerializersModule {
+         mapOf(
+            UUID::class to UUIDSerializer()
+         )
+      }
       val default = Avro(simpleModule)
 
       /**
@@ -101,7 +102,7 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
     * Loads an instance of <T> from the given ByteArray, with the assumption that the record was stored
     * using [AvroFormat.DataFormat]. The schema used will be the embedded schema.
     */
-   override fun <T> load(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
+   override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
       openInputStream(deserializer) {
          format = AvroFormat.DataFormat
       }.from(bytes).nextOrThrow()
@@ -152,7 +153,7 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
     * This method will use the [AvroFormat.DataFormat] format.
     * The written object will be returned as a [ByteArray].
     */
-   override fun <T> dump(serializer: SerializationStrategy<T>, value: T): ByteArray {
+   override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
       val baos = ByteArrayOutputStream()
       openOutputStream(serializer) {
          format = AvroFormat.DataFormat
@@ -196,8 +197,8 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
                     schema: Schema,
                     obj: T): GenericRecord {
       var record: Record? = null
-      val encoder = RootRecordEncoder(schema, context) { record = it }
-      encoder.encode(serializer, obj)
+      val encoder = RootRecordEncoder(schema, serializersModule) { record = it }
+      encoder.encodeSerializableValue(serializer, obj)
       return record!!
    }
 
@@ -212,7 +213,7 @@ class Avro(override val context: SerialModule = EmptyModule) : SerialFormat, Bin
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {
       return schemaFor(
-         context,
+         serializersModule,
          serializer.descriptor,
          serializer.descriptor.annotations,
          DefaultNamingStrategy

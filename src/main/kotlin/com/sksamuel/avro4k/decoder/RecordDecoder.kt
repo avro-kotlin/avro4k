@@ -3,8 +3,15 @@ package com.sksamuel.avro4k.decoder
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.FieldNaming
 import com.sksamuel.avro4k.schema.extractNonNull
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.AbstractDecoder
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
@@ -17,13 +24,14 @@ interface FieldDecoder : ExtendedDecoder {
    fun fieldSchema(): Schema
 }
 
+@ExperimentalSerializationApi
 class RecordDecoder(private val desc: SerialDescriptor,
                     private val record: GenericRecord) : AbstractDecoder(), FieldDecoder {
 
    private var currentIndex = -1
 
    @Suppress("UNCHECKED_CAST")
-   override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+   override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       val valueType = AnnotationExtractor(descriptor.annotations).valueType()
       val value = fieldValue()
       return when (descriptor.kind) {
@@ -138,7 +146,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
       currentIndex++
-      return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.READ_DONE
+      return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE
    }
 }
 

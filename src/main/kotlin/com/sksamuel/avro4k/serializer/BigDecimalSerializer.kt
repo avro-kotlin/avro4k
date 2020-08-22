@@ -5,11 +5,12 @@ import com.sksamuel.avro4k.decoder.ExtendedDecoder
 import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.schema.AvroDescriptor
 import com.sksamuel.avro4k.schema.NamingStrategy
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
@@ -21,11 +22,12 @@ import java.math.RoundingMode
 import java.nio.ByteBuffer
 import kotlin.reflect.jvm.jvmName
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = BigDecimal::class)
 class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
-      override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().bytesType()
          val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
          return LogicalTypes.decimal(precision, scale).addToSchema(schema)

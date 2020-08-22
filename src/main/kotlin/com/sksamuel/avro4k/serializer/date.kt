@@ -1,14 +1,16 @@
+@file:OptIn(ExperimentalSerializationApi::class)
 package com.sksamuel.avro4k.serializer
 
 import com.sksamuel.avro4k.decoder.ExtendedDecoder
 import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.schema.AvroDescriptor
 import com.sksamuel.avro4k.schema.NamingStrategy
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -20,7 +22,7 @@ import kotlin.reflect.jvm.jvmName
 class LocalDateSerializer : AvroSerializer<LocalDate>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalDate::class.jvmName, PrimitiveKind.INT) {
-      override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().intType()
          return LogicalTypes.date().addToSchema(schema)
       }
@@ -36,7 +38,7 @@ class LocalDateSerializer : AvroSerializer<LocalDate>() {
 class LocalTimeSerializer : AvroSerializer<LocalTime>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalTime::class.jvmName, PrimitiveKind.INT) {
-      override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().intType()
          return LogicalTypes.timeMillis().addToSchema(schema)
       }
@@ -54,13 +56,12 @@ class LocalTimeSerializer : AvroSerializer<LocalTime>() {
       }
    }
 }
-
 @Serializer(forClass = LocalDateTime::class)
 class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
 
    override val descriptor: SerialDescriptor =
       object : AvroDescriptor(LocalDateTime::class.jvmName, PrimitiveKind.LONG) {
-         override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+         override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
             val schema = SchemaBuilder.builder().longType()
             return LogicalTypes.timestampMillis().addToSchema(schema)
          }
@@ -72,12 +73,11 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalDateTime =
       LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC)
 }
-
 @Serializer(forClass = Timestamp::class)
 class TimestampSerializer : AvroSerializer<Timestamp>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(Timestamp::class.jvmName, PrimitiveKind.LONG) {
-      override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().longType()
          return LogicalTypes.timestampMillis().addToSchema(schema)
       }
@@ -88,12 +88,11 @@ class TimestampSerializer : AvroSerializer<Timestamp>() {
 
    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Timestamp = Timestamp(decoder.decodeLong())
 }
-
 @Serializer(forClass = Instant::class)
 class InstantSerializer : AvroSerializer<Instant>() {
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(Instant::class.jvmName, PrimitiveKind.LONG) {
-      override fun schema(annos: List<Annotation>, context: SerialModule, namingStrategy: NamingStrategy): Schema {
+      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().longType()
          return LogicalTypes.timestampMillis().addToSchema(schema)
       }

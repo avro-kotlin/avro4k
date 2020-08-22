@@ -1,6 +1,6 @@
 package com.sksamuel.avro4k.encoder
 
-import kotlinx.serialization.Encoder
+import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer

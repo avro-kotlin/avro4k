@@ -1,19 +1,20 @@
 package com.sksamuel.avro4k.encoder
 
-import kotlinx.serialization.CompositeEncoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialDescriptor
+
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.builtins.AbstractEncoder
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
+@ExperimentalSerializationApi
 class MapEncoder(schema: Schema,
-                 override val context: SerialModule,
-                 private val desc: SerialDescriptor,
+                 override val serializersModule: SerializersModule,
                  private val callback: (Map<Utf8, *>) -> Unit) : AbstractEncoder(),
    CompositeEncoder,
    StructureEncoder {
@@ -50,8 +51,8 @@ class MapEncoder(schema: Schema,
       encodeValue(fixed)
    }
 
-   override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
-      return super<StructureEncoder>.beginStructure(descriptor, *typeSerializers)
+   override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+      return super<StructureEncoder>.beginStructure(descriptor)
    }
 
    override fun addValue(value: Any) {

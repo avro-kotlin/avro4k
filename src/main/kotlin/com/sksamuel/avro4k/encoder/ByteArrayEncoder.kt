@@ -1,15 +1,17 @@
 package com.sksamuel.avro4k.encoder
 
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.builtins.AbstractEncoder
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import java.nio.ByteBuffer
 
+@ExperimentalSerializationApi
 class ByteArrayEncoder(private val schema: Schema,
-                       override val context: SerialModule,
+                       override val serializersModule: SerializersModule,
                        private val callback: (Any) -> Unit) : AbstractEncoder() {
 
    private val bytes = mutableListOf<Byte>()

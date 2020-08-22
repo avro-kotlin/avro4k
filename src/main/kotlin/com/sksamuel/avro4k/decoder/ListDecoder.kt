@@ -1,12 +1,19 @@
 package com.sksamuel.avro4k.decoder
 
-import kotlinx.serialization.*
-import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.builtins.AbstractDecoder
+
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
+@ExperimentalSerializationApi
 class ListDecoder(private val schema: Schema,
                   private val array: List<Any?>) : AbstractDecoder(), FieldDecoder {
 
@@ -35,7 +42,7 @@ class ListDecoder(private val schema: Schema,
 
    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
       index++
-      return if(index < array.size) index else READ_DONE
+      return if(index < array.size) index else DECODE_DONE
    }
 
    override fun decodeFloat(): Float {
@@ -70,7 +77,7 @@ class ListDecoder(private val schema: Schema,
    }
 
    @Suppress("UNCHECKED_CAST")
-   override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+   override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord)
          StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>)

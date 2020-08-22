@@ -6,11 +6,11 @@ import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.serializer.AvroSerializer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
@@ -31,7 +31,7 @@ class UserDefinedSerializerTest : FunSpec({
 
          override val descriptor: SerialDescriptor = object : AvroDescriptor("fixed-string", PrimitiveKind.STRING) {
             override fun schema(annos: List<Annotation>,
-                                context: SerialModule,
+                                serializersModule: SerializersModule,
                                 namingStrategy: NamingStrategy): Schema {
                return Schema.createFixed("foo", null, null, 10)
             }

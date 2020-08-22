@@ -1,7 +1,8 @@
 package com.sksamuel.avro4k
 
-import kotlinx.serialization.SerialDescriptor
-
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.SerialDescriptor
+@ExperimentalSerializationApi
 class AnnotationExtractor(private val annotations: List<Annotation>) {
 
    companion object {

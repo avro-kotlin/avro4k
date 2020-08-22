@@ -3,8 +3,10 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.AnnotationExtractor
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.RecordNaming
-import kotlinx.serialization.*
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
@@ -31,7 +33,7 @@ interface SchemaFor {
       val BooleanSchemaFor: SchemaFor = const(SchemaBuilder.builder().booleanType())
    }
 }
-
+@ExperimentalSerializationApi
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
@@ -43,19 +45,21 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    }
 }
 
+@ExperimentalSerializationApi
 class PairSchemaFor(private val descriptor: SerialDescriptor,
                     private val namingStrategy: NamingStrategy,
-                    private val context: SerialModule) : SchemaFor {
+                    private val serializersModule: SerializersModule
+) : SchemaFor {
 
    override fun schema(): Schema {
       val a = schemaFor(
-         context,
+         serializersModule,
          descriptor.getElementDescriptor(0),
          descriptor.getElementAnnotations(0),
          namingStrategy
       )
       val b = schemaFor(
-         context,
+         serializersModule,
          descriptor.getElementDescriptor(1),
          descriptor.getElementAnnotations(1),
          namingStrategy
@@ -67,9 +71,9 @@ class PairSchemaFor(private val descriptor: SerialDescriptor,
          .endUnion()
    }
 }
-
+@ExperimentalSerializationApi
 class ListSchemaFor(private val descriptor: SerialDescriptor,
-                    private val context: SerialModule,
+                    private val serializersModule: SerializersModule,
                     private val namingStrategy: NamingStrategy) : SchemaFor {
 
    override fun schema(): Schema {
@@ -78,7 +82,7 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
       return when (elementType.kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
-            val elementSchema = schemaFor(context,
+            val elementSchema = schemaFor(serializersModule,
                elementType,
                descriptor.getElementAnnotations(0),
                namingStrategy).schema()
@@ -87,9 +91,9 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
       }
    }
 }
-
+@ExperimentalSerializationApi
 class MapSchemaFor(private val descriptor: SerialDescriptor,
-                   private val context: SerialModule,
+                   private val serializersModule: SerializersModule,
                    private val namingStrategy: NamingStrategy) : SchemaFor {
 
    override fun schema(): Schema {
@@ -97,7 +101,7 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
       when (keyType.kind) {
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
-            val valueSchema = schemaFor(context, valueType, descriptor.getElementAnnotations(1), namingStrategy)
+            val valueSchema = schemaFor(serializersModule, valueType, descriptor.getElementAnnotations(1), namingStrategy)
                .schema()
             return Schema.createMap(valueSchema)
          }
@@ -105,7 +109,7 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
       }
    }
 }
-
+@ExperimentalSerializationApi
 class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotations : List<Annotation>) : SchemaFor {
 
    private val nullFirst by lazy{
@@ -122,7 +126,8 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
    }
 }
 
-fun schemaFor(context: SerialModule,
+@ExperimentalSerializationApi
+fun schemaFor(serializersModule: SerializersModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
               namingStrategy: NamingStrategy): SchemaFor {
@@ -134,7 +139,7 @@ fun schemaFor(context: SerialModule,
    } else descriptor
 
    val schemaFor: SchemaFor = when (underlying) {
-      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, context, namingStrategy))
+      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, namingStrategy))
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -144,14 +149,14 @@ fun schemaFor(context: SerialModule,
          PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-         UnionKind.ENUM_KIND -> EnumSchemaFor(descriptor)
-         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, context)
+         SerialKind.ENUM -> EnumSchemaFor(descriptor)
+         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule)
          StructureKind.CLASS -> when (descriptor.serialName) {
-            "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, context)
-            else -> ClassSchemaFor(descriptor, namingStrategy, context)
+            "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule)
+            else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule)
          }
-         StructureKind.LIST -> ListSchemaFor(descriptor, context, namingStrategy)
-         StructureKind.MAP -> MapSchemaFor(descriptor, context, namingStrategy)
+         StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, namingStrategy)
+         StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, namingStrategy)
          else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
       }
    }

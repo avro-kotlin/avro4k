@@ -1,20 +1,23 @@
 package com.sksamuel.avro4k.schema
 
-import kotlinx.serialization.SerialDescriptor
-import kotlinx.serialization.SerialKind
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
+@OptIn(ExperimentalSerializationApi::class)
 abstract class AvroDescriptor(override val serialName: String,
-                              override val kind: SerialKind) : SerialDescriptor {
+                              override val kind: SerialKind
+) : SerialDescriptor {
 
    constructor(type: KClass<*>, kind: SerialKind) : this(type.jvmName, kind)
 
    abstract fun schema(annos: List<Annotation>,
-                       context: SerialModule,
+                       serializersModule: SerializersModule,
                        namingStrategy: NamingStrategy): Schema
 
    override val elementsCount: Int

@@ -1,22 +1,28 @@
 package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.RecordNaming
-import com.sksamuel.avro4k.leafsOfSealedClasses
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.AbstractDecoder
+import com.sksamuel.avro4k.leavesOfSealedClasses
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.CompositeDecoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 
+@ExperimentalSerializationApi
 class SealedClassDecoder (descriptor: SerialDescriptor, private val value: GenericRecord) : AbstractDecoder(), FieldDecoder
 {
    private enum class DecoderState(val index : Int){
       BEFORE(0),
-      READ_CLASS_NAME(1),READ_DONE(CompositeDecoder.READ_DONE);
-      fun next() = DecoderState::class.enumMembers().firstOrNull{ it.ordinal > this.ordinal }?:READ_DONE
+      READ_CLASS_NAME(1),
+      READ_DONE(CompositeDecoder.DECODE_DONE);
+      fun next() = values().firstOrNull{ it.ordinal > this.ordinal }?:READ_DONE
    }
    private var currentState = DecoderState.BEFORE
 
-   var leafDescriptor : SerialDescriptor = descriptor.leafsOfSealedClasses().firstOrNull {
+   var leafDescriptor : SerialDescriptor = descriptor.leavesOfSealedClasses().firstOrNull {
       val schemaName = RecordNaming(value.schema.fullName, emptyList())
       val serialName = RecordNaming(it)
       serialName.name() == schemaName.name() && serialName.namespace() == schemaName.namespace()

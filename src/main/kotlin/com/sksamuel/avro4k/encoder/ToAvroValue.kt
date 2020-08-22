@@ -1,7 +1,8 @@
 package com.sksamuel.avro4k.encoder
 
 import com.sksamuel.avro4k.schema.extractNonNull
-import kotlinx.serialization.SerialDescriptor
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -24,7 +25,7 @@ object StringToAvroValue {
       }
    }
 }
-
+@ExperimentalSerializationApi
 object ValueToEnum {
    fun toValue(schema: Schema, enumDescription: SerialDescriptor, ordinal: Int): GenericData.EnumSymbol {
       // the schema provided will be a union, so we should extract the correct schema

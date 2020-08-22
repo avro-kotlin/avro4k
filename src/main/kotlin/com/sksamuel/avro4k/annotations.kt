@@ -1,5 +1,7 @@
+@file:OptIn(ExperimentalSerializationApi::class)
 package com.sksamuel.avro4k
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 
 @SerialInfo

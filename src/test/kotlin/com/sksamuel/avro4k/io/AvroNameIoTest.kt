@@ -20,7 +20,7 @@ class AvroNameIoTest : StringSpec({
       val ennio = Composer("Ennio Morricone", "Maestro")
 
       // writing out using the schema derived from Compose means fullname should be used
-      val bytes = Avro.default.dump(Composer.serializer(), ennio)
+      val bytes = Avro.default.encodeToByteArray(Composer.serializer(), ennio)
 
       // using a custom schema to check that fullname was definitely used
       val schema = SchemaBuilder.record("Composer").fields()

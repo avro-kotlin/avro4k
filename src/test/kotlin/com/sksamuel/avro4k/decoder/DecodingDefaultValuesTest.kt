@@ -14,8 +14,8 @@ import java.time.LocalDate
 class DecodingDefaultValuesTest : FunSpec({
    test("data class decoder should override defaults with avro data") {
       val foo = Foo("a", "b", LocalDate.of(2019, 1, 2), LocalDate.of(2018, 4, 5))
-      val bytes = Avro.default.dump(Foo.serializer(), foo)
-      Avro.default.load(Foo.serializer(), bytes) shouldBe foo
+      val bytes = Avro.default.encodeToByteArray(Foo.serializer(), foo)
+      Avro.default.decodeFromByteArray(Foo.serializer(), bytes) shouldBe foo
    }
 })
 

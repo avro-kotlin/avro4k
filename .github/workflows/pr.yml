@@ -1,10 +1,7 @@
-name: build
+name: build-pr
 
 on:
-   push:
-      branches:
-         - master
-         - release/*
+   pull_request:
       paths-ignore:
          - 'doc/**'
          - '*.md'

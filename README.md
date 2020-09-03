@@ -1,4 +1,4 @@
-# <img src="https://github.com/sksamuel/avro4k/blob/master/avro4k-core/src/main/graphics/logo.png" height=160>
+# <img src="https://github.com/sksamuel/avro4k/blob/master/src/main/graphics/logo.png" height=160>
 [Avro](https://avro.apache.org/) format for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). This library is a port of my Scala Avro generator [avro4s](https://github.com/sksamuel/avro4s).
 
 ![build-master](https://github.com/avro-kotlin/avro4k/workflows/build-master/badge.svg)

@@ -103,13 +103,6 @@ tasks.named<Test>("test") {
    }
 }
 
-val javadocJar by tasks.creating(Jar::class) {
-   group = JavaBasePlugin.DOCUMENTATION_GROUP
-   description = "Assembles java doc to jar"
-   archiveClassifier.set("javadoc")
-   from(javadoc)
-}
-
 java {
    targetCompatibility = org.gradle.api.JavaVersion.VERSION_1_8
    withJavadocJar()

@@ -126,7 +126,6 @@ publishing {
    publications {
       register("mavenJava", MavenPublication::class) {
          from(components["java"])
-         artifact(javadocJar)
          pom {
             name.set("avro4k-core")
             description.set("Avro format support for kotlinx.serialization")

@@ -110,6 +110,12 @@ val javadocJar by tasks.creating(Jar::class) {
    from(javadoc)
 }
 
+java {
+   targetCompatibility = org.gradle.api.JavaVersion.VERSION_1_8
+   withJavadocJar()
+   withSourcesJar()
+}
+
 publishing {
    repositories {
       maven {

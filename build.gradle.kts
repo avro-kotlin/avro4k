@@ -124,9 +124,9 @@ publishing {
       }
    }
 
-   publications.withType<MavenPublication>().forEach {
-      it.apply {
-         //if (Ci.isRelease)
+   publications {
+      register("mavenJava", MavenPublication::class) {
+         from(components["java"])
          artifact(javadocJar)
          pom {
             name.set("avro4k-core")

@@ -4,8 +4,8 @@ package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.serializer.BigDecimalSerializer
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.Conversions

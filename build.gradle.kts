@@ -13,6 +13,7 @@ plugins {
    java
    id("java-library")
    kotlin("jvm") version Libs.kotlinVersion
+   id("org.jetbrains.kotlin.plugin.serialization") version "1.4.0"
    id("maven-publish")
    signing
    id("org.jetbrains.dokka") version Libs.dokkaVersion
@@ -36,16 +37,18 @@ group = "com.sksamuel.avro4k"
 version = Ci.publishVersion
 
 dependencies {
+   implementation(kotlin("reflect"))
    api(Libs.Avro.avro)
    api(Libs.Kotlinx.serialization)
    implementation(Libs.Xerial.snappy)
    testImplementation(Libs.Kotest.junit5)
-   testImplementation(Libs.Kotest.assertions)
+   testImplementation(Libs.Kotest.assertionsCore)
    testImplementation(Libs.Kotest.assertionsJson)
+   testImplementation(Libs.Kotest.proptest)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-   kotlinOptions.jvmTarget = "1.6"
+   kotlinOptions.jvmTarget = "1.8"
    kotlinOptions.apiVersion = "1.3"
 }
 

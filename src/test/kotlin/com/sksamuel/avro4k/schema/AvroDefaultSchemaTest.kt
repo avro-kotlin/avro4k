@@ -2,9 +2,9 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldThrow
-import io.kotlintest.specs.FunSpec
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 
 class AvroDefaultSchemaTest : FunSpec() {

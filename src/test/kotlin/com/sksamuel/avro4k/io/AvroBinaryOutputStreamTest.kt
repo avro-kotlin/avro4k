@@ -1,9 +1,9 @@
 package com.sksamuel.avro4k.io
 
 import com.sksamuel.avro4k.Avro
-import io.kotlintest.inspectors.forNone
-import io.kotlintest.matchers.string.shouldContain
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forNone
+import io.kotest.matchers.string.shouldContain
 import kotlinx.serialization.Serializable
 import java.io.ByteArrayOutputStream
 

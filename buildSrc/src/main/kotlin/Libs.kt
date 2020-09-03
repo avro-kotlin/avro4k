@@ -2,14 +2,14 @@ object Libs {
 
    const val kotlinVersion = "1.4.0"
    const val dokkaVersion = "0.10.1"
-   const val gradleVersionsPluginVersion = "0.28.0"
    const val kotestGradlePlugin = "0.1.3"
 
    object Kotest {
       private const val version = "4.2.3"
-      const val assertions = "io.kotest:kotest-assertions:$version"
+      const val assertionsCore = "io.kotest:kotest-assertions-core:$version"
       const val assertionsJson = "io.kotest:kotest-assertions-json:$version"
       const val junit5 = "io.kotest:kotest-runner-junit5:$version"
+      const val proptest = "io.kotest:kotest-property:$version"
    }
 
    object Kotlinx {

@@ -1,7 +1,7 @@
 package com.sksamuel.avro4k
 
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 
 class RecordEncoderTest : FunSpec({

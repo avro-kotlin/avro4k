@@ -4,8 +4,8 @@ import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.decoder.ExtendedDecoder
 import com.sksamuel.avro4k.encoder.ExtendedEncoder
 import com.sksamuel.avro4k.serializer.AvroSerializer
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind

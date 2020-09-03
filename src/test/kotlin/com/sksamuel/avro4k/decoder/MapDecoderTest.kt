@@ -2,8 +2,8 @@ package com.sksamuel.avro4k.decoder
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.ListRecord
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8

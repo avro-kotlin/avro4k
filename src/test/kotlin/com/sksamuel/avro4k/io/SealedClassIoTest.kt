@@ -2,9 +2,9 @@ package com.sksamuel.avro4k.io
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.schema.Operation
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericRecord
 

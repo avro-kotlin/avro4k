@@ -6,8 +6,8 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.serializer.TimestampSerializer
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import java.sql.Timestamp

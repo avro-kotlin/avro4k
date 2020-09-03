@@ -2,10 +2,14 @@
 
 package com.sksamuel.avro4k.io
 
-import io.kotlintest.properties.Gen
-import io.kotlintest.properties.assertAll
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.long
+import io.kotest.property.arbitrary.positiveDoubles
+import io.kotest.property.checkAll
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericData
@@ -55,10 +59,10 @@ class CollectionsIoTest : StringSpec({
       data class Test(val a: Array<Double>)
 
       // there's a bug in avro with Double.POSINF
-      assertAll(
-         Gen.positiveDoubles().filter { it < 1000000 },
-         Gen.positiveDoubles().filter { it < 1000000 },
-         Gen.positiveDoubles().filter { it < 1000000 }
+      checkAll(
+         Arb.positiveDoubles().filter { it < 1000000 },
+         Arb.positiveDoubles().filter { it < 1000000 },
+         Arb.positiveDoubles().filter { it < 1000000 }
       ) { a, b, c ->
          writeRead(Test(arrayOf(a, b, c)), Test.serializer()) {
             it["a"] shouldBe listOf(a, b, c)
@@ -71,7 +75,7 @@ class CollectionsIoTest : StringSpec({
       @Serializable
       data class Test(val a: List<Long>, val b: List<Int>)
 
-      assertAll(Gen.long(), Gen.long(), Gen.int(), Gen.int()) { a, b, c, d ->
+      checkAll(Arb.long(), Arb.long(), Arb.int(), Arb.int()) { a, b, c, d ->
          writeRead(Test(listOf(a, b), listOf(c, d)), Test.serializer()) {
             it["a"] shouldBe listOf(a, b)
             it["b"] shouldBe listOf(c, d)

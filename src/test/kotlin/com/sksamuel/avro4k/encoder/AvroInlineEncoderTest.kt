@@ -3,8 +3,8 @@ package com.sksamuel.avro4k.encoder
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroInline
 import com.sksamuel.avro4k.ListRecord
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.util.Utf8
 

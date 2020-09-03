@@ -4,8 +4,8 @@ import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.decoder.NullableBoolean
 import com.sksamuel.avro4k.decoder.NullableString
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import org.apache.avro.util.Utf8
 
 class NullableEncoderTest : FunSpec({

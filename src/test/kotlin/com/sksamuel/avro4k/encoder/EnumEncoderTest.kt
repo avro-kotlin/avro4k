@@ -5,8 +5,8 @@ import com.sksamuel.avro4k.ListRecord
 import com.sksamuel.avro4k.decoder.MyWine
 import com.sksamuel.avro4k.decoder.NullableWine
 import com.sksamuel.avro4k.schema.Wine
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.FunSpec
 import org.apache.avro.generic.GenericData
 
 class EnumEncoderTest : FunSpec({

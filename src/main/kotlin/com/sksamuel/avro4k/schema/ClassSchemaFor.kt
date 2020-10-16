@@ -3,6 +3,8 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -124,7 +126,18 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
 
    private fun  decodeJsonDefaultAsList(listFieldDescriptor: SerialDescriptor, jsonString: String): List<Any> = try {
       // the list entries will be parsed according to their kind
-      val decodedValue = json.decodeFromString(listFieldDescriptor.serializer(), jsonString)
+
+      val decodedValue = if (listFieldDescriptor.kind is StructureKind.LIST &&
+         listFieldDescriptor.getElementDescriptor(0).kind is StructureKind
+      ) {
+         if (jsonString == "[]")
+            json.decodeFromString(ListSerializer(Unit.serializer()), jsonString)
+         else
+            TODO("only empty arrays/[] supported on arrays with non-primitive elements")
+      } else {
+         json.decodeFromString(listFieldDescriptor.serializer(), jsonString)
+      }
+
       (decodedValue as? List<*>)?.map { it?:JsonProperties.NULL_VALUE } ?: error("Serializer of an array field descriptor did not return a List in its deserialized form.")
    } catch (se: SerializationException) {
       throw IllegalArgumentException("Cannot use default value $jsonString. ${se.message}",se)

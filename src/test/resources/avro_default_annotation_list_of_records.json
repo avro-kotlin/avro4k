@@ -1,0 +1,24 @@
+{
+   "type": "record",
+   "name": "BarListOfElements",
+   "namespace": "com.sksamuel.avro4k.schema",
+   "fields": [
+      {
+         "name": "defaultEmptyListOfRecords",
+         "type": {
+            "type": "array",
+            "items": {
+               "type": "record",
+               "name": "FooElement",
+               "fields": [
+                  {
+                     "name": "value",
+                     "type": "string"
+                  }
+               ]
+            }
+         },
+         "default": []
+      }
+   ]
+}

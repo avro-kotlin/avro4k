@@ -33,6 +33,12 @@ class AvroDefaultSchemaTest : FunSpec() {
          schema.toString(true) shouldBe expected.toString(true)
       }
 
+      test("schema for data class with @AvroDefault should include default value as a list with a record element type") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_list_of_records.json"))
+         val schema = Avro.default.schema(BarListOfElements.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
       test("schema for data class with @AvroDefault should include default value as an array") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_array.json"))
          val schema = Avro.default.schema(BarArray.serializer())
@@ -123,6 +129,16 @@ data class BarList(
    @AvroDefault("""[null]""")
    val defaultStringListWithNullableTypes : List<String?>
 )
+
+@Serializable
+data class FooElement(val value: String)
+
+@Serializable
+data class BarListOfElements(
+   @AvroDefault("[]")
+   val defaultEmptyListOfRecords: List<FooElement>
+)
+
 @Suppress("ArrayInDataClass")
 @Serializable
 data class BarArray(
@@ -150,12 +166,9 @@ data class BarInvalidArrayType(
 )
 
 @Serializable
-class FooBar
-
-@Serializable
 data class BarInvalidNonPrimitiveType(
-   @AvroDefault("test-value")
-   val defaultBarArrayWithNonWorkingDefaults: List<FooBar> = ArrayList()
+   @AvroDefault("""[{"value": "foo"}]""")
+   val defaultBarArrayWithNonWorkingDefaults: List<FooElement> = ArrayList()
 )
 
 @Serializable

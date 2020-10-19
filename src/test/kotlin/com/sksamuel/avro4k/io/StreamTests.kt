@@ -1,5 +1,6 @@
 package com.sksamuel.avro4k.io
 
+
 import com.sksamuel.avro4k.Avro
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.KSerializer
@@ -60,7 +61,7 @@ fun <T> writeData(t: T, serializer: SerializationStrategy<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
    val avro = Avro.default.openOutputStream(serializer) {
-      format = AvroFormat.DataFormat
+      encodeFormat = AvroEncodeFormat.Data()
       this.schema = schema
    }.to(out)
    avro.write(t)
@@ -79,7 +80,7 @@ fun <T> writeJson(t: T, serializer: KSerializer<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val baos = ByteArrayOutputStream()
    val output = Avro.default.openOutputStream(serializer) {
-      format = AvroFormat.JsonFormat
+      encodeFormat = AvroEncodeFormat.Json
       this.schema = schema
    }.to(baos)
    output.write(t)
@@ -90,8 +91,7 @@ fun <T> writeJson(t: T, serializer: KSerializer<T>): ByteArray {
 fun <T> readData(bytes: ByteArray, serializer: KSerializer<T>): GenericRecord {
    val schema = Avro.default.schema(serializer)
    val avro = Avro.default.openInputStream {
-      format = AvroFormat.DataFormat
-      readerSchema = schema
+      decodeFormat = AvroDecodeFormat.Data(schema)
    }.from(bytes)
    return avro.next() as GenericRecord
 }
@@ -100,7 +100,7 @@ fun <T> writeBinary(t: T, serializer: SerializationStrategy<T>): ByteArray {
    val schema = Avro.default.schema(serializer)
    val out = ByteArrayOutputStream()
    val avro = Avro.default.openOutputStream(serializer) {
-      format = AvroFormat.BinaryFormat
+      encodeFormat = AvroEncodeFormat.Binary
       this.schema = schema
    }.to(out)
    avro.write(t)

@@ -18,12 +18,9 @@ import java.io.InputStream
 abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
                                             private val converter: (Any) -> T,
                                             writerSchema: Schema,
-                                            readerSchema: Schema?) : AvroInputStream<T> {
+                                            readerSchema: Schema) : AvroInputStream<T> {
 
-   private val datumReader = when (readerSchema) {
-      null -> GenericDatumReader<GenericRecord>(writerSchema)
-      else -> GenericDatumReader(writerSchema, readerSchema)
-   }
+   private val datumReader = GenericDatumReader<GenericRecord>(writerSchema, readerSchema)
 
    abstract val decoder: Decoder
 
@@ -45,9 +42,9 @@ abstract class SchemalessAvroInputStream<T>(private val input: InputStream,
 class AvroJsonInputStream<T>(input: InputStream,
                              converter: (Any) -> T,
                              writerSchema: Schema,
-                             readerSchema: Schema?) :
+                             readerSchema: Schema) :
    SchemalessAvroInputStream<T>(input, converter, writerSchema, readerSchema) {
-   override val decoder: JsonDecoder = DecoderFactory.get().jsonDecoder(writerSchema, input)
+   override val decoder: JsonDecoder = DecoderFactory.get().jsonDecoder(readerSchema, input)
 }
 
 
@@ -59,7 +56,7 @@ class AvroJsonInputStream<T>(input: InputStream,
 class AvroBinaryInputStream<T>(input: InputStream,
                                converter: (Any) -> T,
                                writerSchema: Schema,
-                               readerSchema: Schema?) :
+                               readerSchema: Schema) :
    SchemalessAvroInputStream<T>(input, converter, writerSchema, readerSchema) {
    override val decoder: BinaryDecoder = DecoderFactory.get().binaryDecoder(input, null)
 }

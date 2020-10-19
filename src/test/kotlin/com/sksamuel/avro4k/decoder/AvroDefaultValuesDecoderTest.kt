@@ -4,7 +4,7 @@ import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.ScalePrecision
-import com.sksamuel.avro4k.io.AvroFormat
+import com.sksamuel.avro4k.io.AvroDecodeFormat
 import com.sksamuel.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -55,14 +55,13 @@ data class ContainerWithDefaultFields(
 class AvroDefaultValuesDecoderTest : FunSpec({
    test("test default values correctly decoded") {
       val name = "abc"
-      val schema = Avro.default.schema(ContainerWithoutDefaultFields.serializer())
-      val record = GenericData.Record(schema)
+      val writerSchema = Avro.default.schema(ContainerWithoutDefaultFields.serializer())
+      val record = GenericData.Record(writerSchema)
       record.put("name", name)
 
       val byteArray = Avro.default.encodeToByteArray(ContainerWithoutDefaultFields("abc"))
       val deserialized = Avro.default.openInputStream(ContainerWithDefaultFields.serializer()){
-         format = AvroFormat.DataFormat
-         readerSchema = Avro.default.schema(ContainerWithDefaultFields.serializer())
+         decodeFormat = AvroDecodeFormat.Data(writerSchema, defaultReadSchema)
       }.from(byteArray).nextOrThrow()
       deserialized.name.shouldBe("abc")
       deserialized.strDefault.shouldBe("hello")

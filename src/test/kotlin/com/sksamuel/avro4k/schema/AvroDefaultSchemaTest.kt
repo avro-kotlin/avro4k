@@ -2,11 +2,14 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
+import com.sksamuel.avro4k.serializer.BigDecimalSerializer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.AvroTypeException
+import org.apache.avro.Conversions
+import java.math.BigDecimal
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class AvroDefaultSchemaTest : FunSpec() {
@@ -26,6 +29,13 @@ class AvroDefaultSchemaTest : FunSpec() {
       test("schema for data class with @AvroDefault should include default value as a float") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_float.json"))
          val schema = Avro.default.schema(BarFloat.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
+      test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_big_decimal.json"))
+         val conversion = Conversions.DecimalConversion()
+         val schema = Avro.default.schema(BarDecimal.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
 
@@ -92,6 +102,21 @@ data class BarFloat(
    val nullableFloat: Float?,
    @AvroDefault("3.14")
    val c: Float?
+)
+
+@Serializable
+data class BarDecimal(
+   @Serializable(BigDecimalSerializer::class)
+   val a: BigDecimal,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault("\u0000")
+   val b: BigDecimal,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault(Avro.NULL)
+   val nullableString: BigDecimal?,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault("\u0000")
+   val c: BigDecimal?
 )
 
 @Serializable

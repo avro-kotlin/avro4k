@@ -3,7 +3,9 @@ package com.sksamuel.avro4k.decoder
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
 import com.sksamuel.avro4k.AvroName
+import com.sksamuel.avro4k.ScalePrecision
 import com.sksamuel.avro4k.io.AvroFormat
+import com.sksamuel.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -12,6 +14,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.generic.GenericData
+import java.math.BigDecimal
 
 @Serializable
 data class FooElement(
@@ -42,7 +45,11 @@ data class ContainerWithDefaultFields(
    @AvroDefault("[]")
    val emptyFooList : List<FooElement>,
    @AvroDefault("""[{"content":"bar"}]""")
-   val filledFooList : List<FooElement>
+   val filledFooList : List<FooElement>,
+   @AvroDefault("\u0000")
+   @ScalePrecision(0,10)
+   @Serializable(BigDecimalSerializer::class)
+   val bigDecimal : BigDecimal
 )
 
 class AvroDefaultValuesDecoderTest : FunSpec({
@@ -66,5 +73,6 @@ class AvroDefaultValuesDecoderTest : FunSpec({
       deserialized.foo.content.shouldBe("foo")
       deserialized.emptyFooList.shouldBeEmpty()
       deserialized.filledFooList.shouldContainExactly(FooElement("bar"))
+      deserialized.bigDecimal.shouldBe(BigDecimal.ZERO)
    }
 })

@@ -2,17 +2,34 @@ package com.sksamuel.avro4k
 
 import com.sksamuel.avro4k.decoder.RootRecordDecoder
 import com.sksamuel.avro4k.encoder.RootRecordEncoder
-import com.sksamuel.avro4k.io.*
+import com.sksamuel.avro4k.io.AvroBinaryInputStream
+import com.sksamuel.avro4k.io.AvroBinaryOutputStream
+import com.sksamuel.avro4k.io.AvroDataInputStream
+import com.sksamuel.avro4k.io.AvroDataOutputStream
+import com.sksamuel.avro4k.io.AvroFormat
+import com.sksamuel.avro4k.io.AvroInputStream
+import com.sksamuel.avro4k.io.AvroJsonInputStream
+import com.sksamuel.avro4k.io.AvroJsonOutputStream
+import com.sksamuel.avro4k.io.AvroOutputStream
 import com.sksamuel.avro4k.schema.DefaultNamingStrategy
 import com.sksamuel.avro4k.schema.schemaFor
 import com.sksamuel.avro4k.serializer.UUIDSerializer
-import kotlinx.serialization.*
+import kotlinx.serialization.BinaryFormat
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialFormat
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
@@ -52,6 +69,8 @@ class AvroInputStreamBuilder<T>(private val converter: (Any) -> T) {
                AvroDataInputStream(source, converter, writerSchema, readerSchema)
             writerSchema != null ->
                AvroDataInputStream(source, converter, writerSchema, readerSchema)
+            readerSchema != null ->
+               AvroDataInputStream(source,converter,null, readerSchema)
             else ->
                AvroDataInputStream(source, converter, null, null)
          }
@@ -219,4 +238,6 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
          DefaultNamingStrategy
       ).schema()
    }
+
+
 }

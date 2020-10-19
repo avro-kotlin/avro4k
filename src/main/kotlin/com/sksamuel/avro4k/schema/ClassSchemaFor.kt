@@ -1,21 +1,29 @@
 package com.sksamuel.avro4k.schema
 
-import com.sksamuel.avro4k.*
+import com.sksamuel.avro4k.AnnotationExtractor
+import com.sksamuel.avro4k.Avro
+import com.sksamuel.avro4k.AvroProp
+import com.sksamuel.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
 @ExperimentalSerializationApi
-class ClassSchemaFor(private val descriptor: SerialDescriptor,
-                     private val namingStrategy: NamingStrategy,
-                     private val serializersModule: SerializersModule
+class ClassSchemaFor(
+   private val descriptor: SerialDescriptor,
+   private val namingStrategy: NamingStrategy,
+   private val serializersModule: SerializersModule
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
@@ -52,12 +60,18 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       return record
    }
 
+
    private fun buildField(index: Int): Schema.Field {
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
       val fieldNaming = RecordNaming(descriptor, index)
-      val schema = schemaFor(serializersModule, fieldDescriptor, descriptor.getElementAnnotations(index), namingStrategy)
+      val schema = schemaFor(
+         serializersModule,
+         fieldDescriptor,
+         descriptor.getElementAnnotations(index),
+         namingStrategy
+      )
          .schema()
 
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
@@ -92,25 +106,11 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
          else -> schemaOrFixed.overrideNamespace(ns)
       }
 
-
       val default: Any? = annos.default()?.let {
-         if (it == Avro.NULL) {
-            Schema.Field.NULL_DEFAULT_VALUE
-         } else {
-            when (fieldDescriptor.kind) {
-               PrimitiveKind.INT -> it.toInt()
-               PrimitiveKind.LONG -> it.toLong()
-               PrimitiveKind.FLOAT -> it.toFloat()
-               PrimitiveKind.BOOLEAN -> it.toBoolean()
-               PrimitiveKind.BYTE -> it.toByte()
-               PrimitiveKind.SHORT -> it.toShort()
-               PrimitiveKind.STRING -> it
-               StructureKind.LIST ->
-                  decodeJsonDefaultAsList(fieldDescriptor
-                  , it)
-
-               else -> throw IllegalArgumentException("Cannot use a default value for type ${fieldDescriptor.kind}")
-            }
+         when {
+             it == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
+             schemaWithResolvedNamespace.extractNonNull().type in listOf(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING) -> it
+             else -> json.parseToJsonElement(it).convertToAvroDefault()
          }
       }
 
@@ -122,14 +122,25 @@ class ClassSchemaFor(private val descriptor: SerialDescriptor,
       return field
    }
 
-   private fun  decodeJsonDefaultAsList(listFieldDescriptor: SerialDescriptor, jsonString: String): List<Any> = try {
-      // the list entries will be parsed according to their kind
-      val decodedValue = json.decodeFromString(listFieldDescriptor.serializer(), jsonString)
-      (decodedValue as? List<*>)?.map { it?:JsonProperties.NULL_VALUE } ?: error("Serializer of an array field descriptor did not return a List in its deserialized form.")
-   } catch (se: SerializationException) {
-      throw IllegalArgumentException("Cannot use default value $jsonString. ${se.message}",se)
+   private fun JsonElement.convertToAvroDefault() : Any{
+      return when(this){
+         is JsonNull -> JsonProperties.NULL_VALUE
+         is JsonObject -> this.map { Pair(it.key,it.value.convertToAvroDefault()) }.toMap()
+         is JsonArray -> this.map { it.convertToAvroDefault() }.toList()
+         is JsonPrimitive -> when {
+             this.isString -> this.content
+             this.booleanOrNull != null -> this.boolean
+             else -> {
+                 val number = this.content.toBigDecimal()
+                 if(number.scale() <= 0){
+                    number.toBigInteger()
+                 }else{
+                    number
+                 }
+             }
+         }
+      }
    }
 
 
 }
-

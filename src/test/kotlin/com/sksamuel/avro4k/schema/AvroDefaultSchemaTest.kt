@@ -2,11 +2,16 @@ package com.sksamuel.avro4k.schema
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
+import com.sksamuel.avro4k.serializer.BigDecimalSerializer
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
+import org.apache.avro.AvroTypeException
+import org.apache.avro.Conversions
+import java.math.BigDecimal
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class AvroDefaultSchemaTest : FunSpec() {
    init {
       test("schema for data class with @AvroDefault should include default value as a string") {
@@ -27,9 +32,22 @@ class AvroDefaultSchemaTest : FunSpec() {
          schema.toString(true) shouldBe expected.toString(true)
       }
 
+      test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_big_decimal.json"))
+         val conversion = Conversions.DecimalConversion()
+         val schema = Avro.default.schema(BarDecimal.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
       test("schema for data class with @AvroDefault should include default value as a list") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_list.json"))
          val schema = Avro.default.schema(BarList.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
+      test("schema for data class with @AvroDefault should include default value as a list with a record element type") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_list_of_records.json"))
+         val schema = Avro.default.schema(BarListOfElements.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
 
@@ -46,9 +64,8 @@ class AvroDefaultSchemaTest : FunSpec() {
       }
 
       test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
-         shouldThrow<IllegalArgumentException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
-         shouldThrow<NotImplementedError> { Avro.default.toRecord(BarInvalidNonPrimitiveType.serializer(), BarInvalidNonPrimitiveType()) }
-         shouldThrow<IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
+         shouldThrow<AvroTypeException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
+         shouldThrow<AvroTypeException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
       }
    }
 }
@@ -88,6 +105,21 @@ data class BarFloat(
 )
 
 @Serializable
+data class BarDecimal(
+   @Serializable(BigDecimalSerializer::class)
+   val a: BigDecimal,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault("\u0000")
+   val b: BigDecimal,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault(Avro.NULL)
+   val nullableString: BigDecimal?,
+   @Serializable(BigDecimalSerializer::class)
+   @AvroDefault("\u0000")
+   val c: BigDecimal?
+)
+
+@Serializable
 data class BarSet(
    @AvroDefault("[]")
    val defaultEmptySet: Set<String>,
@@ -123,6 +155,18 @@ data class BarList(
    @AvroDefault("""[null]""")
    val defaultStringListWithNullableTypes : List<String?>
 )
+
+@Serializable
+data class FooElement(val value: String)
+
+@Serializable
+data class BarListOfElements(
+   @AvroDefault("[]")
+   val defaultEmptyListOfRecords: List<FooElement>,
+   @AvroDefault("""[{"value":"foo"}]""")
+   val defaultListWithOneValue : List<FooElement>
+)
+
 @Suppress("ArrayInDataClass")
 @Serializable
 data class BarArray(
@@ -147,15 +191,6 @@ data class BarArray(
 data class BarInvalidArrayType(
    @com.sksamuel.avro4k.AvroDefault("""["foo-bar"]""")
    val defaultFloatArrayWith2Defaults: List<Float>
-)
-
-@Serializable
-class FooBar
-
-@Serializable
-data class BarInvalidNonPrimitiveType(
-   @AvroDefault("test-value")
-   val defaultBarArrayWithNonWorkingDefaults: List<FooBar> = ArrayList()
 )
 
 @Serializable

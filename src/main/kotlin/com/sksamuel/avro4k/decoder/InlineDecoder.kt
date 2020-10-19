@@ -4,9 +4,10 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
+import kotlinx.serialization.modules.SerializersModule
 
 @ExperimentalSerializationApi
-class InlineDecoder(private val value: Any?) : AbstractDecoder() {
+class InlineDecoder(private val value: Any?, override val serializersModule: SerializersModule) : AbstractDecoder() {
    private var index = -1
    override fun decodeElementIndex(descriptor: SerialDescriptor): Int = if(++index < 1) index else DECODE_DONE
 

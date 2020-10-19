@@ -6,6 +6,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
@@ -13,7 +14,9 @@ import org.apache.avro.generic.GenericRecord
 @ExperimentalSerializationApi
 class MapDecoder(private val desc: SerialDescriptor,
                  private val schema: Schema,
-                 map: Map<*, *>) : AbstractDecoder(), CompositeDecoder {
+                 map: Map<*, *>,
+                 override val serializersModule: SerializersModule
+) : AbstractDecoder(), CompositeDecoder {
 
    init {
       require(schema.type == Schema.Type.MAP)
@@ -93,9 +96,9 @@ class MapDecoder(private val desc: SerialDescriptor,
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord)
-         StructureKind.LIST -> ListDecoder(schema.valueType, value() as GenericArray<*>)
-         StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>)
+         StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord, serializersModule)
+         StructureKind.LIST -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule)
+         StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule)
          StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
       }
    }

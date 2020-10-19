@@ -8,11 +8,15 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
-class SealedClassDecoder (descriptor: SerialDescriptor, private val value: GenericRecord) : AbstractDecoder(), FieldDecoder
+class SealedClassDecoder (descriptor: SerialDescriptor,
+                          private val value: GenericRecord,
+                          override val serializersModule: SerializersModule
+) : AbstractDecoder(), FieldDecoder
 {
    private enum class DecoderState(val index : Int){
       BEFORE(0),
@@ -44,7 +48,7 @@ class SealedClassDecoder (descriptor: SerialDescriptor, private val value: Gener
    }
 
    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-      val recordDecoder = RootRecordDecoder(value)
+      val recordDecoder = RootRecordDecoder(value, serializersModule)
       return recordDecoder.decodeSerializableValue(deserializer)
    }
 

@@ -8,15 +8,17 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
-class RootRecordDecoder(private val record: GenericRecord) : AbstractDecoder() {
+class RootRecordDecoder(private val record: GenericRecord,
+                        override val serializersModule: SerializersModule) : AbstractDecoder() {
    var decoded = false
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, record)
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,record)
+         StructureKind.CLASS -> RecordDecoder(descriptor, record, serializersModule)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,record, serializersModule)
          else -> throw SerializationException("Non-class structure passed to root record decoder")
       }
    }

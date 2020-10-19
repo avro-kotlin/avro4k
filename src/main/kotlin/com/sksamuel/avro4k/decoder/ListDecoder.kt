@@ -9,13 +9,16 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
 class ListDecoder(private val schema: Schema,
-                  private val array: List<Any?>) : AbstractDecoder(), FieldDecoder {
+                  private val array: List<Any?>,
+                  override val serializersModule: SerializersModule
+) : AbstractDecoder(), FieldDecoder {
 
    init {
       require(schema.type == Schema.Type.ARRAY)
@@ -79,10 +82,10 @@ class ListDecoder(private val schema: Schema,
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord)
-         StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>)
-         StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>)
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,array[index] as GenericRecord)
+         StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule)
+         StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule)
+         StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,array[index] as GenericRecord, serializersModule)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

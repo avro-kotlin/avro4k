@@ -13,10 +13,10 @@ plugins {
    java
    id("java-library")
    kotlin("jvm") version Libs.kotlinVersion
-   id("org.jetbrains.kotlin.plugin.serialization") version "1.4.0"
+   id("org.jetbrains.kotlin.plugin.serialization") version Libs.kotlinVersion
    id("maven-publish")
    signing
-   id("org.jetbrains.dokka") version Libs.dokkaVersion
+   id("org.jetbrains.dokka") version Libs.kotlinVersion
    id("io.kotest") version Libs.kotestGradlePlugin
 }
 
@@ -37,9 +37,10 @@ group = "com.sksamuel.avro4k"
 version = Ci.publishVersion
 
 dependencies {
-   implementation(kotlin("reflect"))
    api(Libs.Avro.avro)
-   api(Libs.Kotlinx.serialization)
+   api(Libs.Kotlinx.serializationCore)
+   implementation(Libs.Kotlinx.serializationJson)
+   implementation(kotlin("reflect"))
    implementation(Libs.Xerial.snappy)
    testImplementation(Libs.Kotest.junit5)
    testImplementation(Libs.Kotest.assertionsCore)
@@ -104,7 +105,7 @@ tasks.named<Test>("test") {
 }
 
 java {
-   targetCompatibility = org.gradle.api.JavaVersion.VERSION_1_8
+   targetCompatibility = JavaVersion.VERSION_1_8
    withJavadocJar()
    withSourcesJar()
 }

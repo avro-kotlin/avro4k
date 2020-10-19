@@ -227,7 +227,7 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     */
    fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
                       record: GenericRecord): T {
-      return RootRecordDecoder(record).decodeSerializableValue(deserializer)
+      return RootRecordDecoder(record, serializersModule).decodeSerializableValue(deserializer)
    }
 
    fun <T> schema(serializer: SerializationStrategy<T>): Schema {

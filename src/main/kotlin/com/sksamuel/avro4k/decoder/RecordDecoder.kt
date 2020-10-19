@@ -12,6 +12,7 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
@@ -26,7 +27,9 @@ interface FieldDecoder : ExtendedDecoder {
 
 @ExperimentalSerializationApi
 class RecordDecoder(private val desc: SerialDescriptor,
-                    private val record: GenericRecord) : AbstractDecoder(), FieldDecoder {
+                    private val record: GenericRecord,
+                    override val serializersModule: SerializersModule,
+) : AbstractDecoder(), FieldDecoder {
 
    private var currentIndex = -1
 
@@ -37,29 +40,29 @@ class RecordDecoder(private val desc: SerialDescriptor,
       return when (descriptor.kind) {
          StructureKind.CLASS ->
             if (valueType)
-               InlineDecoder(fieldValue())
+               InlineDecoder(fieldValue(), serializersModule)
             else
-               RecordDecoder(descriptor, value as GenericRecord)
-         StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>)
+               RecordDecoder(descriptor, value as GenericRecord, serializersModule)
+         StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>, serializersModule)
          StructureKind.LIST -> {
             val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
                when (value) {
-                  is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray())
-                  is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray())
-                  is ByteArray -> ByteArrayDecoder(value)
-                  is ByteBuffer -> ByteArrayDecoder(value.array())
+                  is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray(), serializersModule)
+                  is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray(), serializersModule)
+                  is ByteArray -> ByteArrayDecoder(value, serializersModule)
+                  is ByteBuffer -> ByteArrayDecoder(value.array(), serializersModule)
                   else -> this
                }
             } else {
                when (value) {
-                  is List<*> -> ListDecoder(fieldSchema(), value)
-                  is Array<*> -> ListDecoder(fieldSchema(), value.asList())
+                  is List<*> -> ListDecoder(fieldSchema(), value, serializersModule)
+                  is Array<*> -> ListDecoder(fieldSchema(), value.asList(), serializersModule)
                   else -> this
                }
             }
             decoder
          }
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord, serializersModule)
          else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
       }
    }

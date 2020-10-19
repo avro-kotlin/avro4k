@@ -3,10 +3,12 @@ package com.sksamuel.avro4k.schema
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroDefault
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
+import org.apache.avro.AvroTypeException
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class AvroDefaultSchemaTest : FunSpec() {
    init {
       test("schema for data class with @AvroDefault should include default value as a string") {
@@ -52,9 +54,8 @@ class AvroDefaultSchemaTest : FunSpec() {
       }
 
       test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
-         shouldThrow<IllegalArgumentException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
-         shouldThrow<NotImplementedError> { Avro.default.toRecord(BarInvalidNonPrimitiveType.serializer(), BarInvalidNonPrimitiveType()) }
-         shouldThrow<IllegalArgumentException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
+         shouldThrow<AvroTypeException> { Avro.default.schema(BarInvalidArrayType.serializer()) }
+         shouldThrow<AvroTypeException> { Avro.default.toRecord(BarInvalidNonArrayType.serializer(), BarInvalidNonArrayType()) }
       }
    }
 }
@@ -136,7 +137,9 @@ data class FooElement(val value: String)
 @Serializable
 data class BarListOfElements(
    @AvroDefault("[]")
-   val defaultEmptyListOfRecords: List<FooElement>
+   val defaultEmptyListOfRecords: List<FooElement>,
+   @AvroDefault("""[{"value":"foo"}]""")
+   val defaultListWithOneValue : List<FooElement>
 )
 
 @Suppress("ArrayInDataClass")
@@ -163,12 +166,6 @@ data class BarArray(
 data class BarInvalidArrayType(
    @com.sksamuel.avro4k.AvroDefault("""["foo-bar"]""")
    val defaultFloatArrayWith2Defaults: List<Float>
-)
-
-@Serializable
-data class BarInvalidNonPrimitiveType(
-   @AvroDefault("""[{"value": "foo"}]""")
-   val defaultBarArrayWithNonWorkingDefaults: List<FooElement> = ArrayList()
 )
 
 @Serializable

@@ -19,6 +19,14 @@
             }
          },
          "default": []
-      }
-   ]
+      }, {
+         "name" : "defaultListWithOneValue",
+         "type" : {
+            "type" : "array",
+            "items" : "FooElement"
+         },
+         "default" : [ {
+            "value" : "foo"
+         } ]
+      } ]
 }

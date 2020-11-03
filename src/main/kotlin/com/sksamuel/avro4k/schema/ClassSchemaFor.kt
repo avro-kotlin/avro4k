@@ -35,8 +35,13 @@ class ClassSchemaFor(
       }
    }
 
+   companion object {
+      // map of already known schema of classes (useful for managing recursive schemas)
+      private val classSchemaBag = mutableMapOf<String, Schema>()
+   }
+
    override fun schema(): Schema {
-      // if the class is annotated with @AvroValueType then we need to encode the single field
+      // if the class is annotated with @AvroInline then we need to encode the single field
       // of that class directly.
       return when (entityAnnotations.valueType()) {
          true -> valueTypeSchema()
@@ -50,17 +55,25 @@ class ClassSchemaFor(
    }
 
    private fun dataClassSchema(): Schema {
+      val actualName = naming.name()
+
+      // return schema if already defined, even without fields
+      classSchemaBag[actualName]?.let { return it }
+
+      val record = Schema.createRecord(actualName, entityAnnotations.doc(), naming.namespace(), false)
+
+      // add partially defined schema right now, so that fields could recursively use it
+      classSchemaBag[actualName] = record
 
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
 
-      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
       record.fields = fields
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
+
       return record
    }
-
 
    private fun buildField(index: Int): Schema.Field {
 

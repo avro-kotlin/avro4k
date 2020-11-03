@@ -1,0 +1,44 @@
+{
+   "type": "record",
+   "name": "Level1",
+   "namespace": "com.sksamuel.avro4k.schema",
+   "fields": [
+      {
+         "name": "level2",
+         "type": [
+            "null",
+            {
+               "type": "record",
+               "name": "Level2",
+               "fields": [
+                  {
+                     "name": "level3",
+                     "type": {
+                        "type": "record",
+                        "name": "Level3",
+                        "fields": [
+                           {
+                              "name": "level4",
+                              "type": [
+                                 "null",
+                                 {
+                                    "type": "record",
+                                    "name": "Level4",
+                                    "fields": [
+                                       {
+                                          "name": "level1",
+                                          "type": "Level1"
+                                       }
+                                    ]
+                                 }
+                              ]
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   ]
+}

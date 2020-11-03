@@ -138,7 +138,7 @@ fun schemaFor(serializersModule: SerializersModule,
       field.get(descriptor) as SerialDescriptor
    } else descriptor
 
-   val schemaFor: SchemaFor = when (underlying) {
+   var schemaFor: SchemaFor = when (underlying) {
       is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, namingStrategy))
       else -> when (descriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
@@ -161,5 +161,7 @@ fun schemaFor(serializersModule: SerializersModule,
       }
    }
 
-   return if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
+   schemaFor = if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
+
+   return schemaFor
 }

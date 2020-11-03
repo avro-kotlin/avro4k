@@ -32,7 +32,6 @@ class RecursiveSchemaTest : FunSpec({
   }
 
   test("accept nested recursive classes") {
-
     val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_nested.json"))
     val schema = Avro.default.schema(Level1.serializer())
     schema.toString(true) shouldBe expected.toString(true)

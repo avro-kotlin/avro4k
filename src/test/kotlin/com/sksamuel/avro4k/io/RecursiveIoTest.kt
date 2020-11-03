@@ -25,7 +25,7 @@ class RecursiveIoTest : StringSpec({
       }
    }
 
-   "read / write list of nested recursive classes" {
+   "read / write nested recursive classes" {
       writeRead(Level1(Level2(Level3(Level4(Level1(null))))), Level1.serializer())
       writeRead(Level1(Level2(Level3(Level4(Level1(null))))), Level1.serializer()) {
          it["level2"].shouldBeInstanceOf<GenericRecord>()

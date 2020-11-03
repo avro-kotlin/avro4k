@@ -18,7 +18,10 @@ class BigDecimalSchemaTest : FunSpec({
       @Serializable
       data class Test(val decimal: BigDecimal)
 
+      val t = Test("1".toBigDecimal())
+      println(t::class)
       val schema = Avro.default.schema(Test.serializer())
+      println(schema)
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal.json"))
       schema shouldBe expected
    }

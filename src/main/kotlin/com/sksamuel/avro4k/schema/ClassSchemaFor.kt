@@ -18,6 +18,7 @@ import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import java.util.concurrent.ConcurrentHashMap
 
 
 @ExperimentalSerializationApi
@@ -37,7 +38,7 @@ class ClassSchemaFor(
 
    companion object {
       // map of already known schema of classes (useful for managing recursive schemas)
-      private val classSchemaBag = mutableMapOf<String, Schema>()
+      private val classSchemaBag = ConcurrentHashMap<String, Schema>()
    }
 
    override fun schema(): Schema {
@@ -55,15 +56,15 @@ class ClassSchemaFor(
    }
 
    private fun dataClassSchema(): Schema {
-      val actualName = naming.name()
+      val fullName = "${naming.namespace()}.${naming.name()}"
 
       // return schema if already defined, even without fields
-      classSchemaBag[actualName]?.let { return it }
+      classSchemaBag[fullName]?.let { return it }
 
-      val record = Schema.createRecord(actualName, entityAnnotations.doc(), naming.namespace(), false)
+      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
 
       // add partially defined schema right now, so that fields could recursively use it
-      classSchemaBag[actualName] = record
+      classSchemaBag[fullName] = record
 
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
@@ -71,6 +72,9 @@ class ClassSchemaFor(
       record.fields = fields
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
+
+      // clean up classSchemaBag
+      classSchemaBag.remove(fullName)
 
       return record
    }

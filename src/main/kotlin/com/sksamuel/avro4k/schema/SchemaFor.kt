@@ -130,7 +130,9 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
 fun schemaFor(serializersModule: SerializersModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
-              namingStrategy: NamingStrategy): SchemaFor {
+              namingStrategy: NamingStrategy,
+              resolvedSchemas: MutableMap<String, Schema> = mutableMapOf()
+): SchemaFor {
 
    val underlying = if (descriptor.javaClass.simpleName == "SerialDescriptorForNullable") {
       val field = descriptor.javaClass.getDeclaredField("original")
@@ -150,10 +152,10 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
          SerialKind.ENUM -> EnumSchemaFor(descriptor)
-         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule)
+         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule)
-            else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule)
+            else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          }
          StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, namingStrategy)
          StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, namingStrategy)

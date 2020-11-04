@@ -50,15 +50,16 @@ class ClassSchemaFor(
    }
 
    private fun dataClassSchema(): Schema {
-      val fullName = naming.qualifiedName()
+      val qualifiedName = naming.qualifiedName()
 
-      // return schema if already defined, even without fields
-      resolvedSchemas[fullName]?.let { return it }
+      // return schema if already resolved
+      resolvedSchemas[qualifiedName]?.let { return it }
 
+      // create new schema without fields
       val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
 
-      // add partially defined schema right now, so that fields could recursively use it
-      resolvedSchemas[fullName] = record
+      // add schema without fields right now, so that fields could recursively use it
+      resolvedSchemas[qualifiedName] = record
 
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
@@ -67,8 +68,8 @@ class ClassSchemaFor(
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
 
-      // clean up classSchemaBag
-      resolvedSchemas.remove(fullName)
+      // clean up resolvedSchemas
+      resolvedSchemas.remove(qualifiedName)
 
       return record
    }

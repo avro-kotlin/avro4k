@@ -235,7 +235,8 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
          serializersModule,
          serializer.descriptor,
          serializer.descriptor.annotations,
-         DefaultNamingStrategy
+         DefaultNamingStrategy,
+         mutableMapOf()
       ).schema()
    }
 

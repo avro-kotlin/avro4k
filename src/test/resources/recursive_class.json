@@ -1,0 +1,12 @@
+{
+   "type" : "record",
+   "name" : "RecursiveClass",
+   "namespace" : "com.sksamuel.avro4k.schema",
+   "fields" : [ {
+      "name" : "payload",
+      "type" : "int"
+   }, {
+      "name" : "klass",
+      "type" : [ "null", "RecursiveClass" ]
+   } ]
+}

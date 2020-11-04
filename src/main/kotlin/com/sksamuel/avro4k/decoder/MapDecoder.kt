@@ -2,6 +2,7 @@ package com.sksamuel.avro4k.decoder
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
@@ -10,6 +11,7 @@ import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
+import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
 class MapDecoder(private val desc: SerialDescriptor,
@@ -97,7 +99,10 @@ class MapDecoder(private val desc: SerialDescriptor,
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind as StructureKind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord, serializersModule)
-         StructureKind.LIST -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule)
+         StructureKind.LIST -> when(descriptor.getElementDescriptor(0).kind) {
+            PrimitiveKind.BYTE -> ByteArrayDecoder((value() as ByteBuffer).array(), serializersModule)
+            else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule)
+         }
          StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule)
          StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
       }

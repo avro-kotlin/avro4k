@@ -1,0 +1,15 @@
+{
+   "type" : "record",
+   "name" : "RecursiveMapValue",
+   "namespace" : "com.sksamuel.avro4k.schema",
+   "fields" : [ {
+      "name" : "payload",
+      "type" : "int"
+   }, {
+      "name" : "map",
+      "type" : [ "null", {
+         "type" : "map",
+         "values" : "RecursiveMapValue"
+      } ]
+   } ]
+}

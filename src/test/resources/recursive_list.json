@@ -1,0 +1,15 @@
+{
+   "type" : "record",
+   "name" : "RecursiveListItem",
+   "namespace" : "com.sksamuel.avro4k.schema",
+   "fields" : [ {
+      "name" : "payload",
+      "type" : "int"
+   }, {
+      "name" : "list",
+      "type" : [ "null", {
+         "type" : "array",
+         "items" : "RecursiveListItem"
+      } ]
+   } ]
+}

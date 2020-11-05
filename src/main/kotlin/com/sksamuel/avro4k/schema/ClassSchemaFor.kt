@@ -19,12 +19,12 @@ import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
-
 @ExperimentalSerializationApi
 class ClassSchemaFor(
    private val descriptor: SerialDescriptor,
    private val namingStrategy: NamingStrategy,
-   private val serializersModule: SerializersModule
+   private val serializersModule: SerializersModule,
+   private val resolvedSchemas: MutableMap<String, Schema>
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
@@ -36,7 +36,7 @@ class ClassSchemaFor(
    }
 
    override fun schema(): Schema {
-      // if the class is annotated with @AvroValueType then we need to encode the single field
+      // if the class is annotated with @AvroInline then we need to encode the single field
       // of that class directly.
       return when (entityAnnotations.valueType()) {
          true -> valueTypeSchema()
@@ -50,17 +50,29 @@ class ClassSchemaFor(
    }
 
    private fun dataClassSchema(): Schema {
+      val qualifiedName = naming.qualifiedName()
+
+      // return schema if already resolved
+      resolvedSchemas[qualifiedName]?.let { return it }
+
+      // create new schema without fields
+      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
+
+      // add schema without fields right now, so that fields could recursively use it
+      resolvedSchemas[qualifiedName] = record
 
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
 
-      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
       record.fields = fields
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
+
+      // clean up resolvedSchemas
+      resolvedSchemas.remove(qualifiedName)
+
       return record
    }
-
 
    private fun buildField(index: Int): Schema.Field {
 
@@ -71,9 +83,9 @@ class ClassSchemaFor(
          serializersModule,
          fieldDescriptor,
          descriptor.getElementAnnotations(index),
-         namingStrategy
-      )
-         .schema()
+         namingStrategy,
+         resolvedSchemas
+      ).schema()
 
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
       // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear

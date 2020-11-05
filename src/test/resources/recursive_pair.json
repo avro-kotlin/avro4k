@@ -1,0 +1,23 @@
+{
+   "type" : "record",
+   "name" : "RecursivePair",
+   "namespace" : "com.sksamuel.avro4k.schema",
+   "fields" : [ {
+      "name" : "payload",
+      "type" : "int"
+   }, {
+      "name" : "pair",
+      "type" : [ "null", {
+         "type" : "record",
+         "name" : "Pair",
+         "namespace" : "kotlin",
+         "fields" : [ {
+            "name" : "first",
+            "type" : "com.sksamuel.avro4k.schema.RecursivePair"
+         }, {
+            "name" : "second",
+            "type" : "com.sksamuel.avro4k.schema.RecursivePair"
+         } ]
+      } ]
+   } ]
+}

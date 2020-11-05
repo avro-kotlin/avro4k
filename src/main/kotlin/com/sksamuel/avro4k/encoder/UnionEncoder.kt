@@ -23,7 +23,7 @@ class UnionEncoder(private val unionSchema : Schema,
             val leafSchema = unionSchema.types.first{
                val schemaName = RecordNaming(it.fullName, emptyList())
                val serialName = RecordNaming(descriptor)
-               serialName.name() == schemaName.name() && serialName.namespace() == schemaName.namespace()
+               serialName == schemaName
             }
             RecordEncoder(leafSchema, serializersModule, callback)
          }

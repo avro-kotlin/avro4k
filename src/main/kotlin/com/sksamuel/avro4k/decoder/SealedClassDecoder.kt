@@ -29,7 +29,7 @@ class SealedClassDecoder (descriptor: SerialDescriptor,
    var leafDescriptor : SerialDescriptor = descriptor.leavesOfSealedClasses().firstOrNull {
       val schemaName = RecordNaming(value.schema.fullName, emptyList())
       val serialName = RecordNaming(it)
-      serialName.name() == schemaName.name() && serialName.namespace() == schemaName.namespace()
+      serialName == schemaName
    }?:throw SerializationException("Cannot find a subtype of ${descriptor.serialName} that can be used to deserialize a record of schema ${value.schema}.")
 
    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {

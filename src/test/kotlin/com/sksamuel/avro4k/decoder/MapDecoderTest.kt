@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
+import java.nio.ByteBuffer
 
 class MapDecoderTest : StringSpec({
 
@@ -33,6 +34,7 @@ class MapDecoderTest : StringSpec({
 
       Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to 152134L, "y" to 917823L))
    }
+
    "decode a Map<String, String> from utf8s/utf8s" {
       @Serializable
       data class Test(val a: Map<String, String>)
@@ -44,6 +46,43 @@ class MapDecoderTest : StringSpec({
 
       Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to "a", "y" to "b"))
    }
+
+   "decode a Map<String, ByteArray> from utf8s/ByteBuffer" {
+      @Serializable
+      data class Test(val a: Map<String, ByteArray>) {
+         override fun equals(other: Any?): Boolean{
+            if (this === other) return true
+            if (other?.javaClass != javaClass) return false
+
+            other as Test
+
+            if (a.size != other.a.size) return false
+            if (a.keys != other.a.keys) return false
+
+            return a.map {
+               it.value.contentEquals(other.a[it.key]!!)
+            }.all { it }
+         }
+
+         override fun hashCode() = a.hashCode()
+      }
+
+      val schema = Avro.default.schema(Test.serializer())
+
+      val record = GenericData.Record(schema)
+      record.put("a", mapOf(
+         Utf8("a") to ByteBuffer.wrap("x".toByteArray()),
+         Utf8("b") to ByteBuffer.wrap("y".toByteArray()),
+         Utf8("c") to ByteBuffer.wrap("z".toByteArray())
+      ))
+
+      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf(
+         "a" to "x".toByteArray(),
+         "b" to "y".toByteArray(),
+         "c" to "z".toByteArray()
+      ))
+   }
+
    "decode a Map of records" {
 
       @Serializable

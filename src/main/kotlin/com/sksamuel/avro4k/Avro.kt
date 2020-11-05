@@ -259,8 +259,8 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
    fun schema(descriptor : SerialDescriptor) : Schema {
       return schemaFor(
          serializersModule,
-         serializer.descriptor,
-         serializer.descriptor.annotations,
+         descriptor,
+         descriptor.annotations,
          DefaultNamingStrategy,
          mutableMapOf()
       ).schema()

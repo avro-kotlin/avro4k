@@ -5,7 +5,11 @@ import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -39,7 +43,7 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
       val naming = RecordNaming(descriptor)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
-      val enumSchema = SchemaBuilder.enumeration(naming.name()).doc(entityAnnotations.doc()).namespace(naming.namespace()).symbols(*symbols.toTypedArray())
+      val enumSchema = SchemaBuilder.enumeration(naming.name).doc(entityAnnotations.doc()).namespace(naming.namespace).symbols(*symbols.toTypedArray())
       entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
       return enumSchema
    }
@@ -49,7 +53,7 @@ class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
 class PairSchemaFor(private val descriptor: SerialDescriptor,
                     private val namingStrategy: NamingStrategy,
                     private val serializersModule: SerializersModule,
-                    private val resolvedSchemas: MutableMap<String, Schema>
+                    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    override fun schema(): Schema {
@@ -78,7 +82,7 @@ class PairSchemaFor(private val descriptor: SerialDescriptor,
 class ListSchemaFor(private val descriptor: SerialDescriptor,
                     private val serializersModule: SerializersModule,
                     private val namingStrategy: NamingStrategy,
-                    private val resolvedSchemas: MutableMap<String, Schema>
+                    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    override fun schema(): Schema {
@@ -102,7 +106,7 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
 class MapSchemaFor(private val descriptor: SerialDescriptor,
                    private val serializersModule: SerializersModule,
                    private val namingStrategy: NamingStrategy,
-                   private val resolvedSchemas: MutableMap<String, Schema>
+                   private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    override fun schema(): Schema {
@@ -145,7 +149,7 @@ fun schemaFor(serializersModule: SerializersModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
               namingStrategy: NamingStrategy,
-              resolvedSchemas: MutableMap<String, Schema>
+              resolvedSchemas: MutableMap<RecordNaming, Schema>
 ): SchemaFor {
 
    val underlying = if (descriptor.javaClass.simpleName == "SerialDescriptorForNullable") {

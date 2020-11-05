@@ -24,7 +24,7 @@ class ClassSchemaFor(
    private val descriptor: SerialDescriptor,
    private val namingStrategy: NamingStrategy,
    private val serializersModule: SerializersModule,
-   private val resolvedSchemas: MutableMap<String, Schema>
+   private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
@@ -50,16 +50,14 @@ class ClassSchemaFor(
    }
 
    private fun dataClassSchema(): Schema {
-      val qualifiedName = naming.qualifiedName()
-
-      // return schema if already resolved
-      resolvedSchemas[qualifiedName]?.let { return it }
+      // return schema if already resolved - recursive circuit breaker
+      resolvedSchemas[naming]?.let { return it }
 
       // create new schema without fields
-      val record = Schema.createRecord(naming.name(), entityAnnotations.doc(), naming.namespace(), false)
+      val record = Schema.createRecord(naming.name, entityAnnotations.doc(), naming.namespace, false)
 
       // add schema without fields right now, so that fields could recursively use it
-      resolvedSchemas[qualifiedName] = record
+      resolvedSchemas[naming] = record
 
       val fields = (0 until descriptor.elementsCount)
          .map { index -> buildField(index) }
@@ -69,7 +67,7 @@ class ClassSchemaFor(
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
 
       // clean up resolvedSchemas
-      resolvedSchemas.remove(qualifiedName)
+      resolvedSchemas.remove(naming)
 
       return record
    }
@@ -95,11 +93,11 @@ class ClassSchemaFor(
             val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
             val n = RecordNaming(fieldDescriptor)
             when (val b = fieldAnnos.fixed()) {
-               null -> 0 to n.name()
-               else -> b to n.name()
+               null -> 0 to n.name
+               else -> b to n.name
             }
          }
-         else -> a to fieldNaming.name()
+         else -> a to fieldNaming.name
       }
 
       val schemaOrFixed = when (size) {
@@ -107,7 +105,7 @@ class ClassSchemaFor(
          else ->
             SchemaBuilder.fixed(name)
                .doc(annos.doc())
-               .namespace(annos.namespace() ?: naming.namespace())
+               .namespace(annos.namespace() ?: naming.namespace)
                .size(size)
       }
 
@@ -127,7 +125,7 @@ class ClassSchemaFor(
          }
       }
 
-      val field = Schema.Field(fieldNaming.name(), schemaWithResolvedNamespace, annos.doc(), default)
+      val field = Schema.Field(fieldNaming.name, schemaWithResolvedNamespace, annos.doc(), default)
       val props = this.descriptor.getElementAnnotations(index).filterIsInstance<AvroProp>()
       props.forEach { field.addProp(it.key, it.value) }
       annos.aliases().forEach { field.addAlias(it) }

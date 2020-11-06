@@ -23,23 +23,41 @@ class SealedClassIoTest : StringSpec({
       }
    }
 
+   "read / write sealed class using object" {
+
+      @Serializable
+      data class SealedClassTest(val a: Operation)
+
+      writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer())
+      writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer()) {
+         val operation = it["a"] as GenericRecord
+         operation.schema shouldBe Avro.default.schema(Operation.Nullary.serializer())
+      }
+   }
+
    "read / write list of sealed class values" {
 
       @Serializable
       data class SealedClassTest(val a: List<Operation>)
 
-      writeRead(SealedClassTest(listOf(Operation.Unary.Negate(1),Operation.Binary.Add(3,4))), SealedClassTest.serializer())
-      writeRead(SealedClassTest(listOf(Operation.Unary.Negate(1),Operation.Binary.Add(3,4))), SealedClassTest.serializer()) {
+      val test = SealedClassTest(listOf(
+         Operation.Nullary,
+         Operation.Unary.Negate(1),
+         Operation.Binary.Add(3,4)
+      ))
+      writeRead(test, SealedClassTest.serializer())
+      writeRead(test, SealedClassTest.serializer()) {
          it["a"].shouldBeInstanceOf<List<GenericRecord>>()
          @Suppress("UNCHECKED_CAST")
          val operations = it["a"] as List<GenericRecord>
-         operations.size shouldBe 2
-         operations[0].schema shouldBe Avro.default.schema(Operation.Unary.Negate.serializer())
-         operations[1].schema shouldBe Avro.default.schema(Operation.Binary.Add.serializer())
+         operations.size shouldBe 3
+         operations[0].schema shouldBe Avro.default.schema(Operation.Nullary.serializer())
+         operations[1].schema shouldBe Avro.default.schema(Operation.Unary.Negate.serializer())
+         operations[2].schema shouldBe Avro.default.schema(Operation.Binary.Add.serializer())
 
-         operations[0]["value"] shouldBe 1
-         operations[1]["left"] shouldBe 3
-         operations[1]["right"] shouldBe 4
+         operations[1]["value"] shouldBe 1
+         operations[2]["left"] shouldBe 3
+         operations[2]["right"] shouldBe 4
       }
    }
 
@@ -49,6 +67,7 @@ class SealedClassIoTest : StringSpec({
       data class SealedClassTest(val a: Operation?)
 
       writeRead(SealedClassTest(null), SealedClassTest.serializer())
+      writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer())
       writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer())
       writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer()) {
          val operation = it["a"] as GenericRecord
@@ -56,7 +75,9 @@ class SealedClassIoTest : StringSpec({
          operation["value"] shouldBe 1
       }
    }
-   "read / wirte sealed class directly"{
+
+   "read / write sealed class directly"{
+      writeRead(Operation.Nullary, Operation.serializer())
       writeRead(Operation.Unary.Negate(1), Operation.serializer())
       writeRead(Operation.Unary.Negate(1), Operation.serializer()) {operation ->
          operation.schema shouldBe Avro.default.schema(Operation.Unary.Negate.serializer())

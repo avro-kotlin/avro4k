@@ -18,7 +18,7 @@ class UnionEncoder(private val unionSchema : Schema,
 
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       return when (descriptor.kind) {
-         is StructureKind.CLASS -> {
+         is StructureKind.CLASS, is StructureKind.OBJECT -> {
             //Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
             val leafSchema = unionSchema.types.first{
                val schemaName = RecordNaming(it.fullName, emptyList())

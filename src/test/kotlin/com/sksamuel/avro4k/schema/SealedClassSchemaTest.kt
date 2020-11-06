@@ -10,11 +10,15 @@ import org.apache.avro.Schema
 @Serializable
 sealed class Operation {
    @Serializable
+   object Nullary : Operation()
+
+   @Serializable
    sealed class Unary() : Operation(){
       abstract val value : Int
       @Serializable
       data class Negate(override val value:Int) : Unary()
    }
+
    @Serializable
    sealed class Binary() : Operation(){
       abstract val left : Int

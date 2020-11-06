@@ -1,6 +1,12 @@
 [
    {
       "type":"record",
+      "name":"Nullary",
+      "namespace":"com.sksamuel.avro4k.schema.Operation",
+      "fields":[]
+   },
+   {
+      "type":"record",
       "name":"Negate",
       "namespace":"com.sksamuel.avro4k.schema.Operation.Unary",
       "fields":[
@@ -39,11 +45,5 @@
             "type":"int"
          }
       ]
-   },
-   {
-      "type":"record",
-      "name":"Nullary",
-      "namespace":"com.sksamuel.avro4k.schema.Operation",
-      "fields":[]
    }
 ]

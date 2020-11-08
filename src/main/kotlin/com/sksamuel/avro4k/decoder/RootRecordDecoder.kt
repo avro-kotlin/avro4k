@@ -17,7 +17,7 @@ class RootRecordDecoder(private val record: GenericRecord,
    var decoded = false
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, record, serializersModule)
+         StructureKind.CLASS, StructureKind.OBJECT -> RecordDecoder(descriptor, record, serializersModule)
          PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,record, serializersModule)
          else -> throw SerializationException("Non-class structure passed to root record decoder")
       }

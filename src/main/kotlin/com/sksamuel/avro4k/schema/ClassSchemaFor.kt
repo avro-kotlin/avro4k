@@ -66,9 +66,6 @@ class ClassSchemaFor(
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
 
-      // clean up resolvedSchemas
-      resolvedSchemas.remove(naming)
-
       return record
    }
 

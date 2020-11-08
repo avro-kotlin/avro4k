@@ -49,11 +49,4 @@ data class RecordNaming internal constructor(
          descriptor.getElementAnnotations(index)
       )
    }
-
-   /**
-    * The qualified name for this type with any annotation applied.
-    * It should be unique per schema as it is used to retrieve
-    * already resolved schemas in recursive cases
-    */
-   val qualifiedName: String = "${namespace}.${this.name}"
 }

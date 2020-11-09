@@ -8,7 +8,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.AvroTypeException
-import org.apache.avro.Conversions
 import java.math.BigDecimal
 
 @Suppress("BlockingMethodInNonBlockingContext")
@@ -34,7 +33,6 @@ class AvroDefaultSchemaTest : FunSpec() {
 
       test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_big_decimal.json"))
-         val conversion = Conversions.DecimalConversion()
          val schema = Avro.default.schema(BarDecimal.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }

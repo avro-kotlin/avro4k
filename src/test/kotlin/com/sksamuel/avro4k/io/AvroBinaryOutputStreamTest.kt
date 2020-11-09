@@ -23,7 +23,7 @@ class AvroBinaryOutputStreamTest : StringSpec({
 
       val baos = ByteArrayOutputStream()
       Avro.default.openOutputStream(Composer.serializer()) {
-         format = AvroFormat.BinaryFormat
+         encodeFormat = AvroEncodeFormat.Binary
       }.to(baos).write(ennio).write(hans).close()
 
       // the schema should not be written in a binary stream

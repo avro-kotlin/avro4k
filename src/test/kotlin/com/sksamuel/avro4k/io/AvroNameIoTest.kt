@@ -2,13 +2,14 @@ package com.sksamuel.avro4k.io
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroName
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
-import java.io.File
+import org.apache.avro.generic.GenericRecord
+import java.nio.file.Files
 
 class AvroNameIoTest : StringSpec({
 
@@ -28,8 +29,9 @@ class AvroNameIoTest : StringSpec({
          .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
          .endRecord()
 
-      AvroInputStream.data(Composer.serializer(), schema).from(bytes).nextOrThrow() shouldBe ennio
-
+      Avro.default.openInputStream(Composer.serializer()){
+         decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
+      }.from(bytes).nextOrThrow() shouldBe ennio
    }
 
    "using @AvroName to read a record back in" {
@@ -43,22 +45,26 @@ class AvroNameIoTest : StringSpec({
       record.put("fullname", "Ennio Morricone")
       record.put("status", "Maestro")
 
-      val file = File("avroname.avro")
+      val file = Files.createTempFile("avroname.avro","")
 
-      val output = AvroOutputStream.binary(schema1).to(file)
-      output.write(record)
-      output.close()
+      val outputStream = Files.newOutputStream(file)
+      AvroBinaryOutputStream<GenericRecord>(outputStream, {it}, schema1).write(record).close()
 
       @Serializable
       data class Composer(@AvroName("fullname") val name: String, val status: String)
 
       val schema2 = Avro.default.schema(Composer.serializer())
-      val input = AvroInputStream.binary(Composer.serializer(), schema2).from(file)
+      val input = Avro.default.openInputStream(Composer.serializer()) {
+         decodeFormat = AvroDecodeFormat.Binary(
+            writerSchema = schema1,
+            readerSchema = schema2
+         )
+      }.from(file)
 
       input.next() shouldBe Composer("Ennio Morricone", "Maestro")
       input.close()
 
-      file.delete()
+      Files.delete(file)
    }
 
 })

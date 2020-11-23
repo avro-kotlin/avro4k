@@ -1,14 +1,14 @@
 package com.github.avrokotlin.avro4k.io
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.schema.Level1
-import com.sksamuel.avro4k.schema.Level2
-import com.sksamuel.avro4k.schema.Level3
-import com.sksamuel.avro4k.schema.Level4
-import com.sksamuel.avro4k.schema.RecursiveClass
-import com.sksamuel.avro4k.schema.RecursiveListItem
-import com.sksamuel.avro4k.schema.RecursiveMapValue
-import com.sksamuel.avro4k.schema.RecursivePair
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.schema.Level1
+import com.github.avrokotlin.avro4k.schema.Level2
+import com.github.avrokotlin.avro4k.schema.Level3
+import com.github.avrokotlin.avro4k.schema.Level4
+import com.github.avrokotlin.avro4k.schema.RecursiveClass
+import com.github.avrokotlin.avro4k.schema.RecursiveListItem
+import com.github.avrokotlin.avro4k.schema.RecursiveMapValue
+import com.github.avrokotlin.avro4k.schema.RecursivePair
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.types.shouldBeInstanceOf

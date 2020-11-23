@@ -2,8 +2,8 @@
 
 package com.github.avrokotlin.avro4k.schema
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.serializer.URLSerializer
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable

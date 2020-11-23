@@ -1,7 +1,7 @@
 {
    "type":"record",
    "name":"ReferencingSealedClass",
-   "namespace":"com.sksamuel.avro4k.schema",
+   "namespace":"com.github.avrokotlin.avro4k.schema",
    "fields":[
       {
          "name":"notNullable",
@@ -9,13 +9,13 @@
             {
                "type":"record",
                "name":"Nullary",
-               "namespace":"com.sksamuel.avro4k.schema.Operation",
+               "namespace":"com.github.avrokotlin.avro4k.schema.Operation",
                "fields":[]
             },
             {
                "type":"record",
                "name":"Negate",
-               "namespace":"com.sksamuel.avro4k.schema.Operation.Unary",
+               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Unary",
                "fields":[
                   {
                      "name":"value",
@@ -26,7 +26,7 @@
             {
                "type":"record",
                "name":"Add",
-               "namespace":"com.sksamuel.avro4k.schema.Operation.Binary",
+               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
                "fields":[
                   {
                      "name":"left",
@@ -41,7 +41,7 @@
             {
                "type":"record",
                "name":"Substract",
-               "namespace":"com.sksamuel.avro4k.schema.Operation.Binary",
+               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
                "fields":[
                   {
                      "name":"left",

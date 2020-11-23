@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.FieldNaming
-import com.sksamuel.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.FieldNaming
+import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -35,7 +35,7 @@ class RecordDecoder(private val desc: SerialDescriptor,
 
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-      val valueType = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.annotations).valueType()
+      val valueType = AnnotationExtractor(descriptor.annotations).valueType()
       val value = fieldValue()
       return when (descriptor.kind) {
          StructureKind.CLASS ->

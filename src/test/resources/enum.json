@@ -1,14 +1,14 @@
 {
   "type": "record",
   "name": "EnumTest",
-  "namespace": "com.sksamuel.avro4k.schema.EnumSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
   "fields": [
     {
       "name": "wine",
       "type": {
         "type": "enum",
         "name": "Wine",
-        "namespace": "com.sksamuel.avro4k.schema",
+        "namespace": "com.github.avrokotlin.avro4k.schema",
         "symbols": [
           "Malbec",
           "Shiraz",

@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroDefault
-import com.sksamuel.avro4k.serializer.BigDecimalSerializer
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -187,7 +187,7 @@ data class BarArray(
 
 @Serializable
 data class BarInvalidArrayType(
-   @com.sksamuel.avro4k.AvroDefault("""["foo-bar"]""")
+   @com.github.avrokotlin.avro4k.AvroDefault("""["foo-bar"]""")
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 

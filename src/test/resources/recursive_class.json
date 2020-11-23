@@ -1,7 +1,7 @@
 {
    "type" : "record",
    "name" : "RecursiveClass",
-   "namespace" : "com.sksamuel.avro4k.schema",
+   "namespace" : "com.github.avrokotlin.avro4k.schema",
    "fields" : [ {
       "name" : "payload",
       "type" : "int"

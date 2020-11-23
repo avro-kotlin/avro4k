@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroInline
-import com.sksamuel.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroInline
+import com.github.avrokotlin.avro4k.ListRecord
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable

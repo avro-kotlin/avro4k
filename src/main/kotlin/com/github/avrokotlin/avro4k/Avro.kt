@@ -1,15 +1,15 @@
 package com.github.avrokotlin.avro4k
 
-import com.sksamuel.avro4k.decoder.RootRecordDecoder
-import com.sksamuel.avro4k.encoder.RootRecordEncoder
-import com.sksamuel.avro4k.io.AvroDecodeFormat
-import com.sksamuel.avro4k.io.AvroEncodeFormat
-import com.sksamuel.avro4k.io.AvroFormat
-import com.sksamuel.avro4k.io.AvroInputStream
-import com.sksamuel.avro4k.io.AvroOutputStream
-import com.sksamuel.avro4k.schema.DefaultNamingStrategy
-import com.sksamuel.avro4k.schema.schemaFor
-import com.sksamuel.avro4k.serializer.UUIDSerializer
+import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
+import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
+import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
+import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
+import com.github.avrokotlin.avro4k.io.AvroFormat
+import com.github.avrokotlin.avro4k.io.AvroInputStream
+import com.github.avrokotlin.avro4k.io.AvroOutputStream
+import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
+import com.github.avrokotlin.avro4k.schema.schemaFor
+import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -146,7 +146,7 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
       /**
        * Use this constant if you want to explicitly set a default value of a field to avro null
        */
-      const val NULL = "com.sksamuel.avro4k.Avro.AVRO_NULL_DEFAULT"
+      const val NULL = "com.github.avrokotlin.avro4k.Avro.AVRO_NULL_DEFAULT"
    }
 
    /**

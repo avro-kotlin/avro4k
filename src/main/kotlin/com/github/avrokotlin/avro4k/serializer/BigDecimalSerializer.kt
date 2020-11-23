@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.decoder.ExtendedDecoder
-import com.sksamuel.avro4k.encoder.ExtendedEncoder
-import com.sksamuel.avro4k.schema.AvroDescriptor
-import com.sksamuel.avro4k.schema.NamingStrategy
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
+import com.github.avrokotlin.avro4k.schema.AvroDescriptor
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
@@ -29,7 +29,7 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
       override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().bytesType()
-         val (scale, precision) = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
+         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
          return LogicalTypes.decimal(precision, scale).addToSchema(schema)
       }
    }

@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Foo",
-  "namespace": "com.sksamuel.avro4k.schema.AvroNameSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroNameSchemaTest",
   "fields": [
     {
       "name": "foo",

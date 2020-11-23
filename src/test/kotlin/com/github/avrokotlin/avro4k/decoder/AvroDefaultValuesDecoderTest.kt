@@ -1,11 +1,11 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroDefault
-import com.sksamuel.avro4k.AvroName
-import com.sksamuel.avro4k.ScalePrecision
-import com.sksamuel.avro4k.io.AvroDecodeFormat
-import com.sksamuel.avro4k.serializer.BigDecimalSerializer
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.AvroName
+import com.github.avrokotlin.avro4k.ScalePrecision
+import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
+import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly

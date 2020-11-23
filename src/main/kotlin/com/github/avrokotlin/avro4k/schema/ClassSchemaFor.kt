@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroProp
-import com.sksamuel.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
@@ -27,7 +27,7 @@ class ClassSchemaFor(
    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
-   private val entityAnnotations = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.annotations)
+   private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
    private val naming = RecordNaming(descriptor)
    private val json by lazy {
       Json{
@@ -72,7 +72,7 @@ class ClassSchemaFor(
    private fun buildField(index: Int): Schema.Field {
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
-      val annos = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.getElementAnnotations(
+      val annos = AnnotationExtractor(descriptor.getElementAnnotations(
          index))
       val fieldNaming = RecordNaming(descriptor, index)
       val schema = schemaFor(
@@ -88,7 +88,7 @@ class ClassSchemaFor(
       // in addition, someone could annotate the target type, so we need to check into that too
       val (size, name) = when (val a = annos.fixed()) {
          null -> {
-            val fieldAnnos = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(fieldDescriptor.annotations)
+            val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
             val n = RecordNaming(fieldDescriptor)
             when (val b = fieldAnnos.fixed()) {
                null -> 0 to n.name

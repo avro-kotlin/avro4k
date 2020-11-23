@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Test",
-  "namespace": "com.sksamuel.avro4k.schema.ByteArraySchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.ByteArraySchemaTest",
   "fields": [
     {
       "name": "z",

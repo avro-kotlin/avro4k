@@ -1,7 +1,7 @@
 {
    "type": "record",
    "name": "Level1",
-   "namespace": "com.sksamuel.avro4k.schema",
+   "namespace": "com.github.avrokotlin.avro4k.schema",
    "fields": [
       {
          "name": "level2",

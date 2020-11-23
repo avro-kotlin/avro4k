@@ -2,8 +2,8 @@
 
 package com.github.avrokotlin.avro4k.decoder
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.serializer.UUIDSerializer
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable

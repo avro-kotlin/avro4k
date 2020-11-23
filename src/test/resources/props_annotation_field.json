@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "AnnotatedProperties",
-  "namespace": "com.sksamuel.avro4k.schema.AvroPropSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroPropSchemaTest",
   "fields": [
     {
       "name": "str",

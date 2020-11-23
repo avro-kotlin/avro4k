@@ -6,7 +6,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 @ExperimentalSerializationApi
 class FieldNaming(private val name: String, annotations: List<Annotation>) {
 
-   private val extractor = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(annotations)
+   private val extractor = AnnotationExtractor(annotations)
 
    companion object {
       operator fun invoke(desc: SerialDescriptor, index: Int): FieldNaming = FieldNaming(

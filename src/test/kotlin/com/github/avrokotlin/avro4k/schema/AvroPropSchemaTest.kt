@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroProp
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable

@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.ListRecord
-import com.sksamuel.avro4k.Record
-import com.sksamuel.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.Record
+import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -85,7 +85,7 @@ class RecordEncoder(private val schema: Schema,
 
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       // if we have a value type, then we don't want to begin a new structure
-      return if (_root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.annotations).valueType())
+      return if (AnnotationExtractor(descriptor.annotations).valueType())
          this
       else
          super<StructureEncoder>.beginStructure(descriptor)

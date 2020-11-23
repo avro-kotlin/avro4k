@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.sksamuel.avro4k.Record
-import com.sksamuel.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.Record
+import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor

@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.schema.Operation.Binary
-import com.sksamuel.avro4k.schema.ReferencingNullableSealedClass
-import com.sksamuel.avro4k.schema.ReferencingSealedClass
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.schema.Operation.Binary
+import com.github.avrokotlin.avro4k.schema.ReferencingNullableSealedClass
+import com.github.avrokotlin.avro4k.schema.ReferencingSealedClass
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
 import org.apache.avro.generic.GenericData

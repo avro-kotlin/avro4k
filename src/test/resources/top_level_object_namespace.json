@@ -1,7 +1,7 @@
 {
    "type": "record",
    "name": "Inner",
-   "namespace": "com.sksamuel.avro4k.schema.Outer",
+   "namespace": "com.github.avrokotlin.avro4k.schema.Outer",
    "fields": [
       {
          "name": "a",

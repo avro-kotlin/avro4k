@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroName
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroName
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable

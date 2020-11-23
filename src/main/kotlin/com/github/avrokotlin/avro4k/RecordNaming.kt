@@ -31,7 +31,7 @@ data class RecordNaming internal constructor(
            val className = name
                .replace(".<init>", "")
                .replace(".<anonymous>", "")
-           val annotationExtractor = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(annotations)
+           val annotationExtractor = AnnotationExtractor(annotations)
            val namespace = annotationExtractor.namespace() ?: className.split('.').dropLast(1).joinToString(".")
            val avroName = annotationExtractor.name() ?: className.split('.').last()
            return RecordNaming(

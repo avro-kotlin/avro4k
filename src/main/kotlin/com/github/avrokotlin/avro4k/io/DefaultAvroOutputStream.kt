@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.io
 
-import com.sksamuel.avro4k.Avro
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import org.apache.avro.Schema

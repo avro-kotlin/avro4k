@@ -6,26 +6,26 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 class AnnotationExtractor(private val annotations: List<Annotation>) {
 
    companion object {
-      fun entity(descriptor: SerialDescriptor) = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(
+      fun entity(descriptor: SerialDescriptor) = AnnotationExtractor(
          descriptor.annotations)
 
-      operator fun invoke(descriptor: SerialDescriptor, index: Int): _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor =
-         _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.getElementAnnotations(index))
+      operator fun invoke(descriptor: SerialDescriptor, index: Int): AnnotationExtractor =
+         AnnotationExtractor(descriptor.getElementAnnotations(index))
    }
 
-   fun fixed(): Int? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroFixed>().firstOrNull()?.size
-   fun scalePrecision(): Pair<Int, Int>? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.ScalePrecision>().firstOrNull()?.let { it.scale to it.precision }
-   fun namespace(): String? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroNamespace>().firstOrNull()?.value
-   fun name(): String? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroName>().firstOrNull()?.value
-   fun valueType(): Boolean = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroInline>().isNotEmpty()
-   fun doc(): String? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroDoc>().firstOrNull()?.value
+   fun fixed(): Int? = annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size
+   fun scalePrecision(): Pair<Int, Int>? = annotations.filterIsInstance<ScalePrecision>().firstOrNull()?.let { it.scale to it.precision }
+   fun namespace(): String? = annotations.filterIsInstance<AvroNamespace>().firstOrNull()?.value
+   fun name(): String? = annotations.filterIsInstance<AvroName>().firstOrNull()?.value
+   fun valueType(): Boolean = annotations.filterIsInstance<AvroInline>().isNotEmpty()
+   fun doc(): String? = annotations.filterIsInstance<AvroDoc>().firstOrNull()?.value
    fun aliases(): List<String> =
-      if(annotations.any { it is _root_ide_package_.com.github.avrokotlin.avro4k.AvroAlias }){
-         annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroAlias>().map { it.value }
+      if(annotations.any { it is AvroAlias }){
+         annotations.filterIsInstance<AvroAlias>().map { it.value }
       }else{
-         annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroAliases>().flatMap { it.value.toList() }
+         annotations.filterIsInstance<AvroAliases>().flatMap { it.value.toList() }
       }
-   fun props(): List<Pair<String, String>> = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroProp>().map { it.key to it.value }
-   fun default(): String? = annotations.filterIsInstance<_root_ide_package_.com.github.avrokotlin.avro4k.AvroDefault>().firstOrNull()?.value
+   fun props(): List<Pair<String, String>> = annotations.filterIsInstance<AvroProp>().map { it.key to it.value }
+   fun default(): String? = annotations.filterIsInstance<AvroDefault>().firstOrNull()?.value
 }
 

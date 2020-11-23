@@ -8,9 +8,9 @@
 
 package com.github.avrokotlin.avro4k.encoder
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.ListRecord
-import com.sksamuel.avro4k.serializer.*
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.serializer.*
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable

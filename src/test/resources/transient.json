@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "TransientFoo",
-  "namespace": "com.sksamuel.avro4k.schema.TransientSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.TransientSchemaTest",
   "fields": [
     {
       "name": "a",

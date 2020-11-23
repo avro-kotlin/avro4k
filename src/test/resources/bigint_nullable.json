@@ -1,7 +1,7 @@
 {
    "type": "record",
    "name": "Test",
-   "namespace": "com.sksamuel.avro4k.schema.BigIntegerSchemaTest",
+   "namespace": "com.github.avrokotlin.avro4k.schema.BigIntegerSchemaTest",
    "fields": [
       {
          "name": "b",

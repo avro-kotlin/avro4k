@@ -1,7 +1,7 @@
 {
    "type": "record",
    "name": "NamespaceTestFoo",
-   "namespace": "com.sksamuel.avro4k.schema.NamespaceSchemaTest",
+   "namespace": "com.github.avrokotlin.avro4k.schema.NamespaceSchemaTest",
    "fields": [
       {
          "name": "inner",

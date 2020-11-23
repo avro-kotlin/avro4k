@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.sksamuel.avro4k.decoder.ExtendedDecoder
-import com.sksamuel.avro4k.encoder.ExtendedEncoder
-import com.sksamuel.avro4k.schema.AvroDescriptor
-import com.sksamuel.avro4k.schema.NamingStrategy
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
+import com.github.avrokotlin.avro4k.schema.AvroDescriptor
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind

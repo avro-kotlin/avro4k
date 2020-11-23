@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -41,7 +41,7 @@ interface SchemaFor {
 class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
-      val entityAnnotations = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(descriptor.annotations)
+      val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
       val enumSchema = SchemaBuilder.enumeration(naming.name).doc(entityAnnotations.doc()).namespace(naming.namespace).symbols(*symbols.toTypedArray())
       entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
@@ -134,7 +134,7 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
       //The default value can only be of the first type in the union definition.
       //Therefore we have to check the default value in order to decide the order of types within the union.
       //If no default is set, or if the default value is of type "null", nulls will be first.
-      val default = _root_ide_package_.com.github.avrokotlin.avro4k.AnnotationExtractor(annotations).default()
+      val default = AnnotationExtractor(annotations).default()
       default == null || default == Avro.NULL
    }
    override fun schema(): Schema {

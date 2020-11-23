@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "NestedSet",
-  "namespace": "com.sksamuel.avro4k.schema.ArraySchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.ArraySchemaTest",
   "fields": [
     {
       "name": "set",

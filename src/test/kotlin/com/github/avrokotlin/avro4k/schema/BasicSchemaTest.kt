@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.io.AvroDecodeFormat
-import com.sksamuel.avro4k.io.AvroEncodeFormat
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
+import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable

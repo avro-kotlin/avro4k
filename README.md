@@ -2,8 +2,8 @@
 [Avro](https://avro.apache.org/) format for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). This library is a port of my Scala Avro generator [avro4s](https://github.com/sksamuel/avro4s).
 
 ![build-master](https://github.com/avro-kotlin/avro4k/workflows/build-master/badge.svg)
-[<img src="https://img.shields.io/maven-central/v/com.sksamuel.avro4k/avro4k-core.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
-[<img src="https://img.shields.io/nexus/s/https/oss.sonatype.org/com.sksamuel.avro4k/avro4k-core.svg?label=latest%20snapshot&style=plastic"/>](https://oss.sonatype.org/content/repositories/snapshots/com/sksamuel/avro4k/avro4k-core/)
+[<img src="https://img.shields.io/maven-central/v/com.github.avrokotlin.avro4k/avro4k-core.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
+[<img src="https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.avrokotlin.avro4k/avro4k-core.svg?label=latest%20snapshot&style=plastic"/>](https://oss.sonatype.org/content/repositories/snapshots/com/sksamuel/avro4k/avro4k-core/)
 
 
 ## Introduction
@@ -467,8 +467,8 @@ If a type can be mapped in multiple ways, it is listed more than once.
 In order to use logical types, annotate the value with an appropriate Serializer:
 
 ```kotlin
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.serializer.InstantSerializer
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -478,7 +478,7 @@ data class WithInstant(
 )
 ```
 
-All the logical type serializers are available in the package `com.sksamuel.avro4k.serializer`. You can find additional serializers for [arrow](https://arrow-kt.io/) types in the
+All the logical type serializers are available in the package `com.github.avrokotlin.avro4k.serializer`. You can find additional serializers for [arrow](https://arrow-kt.io/) types in the
 [avro4k-arrow](https://github.com/avro-kotlin/avro4k-arrow) project.
 
 ## Input / Output
@@ -571,12 +571,12 @@ Pizza(name=hawaiian, ingredients=[Ingredient(name=ham, sugar=1.5, fat=5.6), Ingr
 ### Using avro4k in your project
 
 Gradle
-```compile 'com.sksamuel.avro4k:avro4k-core:xxx'```
+```compile 'com.github.avrokotlin.avro4k:avro4k-core:xxx'```
 
 Maven
 ```xml
 <dependency>
-    <groupId>com.sksamuel.avro4k</groupId>
+    <groupId>com.github.avrokotlin.avro4k</groupId>
     <artifactId>avro4k-core</artifactId>
     <version>xxx</version>
 </dependency>

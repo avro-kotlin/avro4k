@@ -1,7 +1,7 @@
 {
    "type" : "record",
    "name" : "RecursivePair",
-   "namespace" : "com.sksamuel.avro4k.schema",
+   "namespace" : "com.github.avrokotlin.avro4k.schema",
    "fields" : [ {
       "name" : "payload",
       "type" : "int"
@@ -13,10 +13,10 @@
          "namespace" : "kotlin",
          "fields" : [ {
             "name" : "first",
-            "type" : "com.sksamuel.avro4k.schema.RecursivePair"
+            "type" : "com.github.avrokotlin.avro4k.schema.RecursivePair"
          }, {
             "name" : "second",
-            "type" : "com.sksamuel.avro4k.schema.RecursivePair"
+            "type" : "com.github.avrokotlin.avro4k.schema.RecursivePair"
          } ]
       } ]
    } ]

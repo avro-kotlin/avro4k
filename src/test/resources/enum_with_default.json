@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "EnumWithDocuTest",
-  "namespace": "com.sksamuel.avro4k.schema.EnumSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
   "fields": [
     {
       "name": "value",
@@ -10,7 +10,7 @@
         "name": "Suit",
         "aliases" : ["MySuit"],
         "doc" : "documentation",
-        "namespace": "com.sksamuel.avro4k.schema",
+        "namespace": "com.github.avrokotlin.avro4k.schema",
         "symbols": [
           "SPADES",
           "HEARTS",

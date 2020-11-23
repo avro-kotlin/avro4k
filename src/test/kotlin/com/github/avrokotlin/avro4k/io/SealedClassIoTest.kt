@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.schema.Operation
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.schema.Operation
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.types.shouldBeInstanceOf

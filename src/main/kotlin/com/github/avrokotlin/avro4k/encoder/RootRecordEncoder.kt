@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.sksamuel.avro4k.Record
+import com.github.avrokotlin.avro4k.Record
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind

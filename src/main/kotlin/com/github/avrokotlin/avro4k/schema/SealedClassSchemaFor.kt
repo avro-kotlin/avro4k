@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.sksamuel.avro4k.RecordNaming
-import com.sksamuel.avro4k.leavesOfSealedClasses
+import com.github.avrokotlin.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.leavesOfSealedClasses
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule

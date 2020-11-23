@@ -1,7 +1,7 @@
 {
    "type": "record",
    "name": "Product",
-   "namespace": "com.sksamuel.avro4k.schema.AvroInlineSchemaTest",
+   "namespace": "com.github.avrokotlin.avro4k.schema.AvroInlineSchemaTest",
    "fields": [
       {
          "name": "id",

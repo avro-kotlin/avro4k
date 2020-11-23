@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.sksamuel.avro4k.decoder.ExtendedDecoder
-import com.sksamuel.avro4k.decoder.FieldDecoder
-import com.sksamuel.avro4k.encoder.ExtendedEncoder
-import com.sksamuel.avro4k.encoder.FieldEncoder
-import com.sksamuel.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.decoder.FieldDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
+import com.github.avrokotlin.avro4k.encoder.FieldEncoder
+import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder

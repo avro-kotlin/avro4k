@@ -2,8 +2,8 @@
 [Avro](https://avro.apache.org/) format for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). This library is a port of my Scala Avro generator [avro4s](https://github.com/sksamuel/avro4s).
 
 ![build-master](https://github.com/avro-kotlin/avro4k/workflows/build-master/badge.svg)
-[<img src="https://img.shields.io/maven-central/v/com.github.avrokotlin.avro4k/avro4k-core.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
-[<img src="https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.avrokotlin.avro4k/avro4k-core.svg?label=latest%20snapshot&style=plastic"/>](https://oss.sonatype.org/content/repositories/snapshots/com/sksamuel/avro4k/avro4k-core/)
+[<img src="https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
+[<img src="https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.avro-kotlin.avro4k/avro4k-core.svg?label=latest%20snapshot&style=plastic"/>](https://oss.sonatype.org/content/repositories/snapshots/com/github/avro-kotlin/avro4k/avro4k-core/)
 
 
 ## Introduction

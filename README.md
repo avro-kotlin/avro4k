@@ -571,12 +571,12 @@ Pizza(name=hawaiian, ingredients=[Ingredient(name=ham, sugar=1.5, fat=5.6), Ingr
 ### Using avro4k in your project
 
 Gradle
-```compile 'com.github.avrokotlin.avro4k:avro4k-core:xxx'```
+```compile 'com.github.avro-kotlin.avro4k:avro4k-core:xxx'```
 
 Maven
 ```xml
 <dependency>
-    <groupId>com.github.avrokotlin.avro4k</groupId>
+    <groupId>com.github.avro-kotlin.avro4k</groupId>
     <artifactId>avro4k-core</artifactId>
     <version>xxx</version>
 </dependency>

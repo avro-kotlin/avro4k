@@ -5,6 +5,7 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -37,14 +38,34 @@ interface SchemaFor {
       val BooleanSchemaFor: SchemaFor = const(SchemaBuilder.builder().booleanType())
    }
 }
+
 @ExperimentalSerializationApi
-class EnumSchemaFor(private val descriptor: SerialDescriptor) : SchemaFor {
+class EnumSchemaFor(
+   private val descriptor: SerialDescriptor,
+   private val fieldAnnotations: List<Annotation>
+) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
-      val enumSchema = SchemaBuilder.enumeration(naming.name).doc(entityAnnotations.doc()).namespace(naming.namespace).symbols(*symbols.toTypedArray())
+
+      val defaultSymbol = AnnotationExtractor(fieldAnnotations).default()?.let { fieldDefault ->
+         if (fieldDefault != Avro.NULL) {
+            descriptor.elementNames.firstOrNull { it == fieldDefault } ?: error(
+               "Could not use: $fieldDefault to resolve the enum class ${descriptor.serialName}"
+            )
+         } else {
+            null
+         }
+      }
+
+      val enumSchema = SchemaBuilder.enumeration(naming.name).doc(entityAnnotations.doc())
+         .namespace(naming.namespace)
+         .defaultSymbol(defaultSymbol)
+         .symbols(*symbols.toTypedArray())
+
       entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
+
       return enumSchema
    }
 }
@@ -169,7 +190,7 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-         SerialKind.ENUM -> EnumSchemaFor(descriptor)
+         SerialKind.ENUM -> EnumSchemaFor(descriptor, annos)
          PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)

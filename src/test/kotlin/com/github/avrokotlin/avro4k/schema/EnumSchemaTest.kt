@@ -1,9 +1,6 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroAliases
-import com.github.avrokotlin.avro4k.AvroDefault
-import com.github.avrokotlin.avro4k.AvroDoc
+import com.github.avrokotlin.avro4k.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
@@ -46,7 +43,7 @@ class EnumSchemaTest : WordSpec({
       "generate schema" {
          @Serializable
          data class EnumWithDefaultTest(
-            @AvroDefault("MEAT") val type: IngredientType
+             val type: IngredientType
          )
 
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default.json"))
@@ -83,7 +80,7 @@ class EnumSchemaTest : WordSpec({
       "fail with unknown values" {
          @Serializable
          data class EnumWithDefaultTest(
-            @AvroDefault("PINEAPPLE") val type: IngredientType
+            val type: InvalidIngredientType
          )
          shouldThrow<IllegalStateException> {
             Avro.default.schema(EnumWithDefaultTest.serializer())
@@ -103,7 +100,13 @@ enum class Suit{
 }
 
 @Serializable
+@AvroEnumDefault("MEAT")
 enum class IngredientType { VEGGIE, MEAT, }
 
 @Serializable
-data class DefaultIngredientType(@AvroDefault("MEAT") val type: IngredientType)
+@AvroEnumDefault("MEAT")
+data class DefaultIngredientType(val type: IngredientType)
+
+@Serializable
+@AvroEnumDefault("PINEAPPLE")
+enum class InvalidIngredientType { VEGGIE, MEAT, }

@@ -14,7 +14,8 @@
                "symbols": [
                   "VEGGIE",
                   "MEAT"
-               ]
+               ],
+               "default" : "MEAT"
             }
          ],
          "default": null

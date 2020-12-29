@@ -41,15 +41,14 @@ interface SchemaFor {
 
 @ExperimentalSerializationApi
 class EnumSchemaFor(
-   private val descriptor: SerialDescriptor,
-   private val fieldAnnotations: List<Annotation>
+   private val descriptor: SerialDescriptor
 ) : SchemaFor {
    override fun schema(): Schema {
       val naming = RecordNaming(descriptor)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 
-      val defaultSymbol = AnnotationExtractor(fieldAnnotations).default()?.let { fieldDefault ->
+      val defaultSymbol = entityAnnotations.enumDefault()?.let { fieldDefault ->
          if (fieldDefault != Avro.NULL) {
             descriptor.elementNames.firstOrNull { it == fieldDefault } ?: error(
                "Could not use: $fieldDefault to resolve the enum class ${descriptor.serialName}"
@@ -190,7 +189,7 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-         SerialKind.ENUM -> EnumSchemaFor(descriptor, annos)
+         SerialKind.ENUM -> EnumSchemaFor(descriptor)
          PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)

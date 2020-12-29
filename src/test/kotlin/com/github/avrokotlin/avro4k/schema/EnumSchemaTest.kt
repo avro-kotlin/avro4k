@@ -68,6 +68,18 @@ class EnumSchemaTest : WordSpec({
 
          schema.toString(true) shouldBe expected.toString(true)
       }
+      "generate schema with default and nullable union types" {
+         @Serializable
+         data class EnumWithDefaultTest(
+            @AvroDefault(Avro.NULL) val type: DefaultIngredientType?
+         )
+         val expected =
+            org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
+
+         val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
+
+         schema.toString(true) shouldBe expected.toString(true)
+      }
       "fail with unknown values" {
          @Serializable
          data class EnumWithDefaultTest(
@@ -92,3 +104,6 @@ enum class Suit{
 
 @Serializable
 enum class IngredientType { VEGGIE, MEAT, }
+
+@Serializable
+data class DefaultIngredientType(@AvroDefault("MEAT") val type: IngredientType)

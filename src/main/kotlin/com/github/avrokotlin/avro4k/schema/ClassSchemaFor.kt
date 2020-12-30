@@ -117,9 +117,14 @@ class ClassSchemaFor(
 
       val default: Any? = annos.default()?.let {
          when {
-             it == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
-             schemaWithResolvedNamespace.extractNonNull().type in listOf(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING) -> it
-             else -> json.parseToJsonElement(it).convertToAvroDefault()
+            it == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
+            schemaWithResolvedNamespace.extractNonNull().type in listOf(
+               Schema.Type.FIXED,
+               Schema.Type.BYTES,
+               Schema.Type.STRING,
+               Schema.Type.ENUM
+            ) -> it
+            else -> json.parseToJsonElement(it).convertToAvroDefault()
          }
       }
 

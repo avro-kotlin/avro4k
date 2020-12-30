@@ -1,0 +1,24 @@
+{
+   "type": "record",
+   "name": "EnumWithDefaultTest",
+   "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
+   "fields": [
+      {
+         "name": "type",
+         "type": [
+            "null",
+            {
+               "type": "enum",
+               "name": "IngredientType",
+               "namespace": "com.github.avrokotlin.avro4k.schema",
+               "symbols": [
+                  "VEGGIE",
+                  "MEAT"
+               ],
+               "default": "MEAT"
+            }
+         ],
+         "default": null
+      }
+   ]
+}

@@ -6,7 +6,6 @@ import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -118,10 +117,14 @@ class ClassSchemaFor(
 
       val default: Any? = annos.default()?.let {
          when {
-             it == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
-             schemaWithResolvedNamespace.extractNonNull().type == Schema.Type.ENUM -> annos.default()
-             schemaWithResolvedNamespace.extractNonNull().type in listOf(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING) -> it
-             else -> json.parseToJsonElement(it).convertToAvroDefault()
+            it == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
+            schemaWithResolvedNamespace.extractNonNull().type in listOf(
+               Schema.Type.FIXED,
+               Schema.Type.BYTES,
+               Schema.Type.STRING,
+               Schema.Type.ENUM
+            ) -> it
+            else -> json.parseToJsonElement(it).convertToAvroDefault()
          }
       }
 

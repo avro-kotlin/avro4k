@@ -5,12 +5,7 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.elementNames
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -48,14 +43,10 @@ class EnumSchemaFor(
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 
-      val defaultSymbol = entityAnnotations.enumDefault()?.let { fieldDefault ->
-         if (fieldDefault != Avro.NULL) {
-            descriptor.elementNames.firstOrNull { it == fieldDefault } ?: error(
-               "Could not use: $fieldDefault to resolve the enum class ${descriptor.serialName}"
-            )
-         } else {
-            null
-         }
+      val defaultSymbol = entityAnnotations.enumDefault()?.let { enumDefault ->
+         descriptor.elementNames.firstOrNull { it == enumDefault } ?: error(
+            "Could not use: $enumDefault to resolve the enum class ${descriptor.serialName}"
+         )
       }
 
       val enumSchema = SchemaBuilder.enumeration(naming.name).doc(entityAnnotations.doc())

@@ -2,22 +2,22 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.*
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class EnumSchemaTest : WordSpec({
 
-  "SchemaEncoder" should {
-    "accept enums" {
+   "SchemaEncoder" should {
+      "accept enums" {
 
-      @Serializable
-      data class EnumTest(val wine: Wine)
+         @Serializable
+         data class EnumTest(val wine: Wine)
 
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum.json"))
-      val schema = Avro.default.schema(EnumTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-    }
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum.json"))
+         val schema = Avro.default.schema(EnumTest.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
 //    "support nullable enum values" {
 //
 //      @Serializable
@@ -27,12 +27,13 @@ class EnumSchemaTest : WordSpec({
 //      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullable_enum.json"))
 //      schema.toString(true) shouldBe expected.toString(true)
 //    }
-  }
-   "Enum with documentation and aliases" should{
+   }
+   "Enum with documentation and aliases" should {
       @Serializable
       data class EnumWithDocuTest(
-         val value : Suit
+         val value: Suit
       )
+
       val expected =
          org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_documentation.json"))
       val schema = Avro.default.schema(EnumWithDocuTest.serializer())
@@ -43,7 +44,7 @@ class EnumSchemaTest : WordSpec({
       "generate schema" {
          @Serializable
          data class EnumWithDefaultTest(
-             val type: IngredientType
+            val type: IngredientType
          )
 
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default.json"))
@@ -52,26 +53,15 @@ class EnumSchemaTest : WordSpec({
 
          schema.toString(true) shouldBe expected.toString(true)
       }
-      "generate schema with nullable union types" {
+      "generate schema with default and nullable union types" {
          @Serializable
          data class EnumWithDefaultTest(
             @AvroDefault(Avro.NULL) val type: IngredientType?
          )
 
          val expected =
-            org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default_and_null.json"))
-
-         val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
-
-         schema.toString(true) shouldBe expected.toString(true)
-      }
-      "generate schema with default and nullable union types" {
-         @Serializable
-         data class EnumWithDefaultTest(
-            @AvroDefault(Avro.NULL) val type: DefaultIngredientType?
-         )
-         val expected =
-            org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
+            org.apache.avro.Schema.Parser()
+               .parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
 
          val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
 
@@ -90,22 +80,19 @@ class EnumSchemaTest : WordSpec({
 })
 
 enum class Wine {
-  Malbec, Shiraz, CabSav, Merlot
+   Malbec, Shiraz, CabSav, Merlot
 }
+
 @Serializable
 @AvroAliases(["MySuit"])
 @AvroDoc("documentation")
-enum class Suit{
+enum class Suit {
    SPADES, HEARTS, DIAMONDS, CLUBS;
 }
 
 @Serializable
 @AvroEnumDefault("MEAT")
 enum class IngredientType { VEGGIE, MEAT, }
-
-@Serializable
-@AvroEnumDefault("MEAT")
-data class DefaultIngredientType(val type: IngredientType)
 
 @Serializable
 @AvroEnumDefault("PINEAPPLE")

@@ -37,6 +37,12 @@ class AvroDefaultSchemaTest : FunSpec() {
          schema.toString(true) shouldBe expected.toString(true)
       }
 
+      test("schema for data class with @AvroDefault should include default value as an Enum") {
+         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_enum.json"))
+         val schema = Avro.default.schema(BarEnum.serializer())
+         schema.toString(true) shouldBe expected.toString(true)
+      }
+
       test("schema for data class with @AvroDefault should include default value as a list") {
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_default_annotation_list.json"))
          val schema = Avro.default.schema(BarList.serializer())
@@ -100,6 +106,20 @@ data class BarFloat(
    val nullableFloat: Float?,
    @AvroDefault("3.14")
    val c: Float?
+)
+
+enum class FooEnum{
+   A,B,C
+}
+@Serializable
+data class BarEnum(
+   val a : FooEnum,
+   @AvroDefault("A")
+   val b : FooEnum,
+   @AvroDefault(Avro.NULL)
+   val nullableEnum : FooEnum?,
+   @AvroDefault("B")
+   val c : FooEnum?
 )
 
 @Serializable

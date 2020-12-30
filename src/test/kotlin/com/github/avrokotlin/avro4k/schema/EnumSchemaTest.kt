@@ -1,6 +1,10 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.*
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroAliases
+import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.AvroDoc
+import com.github.avrokotlin.avro4k.AvroEnumDefault
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
@@ -18,15 +22,6 @@ class EnumSchemaTest : WordSpec({
          val schema = Avro.default.schema(EnumTest.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
-//    "support nullable enum values" {
-//
-//      @Serializable
-//      data class EnumNullable(val maybewine: Wine?)
-//
-//      val schema = Avro.default.schema(EnumNullable.serializer())
-//      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullable_enum.json"))
-//      schema.toString(true) shouldBe expected.toString(true)
-//    }
    }
    "Enum with documentation and aliases" should {
       @Serializable

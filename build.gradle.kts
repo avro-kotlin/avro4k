@@ -16,7 +16,7 @@ plugins {
    id("org.jetbrains.kotlin.plugin.serialization") version Libs.kotlinVersion
    id("maven-publish")
    signing
-   id("org.jetbrains.dokka") version Libs.kotlinVersion
+   id("org.jetbrains.dokka") version Libs.dokkaVersion
    id("io.kotest") version Libs.kotestGradlePlugin
 }
 
@@ -51,6 +51,7 @@ dependencies {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
    kotlinOptions.apiVersion = "1.3"
+   kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 
 val signingKey: String? by project

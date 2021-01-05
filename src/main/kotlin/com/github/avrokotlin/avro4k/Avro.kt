@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
@@ -40,7 +42,6 @@ open class AvroInputStreamBuilder<T>(
     */
    var decodeFormat : AvroDecodeFormat = defaultDecodeFormat
    @Deprecated("please use decodeFormat to specify the format")
-   @Suppress("DEPRECATION")
    var format: AvroFormat = AvroFormat.DataFormat
    @Deprecated("please use decodeFormat to specify the format")
    var writerSchema: Schema? = null
@@ -51,16 +52,15 @@ open class AvroInputStreamBuilder<T>(
       val defaultDecodeFormat = AvroDecodeFormat.Data(null, null)
    }
 
-   @Suppress("DEPRECATION")
    private val derivedDecodeFormat : AvroDecodeFormat
       get() {
          return when(format){
             is AvroFormat.JsonFormat -> {
-               val wschema = writerSchema ?: throw IllegalArgumentException("Writer schema needs to be supplied for Json format")
+               val wschema = writerSchema ?: error("Writer schema needs to be supplied for Json format")
                AvroDecodeFormat.Json(wschema, readerSchema?:wschema)
             }
             is AvroFormat.BinaryFormat -> {
-               val wschema = writerSchema ?: throw IllegalArgumentException("Writer schema needs to be supplied for Binary format")
+               val wschema = writerSchema ?: error("Writer schema needs to be supplied for Binary format")
                AvroDecodeFormat.Binary(wschema, readerSchema?:wschema)
             }
             is AvroFormat.DataFormat ->  AvroDecodeFormat.Data(writerSchema, readerSchema)
@@ -97,7 +97,6 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
 ){
    var encodeFormat : AvroEncodeFormat = defaultEncodeFormat
    @Deprecated("please use AvroEncodeFormat to specify the format")
-   @Suppress("DEPRECATION")
    var format: AvroFormat = AvroFormat.DataFormat
    var schema: Schema? = null
    @Deprecated("please use AvroEncodeFormat to specify the format")
@@ -106,7 +105,6 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
    companion object {
       val defaultEncodeFormat = AvroEncodeFormat.Data()
    }
-   @Suppress("DEPRECATION")
    private val derivedEncodeFormat : AvroEncodeFormat
       get() = when(format){
          AvroFormat.JsonFormat -> AvroEncodeFormat.Json

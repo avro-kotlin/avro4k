@@ -3,7 +3,6 @@
    LocalDateSerializer::class,
    LocalTimeSerializer::class,
    TimestampSerializer::class,
-   InstantSerializer::class
 )
 
 package com.github.avrokotlin.avro4k.decoder
@@ -20,6 +19,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 class DateDecoderTest : FunSpec({
 
@@ -36,7 +36,10 @@ class DateDecoderTest : FunSpec({
    data class WithTimestamp(val z: Timestamp)
 
    @Serializable
-   data class WithInstant(val z: Instant)
+   data class WithInstant(@Serializable(with = InstantSerializer::class) val z: Instant)
+
+   @Serializable
+   data class WithInstantAndMicros(@Serializable(with = InstantToMicroSerializer::class) val z: Instant)
 
    test("decode int to LocalTime") {
       val schema = Avro.default.schema(WithLocalTime.serializer())
@@ -76,5 +79,13 @@ class DateDecoderTest : FunSpec({
       record.put("z", 1538312231000L)
       Avro.default.fromRecord(WithInstant.serializer(), record) shouldBe
          WithInstant(Instant.ofEpochMilli(1538312231000L))
+   }
+
+   test("decode long to Instant with microseconds") {
+      val schema = Avro.default.schema(WithInstantAndMicros.serializer())
+      val record = GenericData.Record(schema)
+      record.put("z", 1538312231000100L)
+      Avro.default.fromRecord(WithInstantAndMicros.serializer(), record) shouldBe
+         WithInstantAndMicros(Instant.ofEpochMilli(1538312231000L).plus(100, ChronoUnit.MICROS))
    }
 })

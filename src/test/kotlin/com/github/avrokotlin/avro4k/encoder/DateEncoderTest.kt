@@ -3,7 +3,6 @@
    LocalDateSerializer::class,
    LocalTimeSerializer::class,
    TimestampSerializer::class,
-   InstantSerializer::class
 )
 
 package com.github.avrokotlin.avro4k.encoder
@@ -11,8 +10,8 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.serializer.*
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import java.sql.Timestamp
@@ -20,6 +19,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 class DateEncoderTest : FunSpec({
 
@@ -87,12 +87,21 @@ class DateEncoderTest : FunSpec({
    test("encode Instant as Long") {
 
       @Serializable
-      data class Foo(val i: Instant)
+      data class Foo(@Serializable(with = InstantSerializer::class) val i: Instant)
 
       val schema = Avro.default.schema(Foo.serializer())
       Avro.default.toRecord(Foo.serializer(), Foo(Instant.ofEpochMilli(1538312231000L))) shouldBe
          ListRecord(schema, 1538312231000L)
    }
 
+   test("encode Instant with microseconds as Long") {
 
+      @Serializable
+      data class Foo(@Serializable(with = InstantToMicroSerializer::class) val i: Instant)
+
+      val schema = Avro.default.schema(Foo.serializer())
+      val time = Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)
+
+      Avro.default.toRecord(Foo.serializer(), Foo(time)) shouldBe ListRecord(schema, 1538312231000005L)
+   }
 })

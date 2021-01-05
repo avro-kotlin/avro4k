@@ -16,6 +16,7 @@ import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import java.sql.Timestamp
 import java.time.*
+import java.time.temporal.ChronoUnit
 import kotlin.reflect.jvm.jvmName
 
 @Serializer(forClass = LocalDate::class)
@@ -102,4 +103,25 @@ class InstantSerializer : AvroSerializer<Instant>() {
       encoder.encodeLong(obj.toEpochMilli())
 
    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
+}
+
+@Serializer(forClass = Instant::class)
+class InstantToMicroSerializer : AvroSerializer<Instant>() {
+
+   override val descriptor: SerialDescriptor = object : AvroDescriptor(Instant::class.jvmName, PrimitiveKind.LONG) {
+      override fun schema(
+         annos: List<Annotation>,
+         serializersModule: SerializersModule,
+         namingStrategy: NamingStrategy
+      ): Schema {
+         val schema = SchemaBuilder.builder().longType()
+         return LogicalTypes.timestampMicros().addToSchema(schema)
+      }
+   }
+
+   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Instant) =
+      encoder.encodeLong(ChronoUnit.MICROS.between(Instant.EPOCH, obj))
+
+   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Instant =
+      Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS)
 }

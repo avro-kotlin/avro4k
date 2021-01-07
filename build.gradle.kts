@@ -50,7 +50,8 @@ dependencies {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
-   kotlinOptions.apiVersion = "1.3"
+   kotlinOptions.apiVersion = "1.4"
+   kotlinOptions.languageVersion = "1.4"
    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 

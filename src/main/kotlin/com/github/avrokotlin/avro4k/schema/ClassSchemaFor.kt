@@ -28,7 +28,7 @@ class ClassSchemaFor(
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
-   private val naming = RecordNaming(descriptor)
+   private val naming = RecordNaming(descriptor, DefaultNamingStrategy)
    private val json by lazy {
       Json{
          serializersModule = this@ClassSchemaFor.serializersModule
@@ -74,7 +74,7 @@ class ClassSchemaFor(
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(
          index))
-      val fieldNaming = RecordNaming(descriptor, index)
+      val fieldNaming = RecordNaming(descriptor, index, namingStrategy)
       val schema = schemaFor(
          serializersModule,
          fieldDescriptor,
@@ -89,7 +89,7 @@ class ClassSchemaFor(
       val (size, name) = when (val a = annos.fixed()) {
          null -> {
             val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
-            val n = RecordNaming(fieldDescriptor)
+            val n = RecordNaming(fieldDescriptor, namingStrategy)
             when (val b = fieldAnnos.fixed()) {
                null -> 0 to n.name
                else -> b to n.name

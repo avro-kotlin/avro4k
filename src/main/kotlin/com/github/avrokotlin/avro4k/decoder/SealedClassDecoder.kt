@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.RecordNaming
 import com.github.avrokotlin.avro4k.leavesOfSealedClasses
+import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -27,8 +28,8 @@ class SealedClassDecoder (descriptor: SerialDescriptor,
    private var currentState = DecoderState.BEFORE
 
    var leafDescriptor : SerialDescriptor = descriptor.leavesOfSealedClasses().firstOrNull {
-      val schemaName = RecordNaming(value.schema.fullName, emptyList())
-      val serialName = RecordNaming(it)
+      val schemaName = RecordNaming(value.schema.fullName, emptyList(), DefaultNamingStrategy)
+      val serialName = RecordNaming(it, DefaultNamingStrategy)
       serialName == schemaName
    }?:throw SerializationException("Cannot find a subtype of ${descriptor.serialName} that can be used to deserialize a record of schema ${value.schema}.")
 

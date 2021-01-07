@@ -10,6 +10,7 @@ import com.github.avrokotlin.avro4k.io.AvroFormat
 import com.github.avrokotlin.avro4k.io.AvroInputStream
 import com.github.avrokotlin.avro4k.io.AvroOutputStream
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.BinaryFormat
@@ -86,9 +87,10 @@ open class AvroInputStreamBuilder<T>(
 class AvroDeserializerInputStreamBuilder<T>(
    private val deserializer: DeserializationStrategy<T>,
    private val avro : Avro,
+   private val namingStrategy: NamingStrategy,
    converter: (Any) -> T
 ) : AvroInputStreamBuilder<T>(converter) {
-   val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor) }
+   val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor, namingStrategy) }
 }
 
 class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T>,
@@ -115,8 +117,8 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
    fun to(path: String): AvroOutputStream<T> = to(Paths.get(path))
    fun to(file: File): AvroOutputStream<T> = to(file.toPath())
 
-   fun to(output: OutputStream): AvroOutputStream<T> {
-      val schema = schema ?: avro.schema(serializer)
+   fun to(output: OutputStream, namingStrategy: NamingStrategy = DefaultNamingStrategy): AvroOutputStream<T> {
+      val schema = schema ?: avro.schema(serializer, namingStrategy)
       val converter = converterFn(schema)
       return createOutputStream(output, schema, converter)
    }
@@ -183,9 +185,17 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     * }
     * </pre>
     */
-   fun <T> openInputStream(deserializer: DeserializationStrategy<T>,
-                           f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}): AvroDeserializerInputStreamBuilder<T> {
-      val builder = AvroDeserializerInputStreamBuilder(deserializer,this) { fromRecord(deserializer, it as GenericRecord) }
+   fun <T> openInputStream(
+      deserializer: DeserializationStrategy<T>,
+      namingStrategy: NamingStrategy = DefaultNamingStrategy,
+      f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}
+   ): AvroDeserializerInputStreamBuilder<T> {
+      val builder = AvroDeserializerInputStreamBuilder(deserializer, this, namingStrategy) {
+         fromRecord(
+            deserializer,
+            it as GenericRecord
+         )
+      }
       builder.f()
       return builder
    }
@@ -228,9 +238,12 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
    /**
     * Converts an instance of <T> to an Avro [Record] using a [Schema] derived from the type.
     */
-   fun <T> toRecord(serializer: SerializationStrategy<T>,
-                    obj: T): GenericRecord {
-      return toRecord(serializer, schema(serializer), obj)
+   fun <T> toRecord(
+      serializer: SerializationStrategy<T>,
+      obj: T,
+      namingStrategy: NamingStrategy = DefaultNamingStrategy
+   ): GenericRecord {
+      return toRecord(serializer, schema(serializer, namingStrategy), obj)
    }
 
    /**
@@ -254,18 +267,20 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
       return RootRecordDecoder(record, serializersModule).decodeSerializableValue(deserializer)
    }
 
-   fun schema(descriptor : SerialDescriptor) : Schema {
-      return schemaFor(
+   fun schema(descriptor: SerialDescriptor, namingStrategy: NamingStrategy = DefaultNamingStrategy): Schema =
+      schemaFor(
          serializersModule,
          descriptor,
          descriptor.annotations,
-         DefaultNamingStrategy,
+         namingStrategy,
          mutableMapOf()
       ).schema()
-   }
-   fun <T> schema(serializer: SerializationStrategy<T>): Schema {
-      return schema(serializer.descriptor)
-   }
 
+   fun <T> schema(
+      serializer: SerializationStrategy<T>,
+      namingStrategy: NamingStrategy = DefaultNamingStrategy
+   ): Schema {
+      return schema(serializer.descriptor, namingStrategy)
+   }
 
 }

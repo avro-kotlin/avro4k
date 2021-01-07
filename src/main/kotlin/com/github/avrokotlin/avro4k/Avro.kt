@@ -93,9 +93,11 @@ class AvroDeserializerInputStreamBuilder<T>(
    val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor, namingStrategy) }
 }
 
-class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T>,
-                                 private val avro: Avro,
-                                 private val converterFn: (Schema) -> (T) -> GenericRecord
+class AvroOutputStreamBuilder<T>(
+   private val serializer: SerializationStrategy<T>,
+   private val avro: Avro,
+   private val namingStrategy: NamingStrategy,
+   private val converterFn: (Schema) -> (T) -> GenericRecord
 ){
    var encodeFormat : AvroEncodeFormat = defaultEncodeFormat
    @Deprecated("please use AvroEncodeFormat to specify the format")
@@ -117,7 +119,7 @@ class AvroOutputStreamBuilder<T>(private val serializer: SerializationStrategy<T
    fun to(path: String): AvroOutputStream<T> = to(Paths.get(path))
    fun to(file: File): AvroOutputStream<T> = to(file.toPath())
 
-   fun to(output: OutputStream, namingStrategy: NamingStrategy = DefaultNamingStrategy): AvroOutputStream<T> {
+   fun to(output: OutputStream): AvroOutputStream<T> {
       val schema = schema ?: avro.schema(serializer, namingStrategy)
       val converter = converterFn(schema)
       return createOutputStream(output, schema, converter)
@@ -229,9 +231,12 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     * If the schema is not supplied in the configuration function then it will
     * be derived from the type using [Avro.schema].
     */
-   fun <T> openOutputStream(serializer: SerializationStrategy<T>,
-                            f: AvroOutputStreamBuilder<T>.() -> Unit = {}): AvroOutputStreamBuilder<T> {
-      val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { toRecord(serializer, schema, it) } }
+   fun <T> openOutputStream(
+      serializer: SerializationStrategy<T>,
+      namingStrategy: NamingStrategy = DefaultNamingStrategy,
+      f: AvroOutputStreamBuilder<T>.() -> Unit = {}
+   ): AvroOutputStreamBuilder<T> {
+      val builder = AvroOutputStreamBuilder(serializer, this, namingStrategy) { schema -> { toRecord(serializer, schema, it) } }
       builder.f()
       return builder
    }

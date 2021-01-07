@@ -193,7 +193,8 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
       val builder = AvroDeserializerInputStreamBuilder(deserializer, this, namingStrategy) {
          fromRecord(
             deserializer,
-            it as GenericRecord
+            it as GenericRecord,
+            namingStrategy
          )
       }
       builder.f()
@@ -262,9 +263,12 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     * Converts an Avro [GenericRecord] to an instance of <T> using the schema
     * present in the record.
     */
-   fun <T> fromRecord(deserializer: DeserializationStrategy<T>,
-                      record: GenericRecord): T {
-      return RootRecordDecoder(record, serializersModule).decodeSerializableValue(deserializer)
+   fun <T> fromRecord(
+      deserializer: DeserializationStrategy<T>,
+      record: GenericRecord,
+      namingStrategy: NamingStrategy = DefaultNamingStrategy
+   ): T {
+      return RootRecordDecoder(record, serializersModule, namingStrategy).decodeSerializableValue(deserializer)
    }
 
    fun schema(descriptor: SerialDescriptor, namingStrategy: NamingStrategy = DefaultNamingStrategy): Schema =

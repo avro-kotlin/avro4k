@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.RecordNaming
 import com.github.avrokotlin.avro4k.leavesOfSealedClasses
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -16,7 +17,8 @@ import org.apache.avro.generic.GenericRecord
 @ExperimentalSerializationApi
 class SealedClassDecoder (descriptor: SerialDescriptor,
                           private val value: GenericRecord,
-                          override val serializersModule: SerializersModule
+                          override val serializersModule: SerializersModule,
+                          private  val namingStrategy: NamingStrategy
 ) : AbstractDecoder(), FieldDecoder
 {
    private enum class DecoderState(val index : Int){
@@ -49,7 +51,7 @@ class SealedClassDecoder (descriptor: SerialDescriptor,
    }
 
    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-      val recordDecoder = RootRecordDecoder(value, serializersModule)
+      val recordDecoder = RootRecordDecoder(value, serializersModule, namingStrategy)
       return recordDecoder.decodeSerializableValue(deserializer)
    }
 

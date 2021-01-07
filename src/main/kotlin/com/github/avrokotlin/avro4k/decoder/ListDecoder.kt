@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.decoder
 
 
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -15,9 +16,11 @@ import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
-class ListDecoder(private val schema: Schema,
-                  private val array: List<Any?>,
-                  override val serializersModule: SerializersModule
+class ListDecoder(
+   private val schema: Schema,
+   private val array: List<Any?>,
+   override val serializersModule: SerializersModule,
+   private val namingStrategy: NamingStrategy,
 ) : AbstractDecoder(), FieldDecoder {
 
    init {
@@ -82,10 +85,10 @@ class ListDecoder(private val schema: Schema,
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule)
-         StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule)
-         StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule)
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,array[index] as GenericRecord, serializersModule)
+         StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule, namingStrategy)
+         StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule, namingStrategy)
+         StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule, namingStrategy)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,array[index] as GenericRecord, serializersModule, namingStrategy)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

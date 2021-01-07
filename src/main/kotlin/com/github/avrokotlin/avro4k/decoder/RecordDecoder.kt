@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.FieldNaming
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -26,9 +27,11 @@ interface FieldDecoder : ExtendedDecoder {
 }
 
 @ExperimentalSerializationApi
-class RecordDecoder(private val desc: SerialDescriptor,
-                    private val record: GenericRecord,
-                    override val serializersModule: SerializersModule,
+class RecordDecoder(
+   private val desc: SerialDescriptor,
+   private val record: GenericRecord,
+   override val serializersModule: SerializersModule,
+   private val namingStrategy: NamingStrategy
 ) : AbstractDecoder(), FieldDecoder {
 
    private var currentIndex = -1
@@ -42,8 +45,8 @@ class RecordDecoder(private val desc: SerialDescriptor,
             if (valueType)
                InlineDecoder(fieldValue(), serializersModule)
             else
-               RecordDecoder(descriptor, value as GenericRecord, serializersModule)
-         StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>, serializersModule)
+               RecordDecoder(descriptor, value as GenericRecord, serializersModule, namingStrategy)
+         StructureKind.MAP -> MapDecoder(descriptor, fieldSchema(), value as Map<String, *>, serializersModule, namingStrategy)
          StructureKind.LIST -> {
             val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
                when (value) {
@@ -55,21 +58,21 @@ class RecordDecoder(private val desc: SerialDescriptor,
                }
             } else {
                when (value) {
-                  is List<*> -> ListDecoder(fieldSchema(), value, serializersModule)
-                  is Array<*> -> ListDecoder(fieldSchema(), value.asList(), serializersModule)
+                  is List<*> -> ListDecoder(fieldSchema(), value, serializersModule, namingStrategy)
+                  is Array<*> -> ListDecoder(fieldSchema(), value.asList(), serializersModule, namingStrategy)
                   else -> this
                }
             }
             decoder
          }
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord, serializersModule)
+         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord, serializersModule, namingStrategy)
          else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
       }
    }
 
    private fun fieldValue(): Any? = record[resolvedFieldName()]
 
-   private fun resolvedFieldName(): String = FieldNaming(desc, currentIndex).name()
+   private fun resolvedFieldName(): String = namingStrategy.to(FieldNaming(desc, currentIndex).name())
 
    private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
 

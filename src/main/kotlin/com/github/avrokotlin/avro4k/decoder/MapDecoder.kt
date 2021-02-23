@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.schema.NamingStrategy
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -20,7 +20,7 @@ class MapDecoder(
    private val schema: Schema,
    map: Map<*, *>,
    override val serializersModule: SerializersModule,
-   private val namingStrategy: NamingStrategy
+   private val configuration: AvroConfiguration
 ) : AbstractDecoder(), CompositeDecoder {
 
    init {
@@ -101,12 +101,12 @@ class MapDecoder(
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind as StructureKind) {
-         StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord, serializersModule, namingStrategy)
+         StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord, serializersModule, configuration)
          StructureKind.LIST -> when(descriptor.getElementDescriptor(0).kind) {
             PrimitiveKind.BYTE -> ByteArrayDecoder((value() as ByteBuffer).array(), serializersModule)
-            else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule, namingStrategy)
+            else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule, configuration)
          }
-         StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule, namingStrategy)
+         StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule, configuration)
          StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
       }
    }

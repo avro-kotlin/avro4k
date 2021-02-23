@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempfile
@@ -18,12 +19,14 @@ class NamingStrategyIoTest : StringSpec({
    @Serializable
    data class Composer(val fullName: String, val status: String)
 
+   val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
+
    "using snake_case namingStrategy to write out a record" {
       val ennio = Composer("Ennio Morricone", "Maestro")
 
       val baos = ByteArrayOutputStream()
 
-      Avro.default.openOutputStream(Composer.serializer(), SnakeCaseNamingStrategy) {
+      snakeCaseAvro.openOutputStream(Composer.serializer()) {
          encodeFormat = AvroEncodeFormat.Data()
       }.to(baos).use {
          it.write(ennio)
@@ -34,7 +37,7 @@ class NamingStrategyIoTest : StringSpec({
          .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
          .endRecord()
 
-      Avro.default.openInputStream(Composer.serializer(), SnakeCaseNamingStrategy) {
+      snakeCaseAvro.openInputStream(Composer.serializer()) {
          decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
       }.from(baos.toByteArray()).nextOrThrow() shouldBe ennio
    }
@@ -56,9 +59,9 @@ class NamingStrategyIoTest : StringSpec({
          it.write(record)
       }
 
-      val schema2 = Avro.default.schema(Composer.serializer(), SnakeCaseNamingStrategy)
+      val schema2 = snakeCaseAvro.schema(Composer.serializer())
 
-      Avro.default.openInputStream(Composer.serializer(), SnakeCaseNamingStrategy) {
+      snakeCaseAvro.openInputStream(Composer.serializer()) {
          decodeFormat = AvroDecodeFormat.Binary(
             writerSchema = schema1,
             readerSchema = schema2

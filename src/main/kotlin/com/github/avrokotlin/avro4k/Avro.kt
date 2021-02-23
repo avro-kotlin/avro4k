@@ -9,8 +9,6 @@ import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
 import com.github.avrokotlin.avro4k.io.AvroFormat
 import com.github.avrokotlin.avro4k.io.AvroInputStream
 import com.github.avrokotlin.avro4k.io.AvroOutputStream
-import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
-import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.BinaryFormat
@@ -87,16 +85,14 @@ open class AvroInputStreamBuilder<T>(
 class AvroDeserializerInputStreamBuilder<T>(
    private val deserializer: DeserializationStrategy<T>,
    private val avro : Avro,
-   private val namingStrategy: NamingStrategy,
    converter: (Any) -> T
 ) : AvroInputStreamBuilder<T>(converter) {
-   val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor, namingStrategy) }
+   val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor) }
 }
 
 class AvroOutputStreamBuilder<T>(
    private val serializer: SerializationStrategy<T>,
    private val avro: Avro,
-   private val namingStrategy: NamingStrategy,
    private val converterFn: (Schema) -> (T) -> GenericRecord
 ){
    var encodeFormat : AvroEncodeFormat = defaultEncodeFormat
@@ -120,7 +116,7 @@ class AvroOutputStreamBuilder<T>(
    fun to(file: File): AvroOutputStream<T> = to(file.toPath())
 
    fun to(output: OutputStream): AvroOutputStream<T> {
-      val schema = schema ?: avro.schema(serializer, namingStrategy)
+      val schema = schema ?: avro.schema(serializer)
       val converter = converterFn(schema)
       return createOutputStream(output, schema, converter)
    }
@@ -135,7 +131,10 @@ class AvroOutputStreamBuilder<T>(
    }
 }
 @OptIn(ExperimentalSerializationApi::class)
-class Avro(override val serializersModule: SerializersModule = EmptySerializersModule) : SerialFormat, BinaryFormat {
+class Avro(
+   override val serializersModule: SerializersModule = EmptySerializersModule,
+   val configuration: AvroConfiguration
+) : SerialFormat, BinaryFormat {
 
    companion object {
       private val simpleModule = SerializersModule {
@@ -143,7 +142,9 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
             UUID::class to UUIDSerializer()
          )
       }
-      val default = Avro(simpleModule)
+      val default = Avro(simpleModule, AvroConfiguration())
+
+      fun withDefault(configuration: AvroConfiguration) = Avro(simpleModule, configuration)
 
       /**
        * Use this constant if you want to explicitly set a default value of a field to avro null
@@ -189,15 +190,10 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     */
    fun <T> openInputStream(
       deserializer: DeserializationStrategy<T>,
-      namingStrategy: NamingStrategy = DefaultNamingStrategy,
       f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}
    ): AvroDeserializerInputStreamBuilder<T> {
-      val builder = AvroDeserializerInputStreamBuilder(deserializer, this, namingStrategy) {
-         fromRecord(
-            deserializer,
-            it as GenericRecord,
-            namingStrategy
-         )
+      val builder = AvroDeserializerInputStreamBuilder(deserializer, this) {
+         fromRecord(deserializer, it as GenericRecord)
       }
       builder.f()
       return builder
@@ -233,10 +229,9 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
     */
    fun <T> openOutputStream(
       serializer: SerializationStrategy<T>,
-      namingStrategy: NamingStrategy = DefaultNamingStrategy,
       f: AvroOutputStreamBuilder<T>.() -> Unit = {}
    ): AvroOutputStreamBuilder<T> {
-      val builder = AvroOutputStreamBuilder(serializer, this, namingStrategy) { schema -> { toRecord(serializer, schema, it) } }
+      val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { toRecord(serializer, schema, it) } }
       builder.f()
       return builder
    }
@@ -247,9 +242,8 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
    fun <T> toRecord(
       serializer: SerializationStrategy<T>,
       obj: T,
-      namingStrategy: NamingStrategy = DefaultNamingStrategy
    ): GenericRecord {
-      return toRecord(serializer, schema(serializer, namingStrategy), obj)
+      return toRecord(serializer, schema(serializer), obj)
    }
 
    /**
@@ -271,25 +265,25 @@ class Avro(override val serializersModule: SerializersModule = EmptySerializersM
    fun <T> fromRecord(
       deserializer: DeserializationStrategy<T>,
       record: GenericRecord,
-      namingStrategy: NamingStrategy = DefaultNamingStrategy
    ): T {
-      return RootRecordDecoder(record, serializersModule, namingStrategy).decodeSerializableValue(deserializer)
+      return RootRecordDecoder(record, serializersModule, configuration).decodeSerializableValue(
+         deserializer
+      )
    }
 
-   fun schema(descriptor: SerialDescriptor, namingStrategy: NamingStrategy = DefaultNamingStrategy): Schema =
+   fun schema(descriptor: SerialDescriptor): Schema =
       schemaFor(
          serializersModule,
          descriptor,
          descriptor.annotations,
-         namingStrategy,
+         configuration.namingStrategy,
          mutableMapOf()
       ).schema()
 
    fun <T> schema(
       serializer: SerializationStrategy<T>,
-      namingStrategy: NamingStrategy = DefaultNamingStrategy
    ): Schema {
-      return schema(serializer.descriptor, namingStrategy)
+      return schema(serializer.descriptor)
    }
 
 }

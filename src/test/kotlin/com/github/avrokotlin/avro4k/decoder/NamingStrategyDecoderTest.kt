@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.schema.PascalCaseNamingStrategy
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
 import io.kotest.core.spec.style.WordSpec
@@ -15,19 +16,21 @@ class NamingStrategyDecoderTest : WordSpec({
       data class Foo(val fooBar: String)
 
       "support decoding fields with snake_casing" {
-         val record = GenericData.Record(Avro.default.schema(Foo.serializer(), SnakeCaseNamingStrategy)).apply {
+         val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
+         val record = GenericData.Record(snakeCaseAvro.schema(Foo.serializer())).apply {
             put("foo_bar",Utf8("hello"))
          }
 
-         Avro.default.fromRecord(Foo.serializer(), record, SnakeCaseNamingStrategy) shouldBe Foo("hello")
+         snakeCaseAvro.fromRecord(Foo.serializer(), record) shouldBe Foo("hello")
       }
 
       "support decoding fields with PascalCasing" {
-         val record = GenericData.Record(Avro.default.schema(Foo.serializer(), PascalCaseNamingStrategy)).apply {
+         val pascalCaseAvro = Avro.withDefault(AvroConfiguration(PascalCaseNamingStrategy))
+         val record = GenericData.Record(pascalCaseAvro.schema(Foo.serializer())).apply {
             put("FooBar",Utf8("hello"))
          }
 
-         Avro.default.fromRecord(Foo.serializer(), record, PascalCaseNamingStrategy) shouldBe Foo("hello")
+         pascalCaseAvro.fromRecord(Foo.serializer(), record) shouldBe Foo("hello")
       }
    }
 })

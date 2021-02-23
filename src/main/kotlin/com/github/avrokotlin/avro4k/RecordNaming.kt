@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -53,5 +54,11 @@ data class RecordNaming internal constructor(
             descriptor.getElementAnnotations(index),
             namingStrategy
          )
+
+      operator fun invoke(name: String, annotations: List<Annotation>): RecordNaming =
+         invoke(name, annotations, DefaultNamingStrategy)
+
+      operator fun invoke(descriptor: SerialDescriptor): RecordNaming = invoke(descriptor, DefaultNamingStrategy)
+
    }
 }

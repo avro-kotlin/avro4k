@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.schema.PascalCaseNamingStrategy
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
@@ -15,19 +16,23 @@ class NamingStrategyEncoderTest : WordSpec({
       data class Foo(val fooBar: String)
 
       "support encoding fields with snake_casing" {
-         val schema = Avro.default.schema(Foo.serializer(), SnakeCaseNamingStrategy)
+         val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
 
-         val record = Avro.default.toRecord(Foo.serializer(), Foo("hello"), SnakeCaseNamingStrategy)
+         val schema = snakeCaseAvro.schema(Foo.serializer())
+
+         val record = snakeCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
 
          record.hasField("foo_bar") shouldBe true
 
          record shouldBe ListRecord(schema, listOf(Utf8("hello")))
       }
 
-      "support encoding fields with pascal_casing" {
-         val schema = Avro.default.schema(Foo.serializer(), PascalCaseNamingStrategy)
+      "support encoding fields with PascalCasing" {
+         val pascalCaseAvro = Avro.withDefault(AvroConfiguration(PascalCaseNamingStrategy))
 
-         val record = Avro.default.toRecord(Foo.serializer(), Foo("hello"), PascalCaseNamingStrategy)
+         val schema = pascalCaseAvro.schema(Foo.serializer())
+
+         val record = pascalCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
 
          record.hasField("FooBar") shouldBe true
 

@@ -133,7 +133,7 @@ class AvroOutputStreamBuilder<T>(
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
    override val serializersModule: SerializersModule = EmptySerializersModule,
-   val configuration: AvroConfiguration
+   private val configuration: AvroConfiguration = AvroConfiguration()
 ) : SerialFormat, BinaryFormat {
 
    companion object {
@@ -142,7 +142,7 @@ class Avro(
             UUID::class to UUIDSerializer()
          )
       }
-      val default = Avro(simpleModule, AvroConfiguration())
+      val default = Avro(simpleModule)
 
       fun withDefault(configuration: AvroConfiguration) = Avro(simpleModule, configuration)
 

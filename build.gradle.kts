@@ -3,8 +3,6 @@ buildscript {
       mavenCentral()
       mavenLocal()
       google()
-      maven("https://dl.bintray.com/kotlin/kotlin-eap")
-      maven("https://kotlin.bintray.com/kotlinx")
       gradlePluginPortal()
    }
 }
@@ -16,7 +14,7 @@ plugins {
    id("org.jetbrains.kotlin.plugin.serialization") version Libs.kotlinVersion
    id("maven-publish")
    signing
-   id("org.jetbrains.dokka") version Libs.dokkaVersion
+   // id("org.jetbrains.dokka") version Libs.dokkaVersion
    id("io.kotest") version Libs.kotestGradlePlugin
 }
 
@@ -24,8 +22,6 @@ repositories {
    mavenCentral()
    jcenter()
    google()
-   maven("https://dl.bintray.com/kotlin/kotlin-eap")
-   maven("https://kotlin.bintray.com/kotlinx")
 }
 
 tasks {
@@ -50,7 +46,8 @@ dependencies {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
-   kotlinOptions.apiVersion = "1.3"
+   kotlinOptions.apiVersion = "1.4"
+   kotlinOptions.languageVersion = "1.4"
    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 

@@ -39,7 +39,7 @@ class EnumSchemaFor(
    private val descriptor: SerialDescriptor
 ) : SchemaFor {
    override fun schema(): Schema {
-      val naming = RecordNaming(descriptor)
+      val naming = RecordNaming(descriptor, DefaultNamingStrategy)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 

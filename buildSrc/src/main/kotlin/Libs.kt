@@ -1,7 +1,7 @@
 object Libs {
 
-   const val kotlinVersion = "1.4.21"
-   const val dokkaVersion = "1.4.20"
+   const val kotlinVersion = "1.4.30"
+   // const val dokkaVersion = "1.4.20"
    const val kotestGradlePlugin = "0.2.6"
 
    object Kotest {
@@ -13,13 +13,13 @@ object Libs {
    }
 
    object Kotlinx {
-      private const val version = "1.0.1"
+      private const val version = "1.1.0"
       const val serializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core:$version"
       const val serializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:$version"
    }
 
    object Xerial {
-      const val snappy = "org.xerial.snappy:snappy-java:1.1.7.6"
+      const val snappy = "org.xerial.snappy:snappy-java:1.1.8.4"
    }
 
    object Avro {

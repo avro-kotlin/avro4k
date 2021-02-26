@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
+import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 
@@ -27,26 +29,36 @@ data class RecordNaming internal constructor(
 ) {
 
    companion object {
-       operator fun invoke(name : String, annotations: List<Annotation>) : RecordNaming {
-           val className = name
-               .replace(".<init>", "")
-               .replace(".<anonymous>", "")
-           val annotationExtractor = AnnotationExtractor(annotations)
-           val namespace = annotationExtractor.namespace() ?: className.split('.').dropLast(1).joinToString(".")
-           val avroName = annotationExtractor.name() ?: className.split('.').last()
-           return RecordNaming(
-               name = avroName,
-               namespace = namespace
-           )
-       }
-      operator fun invoke(descriptor: SerialDescriptor): RecordNaming = RecordNaming(
+      operator fun invoke(name: String, annotations: List<Annotation>, namingStrategy: NamingStrategy): RecordNaming {
+         val className = name
+            .replace(".<init>", "")
+            .replace(".<anonymous>", "")
+         val annotationExtractor = AnnotationExtractor(annotations)
+         val namespace = annotationExtractor.namespace() ?: className.split('.').dropLast(1).joinToString(".")
+         val avroName = annotationExtractor.name() ?: className.split('.').last()
+         return RecordNaming(
+            name = namingStrategy.to(avroName),
+            namespace = namespace
+         )
+      }
+
+      operator fun invoke(descriptor: SerialDescriptor, namingStrategy: NamingStrategy): RecordNaming = RecordNaming(
          if (descriptor.isNullable) descriptor.serialName.removeSuffix("?") else descriptor.serialName,
-         descriptor.annotations
+         descriptor.annotations,
+         namingStrategy
       )
 
-      operator fun invoke(descriptor: SerialDescriptor, index: Int): RecordNaming = RecordNaming(
-         descriptor.getElementName(index),
-         descriptor.getElementAnnotations(index)
-      )
+      operator fun invoke(descriptor: SerialDescriptor, index: Int, namingStrategy: NamingStrategy): RecordNaming =
+         RecordNaming(
+            descriptor.getElementName(index),
+            descriptor.getElementAnnotations(index),
+            namingStrategy
+         )
+
+      operator fun invoke(name: String, annotations: List<Annotation>): RecordNaming =
+         invoke(name, annotations, DefaultNamingStrategy)
+
+      operator fun invoke(descriptor: SerialDescriptor): RecordNaming = invoke(descriptor, DefaultNamingStrategy)
+
    }
 }

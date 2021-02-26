@@ -16,7 +16,7 @@ class NamingStrategyEncoderTest : WordSpec({
       data class Foo(val fooBar: String)
 
       "support encoding fields with snake_casing" {
-         val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
+         val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
          val schema = snakeCaseAvro.schema(Foo.serializer())
 
@@ -28,7 +28,7 @@ class NamingStrategyEncoderTest : WordSpec({
       }
 
       "support encoding fields with PascalCasing" {
-         val pascalCaseAvro = Avro.withDefault(AvroConfiguration(PascalCaseNamingStrategy))
+         val pascalCaseAvro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
 
          val schema = pascalCaseAvro.schema(Foo.serializer())
 

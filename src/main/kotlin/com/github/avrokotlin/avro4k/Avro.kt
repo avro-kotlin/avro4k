@@ -4,29 +4,16 @@ package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
 import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
-import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
-import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
-import com.github.avrokotlin.avro4k.io.AvroFormat
-import com.github.avrokotlin.avro4k.io.AvroInputStream
-import com.github.avrokotlin.avro4k.io.AvroOutputStream
+import com.github.avrokotlin.avro4k.io.*
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
-import kotlinx.serialization.BinaryFormat
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialFormat
-import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
@@ -132,19 +119,17 @@ class AvroOutputStreamBuilder<T>(
 }
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
-   override val serializersModule: SerializersModule = EmptySerializersModule,
+   override val serializersModule: SerializersModule = defaultModule,
    private val configuration: AvroConfiguration = AvroConfiguration()
 ) : SerialFormat, BinaryFormat {
-
+   constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
    companion object {
-      private val simpleModule = SerializersModule {
+      val defaultModule = SerializersModule {
          mapOf(
             UUID::class to UUIDSerializer()
          )
       }
-      val default = Avro(simpleModule)
-
-      fun withDefault(configuration: AvroConfiguration) = Avro(simpleModule, configuration)
+      val default = Avro(defaultModule)
 
       /**
        * Use this constant if you want to explicitly set a default value of a field to avro null

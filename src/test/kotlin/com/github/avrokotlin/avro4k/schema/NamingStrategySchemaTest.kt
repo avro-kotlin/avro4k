@@ -21,7 +21,7 @@ class NamingStrategySchemaTest : WordSpec({
       )
 
       "convert schema with snake_case to camelCase" {
-         val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
+         val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/snake_case_schema.json"))
 
@@ -31,7 +31,7 @@ class NamingStrategySchemaTest : WordSpec({
       }
 
       "convert schema with PascalCase to camelCase" {
-         val pascalCaseAvro = Avro.withDefault(AvroConfiguration(PascalCaseNamingStrategy))
+         val pascalCaseAvro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
 
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pascal_case_schema.json"))
 

@@ -19,7 +19,7 @@ class NamingStrategyIoTest : StringSpec({
    @Serializable
    data class Composer(val fullName: String, val status: String)
 
-   val snakeCaseAvro = Avro.withDefault(AvroConfiguration(SnakeCaseNamingStrategy))
+   val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
    "using snake_case namingStrategy to write out a record" {
       val ennio = Composer("Ennio Morricone", "Maestro")

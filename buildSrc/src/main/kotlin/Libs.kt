@@ -6,7 +6,7 @@ object Libs {
    const val versionsPlugin = "0.38.0"
 
    object Kotest {
-      private const val version = "4.3.1"
+      private const val version = "4.4.3"
       const val assertionsCore = "io.kotest:kotest-assertions-core:$version"
       const val assertionsJson = "io.kotest:kotest-assertions-json:$version"
       const val junit5 = "io.kotest:kotest-runner-junit5:$version"

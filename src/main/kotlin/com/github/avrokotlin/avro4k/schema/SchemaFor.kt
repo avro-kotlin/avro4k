@@ -4,9 +4,11 @@ import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
@@ -155,6 +157,7 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
    }
 }
 
+@OptIn(InternalSerializationApi::class)
 @ExperimentalSerializationApi
 fun schemaFor(serializersModule: SerializersModule,
               descriptor: SerialDescriptor,
@@ -181,6 +184,18 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
          SerialKind.ENUM -> EnumSchemaFor(descriptor)
+         SerialKind.CONTEXTUAL -> schemaFor(
+            serializersModule,
+            requireNotNull(
+               serializersModule.getContextualDescriptor(descriptor)
+                  ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
+            ) {
+               "Contextual or default serializer not found for $descriptor "
+            },
+            annos,
+            namingStrategy,
+            resolvedSchemas
+         )
          PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)

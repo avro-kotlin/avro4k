@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.github.avrokotlin.avro4k.schema.ContextualSchemaTest",
+  "fields": [
+    {
+      "name": "ts",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "withFallback",
+      "type": [
+        "null",
+        "int"
+      ]
+    }
+  ]
+}

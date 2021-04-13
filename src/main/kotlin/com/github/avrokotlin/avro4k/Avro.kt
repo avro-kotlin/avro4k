@@ -10,6 +10,7 @@ import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
@@ -18,7 +19,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 
 open class AvroInputStreamBuilder<T>(
    private val converter: (Any) -> T
@@ -125,9 +125,7 @@ class Avro(
    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
    companion object {
       val defaultModule = SerializersModule {
-         mapOf(
-            UUID::class to UUIDSerializer()
-         )
+         contextual(UUIDSerializer())
       }
       val default = Avro(defaultModule)
 

@@ -16,11 +16,11 @@ plugins {
    signing
    // id("org.jetbrains.dokka") version Libs.dokkaVersion
    id("io.kotest") version Libs.kotestGradlePlugin
+   id("com.github.ben-manes.versions") version Libs.versionsPlugin
 }
 
 repositories {
    mavenCentral()
-   jcenter()
    google()
 }
 

@@ -1,8 +1,9 @@
 object Libs {
 
-   const val kotlinVersion = "1.4.30"
+   const val kotlinVersion = "1.4.32"
    // const val dokkaVersion = "1.4.20"
    const val kotestGradlePlugin = "0.2.6"
+   const val versionsPlugin = "0.38.0"
 
    object Kotest {
       private const val version = "4.3.1"
@@ -23,7 +24,7 @@ object Libs {
    }
 
    object Avro {
-      private const val version = "1.10.1"
+      private const val version = "1.10.2"
       const val avro = "org.apache.avro:avro:$version"
    }
 }

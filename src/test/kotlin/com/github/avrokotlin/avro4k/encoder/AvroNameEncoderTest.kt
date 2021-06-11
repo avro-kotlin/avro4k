@@ -11,9 +11,10 @@ import org.apache.avro.util.Utf8
 class AvroNameEncoderTest : FunSpec({
 
    test("encoder should take into account @AvroName on fields") {
-      @Serializable
-      data class Foo(@AvroName("bar") val foo: String)
       val schema = Avro.default.schema(Foo.serializer())
       Avro.default.toRecord(Foo.serializer(), Foo("hello")) shouldBe ListRecord(schema, listOf(Utf8("hello")))
    }
-})
+}) {
+   @Serializable
+   data class Foo(@AvroName("bar") val foo: String)
+}

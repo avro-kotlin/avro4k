@@ -18,9 +18,6 @@ class BigIntegerDecoderTest : FunSpec({
 
    test("decode big integer from string") {
 
-      @Serializable
-      data class Test(val b: BigInteger)
-
       val schema = SchemaBuilder.record("Test").fields().name("b").type(Schema.create(Schema.Type.STRING)).noDefault().endRecord()
 
       val record = GenericData.Record(schema)
@@ -28,4 +25,8 @@ class BigIntegerDecoderTest : FunSpec({
 
       Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(BigInteger("1927398217318546456532973912379127391279312983719"))
    }
-})
+}) {
+
+   @Serializable
+   data class Test(val b: BigInteger)
+}

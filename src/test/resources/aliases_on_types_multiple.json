@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Annotated",
+  "name": "TypeAliasAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroAliasSchemaTest",
   "aliases": [
     "queen",

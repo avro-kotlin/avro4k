@@ -12,8 +12,6 @@ import org.apache.avro.util.Utf8
 
 class NamingStrategyDecoderTest : WordSpec({
    "Decoder" should {
-      @Serializable
-      data class Foo(val fooBar: String)
 
       "support decoding fields with snake_casing" {
          val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
@@ -33,4 +31,7 @@ class NamingStrategyDecoderTest : WordSpec({
          pascalCaseAvro.fromRecord(Foo.serializer(), record) shouldBe Foo("hello")
       }
    }
-})
+}) {
+   @Serializable
+   data class Foo(val fooBar: String)
+}

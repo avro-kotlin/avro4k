@@ -21,28 +21,22 @@ class BigDecimalEncoderTest : FunSpec({
 
    test("use byte array for decimal") {
 
-      @Serializable
-      data class Test(val decimal: BigDecimal)
+      val schema = Avro.default.schema(BigDecimalTest.serializer())
 
-      val schema = Avro.default.schema(Test.serializer())
-
-      val obj = Test(BigDecimal("12.34"))
+      val obj = BigDecimalTest(BigDecimal("12.34"))
       val s = schema.getField("decimal").schema()
       val bytes = Conversions.DecimalConversion().toBytes(BigDecimal("12.34"), s, s.logicalType)
 
-      Avro.default.toRecord(Test.serializer(), schema, obj) shouldBe ListRecord(schema, bytes)
+      Avro.default.toRecord(BigDecimalTest.serializer(), schema, obj) shouldBe ListRecord(schema, bytes)
    }
 
    test("allow decimals to be encoded as strings") {
-
-      @Serializable
-      data class Test(val decimal: BigDecimal)
 
       val schema = SchemaBuilder.record("Test").fields()
          .name("decimal").type(Schema.create(Schema.Type.STRING)).noDefault()
          .endRecord()
 
-      Avro.default.toRecord(Test.serializer(), schema, Test(BigDecimal("123.456"))) shouldBe
+      Avro.default.toRecord(BigDecimalTest.serializer(), schema, BigDecimalTest(BigDecimal("123.456"))) shouldBe
          ListRecord(schema, Utf8("123.456"))
    }
 
@@ -65,31 +59,32 @@ class BigDecimalEncoderTest : FunSpec({
 
    test("support nullable big decimals") {
 
-      @Serializable
-      data class Test(val big: BigDecimal?)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(NullableBigDecimalTest.serializer())
 
       val s = schema.getField("big").schema().types.first { it.type != Schema.Type.NULL }
       val bytes = Conversions.DecimalConversion().toBytes(BigDecimal("123.4").setScale(2), s, s.logicalType)
 
-      Avro.default.toRecord(Test.serializer(), schema, Test(BigDecimal("123.4"))) shouldBe ListRecord(schema, bytes)
-      Avro.default.toRecord(Test.serializer(), schema, Test(null)) shouldBe ListRecord(schema, null)
+      Avro.default.toRecord(NullableBigDecimalTest.serializer(), schema, NullableBigDecimalTest(BigDecimal("123.4"))) shouldBe ListRecord(schema, bytes)
+      Avro.default.toRecord(NullableBigDecimalTest.serializer(), schema, NullableBigDecimalTest(null)) shouldBe ListRecord(schema, null)
    }
 
    test("allow bigdecimals to be encoded as generic fixed") {
 
-      @Serializable
-      data class Test(val big: BigDecimal)
 
       //Schema needs to have the precision of 16 in order to serialize a 8 digit integer with a scale of 8
-      val decimal = LogicalTypes.decimal(16, 8).addToSchema(Schema.createFixed("big", null, null, 8))
+      val decimal = LogicalTypes.decimal(16, 8).addToSchema(Schema.createFixed("decimal", null, null, 8))
 
       val schema = SchemaBuilder.record("Test").fields()
-         .name("big").type(decimal).noDefault()
+         .name("decimal").type(decimal).noDefault()
          .endRecord()
 
-      val big = Avro.default.toRecord(Test.serializer(), schema, Test(BigDecimal("12345678"))).get("big") as GenericFixed
+      val big = Avro.default.toRecord(BigDecimalTest.serializer(), schema, BigDecimalTest(BigDecimal("12345678"))).get("decimal") as GenericFixed
       big.bytes() shouldBe byteArrayOf(0, 4, 98, -43, 55, 43, -114, 0)
    }
-})
+}) {
+   @Serializable
+   data class BigDecimalTest(val decimal: BigDecimal)
+
+   @Serializable
+   data class NullableBigDecimalTest(val big: BigDecimal?)
+}

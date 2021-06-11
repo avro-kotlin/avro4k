@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Annotated",
+  "name": "EnumAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroPropSchemaTest",
   "fields": [
     {

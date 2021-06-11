@@ -16,21 +16,11 @@ class AvroPropSchemaTest : WordSpec() {
     "@AvroProp" should {
       "support prop annotation on class"  {
 
-        @Serializable
-        @AvroProp("cold", "play")
-        data class Annotated(val str: String)
-
         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/props_annotation_class.json"))
-        val schema = Avro.default.schema(Annotated.serializer())
+        val schema = Avro.default.schema(TypeAnnotated.serializer())
         schema.toString(true) shouldBe expected.toString(true)
       }
       "support prop annotation on field" {
-
-        @Serializable
-        data class AnnotatedProperties(
-            @AvroProp("cold", "play") val str: String,
-            @AvroProp("kate", "bush") val long: Long,
-            val int: Int)
 
         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/props_annotation_field.json"))
         val schema = Avro.default.schema(AnnotatedProperties.serializer())
@@ -38,13 +28,23 @@ class AvroPropSchemaTest : WordSpec() {
       }
       "support props annotations on enums"  {
 
-        @Serializable
-        data class Annotated(@AvroProp("cold", "play") val colours: Colours)
-
         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/props_annotation_scala_enum.json"))
-        val schema = Avro.default.schema(Annotated.serializer())
+        val schema = Avro.default.schema(EnumAnnotated.serializer())
         schema.toString(true) shouldBe expected.toString(true)
       }
     }
   }
+
+  @Serializable
+  @AvroProp("cold", "play")
+  data class TypeAnnotated(val str: String)
+
+  @Serializable
+  data class AnnotatedProperties(
+      @AvroProp("cold", "play") val str: String,
+      @AvroProp("kate", "bush") val long: Long,
+      val int: Int)
+
+  @Serializable
+  data class EnumAnnotated(@AvroProp("cold", "play") val colours: Colours)
 }

@@ -23,24 +23,6 @@ import java.time.temporal.ChronoUnit
 
 class DateDecoderTest : FunSpec({
 
-   @Serializable
-   data class WithLocalTime(val z: LocalTime)
-
-   @Serializable
-   data class WithLocalDate(val z: LocalDate)
-
-   @Serializable
-   data class WithLocalDateTime(val z: LocalDateTime)
-
-   @Serializable
-   data class WithTimestamp(val z: Timestamp)
-
-   @Serializable
-   data class WithInstant(@Serializable(with = InstantSerializer::class) val z: Instant)
-
-   @Serializable
-   data class WithInstantAndMicros(@Serializable(with = InstantToMicroSerializer::class) val z: Instant)
-
    test("decode int to LocalTime") {
       val schema = Avro.default.schema(WithLocalTime.serializer())
       val record = GenericData.Record(schema)
@@ -88,4 +70,23 @@ class DateDecoderTest : FunSpec({
       Avro.default.fromRecord(WithInstantAndMicros.serializer(), record) shouldBe
          WithInstantAndMicros(Instant.ofEpochMilli(1538312231000L).plus(100, ChronoUnit.MICROS))
    }
-})
+}) {
+
+   @Serializable
+   data class WithLocalTime(val z: LocalTime)
+
+   @Serializable
+   data class WithLocalDate(val z: LocalDate)
+
+   @Serializable
+   data class WithLocalDateTime(val z: LocalDateTime)
+
+   @Serializable
+   data class WithTimestamp(val z: Timestamp)
+
+   @Serializable
+   data class WithInstant(@Serializable(with = InstantSerializer::class) val z: Instant)
+
+   @Serializable
+   data class WithInstantAndMicros(@Serializable(with = InstantToMicroSerializer::class) val z: Instant)
+}

@@ -1,6 +1,6 @@
 {
    "type": "record",
-   "name": "Test",
+   "name": "NullableBigDecimalTest",
    "namespace": "com.github.avrokotlin.avro4k.schema.BigDecimalSchemaTest",
    "fields": [
       {

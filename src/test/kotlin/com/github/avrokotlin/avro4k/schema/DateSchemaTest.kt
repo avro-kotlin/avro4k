@@ -24,9 +24,6 @@ class DateSchemaTest : FunSpec({
 
    test("generate date logical type for LocalDate") {
 
-      @Serializable
-      data class LocalDateTest(val date: LocalDate)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate.json"))
       val schema = Avro.default.schema(LocalDateTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
@@ -34,18 +31,12 @@ class DateSchemaTest : FunSpec({
 
    test("generate date logical type for nullable LocalDate") {
 
-      @Serializable
-      data class LocalDateTest(val date: LocalDate?)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate_nullable.json"))
-      val schema = Avro.default.schema(LocalDateTest.serializer())
+      val schema = Avro.default.schema(NullableLocalDateTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 
    test("generate time logical type for LocalTime") {
-
-      @Serializable
-      data class LocalTimeTest(val time: LocalTime)
 
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localtime.json"))
       val schema = Avro.default.schema(LocalTimeTest.serializer())
@@ -54,18 +45,12 @@ class DateSchemaTest : FunSpec({
 
    test("generate time logical type for LocalDateTime") {
 
-      @Serializable
-      data class LocalTimeTest(val time: LocalDateTime)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdatetime.json"))
-      val schema = Avro.default.schema(LocalTimeTest.serializer())
+      val schema = Avro.default.schema(LocalDateTimeTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 
    test("generate timestamp-millis logical type for Instant") {
-
-      @Serializable
-      data class InstantTest(val instant: Instant)
 
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/instant.json"))
       val schema = Avro.default.schema(InstantTest.serializer())
@@ -74,9 +59,6 @@ class DateSchemaTest : FunSpec({
 
    test("generate timestamp-millis logical type for Timestamp") {
 
-      @Serializable
-      data class TimestampTest(val ts: Timestamp)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/timestamp.json"))
       val schema = Avro.default.schema(TimestampTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
@@ -84,11 +66,31 @@ class DateSchemaTest : FunSpec({
 
    test("generate timestamp-millis logical type for nullable Timestamp") {
 
-      @Serializable
-      data class Test(val ts: Timestamp?)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/timestamp_nullable.json"))
       val schema = Avro.default.schema(Test.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
-})
+}) {
+
+   @Serializable
+   data class LocalDateTest(val date: LocalDate)
+
+   @Serializable
+   data class NullableLocalDateTest(val date: LocalDate?)
+
+   @Serializable
+   data class LocalTimeTest(val time: LocalTime)
+
+   @Serializable
+   data class LocalDateTimeTest(val time: LocalDateTime)
+
+   @Serializable
+   data class InstantTest(val instant: Instant)
+
+
+   @Serializable
+   data class TimestampTest(val ts: Timestamp)
+
+   @Serializable
+   data class Test(val ts: Timestamp?)
+}

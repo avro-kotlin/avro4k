@@ -12,9 +12,6 @@ import org.apache.avro.util.Utf8
 
 class NamingStrategyEncoderTest : WordSpec({
    "Encoder" should {
-      @Serializable
-      data class Foo(val fooBar: String)
-
       "support encoding fields with snake_casing" {
          val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
@@ -39,4 +36,7 @@ class NamingStrategyEncoderTest : WordSpec({
          record shouldBe ListRecord(schema, listOf(Utf8("hello")))
       }
    }
-})
+}) {
+   @Serializable
+   data class Foo(val fooBar: String)
+}

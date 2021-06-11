@@ -22,14 +22,14 @@ class NamespaceSchemaTest : FunSpec() {
 
       test("local classes should use the namespace of their parent object package") {
 
-         @Serializable
-         data class NamespaceTestFoo(val inner: String)
-
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/local_class_namespace.json"))
          val schema = Avro.default.schema(NamespaceTestFoo.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
    }
+
+   @Serializable
+   data class NamespaceTestFoo(val inner: String)
 }
 
 @Serializable

@@ -19,30 +19,6 @@ class UserDefinedSerializerTest : FunSpec({
 
    test("schema from user-defined-serializer") {
 
-      @Serializer(forClass = String::class)
-      @OptIn(ExperimentalSerializationApi::class)
-      class StringAsFixedSerializer : AvroSerializer<String>() {
-
-         override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: String) {
-            TODO()
-         }
-
-         override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
-            TODO()
-         }
-
-         override val descriptor: SerialDescriptor = object : AvroDescriptor("fixed-string", PrimitiveKind.STRING) {
-            override fun schema(annos: List<Annotation>,
-                                serializersModule: SerializersModule,
-                                namingStrategy: NamingStrategy): Schema {
-               return Schema.createFixed("foo", null, null, 10)
-            }
-         }
-      }
-
-      @Serializable
-      data class Test(@Serializable(with = StringAsFixedSerializer::class) val fixed: String)
-
       Avro.default.schema(Test.serializer()) shouldBe
          SchemaBuilder.record("Test")
             .namespace("com.github.avrokotlin.avro4k.schema.UserDefinedSerializerTest")
@@ -50,4 +26,28 @@ class UserDefinedSerializerTest : FunSpec({
             .name("fixed").type(Schema.createFixed("foo", null, null, 10)).noDefault()
             .endRecord()
    }
-})
+}) {
+   @Serializer(forClass = String::class)
+   @OptIn(ExperimentalSerializationApi::class)
+   class StringAsFixedSerializer : AvroSerializer<String>() {
+
+      override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: String) {
+         TODO()
+      }
+
+      override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
+         TODO()
+      }
+
+      override val descriptor: SerialDescriptor = object : AvroDescriptor("fixed-string", PrimitiveKind.STRING) {
+         override fun schema(annos: List<Annotation>,
+             serializersModule: SerializersModule,
+             namingStrategy: NamingStrategy): Schema {
+            return Schema.createFixed("foo", null, null, 10)
+         }
+      }
+   }
+
+   @Serializable
+   data class Test(@Serializable(with = StringAsFixedSerializer::class) val fixed: String)
+}

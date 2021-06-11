@@ -9,26 +9,14 @@ class PairSchemaTest : FunSpec({
 
    test("!generate union:T,U for Pair[T,U] of primitives") {
 
-      @Serializable
-      data class Test(val p: Pair<String, Double>)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pair.json"))
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(StringDoubleTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
    test("!generate union:T,U for Either[T,U] of records") {
 
-      @Serializable
-      data class Goo(val s: String)
-
-      @Serializable
-      data class Foo(val b: Boolean)
-
-      @Serializable
-      data class Test(val p: Pair<Goo, Foo>)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pair_records.json"))
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(GooFooTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 //    "generate union:T,U for Either[T,U] of records using @AvroNamespace" in {
@@ -45,4 +33,16 @@ class PairSchemaTest : FunSpec({
 //      AvroSchema[Either[String, Option[Int]]].toString shouldBe """["null","string","int"]"""
 //   }
 
-})
+}) {
+   @Serializable
+   data class StringDoubleTest(val p: Pair<String, Double>)
+
+   @Serializable
+   data class Goo(val s: String)
+
+   @Serializable
+   data class Foo(val b: Boolean)
+
+   @Serializable
+   data class GooFooTest(val p: Pair<Goo, Foo>)
+}

@@ -8,18 +8,6 @@ import kotlinx.serialization.Serializable
 
 class NamingStrategySchemaTest : WordSpec({
    "NamingStrategy" should {
-      @Serializable
-      data class SubInterface(val name: String, val ipv4Address: String)
-
-      @Serializable
-      data class Interface(
-         val name: String,
-         val ipv4Address: String,
-         val ipv4SubnetMask: Int,
-         val v: InternetProtocol,
-         val subInterface: SubInterface?
-      )
-
       "convert schema with snake_case to camelCase" {
          val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
@@ -40,7 +28,19 @@ class NamingStrategySchemaTest : WordSpec({
          schema.toString(true) shouldBe expected.toString(true)
       }
    }
-})
+}) {
+   @Serializable
+   data class SubInterface(val name: String, val ipv4Address: String)
+
+   @Serializable
+   data class Interface(
+       val name: String,
+       val ipv4Address: String,
+       val ipv4SubnetMask: Int,
+       val v: InternetProtocol,
+       val subInterface: SubInterface?
+   )
+}
 
 @Serializable
 enum class InternetProtocol { IPv4, IPv6 }

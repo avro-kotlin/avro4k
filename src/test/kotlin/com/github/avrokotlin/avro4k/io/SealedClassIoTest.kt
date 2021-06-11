@@ -12,9 +12,6 @@ class SealedClassIoTest : StringSpec({
 
    "read / write sealed class" {
 
-      @Serializable
-      data class SealedClassTest(val a: Operation)
-
       writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer())
       writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer()) {
          val operation = it["a"] as GenericRecord
@@ -25,9 +22,6 @@ class SealedClassIoTest : StringSpec({
 
    "read / write sealed class using object" {
 
-      @Serializable
-      data class SealedClassTest(val a: Operation)
-
       writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer())
       writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer()) {
          val operation = it["a"] as GenericRecord
@@ -37,16 +31,13 @@ class SealedClassIoTest : StringSpec({
 
    "read / write list of sealed class values" {
 
-      @Serializable
-      data class SealedClassTest(val a: List<Operation>)
-
-      val test = SealedClassTest(listOf(
+      val test = SealedClassListTest(listOf(
          Operation.Nullary,
          Operation.Unary.Negate(1),
          Operation.Binary.Add(3,4)
       ))
-      writeRead(test, SealedClassTest.serializer())
-      writeRead(test, SealedClassTest.serializer()) {
+      writeRead(test, SealedClassListTest.serializer())
+      writeRead(test, SealedClassListTest.serializer()) {
          it["a"].shouldBeInstanceOf<List<GenericRecord>>()
          @Suppress("UNCHECKED_CAST")
          val operations = it["a"] as List<GenericRecord>
@@ -63,13 +54,10 @@ class SealedClassIoTest : StringSpec({
 
    "read / write nullable sealed class" {
 
-      @Serializable
-      data class SealedClassTest(val a: Operation?)
-
-      writeRead(SealedClassTest(null), SealedClassTest.serializer())
-      writeRead(SealedClassTest(Operation.Nullary), SealedClassTest.serializer())
-      writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer())
-      writeRead(SealedClassTest(Operation.Unary.Negate(1)), SealedClassTest.serializer()) {
+      writeRead(NullableSealedClassTest(null), NullableSealedClassTest.serializer())
+      writeRead(NullableSealedClassTest(Operation.Nullary), NullableSealedClassTest.serializer())
+      writeRead(NullableSealedClassTest(Operation.Unary.Negate(1)), NullableSealedClassTest.serializer())
+      writeRead(NullableSealedClassTest(Operation.Unary.Negate(1)), NullableSealedClassTest.serializer()) {
          val operation = it["a"] as GenericRecord
          operation.schema shouldBe Avro.default.schema(Operation.Unary.Negate.serializer())
          operation["value"] shouldBe 1
@@ -84,4 +72,14 @@ class SealedClassIoTest : StringSpec({
          operation["value"] shouldBe 1
       }
    }
-})
+}) {
+
+   @Serializable
+   data class SealedClassTest(val a: Operation)
+
+   @Serializable
+   data class SealedClassListTest(val a: List<Operation>)
+
+   @Serializable
+   data class NullableSealedClassTest(val a: Operation?)
+}

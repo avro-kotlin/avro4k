@@ -9,9 +9,6 @@ class MapIoTest : StringSpec({
 
    "read/write primitive maps"{
 
-      @Serializable
-      data class Test(val a: Map<String, Boolean>, val b: Map<String, String>, val c: Map<String, Long>)
-
       writeRead(
          Test(
             mapOf("a" to true, "b" to false),
@@ -25,5 +22,8 @@ class MapIoTest : StringSpec({
          it["c"] shouldBe mapOf(Utf8("a") to 123L, Utf8("b") to 999L)
       }
    }
-})
+}) {
 
+   @Serializable
+   data class Test(val a: Map<String, Boolean>, val b: Map<String, String>, val c: Map<String, Long>)
+}

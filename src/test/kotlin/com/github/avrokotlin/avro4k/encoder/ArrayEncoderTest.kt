@@ -12,21 +12,17 @@ class ArrayEncoderTest : WordSpec({
 
    "Encoder" should {
       "generate GenericData.Array for an Array<Boolean>" {
-         @Serializable
-         data class Test(val a: Array<Boolean>)
 
-         val schema = Avro.default.schema(Test.serializer())
+         val schema = Avro.default.schema(ArrayBooleanTest.serializer())
          val arraySchema = schema.getField("a").schema()
-         val record = Avro.default.toRecord(Test.serializer(), Test(arrayOf(true, false, true)))
+         val record = Avro.default.toRecord(ArrayBooleanTest.serializer(), ArrayBooleanTest(arrayOf(true, false, true)))
          record shouldBe ListRecord(schema, listOf(GenericData.Array(arraySchema, listOf(true, false, true))))
       }
       "support GenericData.Array for an Array<Boolean> with other fields" {
-         @Serializable
-         data class Test(val a: String, val b: Array<Boolean>, val c: Long)
 
-         val schema = Avro.default.schema(Test.serializer())
+         val schema = Avro.default.schema(ArrayBooleanWithOthersTest.serializer())
          val arraySchema = schema.getField("b").schema()
-         val record = Avro.default.toRecord(Test.serializer(), Test("foo", arrayOf(true, false, true), 123L))
+         val record = Avro.default.toRecord(ArrayBooleanWithOthersTest.serializer(), ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L))
          record shouldBe ListRecord(
             schema,
             Utf8("foo"),
@@ -35,25 +31,21 @@ class ArrayEncoderTest : WordSpec({
          )
       }
       "generate GenericData.Array for a List<String>" {
-         @Serializable
-         data class Test(val a: List<String>)
 
-         val schema = Avro.default.schema(Test.serializer())
+         val schema = Avro.default.schema(ListStringTest.serializer())
          val arraySchema = schema.getField("a").schema()
-         val record = Avro.default.toRecord(Test.serializer(), Test(listOf("we23", "54z")))
+         val record = Avro.default.toRecord(ListStringTest.serializer(), ListStringTest(listOf("we23", "54z")))
          record shouldBe ListRecord(
             schema,
             listOf(GenericData.Array(arraySchema, listOf(Utf8("we23"), Utf8("54z"))))
          )
       }
       "generate GenericData.Array for a Set<Long>" {
-         @Serializable
-         data class Test(val a: Set<Long>)
 
-         val schema = Avro.default.schema(Test.serializer())
+         val schema = Avro.default.schema(SetLongTest.serializer())
          val arraySchema = schema.getField("a").schema()
          val expected = ListRecord(schema, listOf(GenericData.Array(arraySchema, listOf(123L, 643L, 912))))
-         val actual = Avro.default.toRecord(Test.serializer(), Test(setOf(123L, 643L, 912L)))
+         val actual = Avro.default.toRecord(SetLongTest.serializer(), SetLongTest(setOf(123L, 643L, 912L)))
          actual shouldBe expected
       }
 //    "generate array for an Array of records" {
@@ -120,5 +112,16 @@ class ArrayEncoderTest : WordSpec({
 //      )
 //    }
    }
-})
+}) {
+   @Serializable
+   data class ArrayBooleanTest(val a: Array<Boolean>)
 
+   @Serializable
+   data class ArrayBooleanWithOthersTest(val a: String, val b: Array<Boolean>, val c: Long)
+
+   @Serializable
+   data class SetLongTest(val a: Set<Long>)
+
+   @Serializable
+   data class ListStringTest(val a: List<String>)
+}

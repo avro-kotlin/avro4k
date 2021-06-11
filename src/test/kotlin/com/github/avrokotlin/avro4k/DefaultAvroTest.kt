@@ -9,12 +9,11 @@ import java.util.UUID
 class DefaultAvroTest : FunSpec({
 
     test("encoding UUID") {
-
-        @Serializable
-        data class Foo(@Contextual val a: UUID)
-
         val uuid = UUID.randomUUID()
         val record = Avro.default.toRecord(Foo.serializer(), Foo(uuid))
         record.get("a").toString() shouldBe uuid.toString()
     }
-})
+}) {
+    @Serializable
+    data class Foo(@Contextual val a: UUID)
+}

@@ -15,30 +15,29 @@ class BigDecimalSchemaTest : FunSpec({
 
    test("accept big decimal as logical type on bytes") {
 
-      @Serializable
-      data class Test(val decimal: BigDecimal)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(BigDecimalTest.serializer())
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal.json"))
       schema shouldBe expected
    }
    test("accept big decimal as logical type on bytes with custom scale and precision") {
 
-      @Serializable
-      data class Test(@ScalePrecision(1, 4) val decimal: BigDecimal)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(BigDecimalPrecisionTest.serializer())
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal-scale-and-precision.json"))
       schema shouldBe expected
    }
    test("support nullable BigDecimal as a union") {
 
-      @Serializable
-      data class Test(val decimal: BigDecimal?)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(NullableBigDecimalTest.serializer())
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal_nullable.json"))
       schema shouldBe expected
    }
-})
+}) {
+   @Serializable
+   data class BigDecimalTest(val decimal: BigDecimal)
 
+   @Serializable
+   data class BigDecimalPrecisionTest(@ScalePrecision(1, 4) val decimal: BigDecimal)
+
+   @Serializable
+   data class NullableBigDecimalTest(val decimal: BigDecimal?)
+}

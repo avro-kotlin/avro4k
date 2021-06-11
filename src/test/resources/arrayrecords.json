@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Test",
+  "name": "NestedArrayTest",
   "namespace": "com.github.avrokotlin.avro4k.schema.ArraySchemaTest",
   "fields": [
     {

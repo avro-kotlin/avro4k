@@ -1,6 +1,6 @@
 {
    "type": "record",
-   "name": "LocalDateTest",
+   "name": "NullableLocalDateTest",
    "namespace": "com.github.avrokotlin.avro4k.schema.DateSchemaTest",
    "fields": [
       {

@@ -12,62 +12,38 @@ import java.nio.ByteBuffer
 class MapDecoderTest : StringSpec({
 
    "decode a Map<String, Long> from strings/longs" {
-      @Serializable
-      data class Test(val a: Map<String, Long>)
 
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(MapStringLong.serializer())
 
       val record = GenericData.Record(schema)
       record.put("a", mapOf("x" to 152134L, "y" to 917823L))
 
-      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to 152134L, "y" to 917823L))
+      Avro.default.fromRecord(MapStringLong.serializer(), record) shouldBe MapStringLong(mapOf("x" to 152134L, "y" to 917823L))
    }
 
    "decode a Map<String, Long> from utf8s/longs" {
-      @Serializable
-      data class Test(val a: Map<String, Long>)
 
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(MapStringLong.serializer())
 
       val record = GenericData.Record(schema)
       record.put("a", mapOf(Utf8("x") to 152134L, Utf8("y") to 917823L))
 
-      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to 152134L, "y" to 917823L))
+      Avro.default.fromRecord(MapStringLong.serializer(), record) shouldBe MapStringLong(mapOf("x" to 152134L, "y" to 917823L))
    }
 
    "decode a Map<String, String> from utf8s/utf8s" {
-      @Serializable
-      data class Test(val a: Map<String, String>)
 
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(MapStringString.serializer())
 
       val record = GenericData.Record(schema)
       record.put("a", mapOf(Utf8("x") to Utf8("a"), Utf8("y") to Utf8("b")))
 
-      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf("x" to "a", "y" to "b"))
+      Avro.default.fromRecord(MapStringString.serializer(), record) shouldBe MapStringString(mapOf("x" to "a", "y" to "b"))
    }
 
    "decode a Map<String, ByteArray> from utf8s/ByteBuffer" {
-      @Serializable
-      data class Test(val a: Map<String, ByteArray>) {
-         override fun equals(other: Any?): Boolean{
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
 
-            other as Test
-
-            if (a.size != other.a.size) return false
-            if (a.keys != other.a.keys) return false
-
-            return a.map {
-               it.value.contentEquals(other.a[it.key]!!)
-            }.all { it }
-         }
-
-         override fun hashCode() = a.hashCode()
-      }
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(MapStringByteArray.serializer())
 
       val record = GenericData.Record(schema)
       record.put("a", mapOf(
@@ -76,7 +52,7 @@ class MapDecoderTest : StringSpec({
          Utf8("c") to ByteBuffer.wrap("z".toByteArray())
       ))
 
-      Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(mapOf(
+      Avro.default.fromRecord(MapStringByteArray.serializer(), record) shouldBe MapStringByteArray(mapOf(
          "a" to "x".toByteArray(),
          "b" to "y".toByteArray(),
          "c" to "z".toByteArray()
@@ -85,13 +61,7 @@ class MapDecoderTest : StringSpec({
 
    "decode a Map of records" {
 
-      @Serializable
-      data class Foo(val a: String, val b: Boolean)
-
-      @Serializable
-      data class Test(val a: Map<String, Foo>)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(MapStringStructure.serializer())
       val fooSchema = Avro.default.schema(Foo.serializer())
 
       val xRecord = ListRecord(fooSchema, Utf8("x"), true)
@@ -100,7 +70,39 @@ class MapDecoderTest : StringSpec({
       val record = GenericData.Record(schema)
       record.put("a", mapOf("a" to xRecord, "b" to yRecord))
 
-      Avro.default.fromRecord(Test.serializer(), record) shouldBe
-         Test(mapOf("a" to Foo("x", true), "b" to Foo("y", false)))
+      Avro.default.fromRecord(MapStringStructure.serializer(), record) shouldBe
+          MapStringStructure(mapOf("a" to Foo("x", true), "b" to Foo("y", false)))
    }
-})
+}) {
+
+   @Serializable
+   data class MapStringLong(val a: Map<String, Long>)
+
+   @Serializable
+   data class MapStringString(val a: Map<String, String>)
+
+   @Serializable
+   data class MapStringByteArray(val a: Map<String, ByteArray>) {
+      override fun equals(other: Any?): Boolean{
+         if (this === other) return true
+         if (other?.javaClass != javaClass) return false
+
+         other as MapStringByteArray
+
+         if (a.size != other.a.size) return false
+         if (a.keys != other.a.keys) return false
+
+         return a.map {
+            it.value.contentEquals(other.a[it.key]!!)
+         }.all { it }
+      }
+
+      override fun hashCode() = a.hashCode()
+   }
+
+   @Serializable
+   data class Foo(val a: String, val b: Boolean)
+
+   @Serializable
+   data class MapStringStructure(val a: Map<String, Foo>)
+}

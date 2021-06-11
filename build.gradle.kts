@@ -11,7 +11,7 @@ plugins {
    java
    id("java-library")
    kotlin("jvm") version Libs.kotlinVersion
-   id("org.jetbrains.kotlin.plugin.serialization") version Libs.kotlinVersion
+   kotlin("plugin.serialization") version Libs.kotlinVersion
    id("maven-publish")
    signing
    // id("org.jetbrains.dokka") version Libs.dokkaVersion
@@ -46,8 +46,8 @@ dependencies {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
-   kotlinOptions.apiVersion = "1.4"
-   kotlinOptions.languageVersion = "1.4"
+   kotlinOptions.apiVersion = "1.5"
+   kotlinOptions.languageVersion = "1.5"
    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 

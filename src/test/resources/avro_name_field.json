@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Foo",
+  "name": "FieldNamesFoo",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroNameSchemaTest",
   "fields": [
     {

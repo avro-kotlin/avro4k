@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Annotated",
+  "name": "TypeAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroDocSchemaTest",
   "doc" : "hello; is it me youre looking for",
   "fields": [

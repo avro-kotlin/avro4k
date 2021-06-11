@@ -12,42 +12,42 @@ class AvroAliasSchemaTest : WordSpec({
   "SchemaEncoder" should {
     "support alias annotations on types"  {
 
-      @Serializable
-      @AvroAlias("queen")
-      data class Annotated(val str: String)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/aliases_on_types.json"))
-      val schema = Avro.default.schema(Annotated.serializer())
+      val schema = Avro.default.schema(TypeAnnotated.serializer())
       schema.toString(true) shouldBe expected.toString(true)
     }
     "support multiple alias annotations on types"  {
 
-      @AvroAliases(["queen","ledzep"])
-      @Serializable
-      data class Annotated(val str: String)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/aliases_on_types_multiple.json"))
-      val schema = Avro.default.schema(Annotated.serializer())
+      val schema = Avro.default.schema(TypeAliasAnnotated.serializer())
       schema.toString(true) shouldBe expected.toString(true)
     }
     "support alias annotations on field"  {
 
-      @Serializable
-      data class Annotated(@AvroAlias("cold") val str: String, @AvroAlias("kate") val long: Long, val int: Int)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/aliases_on_fields.json"))
-      val schema = Avro.default.schema(Annotated.serializer())
+      val schema = Avro.default.schema(FieldAnnotated.serializer())
       schema.toString(true) shouldBe expected.toString(true)
     }
      "support multiple alias annotations on fields"  {
 
-        @Serializable
-        data class Annotated(@AvroAliases(["queen","ledzep"]) val str: String)
-
         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/aliases_on_fields_multiple.json"))
-        val schema = Avro.default.schema(Annotated.serializer())
+        val schema = Avro.default.schema(FieldAliasAnnotated.serializer())
         schema.toString(true) shouldBe expected.toString(true)
      }
   }
 
-})
+}) {
+    @Serializable
+    @AvroAlias("queen")
+    data class TypeAnnotated(val str: String)
+
+    @AvroAliases(["queen","ledzep"])
+    @Serializable
+    data class TypeAliasAnnotated(val str: String)
+
+    @Serializable
+    data class FieldAnnotated(@AvroAlias("cold") val str: String, @AvroAlias("kate") val long: Long, val int: Int)
+
+    @Serializable
+    data class FieldAliasAnnotated(@AvroAliases(["queen","ledzep"]) val str: String)
+}

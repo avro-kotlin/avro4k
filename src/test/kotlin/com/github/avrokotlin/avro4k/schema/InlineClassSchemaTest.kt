@@ -14,16 +14,16 @@ class InlineClassSchemaTest : FunSpec({
 
    test("support inline types") {
 
-      @Serializable
-      @AvroInline
-      data class Name(val value: String)
-
-      @Serializable
-      data class Product(val id: String, val name: Name)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/inline_type.json"))
       val schema = Avro.default.schema(Product.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 
-})
+}) {
+   @Serializable
+   @AvroInline
+   data class Name(val value: String)
+
+   @Serializable
+   data class Product(val id: String, val name: Name)
+}

@@ -11,11 +11,11 @@ class TransientEncoderTest : FunSpec({
 
    test("encoder should skip @Transient fields") {
 
-      @Serializable
-      data class Test(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
-
       val schema = Avro.default.schema(Test.serializer())
       val record = Avro.default.toRecord(Test.serializer(), Test("a", "b", "c"))
       record shouldBe ListRecord(schema, Utf8("a"), Utf8("c"))
    }
-})
+}) {
+   @Serializable
+   data class Test(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
+}

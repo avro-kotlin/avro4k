@@ -174,7 +174,7 @@ fun schemaFor(serializersModule: SerializersModule,
 
    val schemaFor: SchemaFor = when (underlying) {
       is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, namingStrategy))
-      else -> when (descriptor.kind) {
+      else -> when (descriptor.carrierDescriptor.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
          PrimitiveKind.INT -> SchemaFor.IntSchemaFor
@@ -209,3 +209,8 @@ fun schemaFor(serializersModule: SerializersModule,
 
    return if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
 }
+
+// copy-paste from kotlinx serialization because it internal
+@ExperimentalSerializationApi
+internal val SerialDescriptor.carrierDescriptor: SerialDescriptor
+   get() = if (isInline) getElementDescriptor(0) else this

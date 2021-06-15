@@ -10,12 +10,6 @@ import org.apache.avro.generic.GenericData
 
 class FixedDecoderTest : FunSpec({
 
-  @Serializable
-  data class FixedString(val z: String)
-
-  @Serializable
-  data class NullableFixedType(val z: FixedString?)
-
   test("decode bytes to String") {
     val schema = SchemaBuilder.record("FixedString").fields()
         .name("z").type(Schema.createFixed("z", null, "ns", 10)).noDefault()
@@ -33,4 +27,11 @@ class FixedDecoderTest : FunSpec({
 //        FixedValueType("sam")))
 //  }
 
-})
+}) {
+
+  @Serializable
+  data class FixedString(val z: String)
+
+  @Serializable
+  data class NullableFixedType(val z: FixedString?)
+}

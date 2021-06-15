@@ -16,9 +16,6 @@ import java.nio.file.Files
 
 class NamingStrategyIoTest : StringSpec({
 
-   @Serializable
-   data class Composer(val fullName: String, val status: String)
-
    val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
    "using snake_case namingStrategy to write out a record" {
@@ -70,4 +67,7 @@ class NamingStrategyIoTest : StringSpec({
          it.next() shouldBe Composer("Ennio Morricone", "Maestro")
       }
    }
-})
+}) {
+   @Serializable
+   data class Composer(val fullName: String, val status: String)
+}

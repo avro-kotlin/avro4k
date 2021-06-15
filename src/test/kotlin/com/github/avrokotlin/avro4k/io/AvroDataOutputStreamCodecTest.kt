@@ -11,9 +11,6 @@ import java.io.ByteArrayOutputStream
 
 class AvroDataOutputStreamCodecTest : StringSpec({
 
-   @Serializable
-   data class Composer(val name: String, val birthplace: String, val compositions: List<String>)
-
    val ennio = Composer("ennio morricone", "rome", listOf("legend of 1900", "ecstasy of gold"))
 
    "include schema"  {
@@ -56,4 +53,8 @@ class AvroDataOutputStreamCodecTest : StringSpec({
       String(baos.toByteArray()) shouldNot contain("snappy")
    }
 
-})
+}) {
+
+   @Serializable
+   data class Composer(val name: String, val birthplace: String, val compositions: List<String>)
+}

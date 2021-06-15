@@ -9,12 +9,6 @@ import java.io.ByteArrayOutputStream
 
 class AvroBinaryOutputStreamTest : StringSpec({
 
-   @Serializable
-   data class Work(val name: String, val year: Int)
-
-   @Serializable
-   data class Composer(val name: String, val birthplace: String, val works: List<Work>)
-
    val ennio = Composer("ennio morricone", "rome", listOf(Work("legend of 1900", 1986), Work("ecstasy of gold", 1969)))
 
    val hans = Composer("hans zimmer", "frankfurt", listOf(Work("batman begins", 2007), Work("dunkirk", 2017)))
@@ -32,4 +26,10 @@ class AvroBinaryOutputStreamTest : StringSpec({
       }
    }
 
-})
+}) {
+   @Serializable
+   data class Work(val name: String, val year: Int)
+
+   @Serializable
+   data class Composer(val name: String, val birthplace: String, val works: List<Work>)
+}

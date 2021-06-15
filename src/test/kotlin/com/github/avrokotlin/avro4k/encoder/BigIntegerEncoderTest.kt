@@ -16,25 +16,26 @@ class BigIntegerEncoderTest : FunSpec({
 
    test("use string for bigint") {
 
-      @Serializable
-      data class Test(val b: BigInteger)
+      val schema = Avro.default.schema(BigIntegerTest.serializer())
 
-      val schema = Avro.default.schema(Test.serializer())
+      val test = BigIntegerTest(BigInteger("123123123123213213213123214325365477686789676234"))
 
-      val test = Test(BigInteger("123123123123213213213123214325365477686789676234"))
-
-      Avro.default.toRecord(Test.serializer(), schema, test) shouldBe ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
+      Avro.default.toRecord(BigIntegerTest.serializer(), schema, test) shouldBe ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
    }
 
    test("encode nullable big ints") {
 
-      @Serializable
-      data class Test(val b: BigInteger?)
-
-      val schema = Avro.default.schema(Test.serializer())
-      Avro.default.toRecord(Test.serializer(), schema, Test(BigInteger("12312312312321312365477686789676234"))) shouldBe
+      val schema = Avro.default.schema(NullableBigIntegerTest.serializer())
+      Avro.default.toRecord(NullableBigIntegerTest.serializer(), schema, NullableBigIntegerTest(BigInteger("12312312312321312365477686789676234"))) shouldBe
          ListRecord(schema, Utf8("12312312312321312365477686789676234"))
-      Avro.default.toRecord(Test.serializer(), schema, Test(null)) shouldBe ListRecord(schema, null)
+      Avro.default.toRecord(NullableBigIntegerTest.serializer(), schema, NullableBigIntegerTest(null)) shouldBe ListRecord(schema, null)
 
    }
-})
+}) {
+   @Serializable
+   data class BigIntegerTest(val b: BigInteger)
+
+
+   @Serializable
+   data class NullableBigIntegerTest(val b: BigInteger?)
+}

@@ -14,12 +14,13 @@ class UUIDSchemaTest : FunSpec({
 
    test("support UUID logical types") {
 
-      @Serializable
-      data class UUIDTest(val uuid: UUID)
-
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/uuid.json"))
       val schema = Avro.default.schema(UUIDTest.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 
-})
+}) {
+
+   @Serializable
+   data class UUIDTest(val uuid: UUID)
+}

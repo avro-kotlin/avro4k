@@ -10,12 +10,6 @@ import java.io.File
 
 fun main() {
 
-   @Serializable
-   data class Ingredient(val name: String, val sugar: Double, val fat: Double)
-
-   @Serializable
-   data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
-
    val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
    val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
 
@@ -36,6 +30,12 @@ fun main() {
 }
 
 @Serializable
+data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+
+@Serializable
+data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
+
+@Serializable
 data class Nested(val goo: String)
 
 @Serializable
@@ -44,17 +44,6 @@ data class Test(val foo: String, val nested: Nested)
 class BasicSchemaTest : FunSpec({
 
   test("schema for basic types") {
-
-    @Serializable
-    data class Foo(val a: String,
-                   val b: Double,
-                   val c: Boolean,
-                   val d: Float,
-                   val e: Long,
-                   val f: Int,
-                   val g: Short,
-                   val h: Byte)
-
 
     val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/basic.json"))
     val schema = Avro.default.schema(Foo.serializer())
@@ -69,6 +58,29 @@ class BasicSchemaTest : FunSpec({
 
   test("accept multiple nested case classes") {
 
+    val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/nested_multiple.json"))
+    val schema = Avro.default.schema(Outer.serializer())
+    schema.toString(true) shouldBe expected.toString(true)
+  }
+
+  test("accept deep nested structure") {
+
+    val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/deepnested.json"))
+    val schema = Avro.default.schema(Level1.serializer())
+    schema.toString(true) shouldBe expected.toString(true)
+  }
+}) {
+    @Serializable
+    data class Foo(val a: String,
+        val b: Double,
+        val c: Boolean,
+        val d: Float,
+        val e: Long,
+        val f: Int,
+        val g: Short,
+        val h: Byte)
+
+
     @Serializable
     data class Inner(val goo: String)
 
@@ -77,13 +89,6 @@ class BasicSchemaTest : FunSpec({
 
     @Serializable
     data class Outer(val middle: Middle)
-
-    val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/nested_multiple.json"))
-    val schema = Avro.default.schema(Outer.serializer())
-    schema.toString(true) shouldBe expected.toString(true)
-  }
-
-  test("accept deep nested structure") {
 
     @Serializable
     data class Level4(val str: String)
@@ -96,9 +101,4 @@ class BasicSchemaTest : FunSpec({
 
     @Serializable
     data class Level1(val level2: Level2)
-
-    val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/deepnested.json"))
-    val schema = Avro.default.schema(Level1.serializer())
-    schema.toString(true) shouldBe expected.toString(true)
-  }
-})
+}

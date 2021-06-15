@@ -8,28 +8,6 @@ import org.apache.avro.util.Utf8
 
 class BasicIoTest : FunSpec() {
    init {
-
-      @Serializable
-      data class BooleanTest(val z: Boolean)
-
-      @Serializable
-      data class StringTest(val z: String)
-
-      @Serializable
-      data class FloatTest(val z: Float)
-
-      @Serializable
-      data class DoubleTest(val z: Double)
-
-      @Serializable
-      data class IntTest(val z: Int)
-
-      @Serializable
-      data class LongTest(val z: Long)
-
-      @Suppress("ArrayInDataClass")
-      @Serializable
-      data class ByteArrayTest(val z : ByteArray)
       test("read write out booleans") {
          writeRead(BooleanTest(true), BooleanTest.serializer())
          writeRead(BooleanTest(false), BooleanTest.serializer()) {
@@ -73,4 +51,26 @@ class BasicIoTest : FunSpec() {
          }
       }
    }
+
+   @Serializable
+   data class BooleanTest(val z: Boolean)
+
+   @Serializable
+   data class StringTest(val z: String)
+
+   @Serializable
+   data class FloatTest(val z: Float)
+
+   @Serializable
+   data class DoubleTest(val z: Double)
+
+   @Serializable
+   data class IntTest(val z: Int)
+
+   @Serializable
+   data class LongTest(val z: Long)
+
+   @Suppress("ArrayInDataClass")
+   @Serializable
+   data class ByteArrayTest(val z : ByteArray)
 }

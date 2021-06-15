@@ -16,10 +16,7 @@ class FixedEncoderTest : FunSpec({
          .name("a").type(Schema.createFixed("a", null, null, 5)).noDefault()
          .endRecord()
 
-      @Serializable
-      data class Foo(val s: String)
-
-      val record = Avro.default.toRecord(Foo.serializer(), schema, Foo("hello"))
+      val record = Avro.default.toRecord(StringFoo.serializer(), schema, StringFoo("hello"))
       record[0] shouldBe GenericData.get().createFixed(
          null,
          byteArrayOf(104, 101, 108, 108, 111),
@@ -33,14 +30,17 @@ class FixedEncoderTest : FunSpec({
          .name("a").type(Schema.createFixed("a", null, null, 5)).noDefault()
          .endRecord()
 
-      @Serializable
-      data class Foo(val s: ByteArray)
-
-      val record = Avro.default.toRecord(Foo.serializer(), schema, Foo(byteArrayOf(1, 2, 3, 4, 5)))
+      val record = Avro.default.toRecord(ByteArrayFoo.serializer(), schema, ByteArrayFoo(byteArrayOf(1, 2, 3, 4, 5)))
       record[0] shouldBe GenericData.get().createFixed(
          null,
          byteArrayOf(1, 2, 3, 4, 5),
          Schema.createFixed("a", null, null, 5)
       )
    }
-})
+}) {
+   @Serializable
+   data class StringFoo(val s: String)
+
+   @Serializable
+   data class ByteArrayFoo(val s: ByteArray)
+}

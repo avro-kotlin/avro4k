@@ -17,13 +17,6 @@ import java.time.Instant
 class ContextualSchemaTest : StringSpec({
 
     "schema for contextual serializer" {
-        @Serializable
-        data class Test(
-            @Contextual
-            val ts: Instant,
-            @Contextual
-            val withFallback: Int?,
-        )
 
         val format1 = Avro(
             serializersModule = SerializersModule {
@@ -48,4 +41,12 @@ class ContextualSchemaTest : StringSpec({
         val expected2 = Schema.Parser().parse(javaClass.getResourceAsStream("/contextual_2.json"))
         schema2 shouldBe expected2
     }
-})
+}) {
+    @Serializable
+    data class Test(
+        @Contextual
+        val ts: Instant,
+        @Contextual
+        val withFallback: Int?,
+    )
+}

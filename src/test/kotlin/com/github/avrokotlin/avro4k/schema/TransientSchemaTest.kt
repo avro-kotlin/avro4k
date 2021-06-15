@@ -9,12 +9,12 @@ class TransientSchemaTest : FunSpec({
 
   test("@AvroTransient fields should be ignored") {
 
-    @Serializable
-    data class TransientFoo(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
-
     val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/transient.json"))
     val schema = Avro.default.schema(TransientFoo.serializer())
     schema.toString(true) shouldBe expected.toString(true)
   }
 
-})
+}) {
+  @Serializable
+  data class TransientFoo(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
+}

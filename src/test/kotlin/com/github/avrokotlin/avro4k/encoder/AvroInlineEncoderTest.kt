@@ -12,16 +12,17 @@ class AvroInlineEncoderTest : FunSpec({
 
    test("encode @AvroInline") {
 
-      @Serializable
-      @AvroInline
-      data class Name(val value: String)
-
-      @Serializable
-      data class Product(val id: String, val name: Name)
-
       val schema = Avro.default.schema(Product.serializer())
       val record = Avro.default.toRecord(Product.serializer(), Product("123", Name("sneakers")))
       record shouldBe ListRecord(schema, listOf(Utf8("123"), Utf8("sneakers")))
    }
 
-})
+}) {
+
+   @Serializable
+   @AvroInline
+   data class Name(val value: String)
+
+   @Serializable
+   data class Product(val id: String, val name: Name)
+}

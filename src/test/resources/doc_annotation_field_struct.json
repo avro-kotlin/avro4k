@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Annotated",
+  "name": "NestedAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroDocSchemaTest",
   "fields": [
     {

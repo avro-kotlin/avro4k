@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Annotated",
+  "name": "FieldAliasAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroAliasSchemaTest",
   "fields": [
     {

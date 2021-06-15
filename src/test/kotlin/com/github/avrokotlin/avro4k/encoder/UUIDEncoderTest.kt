@@ -16,9 +16,6 @@ class UUIDEncoderTest : FunSpec({
 
    test("encode uuids") {
 
-      @Serializable
-      data class UUIDTest(val uuid: UUID)
-
       val uuid = UUID.randomUUID()
       val schema = Avro.default.schema(UUIDTest.serializer())
       Avro.default.toRecord(UUIDTest.serializer(), UUIDTest(uuid)) shouldBe
@@ -26,9 +23,6 @@ class UUIDEncoderTest : FunSpec({
    }
 
    test("encode lists of uuids") {
-
-      @Serializable
-      data class UUIDList(val uuids: List<UUID>)
 
       val uuid1 = UUID.randomUUID()
       val uuid2 = UUID.randomUUID()
@@ -40,12 +34,18 @@ class UUIDEncoderTest : FunSpec({
 
    test("encode nullable uuids") {
 
-      @Serializable
-      data class UUIDTest(val uuid: UUID?)
-
       val uuid = UUID.randomUUID()
-      val schema = Avro.default.schema(UUIDTest.serializer())
-      Avro.default.toRecord(UUIDTest.serializer(), UUIDTest(uuid)) shouldBe ListRecord(schema, Utf8(uuid.toString()))
-      Avro.default.toRecord(UUIDTest.serializer(), UUIDTest(null)) shouldBe ListRecord(schema, null)
+      val schema = Avro.default.schema(NullableUUIDTest.serializer())
+      Avro.default.toRecord(NullableUUIDTest.serializer(), NullableUUIDTest(uuid)) shouldBe ListRecord(schema, Utf8(uuid.toString()))
+      Avro.default.toRecord(NullableUUIDTest.serializer(), NullableUUIDTest(null)) shouldBe ListRecord(schema, null)
    }
-})
+}) {
+   @Serializable
+   data class UUIDTest(val uuid: UUID)
+
+   @Serializable
+   data class UUIDList(val uuids: List<UUID>)
+
+   @Serializable
+   data class NullableUUIDTest(val uuid: UUID?)
+}

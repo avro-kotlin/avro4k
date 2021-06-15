@@ -20,9 +20,6 @@ class BigDecimalDecoderTest : FunSpec({
 
    test("decode big decimals from bytes") {
 
-      @Serializable
-      data class Test(val b: BigDecimal)
-
       val logical = LogicalTypes.decimal(8, 2)
 
       val schema = SchemaBuilder.record("Test").fields()
@@ -39,9 +36,6 @@ class BigDecimalDecoderTest : FunSpec({
 
    test("decode big decimals from strings") {
 
-      @Serializable
-      data class Test(val b: BigDecimal)
-
       val schema = SchemaBuilder.record("Test").fields()
          .name("b").type(Schema.create(Schema.Type.STRING)).noDefault()
          .endRecord()
@@ -54,9 +48,6 @@ class BigDecimalDecoderTest : FunSpec({
 
    test("decode big decimals from fixed") {
 
-      @Serializable
-      data class Test(val b: BigDecimal)
-
       val logical = LogicalTypes.decimal(10, 8)
 
       val schema = SchemaBuilder.record("Test").fields()
@@ -68,4 +59,8 @@ class BigDecimalDecoderTest : FunSpec({
 
       Avro.default.fromRecord(Test.serializer(), record) shouldBe Test(BigDecimal("12345678.00000000"))
    }
-})
+}) {
+
+   @Serializable
+   data class Test(val b: BigDecimal)
+}

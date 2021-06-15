@@ -15,9 +15,6 @@ class AvroNameIoTest : StringSpec({
 
    "using @AvroName to write out a record" {
 
-      @Serializable
-      data class Composer(@AvroName("fullname") val name: String, val status: String)
-
       val ennio = Composer("Ennio Morricone", "Maestro")
 
       // writing out using the schema derived from Compose means fullname should be used
@@ -50,9 +47,6 @@ class AvroNameIoTest : StringSpec({
       val outputStream = Files.newOutputStream(file)
       AvroBinaryOutputStream<GenericRecord>(outputStream, {it}, schema1).write(record).close()
 
-      @Serializable
-      data class Composer(@AvroName("fullname") val name: String, val status: String)
-
       val schema2 = Avro.default.schema(Composer.serializer())
       val input = Avro.default.openInputStream(Composer.serializer()) {
          decodeFormat = AvroDecodeFormat.Binary(
@@ -67,4 +61,8 @@ class AvroNameIoTest : StringSpec({
       Files.delete(file)
    }
 
-})
+}) {
+
+   @Serializable
+   data class Composer(@AvroName("fullname") val name: String, val status: String)
+}

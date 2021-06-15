@@ -16,25 +16,25 @@ class URLEncoderTest : FunSpec({
 
    test("use string for URL") {
 
-      @Serializable
-      data class Test(val b: URL)
+      val schema = Avro.default.schema(UrlTest.serializer())
 
-      val schema = Avro.default.schema(Test.serializer())
+      val test = UrlTest(URL("http://www.sksamuel.com"))
 
-      val test = Test(URL("http://www.sksamuel.com"))
-
-      Avro.default.toRecord(Test.serializer(), schema, test) shouldBe ListRecord(schema, Utf8("http://www.sksamuel.com"))
+      Avro.default.toRecord(UrlTest.serializer(), schema, test) shouldBe ListRecord(schema, Utf8("http://www.sksamuel.com"))
    }
 
    test("encode nullable URLs") {
 
-      @Serializable
-      data class Test(val b: URL?)
-
-      val schema = Avro.default.schema(Test.serializer())
-      Avro.default.toRecord(Test.serializer(), schema, Test(URL("http://www.sksamuel.com"))) shouldBe
+      val schema = Avro.default.schema(NullableUrlTest.serializer())
+      Avro.default.toRecord(NullableUrlTest.serializer(), schema, NullableUrlTest(URL("http://www.sksamuel.com"))) shouldBe
          ListRecord(schema, Utf8("http://www.sksamuel.com"))
-      Avro.default.toRecord(Test.serializer(), schema, Test(null)) shouldBe ListRecord(schema, null)
+      Avro.default.toRecord(NullableUrlTest.serializer(), schema, NullableUrlTest(null)) shouldBe ListRecord(schema, null)
 
    }
-})
+}) {
+   @Serializable
+   data class UrlTest(val b: URL)
+
+   @Serializable
+   data class NullableUrlTest(val b: URL?)
+}

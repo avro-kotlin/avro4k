@@ -9,9 +9,6 @@ class NullableSchemaTest : FunSpec({
 
   test("generate null as Union[T, Null]") {
 
-    @Serializable
-    data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
-
     val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullables.json"))
     val schema = Avro.default.schema(Test.serializer())
     schema.toString(true) shouldBe expected.toString(true)
@@ -29,4 +26,7 @@ class NullableSchemaTest : FunSpec({
 //    schema.toString(true) shouldBe expected.toString(true)
 //  }
 
-})
+}) {
+  @Serializable
+  data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
+}

@@ -17,9 +17,6 @@ class UUIDIoTest : StringSpec({
 
    "read / write UUID" {
 
-      @Serializable
-      data class UUIDTest(val a: UUID)
-
       val uuid = UUID.randomUUID()
 
       writeRead(UUIDTest(uuid), UUIDTest.serializer())
@@ -30,14 +27,11 @@ class UUIDIoTest : StringSpec({
 
    "read / write list of UUIDs" {
 
-      @Serializable
-      data class UUIDTest(val a: List<UUID>)
-
       val uuid1 = UUID.randomUUID()
       val uuid2 = UUID.randomUUID()
 
-      writeRead(UUIDTest(listOf(uuid1, uuid2)), UUIDTest.serializer())
-      writeRead(UUIDTest(listOf(uuid1, uuid2)), UUIDTest.serializer()) {
+      writeRead(UUIDListTest(listOf(uuid1, uuid2)), UUIDListTest.serializer())
+      writeRead(UUIDListTest(listOf(uuid1, uuid2)), UUIDListTest.serializer()) {
          val uuidSchema = SchemaBuilder.builder().stringType()
          LogicalTypes.uuid().addToSchema(uuidSchema)
          val schema = SchemaBuilder.array().items(uuidSchema)
@@ -47,17 +41,24 @@ class UUIDIoTest : StringSpec({
 
    "read / write nullable UUIDs" {
 
-      @Serializable
-      data class UUIDTest(val a: UUID?)
-
       val uuid = UUID.randomUUID()
 
-      writeRead(UUIDTest(uuid), UUIDTest.serializer()) {
+      writeRead(NullableUUIDTest(uuid), NullableUUIDTest.serializer()) {
          it["a"] shouldBe Utf8(uuid.toString())
       }
 
-      writeRead(UUIDTest(null), UUIDTest.serializer()) {
+      writeRead(NullableUUIDTest(null), NullableUUIDTest.serializer()) {
          it["a"] shouldBe null
       }
    }
-})
+}) {
+
+   @Serializable
+   data class UUIDTest(val a: UUID)
+
+   @Serializable
+   data class UUIDListTest(val a: List<UUID>)
+
+   @Serializable
+   data class NullableUUIDTest(val a: UUID?)
+}

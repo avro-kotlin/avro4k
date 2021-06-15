@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Test",
+  "name": "ArrayTest",
   "namespace": "com.github.avrokotlin.avro4k.schema.MapSchemaTest",
   "fields": [
     {

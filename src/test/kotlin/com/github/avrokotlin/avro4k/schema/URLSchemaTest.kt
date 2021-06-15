@@ -14,9 +14,6 @@ class URLSchemaTest : FunSpec({
 
    test("accept URL as String") {
 
-      @Serializable
-      data class Test(val b: URL)
-
       val schema = Avro.default.schema(Test.serializer())
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/url.json"))
       schema shouldBe expected
@@ -24,11 +21,15 @@ class URLSchemaTest : FunSpec({
 
    test("accept nullable URL as String union") {
 
-      @Serializable
-      data class Test(val b: URL?)
-
-      val schema = Avro.default.schema(Test.serializer())
+      val schema = Avro.default.schema(NullableTest.serializer())
       val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/url_nullable.json"))
       schema shouldBe expected
    }
-})
+}) {
+
+   @Serializable
+   data class Test(val b: URL)
+
+   @Serializable
+   data class NullableTest(val b: URL?)
+}

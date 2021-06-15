@@ -22,9 +22,6 @@ class EnumIoTest : StringSpec({
 
    "read / write enums" {
 
-      @Serializable
-      data class EnumTest(val a: Cream, val b: BBM)
-
       writeRead(EnumTest(Cream.Bruce, BBM.Moore), EnumTest.serializer())
       writeRead(EnumTest(Cream.Bruce, BBM.Moore), EnumTest.serializer()) {
          (it["a"] as GenericEnumSymbol<*>).toString() shouldBe "Bruce"
@@ -34,24 +31,29 @@ class EnumIoTest : StringSpec({
 
    "read / write list of enums" {
 
-      @Serializable
-      data class EnumTest(val a: List<Cream>)
-
-      writeRead(EnumTest(listOf(Cream.Bruce, Cream.Clapton)), EnumTest.serializer())
-      writeRead(EnumTest(listOf(Cream.Bruce, Cream.Clapton)), EnumTest.serializer()) { record ->
+      writeRead(EnumListTest(listOf(Cream.Bruce, Cream.Clapton)), EnumListTest.serializer())
+      writeRead(EnumListTest(listOf(Cream.Bruce, Cream.Clapton)), EnumListTest.serializer()) { record ->
          (record["a"] as List<*>).map { it.toString() } shouldBe listOf("Bruce", "Clapton")
       }
    }
 
    "read / write nullable enums" {
 
-      @Serializable
-      data class EnumTest(val a: Cream?)
-
-      writeRead(EnumTest(null), EnumTest.serializer())
-      writeRead(EnumTest(Cream.Bruce), EnumTest.serializer())
-      writeRead(EnumTest(Cream.Bruce), EnumTest.serializer()) {
+      writeRead(NullableEnumTest(null), NullableEnumTest.serializer())
+      writeRead(NullableEnumTest(Cream.Bruce), NullableEnumTest.serializer())
+      writeRead(NullableEnumTest(Cream.Bruce), NullableEnumTest.serializer()) {
          (it["a"] as GenericData.EnumSymbol).toString() shouldBe "Bruce"
       }
    }
-})
+}) {
+
+   @Serializable
+   data class EnumTest(val a: Cream, val b: BBM)
+
+   @Serializable
+   data class EnumListTest(val a: List<Cream>)
+
+   @Serializable
+   data class NullableEnumTest(val a: Cream?)
+
+}

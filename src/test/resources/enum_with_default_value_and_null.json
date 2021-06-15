@@ -1,6 +1,6 @@
 {
    "type": "record",
-   "name": "EnumWithDefaultTest",
+   "name": "EnumWithAvroDefaultTest",
    "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
    "fields": [
       {

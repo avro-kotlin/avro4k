@@ -12,15 +12,6 @@ import java.nio.ByteBuffer
 
 class ByteArrayEncoderTest : FunSpec({
 
-   @Serializable
-   data class ByteArrayTest(val z: ByteArray)
-
-   @Serializable
-   data class ArrayByteTest(val z: Array<Byte>)
-
-   @Serializable
-   data class ListByteTest(val z: List<Byte>)
-
    test("encode ByteArray to ByteBuffer to ") {
       val schema = Avro.default.schema(ByteArrayTest.serializer())
       Avro.default.toRecord(ByteArrayTest.serializer(), ByteArrayTest(byteArrayOf(1, 4, 9))) shouldBe
@@ -47,4 +38,14 @@ class ByteArrayEncoderTest : FunSpec({
       val fixed = record.get("z") as GenericFixed
       fixed.bytes() shouldBe byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)
    }
-})
+}) {
+
+   @Serializable
+   data class ByteArrayTest(val z: ByteArray)
+
+   @Serializable
+   data class ArrayByteTest(val z: Array<Byte>)
+
+   @Serializable
+   data class ListByteTest(val z: List<Byte>)
+}

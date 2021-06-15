@@ -15,19 +15,12 @@ class EnumSchemaTest : WordSpec({
    "SchemaEncoder" should {
       "accept enums" {
 
-         @Serializable
-         data class EnumTest(val wine: Wine)
-
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum.json"))
          val schema = Avro.default.schema(EnumTest.serializer())
          schema.toString(true) shouldBe expected.toString(true)
       }
    }
    "Enum with documentation and aliases" should {
-      @Serializable
-      data class EnumWithDocuTest(
-         val value: Suit
-      )
 
       val expected =
          org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_documentation.json"))
@@ -37,10 +30,6 @@ class EnumSchemaTest : WordSpec({
 
    "Enum with default values" should {
       "generate schema" {
-         @Serializable
-         data class EnumWithDefaultTest(
-            val type: IngredientType
-         )
 
          val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default.json"))
 
@@ -49,30 +38,43 @@ class EnumSchemaTest : WordSpec({
          schema.toString(true) shouldBe expected.toString(true)
       }
       "generate schema with default and nullable union types" {
-         @Serializable
-         data class EnumWithDefaultTest(
-            @AvroDefault(Avro.NULL) val type: IngredientType?
-         )
 
          val expected =
             org.apache.avro.Schema.Parser()
                .parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
 
-         val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
+         val schema = Avro.default.schema(EnumWithAvroDefaultTest.serializer())
 
          schema.toString(true) shouldBe expected.toString(true)
       }
       "fail with unknown values" {
-         @Serializable
-         data class EnumWithDefaultTest(
-            val type: InvalidIngredientType
-         )
          shouldThrow<IllegalStateException> {
-            Avro.default.schema(EnumWithDefaultTest.serializer())
+            Avro.default.schema(EnumWithUnknownDefaultTest.serializer())
          }
       }
    }
-})
+}) {
+
+   @Serializable
+   data class EnumTest(val wine: Wine)
+   @Serializable
+   data class EnumWithDocuTest(
+       val value: Suit
+   )
+   @Serializable
+   data class EnumWithDefaultTest(
+       val type: IngredientType
+   )
+   @Serializable
+   data class EnumWithAvroDefaultTest(
+       @AvroDefault(Avro.NULL) val type: IngredientType?
+   )
+   @Serializable
+   data class EnumWithUnknownDefaultTest(
+       val type: InvalidIngredientType
+   )
+
+}
 
 enum class Wine {
    Malbec, Shiraz, CabSav, Merlot

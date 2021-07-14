@@ -70,7 +70,12 @@ class RecordDecoder(
       }
    }
 
-   private fun fieldValue(): Any? = record[resolvedFieldName()]
+   private fun fieldValue(): Any? {
+      if (record.hasField(resolvedFieldName())) {
+         return record.get(resolvedFieldName())
+      }
+      return null
+   }
 
    private fun resolvedFieldName(): String = configuration.namingStrategy.to(FieldNaming(desc, currentIndex).name())
 

@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroDefault
 import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable
@@ -17,6 +18,15 @@ data class Town(val name: String, val population: Int)
 
 @Serializable
 data class Birthplace(val person: String, val town: Town)
+
+@Serializable
+data class PersonV1(val name: String, val hasChickenPoxVaccine: Boolean)
+
+@Serializable
+data class PersonV2(val name: String,
+                    val hasChickenPoxVaccine: Boolean,
+                    @AvroDefault(Avro.NULL)
+                    val hasCovidVaccine: Boolean? = null)
 
 class NestedClassDecoderTest : WordSpec({
 
@@ -68,6 +78,18 @@ class NestedClassDecoderTest : WordSpec({
               long = 0.123
           )
     }
+
+     "decode nested class from previous schema (new schema is back compat)" {
+
+        val personV1Schema = Avro.default.schema(PersonV1.serializer())
+
+        val personV1 = GenericData.Record(personV1Schema)
+        personV1.put("name", Utf8("Ryan"))
+        personV1.put("hasChickenPoxVaccine", true)
+
+        Avro.default.fromRecord(PersonV2.serializer(), personV1) shouldBe
+           PersonV2(name="Ryan", hasChickenPoxVaccine = true, hasCovidVaccine = null)
+     }
 
 //    "decode optional structs" {
 //      val countySchema = AvroSchema[County]

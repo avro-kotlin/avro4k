@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -34,7 +35,7 @@ fun SerialDescriptor.explicitlyNamedSubclassesFrom(serializersModule: Serializer
          }
 
          override fun <Base : Any> polymorphicDefault(baseClass: KClass<Base>, defaultSerializerProvider: (className: String?) -> DeserializationStrategy<out Base>?) {
-            TODO("Figure out how default should work")
+            throw SerializationException("Polymorphic defaults are not supported in avro4k. Error whilst describing: ${capturedKClass?.simpleName}")
          }
       }
       serializersModule.dumpTo(collector)

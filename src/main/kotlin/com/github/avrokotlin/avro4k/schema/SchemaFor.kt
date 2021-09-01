@@ -197,6 +197,7 @@ fun schemaFor(serializersModule: SerializersModule,
             resolvedSchemas
          )
          PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
+         PolymorphicKind.OPEN -> PolymorphicClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
             else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)

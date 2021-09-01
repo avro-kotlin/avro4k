@@ -1,0 +1,24 @@
+[
+  {
+    "type": "record",
+    "name": "UnsealedChildOne",
+    "namespace": "com.github.avrokotlin.avro4k.schema",
+    "fields": [
+      {
+        "name": "one",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "UnsealedChildTwo",
+    "namespace": "com.github.avrokotlin.avro4k.schema",
+    "fields": [
+      {
+        "name": "two",
+        "type": "string"
+      }
+    ]
+  }
+]

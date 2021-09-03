@@ -25,6 +25,11 @@ data class UnsealedChildOne(val one: String) : UnsealedPolymorphicRoot()
 @Serializable
 data class UnsealedChildTwo(val two: String) : UnsealedPolymorphicRoot()
 
+@Serializable
+data class ReferencingPolymorphicRoot(
+   val root : UnsealedPolymorphicRoot
+)
+
 class PolymorphicClassSchemaTest : StringSpec({
    "schema for polymorphic hierarchy" {
       val module = SerializersModule {
@@ -50,6 +55,18 @@ class PolymorphicClassSchemaTest : StringSpec({
          Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())
       }
       exception.message shouldBe "Polymorphic defaults are not supported in avro4k. Error whilst describing: UnsealedPolymorphicRoot"
+   }
+
+   "supports polymorphic references / nested fields" {
+      val module = SerializersModule {
+         polymorphic(UnsealedPolymorphicRoot::class) {
+            subclass(UnsealedChildOne::class)
+            subclass(UnsealedChildTwo::class)
+         }
+      }
+      val schema = Avro(serializersModule = module).schema(ReferencingPolymorphicRoot.serializer())
+      val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/polymorphic_reference.json"))
+      schema shouldBe expected
    }
 })
 

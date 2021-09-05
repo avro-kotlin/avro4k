@@ -27,6 +27,14 @@
           ]
         }
       ]
+    },
+    {
+      "name": "nullableRoot",
+      "type": [
+        "null",
+        "UnsealedChildOne",
+        "UnsealedChildTwo"
+      ]
     }
   ]
 }

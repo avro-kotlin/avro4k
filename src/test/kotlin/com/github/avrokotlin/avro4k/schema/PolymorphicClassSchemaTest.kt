@@ -1,16 +1,10 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.JsonTransformingSerializer
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -27,7 +21,8 @@ data class UnsealedChildTwo(val two: String) : UnsealedPolymorphicRoot()
 
 @Serializable
 data class ReferencingPolymorphicRoot(
-   val root : UnsealedPolymorphicRoot
+   val root : UnsealedPolymorphicRoot,
+   val nullableRoot : UnsealedPolymorphicRoot? = null
 )
 
 class PolymorphicClassSchemaTest : StringSpec({
@@ -41,20 +36,6 @@ class PolymorphicClassSchemaTest : StringSpec({
       val schema = Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())
       val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/polymorphic.json"))
       schema shouldBe expected
-   }
-
-   "polymorphic defaults are not supported" {
-      val module = SerializersModule {
-         polymorphic(UnsealedPolymorphicRoot::class) {
-            subclass(UnsealedChildOne::class)
-            subclass(UnsealedChildTwo::class)
-            default { TypeSerializer }
-         }
-      }
-      val exception = shouldThrow<SerializationException> {
-         Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())
-      }
-      exception.message shouldBe "Polymorphic defaults are not supported in avro4k. Error whilst describing: UnsealedPolymorphicRoot"
    }
 
    "supports polymorphic references / nested fields" {

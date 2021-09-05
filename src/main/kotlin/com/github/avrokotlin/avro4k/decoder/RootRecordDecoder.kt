@@ -27,7 +27,7 @@ class RootRecordDecoder(
             serializersModule,
             configuration
          )
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor, record, serializersModule, configuration)
+         PolymorphicKind.SEALED -> UnionDecoder(descriptor, record, serializersModule, configuration)
          else -> throw SerializationException("Non-class structure passed to root record decoder")
       }
    }

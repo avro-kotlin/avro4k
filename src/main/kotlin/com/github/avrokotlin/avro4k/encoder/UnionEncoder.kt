@@ -18,7 +18,6 @@ class UnionEncoder(private val unionSchema : Schema,
                    private val callback: (Record) -> Unit) : AbstractEncoder() {
    override fun encodeString(value: String){
       //No need to encode the name of the concrete type. The name will never be encoded in the avro schema.
-      println(value)
    }
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       return when (descriptor.kind) {

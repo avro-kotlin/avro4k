@@ -43,16 +43,29 @@ fun <T> writeRead(t: T, expected: T, serializer: KSerializer<T>, avro: Avro = Av
 }
 
 fun <T> writeRead(t: T, serializer: KSerializer<T>, avro: Avro = Avro.default, test: (GenericRecord) -> Any) {
-   writeData(t, serializer, avro).apply {
-      val record = readData(this, serializer, avro)
+   writeReadData(t, serializer, avro, test)
+   writeReadBinary(t, serializer, avro, test)
+   writeReadJson(t, serializer, avro, test)
+}
+
+fun <T> writeReadJson(t: T, serializer: KSerializer<T>, avro: Avro = Avro.default, test: (GenericRecord) -> Any
+) {
+   writeJson(t, serializer, avro).apply {
+      val record = readJson(this, serializer, avro)
       test(record)
    }
+}
+
+fun <T> writeReadBinary(t: T, serializer: KSerializer<T>, avro: Avro = Avro.default , test: (GenericRecord) -> Any) {
    writeBinary(t, serializer, avro).apply {
       val record = readBinary(this, serializer, avro)
       test(record)
    }
-   writeJson(t, serializer, avro).apply {
-      val record = readJson(this, serializer, avro)
+}
+
+fun <T> writeReadData(t: T, serializer: KSerializer<T>, avro: Avro = Avro.default, test: (GenericRecord) -> Any) {
+   writeData(t, serializer, avro).apply {
+      val record = readData(this, serializer, avro)
       test(record)
    }
 }

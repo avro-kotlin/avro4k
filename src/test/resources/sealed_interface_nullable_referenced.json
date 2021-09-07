@@ -1,6 +1,6 @@
 {
    "type":"record",
-   "name":"ReferencingNullableSealedClass",
+   "name":"ReferencingNullableSealedInterface",
    "namespace":"com.github.avrokotlin.avro4k.schema",
    "fields":[
       {
@@ -9,8 +9,7 @@
             "null",
             {
                "type":"record",
-               "name":"Add",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
+               "name":"AddCalculable",
                "fields":[
                   {
                      "name":"left",
@@ -24,38 +23,35 @@
             },
             {
                "type":"record",
-               "name":"Substract",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
-               "fields":[
-                  {
-                     "name":"left",
-                     "type":"int"
-                  },
-                  {
-                     "name":"right",
-                     "type":"int"
-                  }
-               ]
-            },
-            {
-               "type":"record",
-               "name":"Nullary",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation",
-               "fields":[]
-            },
-            {
-               "type":"record",
-               "name":"Negate",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Unary",
+               "name":"NegateCalculable",
                "fields":[
                   {
                      "name":"value",
                      "type":"int"
                   }
                ]
+            },
+            {
+               "type":"record",
+               "name":"NullaryCalculable",
+               "fields":[]
+            },
+            {
+               "type":"record",
+               "name":"SubstractCalculable",
+               "fields":[
+                  {
+                     "name":"left",
+                     "type":"int"
+                  },
+                  {
+                     "name":"right",
+                     "type":"int"
+                  }
+               ]
             }
          ],
-         "default" : null
+         "default":null
       }
    ]
 }

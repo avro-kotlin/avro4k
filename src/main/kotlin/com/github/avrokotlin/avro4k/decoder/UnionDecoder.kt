@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.RecordNaming
-import com.github.avrokotlin.avro4k.leavesOfSealedClasses
+import com.github.avrokotlin.avro4k.possibleSerializationSubclasses
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -14,10 +14,10 @@ import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
-class SealedClassDecoder (descriptor: SerialDescriptor,
-                          private val value: GenericRecord,
-                          override val serializersModule: SerializersModule,
-                          private  val configuration: AvroConfiguration
+class UnionDecoder (descriptor: SerialDescriptor,
+                    private val value: GenericRecord,
+                    override val serializersModule: SerializersModule,
+                    private  val configuration: AvroConfiguration
 ) : AbstractDecoder(), FieldDecoder
 {
    private enum class DecoderState(val index : Int){
@@ -28,7 +28,7 @@ class SealedClassDecoder (descriptor: SerialDescriptor,
    }
    private var currentState = DecoderState.BEFORE
 
-   var leafDescriptor : SerialDescriptor = descriptor.leavesOfSealedClasses().firstOrNull {
+   private var leafDescriptor : SerialDescriptor = descriptor.possibleSerializationSubclasses(serializersModule).firstOrNull {
       val schemaName = RecordNaming(value.schema.fullName, emptyList())
       val serialName = RecordNaming(it)
       serialName == schemaName
@@ -54,5 +54,5 @@ class SealedClassDecoder (descriptor: SerialDescriptor,
       return recordDecoder.decodeSerializableValue(deserializer)
    }
 
-   override fun decodeAny(): Any? = UnsupportedOperationException()
+   override fun decodeAny(): Any = UnsupportedOperationException()
 }

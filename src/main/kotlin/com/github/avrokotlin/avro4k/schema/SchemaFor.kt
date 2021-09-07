@@ -196,13 +196,13 @@ fun schemaFor(serializersModule: SerializersModule,
             namingStrategy,
             resolvedSchemas
          )
-         PolymorphicKind.SEALED -> SealedClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
             "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
             else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          }
          StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, namingStrategy, resolvedSchemas)
          StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, namingStrategy, resolvedSchemas)
+         is PolymorphicKind -> UnionSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
          else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
       }
    }

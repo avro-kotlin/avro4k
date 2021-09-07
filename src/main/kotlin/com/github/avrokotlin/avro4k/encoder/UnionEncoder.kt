@@ -16,7 +16,9 @@ import org.apache.avro.Schema
 class UnionEncoder(private val unionSchema : Schema,
                    override val serializersModule: SerializersModule,
                    private val callback: (Record) -> Unit) : AbstractEncoder() {
-
+   override fun encodeString(value: String){
+      //No need to encode the name of the concrete type. The name will never be encoded in the avro schema.
+   }
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       return when (descriptor.kind) {
          is StructureKind.CLASS, is StructureKind.OBJECT -> {

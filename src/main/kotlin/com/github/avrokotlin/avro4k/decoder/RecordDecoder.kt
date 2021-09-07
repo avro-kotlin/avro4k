@@ -65,7 +65,7 @@ class RecordDecoder(
             }
             decoder
          }
-         PolymorphicKind.SEALED -> SealedClassDecoder(descriptor,value as GenericRecord, serializersModule, configuration)
+         PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor,value as GenericRecord, serializersModule, configuration)
          else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
       }
    }

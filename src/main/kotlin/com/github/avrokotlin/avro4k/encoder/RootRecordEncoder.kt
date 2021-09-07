@@ -19,7 +19,7 @@ class RootRecordEncoder(private val schema: Schema,
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       return when (descriptor.kind) {
          is StructureKind.CLASS -> RecordEncoder(schema, serializersModule, callback)
-         is PolymorphicKind.SEALED -> SealedClassEncoder(schema,serializersModule,callback)
+         is PolymorphicKind -> UnionEncoder(schema,serializersModule,callback)
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }
    }

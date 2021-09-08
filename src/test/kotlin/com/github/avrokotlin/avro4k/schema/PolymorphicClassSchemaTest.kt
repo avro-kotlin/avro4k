@@ -17,7 +17,9 @@ abstract class UnsealedPolymorphicRoot
 data class UnsealedChildOne(val one: String) : UnsealedPolymorphicRoot()
 
 @Serializable
-data class UnsealedChildTwo(val two: String) : UnsealedPolymorphicRoot()
+sealed class SealedChildTwo : UnsealedPolymorphicRoot()
+@Serializable
+data class UnsealedChildTwo(val two: String) : SealedChildTwo()
 
 @Serializable
 data class ReferencingPolymorphicRoot(
@@ -30,7 +32,7 @@ class PolymorphicClassSchemaTest : StringSpec({
       val module = SerializersModule {
          polymorphic(UnsealedPolymorphicRoot::class) {
             subclass(UnsealedChildOne::class)
-            subclass(UnsealedChildTwo::class)
+            subclass(SealedChildTwo::class)
          }
       }
       val schema = Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())

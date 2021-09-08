@@ -9,7 +9,6 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.apache.avro.Schema
-
 @Serializable
 abstract class UnsealedPolymorphicRoot
 
@@ -17,7 +16,9 @@ abstract class UnsealedPolymorphicRoot
 data class UnsealedChildOne(val one: String) : UnsealedPolymorphicRoot()
 
 @Serializable
-data class UnsealedChildTwo(val two: String) : UnsealedPolymorphicRoot()
+sealed class SealedChildTwo : UnsealedPolymorphicRoot()
+@Serializable
+data class UnsealedChildTwo(val two: String) : SealedChildTwo()
 
 @Serializable
 data class ReferencingPolymorphicRoot(
@@ -30,7 +31,7 @@ class PolymorphicClassSchemaTest : StringSpec({
       val module = SerializersModule {
          polymorphic(UnsealedPolymorphicRoot::class) {
             subclass(UnsealedChildOne::class)
-            subclass(UnsealedChildTwo::class)
+            subclass(SealedChildTwo::class)
          }
       }
       val schema = Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())

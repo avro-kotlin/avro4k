@@ -22,6 +22,7 @@ fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: Serializ
                     .flatMap { it.possibleSerializationSubclasses(serializersModule) }
             } else {
                 serializersModule.getPolymorphicDescriptors(this)
+                    .flatMap { it.possibleSerializationSubclasses(serializersModule) }
             }
         }
         else -> throw UnsupportedOperationException("Can't get possible serialization subclasses for the SerialDescriptor of kind ${this.kind}.")

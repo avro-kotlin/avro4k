@@ -2,13 +2,13 @@
 
 package com.github.avrokotlin.avro4k.io
 
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.positiveDoubles
+import io.kotest.property.arbitrary.numericDoubles
 import io.kotest.property.checkAll
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericArray
@@ -48,12 +48,27 @@ class CollectionsIoTest : StringSpec({
 
       // there's a bug in avro with Double.POSINF
       checkAll(
-         Arb.positiveDoubles().filter { it < 1000000 },
-         Arb.positiveDoubles().filter { it < 1000000 },
-         Arb.positiveDoubles().filter { it < 1000000 }
+         Arb.double(),
+         Arb.double(),
+         Arb.double()
       ) { a, b, c ->
-         writeRead(DoubleArrayTest(arrayOf(a, b, c)), DoubleArrayTest.serializer()) {
-            it["a"] shouldBe listOf(a, b, c)
+         val data = DoubleArrayTest(arrayOf(a, b, c))
+         val serializer = DoubleArrayTest.serializer()
+         val test : (GenericRecord) -> Any = {it["a"] shouldBe listOf(a,b,c)}
+         writeReadData(data, serializer, test = test)
+         writeReadBinary(data, serializer, test = test)
+      }
+   }
+
+   "read / write arrays of double in json" {
+      //Json does not support -inf/+inf and NaN
+      checkAll(
+         Arb.numericDoubles(),
+         Arb.numericDoubles(),
+         Arb.numericDoubles()
+      ) { a, b, c ->
+         writeReadJson(DoubleArrayTest(arrayOf(a, b, c)), DoubleArrayTest.serializer()) {
+            it["a"] shouldBe listOf(a,b,c)
          }
       }
    }

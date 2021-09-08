@@ -1,16 +1,15 @@
 {
    "type":"record",
-   "name":"ReferencingNullableSealedClass",
+   "name":"ReferencingNullableMixedPolymorphic",
    "namespace":"com.github.avrokotlin.avro4k.schema",
-   "fields":[
+   "fields": [
       {
          "name":"nullable",
          "type":[
             "null",
             {
                "type":"record",
-               "name":"Add",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
+               "name":"AddExpr",
                "fields":[
                   {
                      "name":"left",
@@ -24,8 +23,17 @@
             },
             {
                "type":"record",
-               "name":"Substract",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
+               "name":"ConstExpr",
+               "fields":[
+                  {
+                     "name":"value",
+                     "type":"int"
+                  }
+               ]
+            },
+            {
+               "type":"record",
+               "name":"MultiplicationExpr",
                "fields":[
                   {
                      "name":"left",
@@ -39,17 +47,29 @@
             },
             {
                "type":"record",
-               "name":"Nullary",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation",
+               "name":"NegateExpr",
+               "fields":[
+                  {
+                     "name":"value",
+                     "type":"int"
+                  }
+               ]
+            },
+            {
+               "type":"record",
+               "name":"NullaryExpr",
                "fields":[]
             },
             {
                "type":"record",
-               "name":"Negate",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Unary",
+               "name":"SubstractExpr",
                "fields":[
                   {
-                     "name":"value",
+                     "name":"left",
+                     "type":"int"
+                  },
+                  {
+                     "name":"right",
                      "type":"int"
                   }
                ]

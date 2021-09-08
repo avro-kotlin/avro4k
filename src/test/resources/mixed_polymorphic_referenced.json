@@ -1,16 +1,14 @@
 {
    "type":"record",
-   "name":"ReferencingNullableSealedClass",
+   "name":"ReferencingMixedPolymorphic",
    "namespace":"com.github.avrokotlin.avro4k.schema",
-   "fields":[
+   "fields": [
       {
-         "name":"nullable",
+         "name":"notNullable",
          "type":[
-            "null",
             {
                "type":"record",
-               "name":"Add",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
+               "name":"AddExpr",
                "fields":[
                   {
                      "name":"left",
@@ -24,38 +22,58 @@
             },
             {
                "type":"record",
-               "name":"Substract",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
-               "fields":[
-                  {
-                     "name":"left",
-                     "type":"int"
-                  },
-                  {
-                     "name":"right",
-                     "type":"int"
-                  }
-               ]
-            },
-            {
-               "type":"record",
-               "name":"Nullary",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation",
-               "fields":[]
-            },
-            {
-               "type":"record",
-               "name":"Negate",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Unary",
+               "name":"ConstExpr",
                "fields":[
                   {
                      "name":"value",
                      "type":"int"
                   }
                ]
+            },
+            {
+               "type":"record",
+               "name":"MultiplicationExpr",
+               "fields":[
+                  {
+                     "name":"left",
+                     "type":"int"
+                  },
+                  {
+                     "name":"right",
+                     "type":"int"
+                  }
+               ]
+            },
+            {
+               "type":"record",
+               "name":"NegateExpr",
+               "fields":[
+                  {
+                     "name":"value",
+                     "type":"int"
+                  }
+               ]
+            },
+            {
+               "type":"record",
+               "name":"NullaryExpr",
+               "fields":[]
+            },
+            {
+               "type":"record",
+               "name":"SubstractExpr",
+               "fields":[
+                  {
+                     "name":"left",
+                     "type":"int"
+                  },
+                  {
+                     "name":"right",
+                     "type":"int"
+                  }
+               ]
             }
-         ],
-         "default" : null
+         ]
       }
    ]
 }

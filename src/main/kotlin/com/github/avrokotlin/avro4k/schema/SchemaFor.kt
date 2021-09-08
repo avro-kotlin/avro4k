@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.RecapturedClassSerialDescriptor
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -188,7 +189,10 @@ fun schemaFor(serializersModule: SerializersModule,
             serializersModule,
             requireNotNull(
                serializersModule.getContextualDescriptor(descriptor)
-                  ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
+                  ?: when (descriptor) {
+                     is RecapturedClassSerialDescriptor -> descriptor.capturedKClass.serializerOrNull()?.descriptor
+                     else -> descriptor.capturedKClass?.serializerOrNull()?.descriptor
+                  }
             ) {
                "Contextual or default serializer not found for $descriptor "
             },

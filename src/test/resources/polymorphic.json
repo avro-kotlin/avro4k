@@ -1,22 +1,37 @@
 [
   {
     "type": "record",
-    "name": "UnsealedChildOne",
+    "name": "SealedChildTwo",
     "namespace": "com.github.avrokotlin.avro4k.schema",
     "fields": [
       {
-        "name": "one",
+        "name": "type",
         "type": "string"
+      },
+      {
+        "name": "value",
+        "type": [
+          {
+            "type": "record",
+            "name": "UnsealedChildTwo",
+            "fields": [
+              {
+                "name": "two",
+                "type": "string"
+              }
+            ]
+          }
+        ]
       }
     ]
   },
   {
     "type": "record",
-    "name": "UnsealedChildTwo",
+    "name": "UnsealedChildOne",
     "namespace": "com.github.avrokotlin.avro4k.schema",
     "fields": [
       {
-        "name": "two",
+        "name": "one",
         "type": "string"
       }
     ]

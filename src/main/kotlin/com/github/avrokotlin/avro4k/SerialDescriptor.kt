@@ -15,7 +15,7 @@ fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: Serializ
             .flatMap { it.possibleSerializationSubclasses(serializersModule) }
         PolymorphicKind.OPEN -> {
             val capturedClass = this.capturedKClass
-            if (capturedClass?.isSealed == true) {
+            val descriptors = if (capturedClass?.isSealed == true) {
                 //A sealed interface will have the kind PolymorphicKind.OPEN, although it is sealed. Retrieve all the possible direct subclasses of the interface
                 capturedClass.sealedSubclasses.map { serializersModule.serializer(it.starProjectedType) }
                     .map { it.descriptor }
@@ -24,6 +24,8 @@ fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: Serializ
                 serializersModule.getPolymorphicDescriptors(this)
                     .flatMap { it.possibleSerializationSubclasses(serializersModule) }
             }
+            // descriptors may exist more than once due to diamond inheritance so we need to filter duplicates out
+            descriptors.distinct()
         }
         else -> throw UnsupportedOperationException("Can't get possible serialization subclasses for the SerialDescriptor of kind ${this.kind}.")
     }

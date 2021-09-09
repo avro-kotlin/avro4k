@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.schema.ConstExpr
+import com.github.avrokotlin.avro4k.schema.Expr
 import com.github.avrokotlin.avro4k.schema.MultiplicationExpr
 import com.github.avrokotlin.avro4k.schema.NegateExpr
 import com.github.avrokotlin.avro4k.schema.OtherBinaryExpr
@@ -22,6 +23,10 @@ class MixedPolymorphicIoTest : StringSpec({
          }
          polymorphic(OtherBinaryExpr::class) {
             subclass(MultiplicationExpr::class)
+         }
+         // this shouldn't be necessary
+         polymorphic(Expr::class) {
+            subclass(NegateExpr::class)
          }
       }
       val avro = Avro(serializersModule = module)

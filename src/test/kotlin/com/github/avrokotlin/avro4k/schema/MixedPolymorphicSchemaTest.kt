@@ -14,6 +14,7 @@ sealed interface Expr
 sealed interface UnaryExpr : Expr {
     val value : Int
 }
+sealed interface DiamondInheritance : Expr
 @Serializable
 sealed class BinaryExpr : Expr {
     abstract val left: Int
@@ -22,7 +23,7 @@ sealed class BinaryExpr : Expr {
 @Serializable
 object NullaryExpr : Expr
 @Serializable
-data class NegateExpr(override val value : Int) : UnaryExpr
+data class NegateExpr(override val value : Int) : UnaryExpr, DiamondInheritance
 @Serializable
 data class AddExpr(override val left : Int, override val right : Int) : BinaryExpr()
 @Serializable

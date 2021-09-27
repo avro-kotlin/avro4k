@@ -6,6 +6,12 @@
       {
          "name": "id",
          "type": "string"
+      }, {
+         "name" : "uuid",
+         "type" : {
+            "type" : "string",
+            "logicalType" : "uuid"
+         }
       }
    ]
 }

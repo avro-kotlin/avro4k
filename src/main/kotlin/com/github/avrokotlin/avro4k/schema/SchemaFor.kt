@@ -187,7 +187,7 @@ fun schemaFor(serializersModule: SerializersModule,
          SerialKind.CONTEXTUAL -> schemaFor(
             serializersModule,
             requireNotNull(
-               serializersModule.getContextualDescriptor(descriptor)
+               serializersModule.getContextualDescriptor(descriptor.carrierDescriptor)
                   ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
             ) {
                "Contextual or default serializer not found for $descriptor "

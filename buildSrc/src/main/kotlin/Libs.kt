@@ -1,6 +1,6 @@
 object Libs {
 
-   const val kotlinVersion = "1.5.30"
+   const val kotlinVersion = "1.5.31"
    // const val dokkaVersion = "1.4.20"
    const val kotestGradlePlugin = "0.3.8"
    const val versionsPlugin = "0.39.0"
@@ -14,7 +14,7 @@ object Libs {
    }
 
    object Kotlinx {
-      private const val version = "1.2.2"
+      private const val version = "1.3.0"
       const val serializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core:$version"
       const val serializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:$version"
    }

@@ -1,20 +1,20 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.schema.ConstExpr
-import com.github.avrokotlin.avro4k.schema.Expr
-import com.github.avrokotlin.avro4k.schema.MultiplicationExpr
-import com.github.avrokotlin.avro4k.schema.NegateExpr
-import com.github.avrokotlin.avro4k.schema.OtherBinaryExpr
-import com.github.avrokotlin.avro4k.schema.OtherUnaryExpr
-import com.github.avrokotlin.avro4k.schema.ReferencingMixedPolymorphic
+import com.github.avrokotlin.avro4k.schema.*
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.apache.avro.generic.GenericRecord
 
+@Serializable
+data class MixedPolymoprhicIoReference (
+   val expr : Expr,
+   val nullableExpr : Expr?,
+   val listExpr : List<Expr>,
+   val mapExpr : Map<String, Expr>
+)
 class MixedPolymorphicIoTest : StringSpec({
    "read / write referencing a mixed sealed hierarchy" {
       val module = SerializersModule {
@@ -24,17 +24,9 @@ class MixedPolymorphicIoTest : StringSpec({
          polymorphic(OtherBinaryExpr::class) {
             subclass(MultiplicationExpr::class)
          }
-         // this shouldn't be necessary
-         polymorphic(Expr::class) {
-            subclass(NegateExpr::class)
-         }
       }
       val avro = Avro(serializersModule = module)
-      writeRead(ReferencingMixedPolymorphic(NegateExpr(3)), ReferencingMixedPolymorphic.serializer(), avro)
-      writeRead(ReferencingMixedPolymorphic(NegateExpr(3)), ReferencingMixedPolymorphic.serializer(), avro) {
-         val reference = it["notNullable"] as GenericRecord
-         reference.schema shouldBe avro.schema(NegateExpr.serializer())
-         reference["value"] shouldBe 3
-      }
+      val toWrite = MixedPolymoprhicIoReference(NegateExpr(3), null, listOf(NegateExpr(1)), mapOf("blub" to NullaryExpr))
+      writeRead(toWrite, MixedPolymoprhicIoReference.serializer(), avro)
    }
 })

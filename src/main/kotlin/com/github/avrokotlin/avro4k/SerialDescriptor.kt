@@ -1,10 +1,24 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.avrokotlin.avro4k
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.internal.AbstractPolymorphicSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 import kotlin.reflect.full.starProjectedType
+
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> AbstractPolymorphicSerializer<T>.findPolymorphicSerializerInclSealedInterfaceOrNull(
+    decoder: CompositeDecoder,
+    klassName: String?
+): DeserializationStrategy<out T>? {
+    return decoder.serializersModule.getPolymorphicInclSealedInterfaces(baseClass, klassName)
+}
 
 @ExperimentalSerializationApi
 fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): List<SerialDescriptor> {

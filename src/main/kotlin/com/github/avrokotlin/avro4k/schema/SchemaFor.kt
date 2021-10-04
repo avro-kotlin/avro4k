@@ -210,7 +210,7 @@ fun schemaFor(serializersModule: SerializersModule,
    return if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
 }
 
-// copy-paste from kotlinx serialization because it internal
+// copy-paste from kotlinx serialization because it is internal
 @ExperimentalSerializationApi
 internal val SerialDescriptor.carrierDescriptor: SerialDescriptor
    get() = if (isInline) getElementDescriptor(0) else this

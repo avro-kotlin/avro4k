@@ -10,7 +10,6 @@ import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
@@ -32,7 +31,7 @@ class RecordDecoder(
    private val record: GenericRecord,
    override val serializersModule: SerializersModule,
    private val configuration: AvroConfiguration,
-) : AbstractDecoder(), FieldDecoder {
+) : AbstractAvroDecoder(), FieldDecoder {
 
    private var currentIndex = -1
 
@@ -71,8 +70,9 @@ class RecordDecoder(
    }
 
    private fun fieldValue(): Any? {
-      if (record.hasField(resolvedFieldName())) {
-         return record.get(resolvedFieldName())
+      val resolvedFieldName = resolvedFieldName()
+      if (record.hasField(resolvedFieldName)) {
+         return record.get(resolvedFieldName)
       }
       return null
    }
@@ -158,6 +158,11 @@ class RecordDecoder(
    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
       currentIndex++
       return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE
+   }
+
+   @ExperimentalSerializationApi
+   override fun decodeSequentially(): Boolean {
+      return super.decodeSequentially()
    }
 }
 

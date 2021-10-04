@@ -8,7 +8,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
-import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
@@ -20,13 +19,6 @@ class UnionDecoder (descriptor: SerialDescriptor,
                     private  val configuration: AvroConfiguration
 ) : AbstractDecoder(), FieldDecoder
 {
-   private enum class DecoderState(val index : Int){
-      BEFORE(0),
-      READ_CLASS_NAME(1),
-      READ_DONE(CompositeDecoder.DECODE_DONE);
-      fun next() = values().firstOrNull{ it.ordinal > this.ordinal }?:READ_DONE
-   }
-   private var currentState = DecoderState.BEFORE
 
    private var leafDescriptor : SerialDescriptor = descriptor.possibleSerializationSubclasses(serializersModule).firstOrNull {
       val schemaName = RecordNaming(value.schema.fullName, emptyList())
@@ -34,11 +26,10 @@ class UnionDecoder (descriptor: SerialDescriptor,
       serialName == schemaName
    }?:throw SerializationException("Cannot find a subtype of ${descriptor.serialName} that can be used to deserialize a record of schema ${value.schema}.")
 
-   override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-      val currentIndex = currentState.index
-      currentState = currentState.next()
-      return currentIndex
-   }
+   override fun decodeElementIndex(descriptor: SerialDescriptor): Int = -1
+
+   @ExperimentalSerializationApi
+   override fun decodeSequentially() = true
 
    override fun fieldSchema(): Schema = value.schema
 

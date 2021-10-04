@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Record
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -22,6 +23,10 @@ class RootRecordEncoder(private val schema: Schema,
          is PolymorphicKind -> UnionEncoder(schema,serializersModule,callback)
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }
+   }
+
+   override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+      super.encodeSerializableValue(serializer, value)
    }
 
    override fun endStructure(descriptor: SerialDescriptor) {

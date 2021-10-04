@@ -5,6 +5,7 @@ import com.github.avrokotlin.avro4k.RecordNaming
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractEncoder
@@ -32,6 +33,10 @@ class UnionEncoder(private val unionSchema : Schema,
          }
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }
+   }
+
+   override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+      super.encodeSerializableValue(serializer, value)
    }
 
    override fun endStructure(descriptor: SerialDescriptor) {

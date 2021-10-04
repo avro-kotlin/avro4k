@@ -2,12 +2,10 @@ package com.github.avrokotlin.avro4k.decoder
 
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.modules.SerializersModule
@@ -21,7 +19,7 @@ class ListDecoder(
    private val array: List<Any?>,
    override val serializersModule: SerializersModule,
    private val configuration: AvroConfiguration,
-) : AbstractDecoder(), FieldDecoder {
+) : AbstractAvroDecoder(), FieldDecoder {
 
    init {
       require(schema.type == Schema.Type.ARRAY)
@@ -78,17 +76,13 @@ class ListDecoder(
       return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
    }
 
-   override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-      return deserializer.deserialize(this)
-   }
-
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
       return when (descriptor.kind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
          StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule, configuration)
          StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule, configuration)
-         PolymorphicKind.SEALED -> UnionDecoder(descriptor,array[index] as GenericRecord, serializersModule, configuration)
+         PolymorphicKind.OPEN, PolymorphicKind.SEALED -> UnionDecoder(descriptor,array[index] as GenericRecord, serializersModule, configuration)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

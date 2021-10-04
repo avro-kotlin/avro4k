@@ -10,7 +10,6 @@ import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
@@ -39,7 +38,7 @@ interface StructureEncoder : FieldEncoder {
 @ExperimentalSerializationApi
 class RecordEncoder(private val schema: Schema,
                     override val serializersModule: SerializersModule,
-                    val callback: (Record) -> Unit) : AbstractEncoder(), StructureEncoder {
+                    val callback: (Record) -> Unit) : AbstractAvroEncoder(), StructureEncoder {
 
    private val builder = RecordBuilder(schema)
    private var currentIndex = -1

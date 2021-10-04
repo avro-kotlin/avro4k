@@ -2,7 +2,6 @@ package com.github.avrokotlin.avro4k.encoder
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
@@ -13,7 +12,7 @@ import java.nio.ByteBuffer
 @ExperimentalSerializationApi
 class ListEncoder(private val schema: Schema,
                   override val serializersModule: SerializersModule,
-                  private val callback: (GenericData.Array<Any?>) -> Unit) : AbstractEncoder(), StructureEncoder {
+                  private val callback: (GenericData.Array<Any?>) -> Unit) : AbstractAvroEncoder(), StructureEncoder {
 
    private val list = mutableListOf<Any?>()
 

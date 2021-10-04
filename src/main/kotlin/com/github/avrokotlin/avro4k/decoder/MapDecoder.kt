@@ -3,10 +3,10 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
@@ -21,7 +21,7 @@ class MapDecoder(
    map: Map<*, *>,
    override val serializersModule: SerializersModule,
    private val configuration: AvroConfiguration
-) : AbstractDecoder(), CompositeDecoder {
+) : AbstractAvroDecoder(), CompositeDecoder {
 
    init {
       require(schema.type == Schema.Type.MAP)
@@ -100,14 +100,15 @@ class MapDecoder(
 
    @Suppress("UNCHECKED_CAST")
    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-      return when (descriptor.kind as StructureKind) {
+      return when (descriptor.kind) {
          StructureKind.CLASS -> RecordDecoder(descriptor, value() as GenericRecord, serializersModule, configuration)
          StructureKind.LIST -> when(descriptor.getElementDescriptor(0).kind) {
             PrimitiveKind.BYTE -> ByteArrayDecoder((value() as ByteBuffer).array(), serializersModule)
             else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule, configuration)
          }
          StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule, configuration)
-         StructureKind.OBJECT -> throw UnsupportedOperationException("Objects are not supported right now as serialization kind")
+         PolymorphicKind.OPEN, PolymorphicKind.SEALED -> UnionDecoder(descriptor,value() as GenericRecord, serializersModule, configuration)
+         else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }
 }

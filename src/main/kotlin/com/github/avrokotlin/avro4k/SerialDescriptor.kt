@@ -38,7 +38,7 @@ fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: Serializ
                 serializersModule.getPolymorphicDescriptors(this)
                     .flatMap { it.possibleSerializationSubclasses(serializersModule) }
             }
-            // descriptors may exist more than once due to diamond inheritance so we need to filter duplicates out
+            // descriptors may exist more than once due to diamond inheritance, so we need to filter duplicates out
             descriptors.distinct()
         }
         else -> throw UnsupportedOperationException("Can't get possible serialization subclasses for the SerialDescriptor of kind ${this.kind}.")

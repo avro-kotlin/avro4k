@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Record
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -13,23 +12,19 @@ import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
-class RootRecordEncoder(private val schema: Schema,
-                        override val serializersModule: SerializersModule,
-                        private val callback: (Record) -> Unit) : AbstractEncoder() {
+class RootRecordEncoder(
+    private val schema: Schema,
+    override val serializersModule: SerializersModule,
+    private val callback: (Record) -> Unit
+) : AbstractEncoder() {
 
-   override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-      return when (descriptor.kind) {
-         is StructureKind.CLASS -> RecordEncoder(schema, serializersModule, callback)
-         is PolymorphicKind -> UnionEncoder(schema,serializersModule,callback)
-         else -> throw SerializationException("Unsupported root element passed to root record encoder")
-      }
-   }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+        return when (descriptor.kind) {
+            is StructureKind.CLASS -> RecordEncoder(schema, serializersModule, callback)
+            is PolymorphicKind -> UnionEncoder(schema, serializersModule, callback)
+            else -> throw SerializationException("Unsupported root element passed to root record encoder")
+        }
+    }
 
-   override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
-      super.encodeSerializableValue(serializer, value)
-   }
-
-   override fun endStructure(descriptor: SerialDescriptor) {
-
-   }
+    override fun endStructure(descriptor: SerialDescriptor) {}
 }

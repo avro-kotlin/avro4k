@@ -159,10 +159,5 @@ class RecordDecoder(
       currentIndex++
       return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE
    }
-
-   @ExperimentalSerializationApi
-   override fun decodeSequentially(): Boolean {
-      return super.decodeSequentially()
-   }
 }
 

@@ -49,7 +49,7 @@ fun Schema.overrideNamespace(namespace: String): Schema {
          copy
       }
       Schema.Type.UNION -> Schema.createUnion(types.map { it.overrideNamespace(namespace) })
-      Schema.Type.ENUM -> Schema.createEnum(name, doc, namespace, enumSymbols)
+      Schema.Type.ENUM -> Schema.createEnum(name, doc, namespace, enumSymbols, enumDefault)
       Schema.Type.FIXED -> Schema.createFixed(name, doc, namespace, fixedSize)
       Schema.Type.MAP -> Schema.createMap(valueType.overrideNamespace(namespace))
       Schema.Type.ARRAY -> Schema.createArray(elementType.overrideNamespace(namespace))

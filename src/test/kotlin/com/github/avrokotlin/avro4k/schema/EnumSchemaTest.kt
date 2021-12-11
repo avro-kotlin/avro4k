@@ -47,6 +47,14 @@ class EnumSchemaTest : WordSpec({
 
          schema.toString(true) shouldBe expected.toString(true)
       }
+      "modifying namespaces retains enum defaults" {
+         val schemaWithNewNameSpace = Avro.default.schema(EnumWithDefaultTest.serializer()).overrideNamespace("new")
+
+         val expected = org.apache.avro.Schema.Parser()
+            .parse(javaClass.getResourceAsStream("/enum_with_default_new_namespace.json"))
+
+         schemaWithNewNameSpace.toString(true) shouldBe expected.toString(true)
+      }
       "fail with unknown values" {
          shouldThrow<IllegalStateException> {
             Avro.default.schema(EnumWithUnknownDefaultTest.serializer())

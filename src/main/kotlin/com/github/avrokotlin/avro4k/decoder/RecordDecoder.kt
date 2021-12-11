@@ -118,7 +118,12 @@ class RecordDecoder(
 
    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
       val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
-      return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
+
+      val enumValueIndices = (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
+
+      return enumValueIndices[symbol] ?: AnnotationExtractor(enumDescriptor.annotations).enumDefault()?.let {
+         enumValueIndices[it]
+      } ?: -1
    }
 
    override fun decodeFloat(): Float {

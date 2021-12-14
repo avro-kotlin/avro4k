@@ -1,5 +1,5 @@
 # <img src="https://github.com/avro-kotlin/avro4k/raw/master/src/main/graphics/logo.png" height=160>
-[Avro](https://avro.apache.org/) format for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). This library is a port of @sksamuel's Scala Avro generator [avro4s](https://github.com/sksamuel/avro4s).
+[Avro](https://avro.apache.org/) format for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). This library is a port of [sksamuel's](https://github.com/sksamuel) Scala Avro generator [avro4s](https://github.com/sksamuel/avro4s).
 
 ![build-master](https://github.com/avro-kotlin/avro4k/workflows/build-master/badge.svg)
 [<img src="https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
@@ -19,7 +19,7 @@ Avro4k is a Kotlin library that brings support for Avro to the Kotlin Serializat
 
 Writing schemas manually through the Java based `SchemaBuilder` classes can be tedious for complex domain models. 
 Avro4k allows us to generate schemas directly from data classes at compile time using the Kotlin Serialization library. 
-This gives you both the convenience of generated code, without the annoyance of having to run a code generation step, as well as avoiding the peformance penalty of runtime reflection based code.
+This gives you both the convenience of generated code, without the annoyance of having to run a code generation step, as well as avoiding the performance penalty of runtime reflection based code.
 
 Let's define some classes.
 

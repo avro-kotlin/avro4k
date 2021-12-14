@@ -7,11 +7,13 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.superclasses
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalSerializationApi::class)
 fun <T : Any> SerializersModule.getPolymorphicInclSealedInterfaces(baseClass: KClass<in T>, value: T): SerializationStrategy<T> {
     //First try to get it from the module
     var result = this.getPolymorphic(baseClass, value)
+    value::class.superclasses
     if(result == null && baseClass.isSealed && value::class.isSubclassOf(baseClass)) {
         result = this.serializer(value::class.starProjectedType)
     }

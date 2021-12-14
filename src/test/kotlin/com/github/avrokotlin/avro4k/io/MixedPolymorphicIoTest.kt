@@ -29,4 +29,7 @@ class MixedPolymorphicIoTest : StringSpec({
       val toWrite = MixedPolymoprhicIoReference(NegateExpr(3), null, listOf(NegateExpr(1)), mapOf("blub" to NullaryExpr))
       writeRead(toWrite, MixedPolymoprhicIoReference.serializer(), avro)
    }
+   "read / write referencing a subclass implementing a sealed interface" {
+
+   }
 })

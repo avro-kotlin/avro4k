@@ -8,7 +8,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.numericDoubles
+import io.kotest.property.arbitrary.numericDouble
 import io.kotest.property.checkAll
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericArray
@@ -63,9 +63,9 @@ class CollectionsIoTest : StringSpec({
    "read / write arrays of double in json" {
       //Json does not support -inf/+inf and NaN
       checkAll(
-         Arb.numericDoubles(),
-         Arb.numericDoubles(),
-         Arb.numericDoubles()
+         Arb.numericDouble(),
+         Arb.numericDouble(),
+         Arb.numericDouble()
       ) { a, b, c ->
          writeReadJson(DoubleArrayTest(arrayOf(a, b, c)), DoubleArrayTest.serializer()) {
             it["a"] shouldBe listOf(a,b,c)

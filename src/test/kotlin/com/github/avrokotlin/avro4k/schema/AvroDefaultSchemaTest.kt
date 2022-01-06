@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
@@ -207,7 +209,7 @@ data class BarArray(
 
 @Serializable
 data class BarInvalidArrayType(
-   @com.github.avrokotlin.avro4k.AvroDefault("""["foo-bar"]""")
+   @AvroDefault("""["foo-bar"]""")
    val defaultFloatArrayWith2Defaults: List<Float>
 )
 

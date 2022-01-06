@@ -1,12 +1,12 @@
 object Libs {
 
-   const val kotlinVersion = "1.5.32"
+   const val kotlinVersion = "1.6.10"
    // const val dokkaVersion = "1.4.20"
-   const val kotestGradlePlugin = "0.3.8"
-   const val versionsPlugin = "0.39.0"
+   const val kotestGradlePlugin = "0.3.9"
+   const val versionsPlugin = "0.41.0"
 
    object Kotest {
-      private const val version = "4.6.3"
+      private const val version = "5.0.3"
       const val assertionsCore = "io.kotest:kotest-assertions-core:$version"
       const val assertionsJson = "io.kotest:kotest-assertions-json:$version"
       const val junit5 = "io.kotest:kotest-runner-junit5:$version"
@@ -14,7 +14,7 @@ object Libs {
    }
 
    object Kotlinx {
-      private const val version = "1.3.1"
+      private const val version = "1.3.2"
       const val serializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core:$version"
       const val serializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:$version"
    }

@@ -126,12 +126,12 @@ publishing {
          pom {
             name.set("avro4k-core")
             description.set("Avro format support for kotlinx.serialization")
-            url.set("http://www.github.com/avro-kotlin/avro4k")
+            url.set("https://www.github.com/avro-kotlin/avro4k")
 
             scm {
-               connection.set("scm:git:http://www.github.com/avro-kotlin/avro4k")
-               developerConnection.set("scm:git:http://github.com/avro-kotlin/avro4k")
-               url.set("http://www.github.com/avro-kotlin/avro4k")
+               connection.set("scm:git:https://www.github.com/avro-kotlin/avro4k")
+               developerConnection.set("scm:git:https://github.com/avro-kotlin/avro4k")
+               url.set("https://www.github.com/avro-kotlin/avro4k")
             }
 
             licenses {

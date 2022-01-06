@@ -19,7 +19,7 @@ sealed class AvroDecodeFormat {
                 writerSchema != null && readerSchema != null ->
                     AvroDataInputStream(source, converter, writerSchema, readerSchema)
                 writerSchema != null ->
-                    AvroDataInputStream(source, converter, writerSchema, readerSchema)
+                    AvroDataInputStream(source, converter, writerSchema, null)
                 readerSchema != null ->
                     AvroDataInputStream(source, converter, null, readerSchema)
                 else ->

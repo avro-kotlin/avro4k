@@ -29,7 +29,7 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
       override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
          val schema = SchemaBuilder.builder().bytesType()
-         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: 2 to 8
+         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: (2 to 8)
          return LogicalTypes.decimal(precision, scale).addToSchema(schema)
       }
    }

@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.polymorphicTreeForSealed
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
@@ -47,6 +48,7 @@ data class ReferencingNullableMixedPolymorphic(
 )
 class MixedPolymorphicSchemaTest : StringSpec({
     val module = SerializersModule {
+        polymorphicTreeForSealed(Expr::class)
         polymorphic(OtherUnaryExpr::class) {
             subclass(ConstExpr::class)
         }

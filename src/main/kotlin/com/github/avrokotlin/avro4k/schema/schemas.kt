@@ -12,14 +12,6 @@ fun createSafeUnion(nullFirst : Boolean,vararg schemas: Schema): Schema {
    return Schema.createUnion(if(nullFirst) nulls + rest else rest + nulls)
 }
 
-fun Schema.findSubschema(name: String): Schema? {
-   require(type == Schema.Type.RECORD)
-   return fields.find { it.name() == name }?.schema()
-}
-
-fun Schema.containsNull(): Boolean =
-   type == Schema.Type.UNION && types.any { it.type == Schema.Type.NULL }
-
 fun Schema.extractNonNull(): Schema = when (this.type) {
    Schema.Type.UNION -> this.types.filter { it.type != Schema.Type.NULL }.let { if(it.size > 1) Schema.createUnion(it) else it[0] }
    else -> this

@@ -430,38 +430,38 @@ Therefore some serializers will take into account the schema passed to them when
 The following table shows how types used in your code will be mapped / encoded in the generated Avro schemas and files. 
 If a type can be mapped in multiple ways, it is listed more than once.
 
-| JVM Type                   	| Schema Type   	| Logical Type     	| Encoded Type |
-|------------------------------	|---------------	|------------------	| ------------ |
-| String                       	| STRING        	|                  	| Utf8                      |
-| String                       	| FIXED        	    |                  	| GenericFixed              |
-| String                       	| BYTES        	    |                  	| ByteBuffer                |
-| Boolean                      	| BOOLEAN       	|                  	| java.lang.Boolean |
-| Long                         	| LONG          	|                  	| java.lang.Long |
-| Int                          	| INT           	|                  	| java.lang.Integer |
-| Short                        	| INT           	|                  	| java.lang.Integer |
-| Byte                         	| INT           	|                  	| java.lang.Integer |
-| Double                       	| DOUBLE        	|                  	| java.lang.Double |
-| Float                        	| FLOAT         	|                  	| java.lang.Float |
-| UUID                         	| STRING        	| UUID             	| Utf8 |
-| LocalDate                    	| INT           	| Date             	| java.lang.Int |
-| LocalTime                    	| INT           	| Time-Millis      	| java.lang.Int |
-| LocalDateTime                	| LONG          	| Timestamp-Millis 	| java.lang.Long |
-| Instant                      	| LONG          	| Timestamp-Millis 	| java.lang.Long |
-| Timestamp                    	| LONG          	| Timestamp-Millis 	| java.lang.Long |
-| BigDecimal                   	| BYTES         	| Decimal<8,2>     	| ByteBuffer |
-| BigDecimal                   	| FIXED         	| Decimal<8,2>     	| GenericFixed |
-| BigDecimal                   	| STRING         	| Decimal<8,2>     	| String |
-| T? (nullable type)           	| UNION<null,T> 	|                  	| null, T |
-| ByteArray                  	| BYTES         	|                  	| ByteBuffer |
-| ByteAray                  	| FIXED         	|                  	| GenericFixed |
-| ByteBuffer                   	| BYTES         	|                  	| ByteBuffer |
-| List[Byte]                   	| BYTES         	|                  	| ByteBuffer |
-| Array<T>                     	| ARRAY<T>      	|                  	| Array[T] |
-| List<T>                      	| ARRAY<T>      	|                  	| Array[T] |
-| Set<T>                      	| ARRAY<T>      	|                  	| Array[T] |
-| Map[String, V]              	| MAP<V>        	|                  	| java.util.Map[String, V] |
-| data class T                 	| RECORD        	|                  	| GenericRecord |
-| enum class             	    | ENUM          	|                  	| GenericEnumSymbol |
+| JVM Type                   	   | Schema Type   	  | Logical Type     	 | Encoded Type             |
+|--------------------------------|------------------|--------------------|--------------------------|
+| String                       	 | STRING        	  | 	                  | Utf8                     |
+| String                       	 | FIXED        	   | 	                  | GenericFixed             |
+| String                       	 | BYTES        	   | 	                  | ByteBuffer               |
+| Boolean                      	 | BOOLEAN       	  | 	                  | java.lang.Boolean        |
+| Long                         	 | LONG          	  | 	                  | java.lang.Long           |
+| Int                          	 | INT           	  | 	                  | java.lang.Integer        |
+| Short                        	 | INT           	  | 	                  | java.lang.Integer        |
+| Byte                         	 | INT           	  | 	                  | java.lang.Integer        |
+| Double                       	 | DOUBLE        	  | 	                  | java.lang.Double         |
+| Float                        	 | FLOAT         	  | 	                  | java.lang.Float          |
+| UUID                         	 | STRING        	  | UUID             	 | Utf8                     |
+| LocalDate                    	 | INT           	  | Date             	 | java.lang.Int            |
+| LocalTime                    	 | INT           	  | Time-Millis      	 | java.lang.Int            |
+| LocalDateTime                	 | LONG          	  | Timestamp-Millis 	 | java.lang.Long           |
+| Instant                      	 | LONG          	  | Timestamp-Millis 	 | java.lang.Long           |
+| Timestamp                    	 | LONG          	  | Timestamp-Millis 	 | java.lang.Long           |
+| BigDecimal                   	 | BYTES         	  | Decimal<8,2>     	 | ByteBuffer               |
+| BigDecimal                   	 | FIXED         	  | Decimal<8,2>     	 | GenericFixed             |
+| BigDecimal                   	 | STRING         	 | Decimal<8,2>     	 | String                   |
+| T? (nullable type)           	 | UNION<null,T> 	  | 	                  | null, T                  |
+| ByteArray                  	   | BYTES         	  | 	                  | ByteBuffer               |
+| ByteAray                  	    | FIXED         	  | 	                  | GenericFixed             |
+| ByteBuffer                   	 | BYTES         	  | 	                  | ByteBuffer               |
+| List[Byte]                   	 | BYTES         	  | 	                  | ByteBuffer               |
+| Array<T>                     	 | ARRAY<T>      	  | 	                  | Array[T]                 |
+| List<T>                      	 | ARRAY<T>      	  | 	                  | Array[T]                 |
+| Set<T>                      	  | ARRAY<T>      	  | 	                  | Array[T]                 |
+| Map[String, V]              	  | MAP<V>        	  | 	                  | java.util.Map[String, V] |
+| data class T                 	 | RECORD        	  | 	                  | GenericRecord            |
+| enum class             	       | ENUM          	  | 	                  | GenericEnumSymbol        |
 
 In order to use logical types, annotate the value with an appropriate Serializer:
 

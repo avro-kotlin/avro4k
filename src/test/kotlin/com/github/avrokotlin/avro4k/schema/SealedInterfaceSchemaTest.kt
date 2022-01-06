@@ -1,7 +1,10 @@
+@file:Suppress("unused")
+
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.polymorphicForSealed
 import com.github.avrokotlin.avro4k.polymorphicTreeForSealed
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -56,7 +59,9 @@ class SealedInterfaceSchemaTest : StringSpec({
       schema shouldBe expected
    }
    "referencing a sealed interface"{
-      val schema = Avro.default.schema(ReferencingSealedInterface.serializer())
+      val schema = Avro(serializersModule = SerializersModule {
+         polymorphicForSealed(Calculable::class)
+      }).schema(ReferencingSealedInterface.serializer())
       val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/sealed_interface_referenced.json"))
       schema shouldBe expected
    }

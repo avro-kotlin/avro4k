@@ -19,7 +19,7 @@ class AvroDataInputStream<T>(private val source: InputStream,
       else -> GenericData.get().createDatumReader(writerSchema, readerSchema)
    }
 
-   private val dataFileReader = DataFileStream<Any>(source, datumReader)
+   private val dataFileReader = DataFileStream(source, datumReader)
 
    override fun next(): T? {
       return if (dataFileReader.hasNext()) {

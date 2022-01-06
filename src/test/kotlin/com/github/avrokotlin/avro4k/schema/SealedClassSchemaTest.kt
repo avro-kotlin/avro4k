@@ -1,9 +1,11 @@
+@file:Suppress("unused")
+
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDefault
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 
@@ -13,14 +15,14 @@ sealed class Operation {
    object Nullary : Operation()
 
    @Serializable
-   sealed class Unary() : Operation(){
+   sealed class Unary : Operation(){
       abstract val value : Int
       @Serializable
       data class Negate(override val value:Int) : Unary()
    }
 
    @Serializable
-   sealed class Binary() : Operation(){
+   sealed class Binary : Operation(){
       abstract val left : Int
       abstract val right : Int
       @Serializable

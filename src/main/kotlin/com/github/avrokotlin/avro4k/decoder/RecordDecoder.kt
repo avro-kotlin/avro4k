@@ -174,7 +174,11 @@ class RecordDecoder(
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         currentIndex++
-        return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE
+        return if (currentIndex < descriptor.elementsCount) {
+            if (descriptor.isElementOptional(currentIndex) && !record.hasField(resolvedFieldName())) {
+                decodeElementIndex(descriptor)
+            } else currentIndex
+        } else CompositeDecoder.DECODE_DONE
     }
 }
 

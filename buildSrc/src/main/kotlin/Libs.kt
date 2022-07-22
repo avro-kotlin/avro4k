@@ -1,7 +1,7 @@
 object Libs {
 
    const val kotlinVersion = "1.7.10"
-   // const val dokkaVersion = "1.4.20"
+   const val dokkaVersion = "1.7.10"
    const val kotestGradlePlugin = "0.3.9"
    const val versionsPlugin = "0.42.0"
 

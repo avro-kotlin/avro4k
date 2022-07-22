@@ -38,7 +38,7 @@ sealed class AvroEncodeFormat {
 
     }
     /**
-     * Encodes teh avro records as JSON text. The most verbose format, but easy for a human to read.
+     * Encodes the avro records as JSON text. The most verbose format, but easy for a human to read.
      *
      * This format does not include the schema.
      *

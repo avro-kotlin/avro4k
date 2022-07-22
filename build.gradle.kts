@@ -14,7 +14,7 @@ plugins {
    kotlin("plugin.serialization") version Libs.kotlinVersion
    id("maven-publish")
    signing
-   // id("org.jetbrains.dokka") version Libs.dokkaVersion
+   id("org.jetbrains.dokka") version Libs.dokkaVersion
    id("io.kotest") version Libs.kotestGradlePlugin
    id("com.github.ben-manes.versions") version Libs.versionsPlugin
 }
@@ -57,40 +57,6 @@ java {
    withJavadocJar()
    withSourcesJar()
 }
-
-val signingKey: String? by project
-val signingPassword: String? by project
-
-fun Project.publishing(action: PublishingExtension.() -> Unit) =
-   configure(action)
-
-fun Project.signing(configure: SigningExtension.() -> Unit): Unit =
-   configure(configure)
-
-//val dokka = tasks.named("dokka")
-val javadoc = tasks.named("javadoc")
-
-val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications
-
-signing {
-   useGpgCmd()
-   if (signingKey != null && signingPassword != null) {
-      @Suppress("UnstableApiUsage")
-      useInMemoryPgpKeys(signingKey, signingPassword)
-   }
-   if (Ci.isRelease) {
-      sign(publications)
-   }
-}
-
-// Create dokka Jar task from dokka task output
-//val dokkaJar by tasks.creating(Jar::class) {
-//   group = JavaBasePlugin.DOCUMENTATION_GROUP
-//   description = "Assembles Kotlin docs with Dokka"
-//   archiveClassifier.set("javadoc")
-//   from(dokka)
-//}
-
 tasks.named<Test>("test") {
    useJUnitPlatform()
    filter {
@@ -104,6 +70,26 @@ tasks.named<Test>("test") {
          org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
       )
       exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+   }
+}
+tasks.named<Jar>("javadocJar") {
+   from(tasks.named("dokkaJavadoc"))
+}
+
+//Configuration for publication on maven central
+val signingKey: String? by project
+val signingPassword: String? by project
+
+val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications
+
+signing {
+   useGpgCmd()
+   if (signingKey != null && signingPassword != null) {
+      @Suppress("UnstableApiUsage")
+      useInMemoryPgpKeys(signingKey, signingPassword)
+   }
+   if (Ci.isRelease) {
+      sign(publications)
    }
 }
 
@@ -158,3 +144,8 @@ publishing {
       }
    }
 }
+fun Project.publishing(action: PublishingExtension.() -> Unit) =
+   configure(action)
+
+fun Project.signing(configure: SigningExtension.() -> Unit): Unit =
+   configure(configure)

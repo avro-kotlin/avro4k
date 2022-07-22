@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.util.Utf8
 
@@ -22,8 +22,34 @@ class MapIoTest : StringSpec({
          it["c"] shouldBe mapOf(Utf8("a") to 123L, Utf8("b") to 999L)
       }
    }
+   
+   "read/write complex maps" {
+      val record = ComplexTypes(mutableMapOf(Pair("0", Status.Completed(0)), Pair("1", Status.Failed(1))))
+      writeRead(
+         record,record,
+         ComplexTypes.serializer()
+      ) 
+   }
 }) {
 
    @Serializable
    data class Test(val a: Map<String, Boolean>, val b: Map<String, String>, val c: Map<String, Long>)
+
+   @Serializable
+   data class ComplexTypes(
+      val statuses: MutableMap<String, Status> = mutableMapOf(),
+   )
+
+   @Serializable
+   sealed class Status {
+      @Serializable
+      data class Completed(
+         val completionIndex: Int
+      ) : Status()
+
+      @Serializable
+      data class Failed(
+         val failureIndex: Int
+      ) : Status()
+   }
 }

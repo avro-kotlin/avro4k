@@ -44,11 +44,18 @@ dependencies {
    testImplementation(Libs.Kotest.proptest)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {  
+   
    kotlinOptions.jvmTarget = "1.8"
    kotlinOptions.apiVersion = "1.5"
-   kotlinOptions.languageVersion = "1.5"
-   kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+   kotlinOptions.languageVersion = "1.5"   
+   kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+}
+java {
+   sourceCompatibility = JavaVersion.VERSION_1_8
+   targetCompatibility = JavaVersion.VERSION_1_8
+   withJavadocJar()
+   withSourcesJar()
 }
 
 val signingKey: String? by project
@@ -98,12 +105,6 @@ tasks.named<Test>("test") {
       )
       exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
    }
-}
-
-java {
-   targetCompatibility = JavaVersion.VERSION_1_8
-   withJavadocJar()
-   withSourcesJar()
 }
 
 publishing {

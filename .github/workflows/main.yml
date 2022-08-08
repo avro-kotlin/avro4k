@@ -1,9 +1,9 @@
-name: build-master
+name: build-main
 
 on:
    push:
       branches:
-         - master
+         - main
          - release/*
       paths-ignore:
          - 'doc/**'
@@ -14,9 +14,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
          -  name: Checkout the repo
-            uses: actions/checkout@v2
-            with:
-               fetch-depth: 0
+            uses: actions/checkout@v3
 
          -  name: Run tests
             run: ./gradlew check
@@ -27,7 +25,7 @@ jobs:
 
          -  name: Upload the build report
             if: failure()
-            uses: actions/upload-artifact@master
+            uses: actions/upload-artifact@v3
             with:
                name: error-report
                path: build-reports.zip
@@ -37,7 +35,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
          - name: Checkout the repo
-           uses: actions/checkout@v2
+           uses: actions/checkout@v3
 
          - name: deploy to sonatype snapshots
            run: ./gradlew publish

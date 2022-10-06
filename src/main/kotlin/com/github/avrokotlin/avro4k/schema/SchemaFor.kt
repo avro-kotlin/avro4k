@@ -100,8 +100,8 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
 
    override fun schema(): Schema {
 
-      val elementType = descriptor.getElementDescriptor(0)
-      return when (elementType.kind) {
+      val elementType = descriptor.getElementDescriptor(0) // don't use unwrapValueClass to prevent losing serial annotations
+      return when (descriptor.unwrapValueClass.getElementDescriptor(0).kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
             val elementSchema = schemaFor(serializersModule,
@@ -123,7 +123,7 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
 ) : SchemaFor {
 
    override fun schema(): Schema {
-      val keyType = descriptor.getElementDescriptor(0)
+      val keyType = descriptor.getElementDescriptor(0).unwrapValueClass
       when (keyType.kind) {
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
@@ -174,7 +174,7 @@ fun schemaFor(serializersModule: SerializersModule,
 
    val schemaFor: SchemaFor = when (underlying) {
       is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, namingStrategy))
-      else -> when (descriptor.carrierDescriptor.kind) {
+      else -> when (descriptor.unwrapValueClass.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
          PrimitiveKind.INT -> SchemaFor.IntSchemaFor
@@ -187,7 +187,7 @@ fun schemaFor(serializersModule: SerializersModule,
          SerialKind.CONTEXTUAL -> schemaFor(
             serializersModule,
             requireNotNull(
-               serializersModule.getContextualDescriptor(descriptor.carrierDescriptor)
+               serializersModule.getContextualDescriptor(descriptor.unwrapValueClass)
                   ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
             ) {
                "Contextual or default serializer not found for $descriptor "
@@ -212,5 +212,5 @@ fun schemaFor(serializersModule: SerializersModule,
 
 // copy-paste from kotlinx serialization because it internal
 @ExperimentalSerializationApi
-internal val SerialDescriptor.carrierDescriptor: SerialDescriptor
+internal val SerialDescriptor.unwrapValueClass: SerialDescriptor
    get() = if (isInline) getElementDescriptor(0) else this

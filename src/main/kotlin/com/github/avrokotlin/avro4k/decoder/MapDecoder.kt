@@ -107,7 +107,7 @@ class MapDecoder(
             else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule, configuration)
          }
          StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule, configuration)         
-         PolymorphicKind.SEALED -> UnionDecoder(descriptor, value() as GenericRecord, serializersModule, configuration)
+         PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor, value() as GenericRecord, serializersModule, configuration)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

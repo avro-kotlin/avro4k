@@ -88,7 +88,7 @@ class ListDecoder(
          StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
          StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule, configuration)
          StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule, configuration)
-         PolymorphicKind.SEALED -> UnionDecoder(descriptor,array[index] as GenericRecord, serializersModule, configuration)
+         PolymorphicKind.SEALED, PolymorphicKind.OPEN  -> UnionDecoder(descriptor,array[index] as GenericRecord, serializersModule, configuration)
          else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
       }
    }

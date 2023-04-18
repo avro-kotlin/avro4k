@@ -102,7 +102,7 @@ class RecordEncoder(private val schema: Schema,
 
 class RecordBuilder(private val schema: Schema) {
 
-   private val values = arrayListOf<Any?>()
+   private val values = ArrayList<Any?>(schema.fields.size)
 
    fun add(value: Any?) = values.add(value)
 

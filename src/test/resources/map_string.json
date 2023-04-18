@@ -1,7 +1,6 @@
 {
   "type": "record",
-  "name": "StringStringTest",
-  "namespace": "com.github.avrokotlin.avro4k.schema.MapSchemaTest",
+  "name": "mapStringStringTest",
   "fields": [
     {
       "name": "map",

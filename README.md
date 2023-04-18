@@ -583,6 +583,11 @@ Maven
 
 Check the latest released version on Maven Central
 
+### Known problems
+
+Kotlin 1.7.20 up to 1.8.10 cannot properly compile @SerialInfo-Annotations on enums (see https://github.com/Kotlin/kotlinx.serialization/issues/2121). 
+This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's annotations on enum types, please make sure that you are using kotlin >= 1.8.20. 
+
 ### Contributions
 
 Contributions to avro4s are always welcome. Good ways to contribute include:

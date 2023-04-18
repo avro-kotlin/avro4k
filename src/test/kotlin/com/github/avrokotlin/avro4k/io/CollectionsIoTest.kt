@@ -54,7 +54,7 @@ class CollectionsIoTest : StringSpec({
       ) { a, b, c ->
          val data = DoubleArrayTest(arrayOf(a, b, c))
          val serializer = DoubleArrayTest.serializer()
-         val test : (GenericRecord) -> Any = {it["a"] shouldBe listOf(a,b,c)}
+         val test : (GenericRecord) -> Unit = {it["a"] shouldBe listOf(a,b,c)}
          writeReadData(data, serializer, test = test)
          writeReadBinary(data, serializer, test = test)
       }

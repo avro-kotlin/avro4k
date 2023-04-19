@@ -24,8 +24,8 @@ class ValueClassEncoderTest : StringSpec({
     include(valueClassEncodeTest(BooleanWrapper(true)))
     include(valueClassEncodeTest(FloatWrapper(1f)))
     include(valueClassEncodeTest(DoubleWrapper(1.02)))
+    include(valueClassEncodeTest(UuidWrapper(UUID.fromString("88353397-3716-4718-88e3-7a46ba8a39cf"))))
     "encode referenced value class" {
-
         val id = ValueClassSchemaTest.StringWrapper("100500")
         val uuid = UUID.randomUUID()
         val uuidStr = uuid.toString()

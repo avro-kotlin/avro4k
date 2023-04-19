@@ -5,6 +5,7 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.Avro
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseContextualSerialization
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -39,6 +40,13 @@ value class ByteArrayWrapper(val value: ByteArray)
 @Serializable
 @JvmInline
 value class StringWrapper(val value: String)
+
+@Serializable
+@JvmInline
+value class UuidWrapper(
+   @Contextual
+   val value: UUID
+)
 class PrimitiveSchemaTest : StringSpec({
 
    "boolean value class should be boolean primitive schema" {
@@ -131,4 +139,9 @@ class PrimitiveSchemaTest : StringSpec({
       val schema = Avro.default.schema(String.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
+   "uuid value class should be string primitive schema" {
+      val expected = Parser().parse(javaClass.getResourceAsStream("/primitive_string.json"))
+      val schema = Avro.default.schema(UuidWrapper.serializer())
+      schema.toString(true) shouldBe expected.toString(true)
+   }   
 })

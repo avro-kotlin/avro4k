@@ -15,7 +15,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
-@OptIn(InternalSerializationApi::class)
 class ValueClassEncoderTest : StringSpec({
     include(valueClassEncodeTest(StringWrapper("blub")))
     include(valueClassEncodeTest(IntWrapper(1)))
@@ -48,7 +47,7 @@ fun valueClassEncodeTest(valueInstance: Any) = stringSpec {
             valueInstance
         ) shouldBe valueInstance
     }
-    "encode value ${valueInstance::class.valueType}" {
+    "encode value ${valueInstance::class.valueType.simpleName}" {
         val type = valueInstance::class.valueType
         val actualValue = valueInstance::class.members.filterIsInstance<KProperty1<Any, *>>().first().get(valueInstance)
         Avro.default.toAvroCompatibleType(type.serializer() as KSerializer<Any>, actualValue) shouldBe actualValue

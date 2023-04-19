@@ -9,10 +9,36 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseContextualSerialization
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.serializer
 import org.apache.avro.Schema.Parser
-import java.util.UUID
+import java.util.*
 
+@Serializable
+@JvmInline
+value class BooleanWrapper(val value: Boolean)
+@Serializable
+@JvmInline
+value class ByteWrapper(val value: Byte)
+@Serializable
+@JvmInline
+value class ShortWrapper(val value: Short)
+@Serializable
+@JvmInline
+value class IntWrapper(val value: Int)
+@Serializable
+@JvmInline
+value class LongWrapper(val value: Long)
+@Serializable
+@JvmInline
+value class FloatWrapper(val value: Float)
+@Serializable
+@JvmInline
+value class DoubleWrapper(val value: Double)
+@Serializable
+@JvmInline
+value class ByteArrayWrapper(val value: ByteArray)
+@Serializable
+@JvmInline
+value class StringWrapper(val value: String)
 class PrimitiveSchemaTest : StringSpec({
 
    "boolean value class should be boolean primitive schema" {
@@ -105,32 +131,4 @@ class PrimitiveSchemaTest : StringSpec({
       val schema = Avro.default.schema(String.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
-}) {
-   @Serializable
-   @JvmInline
-   value class BooleanWrapper(val value: Boolean)
-   @Serializable
-   @JvmInline
-   value class ByteWrapper(val value: Byte)
-   @Serializable
-   @JvmInline
-   value class ShortWrapper(val value: Short)
-   @Serializable
-   @JvmInline
-   value class IntWrapper(val value: Int)
-   @Serializable
-   @JvmInline
-   value class LongWrapper(val value: Long)
-   @Serializable
-   @JvmInline
-   value class FloatWrapper(val value: Float)
-   @Serializable
-   @JvmInline
-   value class DoubleWrapper(val value: Double)
-   @Serializable
-   @JvmInline
-   value class ByteArrayWrapper(val value: ByteArray)
-   @Serializable
-   @JvmInline
-   value class StringWrapper(val value: String)
-}
+})

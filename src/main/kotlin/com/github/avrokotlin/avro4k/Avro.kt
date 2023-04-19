@@ -3,6 +3,9 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
+import com.github.avrokotlin.avro4k.encoder.EnumEncoder
+import com.github.avrokotlin.avro4k.encoder.ListEncoder
+import com.github.avrokotlin.avro4k.encoder.MapEncoder
 import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
 import com.github.avrokotlin.avro4k.io.*
 import com.github.avrokotlin.avro4k.schema.schemaFor
@@ -19,6 +22,8 @@ import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 open class AvroInputStreamBuilder<T>(
    private val converter: (Any) -> T
@@ -228,6 +233,11 @@ class Avro(
    ): GenericRecord {
       return toRecord(serializer, schema(serializer), obj)
    }
+   
+   fun <T> toAvroCompatibleType(serializer: SerializationStrategy<T>,
+                                obj: T?) : Any? {
+      return toAvroCompatibleType(serializer, schema(serializer), obj)
+   }
 
    /**
     * Converts an instance of <T> to an Avro [Record] using the given [Schema].
@@ -239,6 +249,35 @@ class Avro(
       val encoder = RootRecordEncoder(schema, serializersModule) { record = it }
       encoder.encodeSerializableValue(serializer, obj)
       return record!!
+   }
+
+   fun <T : Any> toAvroCompatibleType(serializer: SerializationStrategy<T>,
+                                schema: Schema,
+                                obj: T?) : Any? {      
+      return if(obj == null) return null
+      else if(obj::class.isAvroPrimitive) return obj
+      else if(obj::class.java.isEnum) {
+         var avroEnum : Any? = null
+         EnumEncoder(schema, serializersModule) {
+            avroEnum = it
+         }.encodeSerializableValue(serializer, obj)
+         return avroEnum
+      }
+      else if(obj is Collection<*>) {
+         var collection: Collection<*>? = null
+         ListEncoder(schema, serializersModule) {
+            collection = it
+         }.encodeSerializableValue(serializer, obj)
+         return collection
+      }
+      else if(obj is Map<*,*>) {
+         var map : Map<*,*>? = null
+         MapEncoder(schema, serializersModule) {
+            map = it
+         }.encodeSerializableValue(serializer,obj)
+         return map
+      }
+      else toRecord(serializer,schema, obj)
    }
 
    /**
@@ -270,3 +309,12 @@ class Avro(
    }
 
 }
+private val KClass<*>.isAvroPrimitive : Boolean 
+   get() {
+      if(javaPrimitiveType != null || this == String::class || this == ByteArray::class) return true
+      if(!isValue) return false
+      val valueProperty = members.filterIsInstance<KProperty<*>>().firstOrNull() ?: return false
+      val propertyType = valueProperty.returnType.classifier as? KClass<*> ?: return false
+   
+      return propertyType.javaPrimitiveType != null || propertyType.isAvroPrimitive
+   }

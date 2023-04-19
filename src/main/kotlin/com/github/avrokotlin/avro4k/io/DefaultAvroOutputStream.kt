@@ -13,10 +13,10 @@ import org.apache.avro.io.JsonEncoder
 import java.io.OutputStream
 
 abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
-                                          private val converter: (T) -> GenericRecord,
+                                          private val converter: (T) -> Any?,
                                           schema: Schema) : AvroOutputStream<T> {
 
-   private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
+   private val datumWriter = GenericDatumWriter<Any?>(schema)
 
    abstract val encoder: Encoder
 
@@ -36,7 +36,7 @@ abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
 
 @OptIn(ExperimentalSerializationApi::class)
 class AvroBinaryOutputStream<T>(output: OutputStream,
-                                converter: (T) -> GenericRecord,
+                                converter: (T) -> Any?,
                                 schema: Schema) : DefaultAvroOutputStream<T>(output, converter, schema) {
    constructor(output: OutputStream,
                serializer: SerializationStrategy<T>,

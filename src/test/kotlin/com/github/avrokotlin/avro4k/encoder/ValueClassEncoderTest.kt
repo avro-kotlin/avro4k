@@ -39,6 +39,7 @@ class ValueClassEncoderTest : StringSpec({
 
 })
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(InternalSerializationApi::class)
 fun valueClassEncodeTest(valueInstance: Any) = stringSpec {
     "encode value class ${valueInstance::class.simpleName}" {

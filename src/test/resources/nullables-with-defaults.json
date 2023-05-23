@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.github.avrokotlin.avro4k.schema.NullableWithDefaultsSchemaTest",
+  "fields": [
+    {
+      "name": "nullableString",
+      "type": [
+        "null",
+        "string"
+      ],
+       "default": null
+    },
+    {
+      "name": "nullableBoolean",
+      "type": [
+        "null",
+        "boolean"
+      ],
+       "default": null
+    }
+  ]
+}

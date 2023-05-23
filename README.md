@@ -415,6 +415,29 @@ Would result in the following schema:
 }
 ```
 
+### Nullable fields, optional fields and compatibility
+
+#### TL;DR;
+To make your nullable fields optional (put `default: null` on all nullable fields if no other explicit default provided) and be able to remove nullable fields regarding compatibility checks,
+you can set in the configuration the `defaultNullForNullableFields` to `true`. Example:
+```kotlin
+Avro(AvroConfiguration(defaultNullForNullableFields = true))
+```
+
+#### Longer story
+
+With avro, you can have nullable fields and optional fields, that are taken into account for compatibility checking when using the schema registry.
+
+But if you want to remove a nullable field that is not optional, depending on the compatibility mode, it may not be compatible because of the missing default value.
+
+- What is an optional field ?
+> An optional field is a field that have a *default* value, like an int with a default as `-1`.
+ 
+- What is a nullable field ?
+> A nullable field is a field that contains a `null` type in its type union, but **it's not an optional field if you don't put `default` value to `null`**.
+
+So to mark a field as optional and facilitate avro contract evolution regarding compatibility checks, then set `default` to `null`.
+
 
 ## Types
 

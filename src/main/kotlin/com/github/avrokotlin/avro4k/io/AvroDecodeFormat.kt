@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
 import org.apache.avro.Schema
+import org.apache.avro.message.SchemaStore
 import java.io.InputStream
 
 /**
@@ -46,4 +47,23 @@ sealed class AvroDecodeFormat {
         constructor(readWriteSchema : Schema) : this(readWriteSchema, readWriteSchema)
         override fun <T> createInputStream(source : InputStream, converter: (Any) -> T) =  AvroJsonInputStream(source, converter, writerSchema, readerSchema)
     }
+
+   /**
+    * Decodes avro records that have been encoded in single object format. This format is best suited for long time storage
+    * as it is small and contains a fingerprint reference to the writer schema without including the schema content.
+    *
+    * See See https://avro.apache.org/docs/current/specification/#single-object-encoding
+    *
+    * @param readerSchema the schema we wil use to read the bytes payload
+    * @param schemaStore will be used to look up the writer schema to write the payload to GenericRecord.
+    */
+   data class SingleObject(val readerSchema: Schema, val schemaStore: SchemaStore) : AvroDecodeFormat() {
+
+      override fun <T> createInputStream(source: InputStream, converter: (Any) -> T) = AvroSingleObjectInputStream(
+         readerSchema = readerSchema,
+         input = source,
+         converter = converter,
+         schemaStore = schemaStore
+      )
+   }
 }

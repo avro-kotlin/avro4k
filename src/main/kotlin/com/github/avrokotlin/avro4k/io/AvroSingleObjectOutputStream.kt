@@ -26,6 +26,7 @@ class AvroSingleObjectOutputStream<T>(
    private val messageEncoder = BinaryMessageEncoder<GenericRecord>(GenericData.get(), writerSchema)
 
    override fun flush() {
+      output.flush()
    }
 
    override fun fSync() {}

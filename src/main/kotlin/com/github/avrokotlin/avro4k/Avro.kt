@@ -14,7 +14,6 @@ import kotlinx.serialization.modules.contextual
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.generic.GenericRecord
-import org.apache.avro.message.SchemaStore
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.file.Files

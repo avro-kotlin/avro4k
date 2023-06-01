@@ -418,7 +418,7 @@ Would result in the following schema:
 
 ## Types
 
-Avro4s supports the Avro logical types out of the box as well as other common JDK types.
+Avro4k supports the Avro logical types out of the box as well as other common JDK types.
 
 Avro has no understanding of Kotlin types, or anything outside of it's built in set of supported types, so all values must be converted to something that is compatible with Avro. 
 
@@ -501,11 +501,11 @@ Json encoding is the largest and slowest, but the easist to work with outside of
 
 ### Serializing
 
-Avro4k allows us to easily serialize data classes using an instance of `AvroOutputStream` which we write to, and close, just like you would any regular output stream. 
-When creating an output stream we specify the format to be used, and then the target, such as a File, Path, or another output stream.
-The writer schema must also be provided. This schema must be compatible with the values being written.
+Avro4k allows us to easily serialize data classes using an instance of `AvroOutputStream` which we write to, and close, just like you would any regular output stream. It is created by calling `openOutputStream` on an `Avro` instance.
 
-In a purely Kotlin environment it is easy to create the schema for the output stream from the `Serializer`. 
+When creating an output stream we specify the target, such as a File, Path, or another output stream. 
+If nothing more is specified, the default encode format `AvroEncodeFormat.Data` is used and the schema will be deducted
+from the passed `SerializationStrategy`.
 
 For example, to serialize instances of the `Pizza` class:
 
@@ -519,9 +519,11 @@ data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegeta
 val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
 val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
 
-val schema = Avro.default.schema(Pizza.serializer())
-
-val os = AvroOutputStream.binary(schema, Pizza.serializer()).to(File("pizzas.avro"))
+val pizzaSchema = Avro.default.schema(Pizza.serializer())
+val os = Avro.default.openOutputStream(Pizza.serializer()) {
+ encodeFormat = AvroEncodeFormat.Binary
+ schema = pizzaSchema
+}.to(File("pizzas.avro"))
 os.write(listOf(veg, hawaiian))
 os.flush()
 ```
@@ -530,7 +532,9 @@ os.flush()
 
 We can easily deserialize a file back into data classes using instances of `AvroInputStream` which work in a similar way to the output stream version.
 Given the `pizzas.avro` file we generated in the previous section on serialization, we will read the records back in as instances of the `Pizza` class. 
-First create an instance of the input stream specifying the types we will read back, the source, and the writer schema that was used.
+First create an instance of the input stream by calling `openInputStream` on an `Avro` object specifying the types we will read back.
+Optionally, we can also specify a decoding format. 
+Depending on the chosen format, the source and the writer schema also needs to be configured.
 
 `AvroInputStream` has functions to get the next single value, or to return all values as an iterator.
 
@@ -546,13 +550,18 @@ data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegeta
 val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
 val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
 
-val schema = Avro.default.schema(Pizza.serializer())
+val pizzaSchema = Avro.default.schema(Pizza.serializer())
 
-val output = AvroOutputStream.binary(schema, Pizza.serializer()).to(File("pizzas.avro"))
+val output = Avro.default.openOutputStream(Pizza.serializer()) {
+ encodeFormat = AvroEncodeFormat.Binary
+ schema = pizzaSchema
+}.to(File("pizzas.avro"))
 output.write(listOf(veg, hawaiian))
 output.close()
 
-val input = AvroInputStream.binary(Pizza.serializer(), schema).from(File("pizzas.avro"))
+val input = Avro.default.openInputStream(Pizza.serializer()) {
+ decodeFormat = AvroDecodeFormat.Binary(/* writerSchema */ pizzaSchema, /* readerSchema */pizzaSchema)
+}.from(File("pizzas.avro"))
 input.iterator().forEach { println(it) }
 input.close()
 ```
@@ -563,9 +572,6 @@ Will print out the following:
 Pizza(name=veg, ingredients=[Ingredient(name=peppers, sugar=0.1, fat=0.3), Ingredient(name=onion, sugar=1.0, fat=0.4)], vegetarian=true, kcals=265)
 Pizza(name=hawaiian, ingredients=[Ingredient(name=ham, sugar=1.5, fat=5.6), Ingredient(name=pineapple, sugar=5.2, fat=0.2)], vegetarian=false, kcals=391)
 ```
-
-
-
 
 ### Using avro4k in your project
 
@@ -590,7 +596,7 @@ This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's 
 
 ### Contributions
 
-Contributions to avro4s are always welcome. Good ways to contribute include:
+Contributions to avro4k are always welcome. Good ways to contribute include:
 
 - Raising bugs and feature requests
 - Fixing bugs and enhancing the DSL

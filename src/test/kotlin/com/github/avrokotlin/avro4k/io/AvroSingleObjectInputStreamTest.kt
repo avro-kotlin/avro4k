@@ -8,25 +8,33 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.message.SchemaStore
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 class AvroSingleObjectInputStreamTest : StringSpec({
 
    "AvroSingleObjectInputStream should read otherFooString from fooString bytes" {
       val foo = FooString(str = "Bar")
       val writerSchema = Avro.default.schema(FooString.serializer())
-      val schemaStore = SchemaStore { writerSchema }
+      val schemaStore = SchemaStore.Cache().apply {
+         addSchema(writerSchema)
+      }
       val readerSchema = Avro.default.schema(OtherFooString.serializer())
 
-      val decodedBytes = Avro.default.encodeToSingleObject(serializer = FooString.serializer(), value = foo)
+      val baos = ByteArrayOutputStream()
 
-      val stream = AvroSingleObjectInputStream<OtherFooString>(
-         input = ByteArrayInputStream(decodedBytes),
-         converter = { Avro.default.fromRecord(OtherFooString.serializer(), it as GenericRecord) },
-         schemaStore = schemaStore,
-         readerSchema = readerSchema
-      )
+      Avro.default.openOutputStream(FooString.serializer()) {
+         this.encodeFormat = AvroEncodeFormat.SingleObject
+         this.schema = writerSchema
+      }.to(baos).write(foo).close()
 
-      val other = requireNotNull(stream.next()) { "this should not happen" }
+      val decodedBytes = baos.toByteArray()
+
+      val other: OtherFooString = Avro.default.openInputStream(OtherFooString.serializer()) {
+         decodeFormat = AvroDecodeFormat.SingleObject(
+            readerSchema = readerSchema,
+            schemaStore = schemaStore
+         )
+      }.from(ByteArrayInputStream(decodedBytes)).nextOrThrow()
 
       // value is equal
       other.str.shouldBeEqual(foo.str)

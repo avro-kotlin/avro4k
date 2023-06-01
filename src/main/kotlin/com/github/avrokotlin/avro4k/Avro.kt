@@ -255,51 +255,6 @@ class Avro(
       )
    }
 
-   /**
-    * Writes an instance of <T> using the given or derived writer [Schema].
-    * This method will use the [AvroEncodeFormat.SingleObject] format.
-    *
-    * @param serializer serialization strategy (as you get using `MyClass.serializer()`)
-    * @param writerSchema optional writer schema, if not given, it is derived from the serializer
-    * @param value the instance of type <T> we want to serialize.
-    *
-    * @return the written instance will be returned as a single object encoded [ByteArray] containing the schema fingerprint.
-    */
-   fun <T> encodeToSingleObject(
-      serializer: SerializationStrategy<T>,
-      writerSchema: Schema = schema(serializer),
-      value: T
-   ): ByteArray {
-      val baos = ByteArrayOutputStream()
-
-      openOutputStream(serializer) {
-         this.encodeFormat = AvroEncodeFormat.SingleObject
-         this.schema = writerSchema
-      }.to(baos).write(value).close()
-
-      return baos.toByteArray()
-   }
-
-   /**
-    * Loads an instance of <T> from the given single object encoded  ByteArray, with the assumption that the record was stored
-    * using [AvroEncodeFormat.SingleObject]. The schema used will be the writer schema derived by the embedded fingerprint using [SchemaStore].
-    *
-    * @param deserializer deserialization strategy (as you get using `MyClass.serializer()`)
-    * @param readerSchema optional readerSchema, if not given, it is derived from the deserializer.
-    * @param schemaStore an avro [SchemaStore] that can lookup the writer schema used to encode the single object bytes.
-    * @param singleObjectEncodedBytes avro bytes in single object format
-    *
-    * @return instance of type <T> compliant with the reader schema containing values from binary payload.
-    */
-   fun <T> decodeFromSingleObject(
-      deserializer: DeserializationStrategy<T>,
-      readerSchema: Schema = schema(deserializer.descriptor),
-      schemaStore: SchemaStore,
-      singleObjectEncodedBytes: ByteArray,
-   ): T = openInputStream(deserializer) {
-      decodeFormat = AvroDecodeFormat.SingleObject(readerSchema, schemaStore)
-   }.from(singleObjectEncodedBytes).nextOrThrow()
-
    fun schema(descriptor: SerialDescriptor): Schema =
       schemaFor(
          serializersModule,

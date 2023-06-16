@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -64,7 +65,7 @@ class EnumSchemaFor(
 
 @ExperimentalSerializationApi
 class PairSchemaFor(private val descriptor: SerialDescriptor,
-                    private val namingStrategy: NamingStrategy,
+                    private val configuration: AvroConfiguration,
                     private val serializersModule: SerializersModule,
                     private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
@@ -74,14 +75,14 @@ class PairSchemaFor(private val descriptor: SerialDescriptor,
          serializersModule,
          descriptor.getElementDescriptor(0),
          descriptor.getElementAnnotations(0),
-         namingStrategy,
+         configuration,
          resolvedSchemas
       )
       val b = schemaFor(
          serializersModule,
          descriptor.getElementDescriptor(1),
          descriptor.getElementAnnotations(1),
-         namingStrategy,
+         configuration,
          resolvedSchemas
       )
       return SchemaBuilder.unionOf()
@@ -91,10 +92,11 @@ class PairSchemaFor(private val descriptor: SerialDescriptor,
          .endUnion()
    }
 }
+
 @ExperimentalSerializationApi
 class ListSchemaFor(private val descriptor: SerialDescriptor,
                     private val serializersModule: SerializersModule,
-                    private val namingStrategy: NamingStrategy,
+                    private val configuration: AvroConfiguration,
                     private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
@@ -107,7 +109,7 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
             val elementSchema = schemaFor(serializersModule,
                elementType,
                descriptor.getElementAnnotations(0),
-               namingStrategy,
+               configuration,
                resolvedSchemas
             ).schema()
             return Schema.createArray(elementSchema)
@@ -115,10 +117,11 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
       }
    }
 }
+
 @ExperimentalSerializationApi
 class MapSchemaFor(private val descriptor: SerialDescriptor,
                    private val serializersModule: SerializersModule,
-                   private val namingStrategy: NamingStrategy,
+                   private val configuration: AvroConfiguration,
                    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
@@ -131,25 +134,31 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
                serializersModule,
                valueType,
                descriptor.getElementAnnotations(1),
-               namingStrategy,
+               configuration,
                resolvedSchemas
             ).schema()
             return Schema.createMap(valueSchema)
          }
+
          else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
       }
    }
 }
-@ExperimentalSerializationApi
-class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotations : List<Annotation>) : SchemaFor {
 
-   private val nullFirst by lazy{
+@ExperimentalSerializationApi
+class NullableSchemaFor(
+   private val schemaFor: SchemaFor,
+   private val annotations: List<Annotation>,
+) : SchemaFor {
+
+   private val nullFirst by lazy {
       //The default value can only be of the first type in the union definition.
       //Therefore we have to check the default value in order to decide the order of types within the union.
       //If no default is set, or if the default value is of type "null", nulls will be first.
       val default = AnnotationExtractor(annotations).default()
       default == null || default == Avro.NULL
    }
+
    override fun schema(): Schema {
       val elementSchema = schemaFor.schema()
       val nullSchema = SchemaBuilder.builder().nullType()
@@ -162,7 +171,7 @@ class NullableSchemaFor(private val schemaFor: SchemaFor, private val annotation
 fun schemaFor(serializersModule: SerializersModule,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
-              namingStrategy: NamingStrategy,
+              configuration: AvroConfiguration,
               resolvedSchemas: MutableMap<RecordNaming, Schema>
 ): SchemaFor {
 
@@ -173,7 +182,7 @@ fun schemaFor(serializersModule: SerializersModule,
    } else descriptor
 
    val schemaFor: SchemaFor = when (underlying) {
-      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, namingStrategy))
+      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, configuration.namingStrategy))
       else -> when (descriptor.unwrapValueClass.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -193,16 +202,18 @@ fun schemaFor(serializersModule: SerializersModule,
                "Contextual or default serializer not found for $descriptor "
             },
             annos,
-            namingStrategy,
+            configuration,
             resolvedSchemas
          )
+
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
-            "kotlin.Pair" -> PairSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
-            else -> ClassSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
+            "kotlin.Pair" -> PairSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
+            else -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
          }
-         StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, namingStrategy, resolvedSchemas)
-         StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, namingStrategy, resolvedSchemas)
-         is PolymorphicKind -> UnionSchemaFor(descriptor, namingStrategy, serializersModule, resolvedSchemas)
+
+         StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
+         StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
+         is PolymorphicKind -> UnionSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
          else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
       }
    }

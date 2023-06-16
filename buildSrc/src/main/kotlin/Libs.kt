@@ -20,7 +20,7 @@ object Libs {
    }
 
    object Xerial {
-      const val snappy = "org.xerial.snappy:snappy-java:1.1.9.1"
+      const val snappy = "org.xerial.snappy:snappy-java:1.1.10.1"
    }
 
    object Avro {

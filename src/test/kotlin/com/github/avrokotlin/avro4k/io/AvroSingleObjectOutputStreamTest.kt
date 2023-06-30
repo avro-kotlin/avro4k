@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.TestFixtures.toHexList
 import com.github.avrokotlin.avro4k.decoder.FooString
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.equals.shouldBeEqual
@@ -30,8 +31,8 @@ class AvroSingleObjectOutputStreamTest : StringSpec({
 
       val byteHexList: List<String> = baos.toByteArray().toHexList()
 
-      val avroV1Header = byteHexList.subList(0,2)
-      val avroSchemaFingerprint = byteHexList.subList(2,10)
+      val avroV1Header = byteHexList.subList(0, 2)
+      val avroSchemaFingerprint = byteHexList.subList(2, 10)
       val avroMessageBinary = byteHexList.subList(10, byteHexList.size)
 
       avroV1Header.shouldBeEqual(listOf("C3", "01"))
@@ -49,10 +50,3 @@ fun FooString.toAvroBinaryWithoutSchema(): ByteArray {
    return baos.toByteArray()
 }
 
-fun ByteArray.toHexList() = toHexString(prefix = "", postfix = "", separator = ",").split(",")
-
-fun ByteArray.toHexString(separator : String = " ", prefix:String ="[", postfix:String="]"): String = this.joinToString(
-   separator = separator,
-   prefix = prefix,
-   postfix = postfix
-) { "%02X".format(it) }

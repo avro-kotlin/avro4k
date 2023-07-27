@@ -10,6 +10,10 @@ annotation class AvroProp(val key: String, val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroJsonProp(val key: String, val jsonValue: String)
+
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroNamespace(val value: String)
 
 @SerialInfo

@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -66,6 +67,7 @@ class ClassSchemaFor(
       record.fields = fields
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
+      entityAnnotations.json().forEach { (k, v) -> record.addProp(k, json.parseToJsonElement(v).convertToAvroDefault()) }
 
       return record
    }
@@ -122,6 +124,9 @@ class ClassSchemaFor(
       this.descriptor.getElementAnnotations(index)
          .filterIsInstance<AvroProp>()
          .forEach { field.addProp(it.key, it.value) }
+      this.descriptor.getElementAnnotations(index)
+         .filterIsInstance<AvroJsonProp>()
+         .forEach { field.addProp(it.key, json.parseToJsonElement(it.jsonValue).convertToAvroDefault()) }
       annos.aliases().forEach { field.addAlias(it) }
 
       return field

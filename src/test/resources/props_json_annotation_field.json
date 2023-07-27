@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "AnnotatedProperties",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroJsonPropSchemaTest",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string",
+      "guns": ["and", "roses"]
+    },
+    {
+      "name": "long",
+      "type": "long",
+      "jean": ["michel", "jarre"]
+    },
+    {
+      "name": "int",
+      "type": "int"
+    }
+  ]
+}

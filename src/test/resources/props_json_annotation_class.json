@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "TypeAnnotated",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroJsonPropSchemaTest",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string"
+    }
+  ],
+   "guns": ["and", "roses"]
+}

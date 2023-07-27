@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "EnumAnnotated",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroJsonPropSchemaTest",
+  "fields": [
+    {
+      "name": "colours",
+      "type": {
+        "type": "enum",
+        "name": "Colours",
+        "symbols": [
+          "Red",
+          "Green",
+          "Blue"
+        ]
+      },
+      "guns": ["and", "roses"]
+    }
+  ]
+}

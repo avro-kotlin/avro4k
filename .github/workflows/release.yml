@@ -4,7 +4,7 @@ on:
    workflow_dispatch:
       inputs:
          version:
-            description: "The release version"
+            description: "The release version (e.g., '1.9.0')."
             required: true
 
 jobs:
@@ -22,6 +22,10 @@ jobs:
                ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
                ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
                ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+         - name: create release
+           run: gh release create "v${RELEASE_VERSION}" --generate-notes
+           env:
+              RELEASE_VERSION: ${{ github.event.inputs.version }}
 
 env:
    GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"

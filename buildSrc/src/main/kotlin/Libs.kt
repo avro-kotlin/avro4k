@@ -4,6 +4,7 @@ object Libs {
    const val dokkaVersion = "1.8.10"
    const val kotestGradlePlugin = "0.4.10"
    const val versionsPlugin = "0.46.0"
+   const val nexusPublishPlugin = "1.3.0"
 
    object Kotest {
       private const val version = "5.6.1"

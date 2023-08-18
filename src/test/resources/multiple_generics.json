@@ -1,0 +1,26 @@
+{
+   "type" : "record",
+   "name" : "WrapperTest",
+   "namespace" : "com.github.avrokotlin.avro4k.schema.MultipleGenericsSchemaTest",
+   "fields" : [ {
+      "name" : "a",
+      "type" : {
+         "type" : "record",
+         "name" : "GenericValue",
+         "fields" : [ {
+            "name" : "z",
+            "type" : "string"
+         } ]
+      }
+   }, {
+      "name" : "b",
+      "type" : {
+         "type" : "record",
+         "name" : "GenericValue",
+         "fields" : [ {
+            "name" : "z",
+            "type" : "string"
+         } ]
+      }
+   } ]
+}

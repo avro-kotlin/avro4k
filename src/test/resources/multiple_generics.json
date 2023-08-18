@@ -19,7 +19,7 @@
          "name" : "GenericValue",
          "fields" : [ {
             "name" : "z",
-            "type" : "string"
+            "type" : "double"
          } ]
       }
    } ]

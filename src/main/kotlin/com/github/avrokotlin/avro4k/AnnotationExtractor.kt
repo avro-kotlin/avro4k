@@ -26,7 +26,7 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
          annotations.filterIsInstance<AvroAliases>().flatMap { it.value.toList() }
       }
    fun props(): List<Pair<String, String>> = annotations.filterIsInstance<AvroProp>().map { it.key to it.value }
+   fun jsonProps(): List<Pair<String, String>> = annotations.filterIsInstance<AvroJsonProp>().map { it.key to it.jsonValue }
    fun default(): String? = annotations.filterIsInstance<AvroDefault>().firstOrNull()?.value
    fun enumDefault(): String? = annotations.filterIsInstance<AvroEnumDefault>().firstOrNull()?.value
 }
-

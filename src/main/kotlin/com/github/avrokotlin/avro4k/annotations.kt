@@ -3,10 +3,15 @@ package com.github.avrokotlin.avro4k
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
+import org.intellij.lang.annotations.Language
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroProp(val key: String, val value: String)
+
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class AvroJsonProp(val key: String, @Language("json") val jsonValue: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
@@ -57,7 +62,7 @@ annotation class AvroFixed(val size: Int)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroDefault(val value: String)
+annotation class AvroDefault(@Language("json") val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.CLASS)

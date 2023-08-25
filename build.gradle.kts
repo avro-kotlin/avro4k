@@ -50,7 +50,7 @@ dependencies {
 tasks.withType<KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
    kotlinOptions.apiVersion = "1.5"
-   kotlinOptions.languageVersion = "1.5"   
+   kotlinOptions.languageVersion = "1.5"
    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }
 java {

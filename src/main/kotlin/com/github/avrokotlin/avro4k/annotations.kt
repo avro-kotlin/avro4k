@@ -62,7 +62,7 @@ annotation class AvroFixed(val size: Int)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroDefault(val value: String)
+annotation class AvroDefault(@Language("json") val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.CLASS)

@@ -67,7 +67,7 @@ class ClassSchemaFor(
       record.fields = fields
       entityAnnotations.aliases().forEach { record.addAlias(it) }
       entityAnnotations.props().forEach { (k, v) -> record.addProp(k, v) }
-      entityAnnotations.json().forEach { (k, v) -> record.addProp(k, json.parseToJsonElement(v).convertToAvroDefault()) }
+      entityAnnotations.jsonProps().forEach { (k, v) -> record.addProp(k, json.parseToJsonElement(v).convertToAvroDefault()) }
 
       return record
    }

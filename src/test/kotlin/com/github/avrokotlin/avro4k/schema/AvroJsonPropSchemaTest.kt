@@ -46,6 +46,17 @@ class AvroJsonPropSchemaTest : WordSpec() {
    data class AnnotatedProperties(
       @AvroJsonProp("guns", """["and", "roses"]""") val str: String,
       @AvroJsonProp("jean", """["michel", "jarre"]""") val long: Long,
+      @AvroJsonProp(
+         key = "object",
+         jsonValue = """{
+           "a": "foo",
+           "b": 200,
+           "c": true,
+           "d": null,
+           "e": { "e1": null, "e2": 429 },
+           "f": ["bar", 404, false, null, {}]
+         }"""
+      )
       val int: Int
    )
 

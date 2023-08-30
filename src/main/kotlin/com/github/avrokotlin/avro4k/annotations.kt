@@ -35,9 +35,10 @@ annotation class AvroDoc(val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroAlias(val value: String)
+annotation class AvroAlias(vararg val value: String)
 
 @SerialInfo
+@Deprecated(message = "Will be removed in the next major release", replaceWith = ReplaceWith("@AvroAlias(alias1, alias2)"))
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroAliases(val value: Array<String>)
 

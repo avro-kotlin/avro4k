@@ -2,9 +2,8 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
-import com.github.avrokotlin.avro4k.AvroAliases
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class AvroAliasSchemaTest : WordSpec({
@@ -41,7 +40,7 @@ class AvroAliasSchemaTest : WordSpec({
     @AvroAlias("queen")
     data class TypeAnnotated(val str: String)
 
-    @AvroAliases(["queen","ledzep"])
+    @AvroAlias("queen", "ledzep")
     @Serializable
     data class TypeAliasAnnotated(val str: String)
 
@@ -49,5 +48,5 @@ class AvroAliasSchemaTest : WordSpec({
     data class FieldAnnotated(@AvroAlias("cold") val str: String, @AvroAlias("kate") val long: Long, val int: Int)
 
     @Serializable
-    data class FieldAliasAnnotated(@AvroAliases(["queen","ledzep"]) val str: String)
+    data class FieldAliasAnnotated(@AvroAlias("queen", "ledzep") val str: String)
 }

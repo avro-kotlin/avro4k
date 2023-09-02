@@ -4,6 +4,7 @@ import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.getAvroName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -46,10 +47,11 @@ interface SchemaFor {
 
 @ExperimentalSerializationApi
 class EnumSchemaFor(
-   private val descriptor: SerialDescriptor
+   private val descriptor: SerialDescriptor,
+   private val configuration: AvroConfiguration,
 ) : SchemaFor {
    override fun schema(): Schema {
-      val naming = RecordNaming(descriptor, DefaultNamingStrategy)
+      val naming = descriptor.getAvroName(DefaultNamingStrategy)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 
@@ -199,7 +201,7 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-         SerialKind.ENUM -> EnumSchemaFor(descriptor)
+         SerialKind.ENUM -> EnumSchemaFor(descriptor, configuration)
          SerialKind.CONTEXTUAL -> schemaFor(
             serializersModule,
             requireNotNull(

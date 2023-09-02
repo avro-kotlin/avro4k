@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.FieldNaming
+import com.github.avrokotlin.avro4k.getElementAvroName
 import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -80,16 +80,14 @@ class RecordDecoder(
     }
 
     private fun fieldValue(): Any? {
-        if (record.hasField(resolvedFieldName())) {
-            return record.get(resolvedFieldName())
+        val resolvedFieldName = resolvedFieldName()
+        if (record.hasField(resolvedFieldName)) {
+            return record.get(resolvedFieldName)
         }
         return null
     }
 
-    private fun resolvedFieldName(): String = configuration.namingStrategy.to(FieldNaming(
-            desc.getElementName(currentIndex),
-            desc.getElementAnnotations(currentIndex)
-    ).name())
+    private fun resolvedFieldName(): String = desc.getElementAvroName(configuration.namingStrategy, currentIndex).name
 
     private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
 

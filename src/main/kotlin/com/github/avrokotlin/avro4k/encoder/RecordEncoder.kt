@@ -34,7 +34,7 @@ class RecordEncoder(
     }
 
     override fun shouldEncodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
-        val fieldName = descriptor.getElementAvroName(configuration.namingStrategy, index)
+        val fieldName = descriptor.getElementAvroName(configuration.namingStrategy, index).name
         val foundField = recordSchema.getField(fieldName)
         if (foundField != null) {
             currentField = foundField

@@ -13,10 +13,18 @@ annotation class AvroProp(val key: String, val value: String)
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroJsonProp(val key: String, @Language("JSON") val jsonValue: String)
 
+/**
+ * When applied on a type, changes the namespace of the type.
+ * When applied on a field, changes the namespace of the field type if it's a fixed schema type. Works with [AvroFixed]
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroNamespace(val value: String)
 
+/**
+ * When applied on a type, changes the name of the type.
+ * When applied on a field, changes the name of the field (Take note that [com.github.avrokotlin.avro4k.schema.NamingStrategy] from configuration is used).
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroName(val value: String)

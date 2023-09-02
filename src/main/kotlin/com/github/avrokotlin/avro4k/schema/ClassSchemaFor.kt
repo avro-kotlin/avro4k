@@ -6,6 +6,8 @@ import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.RecordNaming
+import com.github.avrokotlin.avro4k.getAvroName
+import com.github.avrokotlin.avro4k.getElementAvroName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
@@ -30,7 +32,7 @@ class ClassSchemaFor(
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
-   private val naming = RecordNaming(descriptor, DefaultNamingStrategy)
+   private val naming = descriptor.getAvroName(DefaultNamingStrategy)
    private val json by lazy {
       Json{
          serializersModule = this@ClassSchemaFor.serializersModule
@@ -76,11 +78,7 @@ class ClassSchemaFor(
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
-      val fieldNaming = RecordNaming(
-         descriptor.getElementName(index),
-         descriptor.getElementAnnotations(index),
-         configuration.namingStrategy
-      )
+      val fieldNaming = descriptor.getElementAvroName(configuration.namingStrategy, index)
       val schema = schemaFor(
          serializersModule,
          fieldDescriptor,
@@ -92,31 +90,28 @@ class ClassSchemaFor(
       // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
       // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear
       // in addition, someone could annotate the target type, so we need to check into that too
-      val (size, name) = when (val a = annos.fixed()) {
+      val (size, name) = when (val fieldFixedSize = annos.fixed()) {
          null -> {
-            val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
-            val n = RecordNaming(fieldDescriptor, configuration.namingStrategy)
-            when (val b = fieldAnnos.fixed()) {
-               null -> 0 to n.name
-               else -> b to n.name
-            }
+            val fieldTypeFixedSize = AnnotationExtractor(fieldDescriptor.annotations).fixed()
+            val fieldTypeName = fieldDescriptor.getAvroName(configuration.namingStrategy)
+            fieldTypeFixedSize to fieldTypeName.name
          }
-         else -> a to fieldNaming.name
+         else -> fieldFixedSize to fieldNaming.name
       }
 
       val schemaOrFixed = when (size) {
-         0 -> schema
+         null -> schema
          else ->
             SchemaBuilder.fixed(name)
                .doc(annos.doc())
-               .namespace(annos.namespace() ?: naming.namespace)
+               .namespace(fieldNaming.namespace ?: naming.namespace)
                .size(size)
       }
 
       // the field can override the containingNamespace if the Namespace annotation is present on the field
       // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
       // to any schemas we have generated for this field
-      val schemaWithResolvedNamespace = when (val ns = annos.namespace()) {
+      val schemaWithResolvedNamespace = when (val ns = fieldNaming.namespace) {
          null -> schemaOrFixed
          else -> schemaOrFixed.overrideNamespace(ns)
       }

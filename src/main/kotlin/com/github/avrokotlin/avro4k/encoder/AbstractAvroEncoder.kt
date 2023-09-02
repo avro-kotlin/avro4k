@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.getAvroFullName
-import com.github.avrokotlin.avro4k.isListOfBytes
+import com.github.avrokotlin.avro4k.getElementAvroName
+import com.github.avrokotlin.avro4k.getSchemaNameForUnion
 import com.github.avrokotlin.avro4k.schema.getTypeNamed
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -10,7 +10,6 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
@@ -20,9 +19,9 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericData.EnumSymbol
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
-import java.math.BigDecimal
 import java.nio.ByteBuffer
 
+val NULL_SCHEMA = Schema.create(Schema.Type.NULL)
 
 @OptIn(ExperimentalSerializationApi::class)
 abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
@@ -138,37 +137,6 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
         }
     }
 
-    internal fun resolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean) {
-        currentResolvedSchema = doResolveElementSchema(descriptor, index, isValueNull)
-    }
-
-    internal open fun doResolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean): Schema {
-        return doResolveSchema(descriptor.getElementDescriptor(index), isValueNull)
-    }
-
-    internal fun resolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean) {
-        currentResolvedSchema = doResolveSchema(descriptor, isValueNull)
-    }
-
-    internal open fun doResolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean): Schema {
-        if (descriptor.isInline) {
-            doResolveSchema(descriptor.getElementDescriptor(0), isValueNull)
-        }
-        return if (isValueNull) {
-            if (currentUnresolvedSchema.isNullable) {
-                Schema.create(Schema.Type.NULL)
-            } else {
-                throw SerializationException("Value is null while the schema don't allow it. Actual unresolved schema: $currentUnresolvedSchema")
-            }
-        } else {
-            currentUnresolvedSchema.resolveIfUnion(descriptor)
-        }
-    }
-
-    //endregion
-
-    //region helpers
-
     inner class AvroPolymorphicEncoder : PolymorphicEncoder(this@AbstractAvroEncoder.serializersModule) {
         override fun encodeSerialName(polymorphicTypeDescriptor: SerialDescriptor, serialName: String) {
             // Not encoding serialName, apache avro library is doing it if necessary
@@ -180,52 +148,45 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
         }
     }
 
-    /**
-     * Coming from [org.apache.avro.generic.GenericData.getSchemaName]
-     */
-    @ExperimentalSerializationApi
-    private fun SerialDescriptor.getSchemaName(): String {
-        if (isListOfBytes()) {
-            return Schema.Type.BYTES.getName()
-        }
-        // startsWith because if type nullable, then it ends with "?"
-        if (serialName.startsWith(BigDecimal::class.qualifiedName!!)) // todo change BigDecimalSerializer kind to LIST of BYTE
-            return Schema.Type.BYTES.getName()
-        return when (kind) {
-            PrimitiveKind.BOOLEAN -> Schema.Type.BOOLEAN.getName()
-            PrimitiveKind.DOUBLE -> Schema.Type.DOUBLE.getName()
-            PrimitiveKind.FLOAT -> Schema.Type.FLOAT.getName()
-            PrimitiveKind.BYTE,
-            PrimitiveKind.SHORT,
-            PrimitiveKind.CHAR,
-            PrimitiveKind.INT -> Schema.Type.INT.getName()
+    //endregion
 
-            PrimitiveKind.LONG -> Schema.Type.LONG.getName()
-            PrimitiveKind.STRING -> Schema.Type.STRING.getName()
-            StructureKind.LIST -> Schema.Type.ARRAY.getName()
-            StructureKind.MAP -> Schema.Type.MAP.getName()
-            SerialKind.ENUM -> getAvroFullName(configuration.namingStrategy)
-            StructureKind.CLASS, StructureKind.OBJECT -> getAvroFullName(configuration.namingStrategy)
-            SerialKind.CONTEXTUAL, is PolymorphicKind -> throw SerializationException("getSchemaName should be called on an already resolved descriptor (not a contextual or polymorphic). Actual descriptor: $this")
-        }
+    //region schema resolving
+
+    internal fun resolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean) {
+        currentResolvedSchema = doResolveElementSchema(descriptor, index, isValueNull)
     }
 
-    @ExperimentalSerializationApi
-    internal open fun Schema.resolveIfUnion(descriptor: SerialDescriptor): Schema {
-        if (this.type == Schema.Type.UNION
-                && descriptor.kind !is PolymorphicKind // for this case, it is just after handled by AvroPolymorphicEncoder
-        ) {
-            return doResolve(descriptor)
-        }
-        return this
+    internal open fun doResolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean): Schema {
+        return doResolveSchema(descriptor.getElementDescriptor(index), isValueNull) { descriptor.getElementAvroName(configuration.namingStrategy, index).namespace }
     }
 
-    @ExperimentalSerializationApi
-    private fun Schema.doResolve(descriptor: SerialDescriptor): Schema {
-        return this.getTypeNamed(descriptor.getSchemaName())
-                ?: throw AvroRuntimeException("Unable to encode with descriptor $descriptor: no schema found in union $this")
+    internal fun resolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean) {
+        currentResolvedSchema = doResolveSchema(descriptor, isValueNull)
+    }
+
+    private fun doResolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean, namespaceOverrideSupplier: () -> String? = { null }): Schema {
+        if (currentUnresolvedSchema.type == Schema.Type.UNION) {
+            if (descriptor.isInline)
+                return doResolveElementSchema(descriptor, 0, isValueNull)
+            if (isValueNull) {
+                if (!currentUnresolvedSchema.isNullable)
+                    throw SerializationException("Value is null while the schema don't allow it. Actual unresolved schema: $currentUnresolvedSchema")
+                return NULL_SCHEMA
+            }
+            if (descriptor.kind !is PolymorphicKind) {
+                val typeName = descriptor.getSchemaNameForUnion().let { typeName ->
+                    val namespaceOverride = namespaceOverrideSupplier()
+                    if (namespaceOverride != null)
+                        typeName.copy(namespace = namespaceOverride)
+                    else
+                        typeName
+                }
+                return currentUnresolvedSchema.getTypeNamed(typeName)
+                    ?: throw AvroRuntimeException("Unable to encode with descriptor $descriptor: no schema found for name $typeName in union $currentUnresolvedSchema")
+            }
+        }
+        return currentUnresolvedSchema
     }
 
     //endregion
 }
-

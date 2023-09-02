@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
+import com.github.avrokotlin.avro4k.RecordNaming
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -59,9 +61,11 @@ fun Schema.ensureOfType(vararg expectedTypes: Schema.Type) = check(expectedTypes
     throw SerializationException("Expected a schema one of type ${expectedTypes.joinToString()} but actual type is $type. Schema: $this")
 }
 
-fun Schema.getTypeNamed(typeName: String): Schema? = getIndexNamed(typeName)?.let { types[it] }
+@ExperimentalSerializationApi
+fun Schema.getTypeNamed(typeName: RecordNaming): Schema? = getIndexNamed(typeName.fullName)?.let { types[it] }
 
 
+@ExperimentalSerializationApi
 internal fun SerialDescriptor.carrierDescriptor(module: SerializersModule): SerialDescriptor = when {
     kind == SerialKind.CONTEXTUAL -> module.getContextualDescriptor(this)?.carrierDescriptor(module) ?: this
     isInline -> getElementDescriptor(0).carrierDescriptor(module)

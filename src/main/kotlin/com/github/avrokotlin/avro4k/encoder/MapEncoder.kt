@@ -1,63 +1,71 @@
 package com.github.avrokotlin.avro4k.encoder
 
-
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
-import java.nio.ByteBuffer
+
 
 @ExperimentalSerializationApi
-class MapEncoder(schema: Schema,
-                 override val serializersModule: SerializersModule,
-                 private val callback: (Map<Utf8, *>) -> Unit) : AbstractEncoder(),
-   CompositeEncoder,
-   StructureEncoder {
+class MapEncoder(
+        mapSchema: Schema,
+        mapSize: Int,
+        override val serializersModule: SerializersModule,
+        override val configuration: AvroConfiguration,
+        private val callback: (Map<Utf8, *>) -> Unit,
+) : AvroStructureEncoder() {
+    private val map = HashMap<Utf8, Any?>(Math.multiplyExact(mapSize, 2)) // times 2 to prevent the map growing
+    private var currentKey: Utf8? = null
 
-   private val map = mutableMapOf<Utf8, Any>()
-   private var key: Utf8? = null
-   private val valueSchema = schema.valueType
+    override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
+        if (currentKey == null) {
+            throw SerializationException("Cannot encode collection for map keys: only allowed to encode primitive types for map keys")
+        }
+        return super.beginCollection(descriptor, collectionSize)
+    }
 
-   override fun encodeString(value: String) {
-      val k = key
-      if (k == null) key = Utf8(value) else {
-         map[k] = StringToAvroValue.toValue(valueSchema, value)
-         key = null
-      }
-   }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+        if (currentKey == null) {
+            throw SerializationException("Cannot encode structure for map keys: only allowed to encode primitive types for map keys")
+        }
+        return super.beginStructure(descriptor)
+    }
 
-   override fun encodeValue(value: Any) {
-      val k = key
-      if (k == null) throw SerializationException("Expected key but received value $value") else {
-         map[k] = value
-         key = null
-      }
-   }
+    override fun doResolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean): Schema =
+            if (isKeyElement(index)) {
+                STRING_SCHEMA // Avro maps only accept strings as key
+            } else {
+                super.doResolveElementSchema(descriptor, index, isValueNull)
+            }
 
-   override fun endStructure(descriptor: SerialDescriptor) {
-      callback(map.toMap())
-   }
+    override fun encodeNativeValue(value: Any?) {
+        if (currentKey == null) {
+            currentKey = if (value is Utf8) {
+                value
+            } else {
+                Utf8(value?.toString())
+            }
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
 
-   override fun encodeByteArray(buffer: ByteBuffer) {
-      encodeValue(buffer)
-   }
+    private fun finalizeMapEntry(value: Any?) {
+        map[Utf8(currentKey)] = value
+        currentKey = null
+    }
 
-   override fun encodeFixed(fixed: GenericFixed) {
-      encodeValue(fixed)
-   }
+    override fun endStructure(descriptor: SerialDescriptor) {
+        callback(map)
+    }
 
-   override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-      return super<StructureEncoder>.beginStructure(descriptor)
-   }
-
-   override fun addValue(value: Any) {
-      encodeValue(value)
-   }
-
-   override fun fieldSchema(): Schema = valueSchema
+    override val currentUnresolvedSchema: Schema = mapSchema.valueType
 }
+
+private val STRING_SCHEMA = Schema.create(Schema.Type.STRING)
+
+private fun isKeyElement(index: Int) = index % 2 == 0

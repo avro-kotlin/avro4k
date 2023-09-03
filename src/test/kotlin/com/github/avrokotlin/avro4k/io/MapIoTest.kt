@@ -24,7 +24,7 @@ class MapIoTest : StringSpec({
    }
    
    "read/write complex maps" {
-      val record = ComplexTypes(mutableMapOf(Pair("0", Status.Completed(0)), Pair("1", Status.Failed(1))))
+      val record = ComplexTypes(mutableMapOf("0" to Status.Completed(0), "1" to Status.Failed(1)))
       writeRead(
          record,record,
          ComplexTypes.serializer()

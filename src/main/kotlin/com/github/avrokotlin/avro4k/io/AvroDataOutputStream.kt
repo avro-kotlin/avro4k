@@ -21,11 +21,11 @@ import java.io.OutputStream
  * @param codec   compression codec
  */
 class AvroDataOutputStream<T>(private val output: OutputStream,
-                              private val converter: (T) -> GenericRecord,
+                              private val converter: (T) -> Any?,
                               private val schema: Schema,
                               private val codec: CodecFactory) : AvroOutputStream<T> {
 
-   private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
+   private val datumWriter = GenericDatumWriter<Any?>(schema)
    
    private val writer = DataFileWriter(datumWriter).apply {
       setCodec(codec)

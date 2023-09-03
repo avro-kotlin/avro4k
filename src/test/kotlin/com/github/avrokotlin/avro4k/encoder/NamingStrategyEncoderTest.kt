@@ -5,9 +5,11 @@ import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.schema.PascalCaseNamingStrategy
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
+import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
+import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
 class NamingStrategyEncoderTest : WordSpec({
@@ -17,11 +19,11 @@ class NamingStrategyEncoderTest : WordSpec({
 
          val schema = snakeCaseAvro.schema(Foo.serializer())
 
-         val record = snakeCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
+         val record = snakeCaseAvro.encode(Foo.serializer(), Foo("hello"))
 
-         record.hasField("foo_bar") shouldBe true
+         (record as GenericRecord).hasField("foo_bar") shouldBe true
 
-         record shouldBe ListRecord(schema, listOf(Utf8("hello")))
+         record shouldBeContentOf ListRecord(schema, listOf(Utf8("hello")))
       }
 
       "support encoding fields with PascalCasing" {
@@ -29,11 +31,11 @@ class NamingStrategyEncoderTest : WordSpec({
 
          val schema = pascalCaseAvro.schema(Foo.serializer())
 
-         val record = pascalCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
+         val record = pascalCaseAvro.encode(Foo.serializer(), Foo("hello"))
 
-         record.hasField("FooBar") shouldBe true
+         (record as GenericRecord).hasField("FooBar") shouldBe true
 
-         record shouldBe ListRecord(schema, listOf(Utf8("hello")))
+         record shouldBeContentOf ListRecord(schema, listOf(Utf8("hello")))
       }
    }
 }) {

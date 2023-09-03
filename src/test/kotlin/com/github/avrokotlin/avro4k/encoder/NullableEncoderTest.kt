@@ -4,32 +4,32 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.decoder.NullableBoolean
 import com.github.avrokotlin.avro4k.decoder.NullableString
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
 import org.apache.avro.util.Utf8
 
 class NullableEncoderTest : FunSpec({
 
    test("encode nullable strings") {
-      val schema = Avro.default.schema(NullableString.serializer())
+       val schema = Avro.default.schema(NullableString.serializer())
 
-      Avro.default.toRecord(NullableString.serializer(), NullableString("hello")) shouldBe
-         ListRecord(schema, Utf8("hello"))
+       Avro.default.encode(NullableString.serializer(), NullableString("hello")) shouldBeContentOf
+               ListRecord(schema, Utf8("hello"))
 
-      Avro.default.toRecord(NullableString.serializer(), NullableString(null)) shouldBe
-         ListRecord(schema, null)
+       Avro.default.encode(NullableString.serializer(), NullableString(null)) shouldBeContentOf
+               ListRecord(schema, null)
    }
 
    test("encode nullable booleans") {
-      val schema = Avro.default.schema(NullableBoolean.serializer())
+       val schema = Avro.default.schema(NullableBoolean.serializer())
 
-      Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(true)) shouldBe
-         ListRecord(schema, true)
+       Avro.default.encode(NullableBoolean.serializer(), NullableBoolean(true)) shouldBeContentOf
+               ListRecord(schema, true)
 
-      Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(false)) shouldBe
-         ListRecord(schema, false)
+       Avro.default.encode(NullableBoolean.serializer(), NullableBoolean(false)) shouldBeContentOf
+               ListRecord(schema, false)
 
-      Avro.default.toRecord(NullableBoolean.serializer(), NullableBoolean(null)) shouldBe
-         ListRecord(schema, null)
+       Avro.default.encode(NullableBoolean.serializer(), NullableBoolean(null)) shouldBeContentOf
+               ListRecord(schema, null)
    }
 })

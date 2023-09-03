@@ -28,31 +28,27 @@ interface FieldDecoder : ExtendedDecoder {
 
 @ExperimentalSerializationApi
 class RecordDecoder(
-    private val desc: SerialDescriptor,
-    private val record: GenericRecord,
-    override val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+        private val desc: SerialDescriptor,
+        private val record: GenericRecord,
+        override val serializersModule: SerializersModule,
+        private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
 
     private var currentIndex = -1
 
     @Suppress("UNCHECKED_CAST")
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val valueType = AnnotationExtractor(descriptor.annotations).valueType()
         val value = fieldValue()
         return when (descriptor.kind) {
-            StructureKind.CLASS ->
-                if (valueType)
-                    InlineDecoder(fieldValue(), serializersModule)
-                else
-                    RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
+            StructureKind.CLASS -> RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
             StructureKind.MAP -> MapDecoder(
-                descriptor,
-                fieldSchema(),
-                value as Map<String, *>,
-                serializersModule,
-                configuration
+                    descriptor,
+                    fieldSchema(),
+                    value as Map<String, *>,
+                    serializersModule,
+                    configuration
             )
+
             StructureKind.LIST -> {
                 val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
                     when (value) {
@@ -71,12 +67,14 @@ class RecordDecoder(
                 }
                 decoder
             }
+
             PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(
-                descriptor,
-                value as GenericRecord,
-                serializersModule,
-                configuration
+                    descriptor,
+                    value as GenericRecord,
+                    serializersModule,
+                    configuration
             )
+
             else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
         }
     }
@@ -88,7 +86,10 @@ class RecordDecoder(
         return null
     }
 
-    private fun resolvedFieldName(): String = configuration.namingStrategy.to(FieldNaming(desc, currentIndex).name())
+    private fun resolvedFieldName(): String = configuration.namingStrategy.to(FieldNaming(
+            desc.getElementName(currentIndex),
+            desc.getElementAnnotations(currentIndex)
+    ).name())
 
     private fun field(): Schema.Field = record.schema.getField(resolvedFieldName())
 
@@ -128,9 +129,9 @@ class RecordDecoder(
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)        
+        val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
         val enumValueByEnumName =
-            (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
+                (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
 
         return enumValueByEnumName[symbol] ?: AnnotationExtractor(enumDescriptor.annotations).enumDefault()?.let {
             enumValueByEnumName[it]

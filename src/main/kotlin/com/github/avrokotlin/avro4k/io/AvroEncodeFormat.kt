@@ -2,14 +2,13 @@ package com.github.avrokotlin.avro4k.io
 
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
-import org.apache.avro.generic.GenericRecord
 import java.io.OutputStream
 
 /**
  * Formats that can be used to encode a record to an [OutputStream].
  */
 sealed class AvroEncodeFormat {
-    abstract fun <T> createOutputStream(output : OutputStream, schema : Schema, converter : (T) -> GenericRecord) : AvroOutputStream<T>
+    abstract fun <T> createOutputStream(output : OutputStream, schema : Schema, converter : (T) -> Any?) : AvroOutputStream<T>
     /**
      * Encodes a record in a binary format with a header that contains the full schema, this is the format usually used when writing Avro files.
      *
@@ -19,7 +18,7 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> Any?
         ): AvroOutputStream<T> {
             return AvroDataOutputStream(output, converter, schema, codecFactory)
         }
@@ -33,7 +32,7 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> Any?
         ) = AvroBinaryOutputStream(output, converter, schema)
 
     }
@@ -48,7 +47,7 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> Any?
         ) = AvroJsonOutputStream(output, converter, schema)
     }
 }

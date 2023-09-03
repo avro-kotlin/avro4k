@@ -40,7 +40,7 @@ class ClassSchemaFor(
    override fun schema(): Schema {
       // if the class is annotated with @AvroInline then we need to encode the single field
       // of that class directly.
-      return when (entityAnnotations.valueType()) {
+      return when (descriptor.isInline) {
          true -> valueTypeSchema()
          false -> dataClassSchema()
       }
@@ -75,9 +75,12 @@ class ClassSchemaFor(
    private fun buildField(index: Int): Schema.Field {
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
-      val annos = AnnotationExtractor(descriptor.getElementAnnotations(
-         index))
-      val fieldNaming = RecordNaming(descriptor, index, configuration.namingStrategy)
+      val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
+      val fieldNaming = RecordNaming(
+         descriptor.getElementName(index),
+         descriptor.getElementAnnotations(index),
+         configuration.namingStrategy
+      )
       val schema = schemaFor(
          serializersModule,
          fieldDescriptor,

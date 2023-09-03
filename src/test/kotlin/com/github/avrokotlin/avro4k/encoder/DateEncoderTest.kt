@@ -9,9 +9,14 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.serializer.*
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer
+import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.TimestampSerializer
+import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import java.sql.Timestamp
@@ -25,60 +30,60 @@ class DateEncoderTest : FunSpec({
 
    test("encode LocalTime as an Int") {
 
-      val schema = Avro.default.schema(LocalTimeTest.serializer())
-      Avro.default.toRecord(LocalTimeTest.serializer(), LocalTimeTest(LocalTime.of(12, 50, 45))) shouldBe
-         ListRecord(schema, 46245000)
+       val schema = Avro.default.schema(LocalTimeTest.serializer())
+       Avro.default.encode(LocalTimeTest.serializer(), LocalTimeTest(LocalTime.of(12, 50, 45))) shouldBeContentOf
+               ListRecord(schema, 46245000)
    }
 
    test("encode nullable LocalTime") {
 
-      val schema = Avro.default.schema(NullableLocalTimeTest.serializer())
-      Avro.default.toRecord(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(LocalTime.of(12, 50, 45))) shouldBe ListRecord(schema, 46245000)
-      Avro.default.toRecord(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(null)) shouldBe ListRecord(schema, null)
+       val schema = Avro.default.schema(NullableLocalTimeTest.serializer())
+       Avro.default.encode(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(LocalTime.of(12, 50, 45))) shouldBeContentOf ListRecord(schema, 46245000)
+       Avro.default.encode(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(null)) shouldBeContentOf ListRecord(schema, null)
    }
 
    test("encode LocalDate as an Int") {
 
-      val schema = Avro.default.schema(LocalDateTest.serializer())
-      Avro.default.toRecord(LocalDateTest.serializer(), LocalDateTest(LocalDate.of(2018, 9, 10))) shouldBe
-         ListRecord(schema, 17784)
+       val schema = Avro.default.schema(LocalDateTest.serializer())
+       Avro.default.encode(LocalDateTest.serializer(), LocalDateTest(LocalDate.of(2018, 9, 10))) shouldBeContentOf
+               ListRecord(schema, 17784)
    }
 
    test("encode LocalDateTime as Long") {
 
-      val schema = Avro.default.schema(LocalDateTimeTest.serializer())
-      Avro.default.toRecord(LocalDateTimeTest.serializer(), LocalDateTimeTest(LocalDateTime.of(2018, 9, 10, 11, 58, 59))) shouldBe
-         ListRecord(schema, 1536580739000L)
+       val schema = Avro.default.schema(LocalDateTimeTest.serializer())
+       Avro.default.encode(LocalDateTimeTest.serializer(), LocalDateTimeTest(LocalDateTime.of(2018, 9, 10, 11, 58, 59))) shouldBeContentOf
+               ListRecord(schema, 1536580739000L)
    }
 
    test("encode Timestamp as Long") {
 
-      val schema = Avro.default.schema(TimestampTest.serializer())
-      Avro.default.toRecord(TimestampTest.serializer(), TimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBe
-         ListRecord(schema, 1538312231000L)
+       val schema = Avro.default.schema(TimestampTest.serializer())
+       Avro.default.encode(TimestampTest.serializer(), TimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBeContentOf
+               ListRecord(schema, 1538312231000L)
    }
 
    test("encode nullable Timestamp as Long") {
 
-      val schema = Avro.default.schema(NullableTimestampTest.serializer())
-      Avro.default.toRecord(NullableTimestampTest.serializer(), NullableTimestampTest(null)) shouldBe ListRecord(schema, null)
-      Avro.default.toRecord(NullableTimestampTest.serializer(), NullableTimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBe
-         ListRecord(schema, 1538312231000L)
+       val schema = Avro.default.schema(NullableTimestampTest.serializer())
+       Avro.default.encode(NullableTimestampTest.serializer(), NullableTimestampTest(null)) shouldBeContentOf ListRecord(schema, null)
+       Avro.default.encode(NullableTimestampTest.serializer(), NullableTimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBeContentOf
+               ListRecord(schema, 1538312231000L)
    }
 
    test("encode Instant as Long") {
 
-      val schema = Avro.default.schema(InstantMillisTest.serializer())
-      Avro.default.toRecord(InstantMillisTest.serializer(), InstantMillisTest(Instant.ofEpochMilli(1538312231000L))) shouldBe
-         ListRecord(schema, 1538312231000L)
+       val schema = Avro.default.schema(InstantMillisTest.serializer())
+       Avro.default.encode(InstantMillisTest.serializer(), InstantMillisTest(Instant.ofEpochMilli(1538312231000L))) shouldBeContentOf
+               ListRecord(schema, 1538312231000L)
    }
 
    test("encode Instant with microseconds as Long") {
 
-      val schema = Avro.default.schema(InstantMicrosTest.serializer())
-      val time = Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)
+       val schema = Avro.default.schema(InstantMicrosTest.serializer())
+       val time = Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)
 
-      Avro.default.toRecord(InstantMicrosTest.serializer(), InstantMicrosTest(time)) shouldBe ListRecord(schema, 1538312231000005L)
+       Avro.default.encode(InstantMicrosTest.serializer(), InstantMicrosTest(time)) shouldBeContentOf ListRecord(schema, 1538312231000005L)
    }
 }) {
    @Serializable

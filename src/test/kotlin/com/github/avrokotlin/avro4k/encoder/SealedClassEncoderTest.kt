@@ -5,7 +5,7 @@ import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.schema.Operation
 import com.github.avrokotlin.avro4k.schema.ReferencingNullableSealedClass
 import com.github.avrokotlin.avro4k.schema.ReferencingSealedClass
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.StringSpec
 import org.apache.avro.generic.GenericData
 
@@ -19,26 +19,26 @@ class SealedClassEncoderTest : StringSpec({
       addRecord.put("left", 1)
       addRecord.put("right", 2)
       record.put("notNullable", addRecord)
-      Avro.default.toRecord(
-         ReferencingSealedClass.serializer(),
-         ReferencingSealedClass(Operation.Binary.Add(1, 2))
-      ) shouldBe ListRecord(schema,ListRecord(addSchema,1,2))
+      Avro.default.encode(
+              ReferencingSealedClass.serializer(),
+              ReferencingSealedClass(Operation.Binary.Add(1, 2))
+      ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
    }
    "support nullable sealed classes" {
       val schema = Avro.default.schema(ReferencingNullableSealedClass.serializer())
       val addSchema = Avro.default.schema(Operation.Binary.Add.serializer())
 
-      Avro.default.toRecord(
-         ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
-            Operation.Binary.Add(1, 2)
-         )
-      ) shouldBe ListRecord(schema,ListRecord(addSchema,1,2))
+      Avro.default.encode(
+              ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
+              Operation.Binary.Add(1, 2)
+      )
+      ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
 
 
-      Avro.default.toRecord(
-         ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
-           null
-         )
-      ) shouldBe ListRecord(schema,null)
+      Avro.default.encode(
+              ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
+              null
+      )
+      ) shouldBeContentOf ListRecord(schema, null)
    }
 })

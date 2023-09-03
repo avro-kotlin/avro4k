@@ -1,9 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroInline
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class AvroInlineSchemaTest : FunSpec({
@@ -17,9 +16,9 @@ class AvroInlineSchemaTest : FunSpec({
 
 }) {
 
+   @JvmInline
    @Serializable
-   @AvroInline
-   data class Name(val value: String)
+   value class Name(val value: String)
 
    @Serializable
    data class Product(val id: String, val name: Name)

@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
@@ -15,19 +15,19 @@ class ByteArrayEncoderTest : FunSpec({
 
    test("encode ByteArray to ByteBuffer to ") {
       val schema = Avro.default.schema(ByteArrayTest.serializer())
-      Avro.default.encode(ByteArrayTest.serializer(), ByteArrayTest(byteArrayOf(1, 4, 9))) shouldBeContentOf
+      Avro.default.encodeToGenericData(ByteArrayTest(byteArrayOf(1, 4, 9))) shouldBeContentOf
               ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
    }
 
    test("encode List<Byte> to ByteBuffer") {
       val schema = Avro.default.schema(ListByteTest.serializer())
-      Avro.default.encode(ListByteTest.serializer(), ListByteTest(listOf(1, 4, 9))) shouldBeContentOf
+      Avro.default.encodeToGenericData(ListByteTest(listOf(1, 4, 9))) shouldBeContentOf
               ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
    }
 
    test("encode Array<Byte> to ByteBuffer") {
       val schema = Avro.default.schema(ArrayByteTest.serializer())
-      Avro.default.encode(ArrayByteTest.serializer(), ArrayByteTest(arrayOf(1, 4, 9))) shouldBeContentOf
+      Avro.default.encodeToGenericData(ArrayByteTest(arrayOf(1, 4, 9))) shouldBeContentOf
               ListRecord(schema, ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
    }
 
@@ -35,7 +35,7 @@ class ByteArrayEncoderTest : FunSpec({
        val schema = SchemaBuilder.record("ByteArrayTest").fields()
                .name("z").type(Schema.createFixed("ByteArray", null, null, 8)).noDefault()
                .endRecord()
-       val record = Avro.default.encode(schema, ByteArrayTest(byteArrayOf(1, 4, 9)))
+       val record = Avro.default.encodeToGenericData(schema, ByteArrayTest(byteArrayOf(1, 4, 9)))
        record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(null, byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9), schema.fields[0].schema()))
    }
 }) {

@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable
@@ -15,14 +16,14 @@ class ArrayEncoderTest : WordSpec({
 
           val schema = Avro.default.schema(ArrayBooleanTest.serializer())
           val arraySchema = schema.getField("a").schema()
-          val record = Avro.default.encode(ArrayBooleanTest.serializer(), ArrayBooleanTest(arrayOf(true, false, true)))
+          val record = Avro.default.encodeToGenericData(ArrayBooleanTest(arrayOf(true, false, true)))
           record shouldBeContentOf ListRecord(schema, listOf(GenericData.Array(arraySchema, listOf(true, false, true))))
       }
       "support GenericData.Array for an Array<Boolean> with other fields" {
 
           val schema = Avro.default.schema(ArrayBooleanWithOthersTest.serializer())
           val arraySchema = schema.getField("b").schema()
-          val record = Avro.default.encode(ArrayBooleanWithOthersTest.serializer(), ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L))
+          val record = Avro.default.encodeToGenericData(ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L))
           record shouldBeContentOf ListRecord(
                   schema,
                   Utf8("foo"),
@@ -34,7 +35,7 @@ class ArrayEncoderTest : WordSpec({
 
           val schema = Avro.default.schema(ListStringTest.serializer())
           val arraySchema = schema.getField("a").schema()
-          val record = Avro.default.encode(ListStringTest.serializer(), ListStringTest(listOf("we23", "54z")))
+          val record = Avro.default.encodeToGenericData(ListStringTest(listOf("we23", "54z")))
           record shouldBeContentOf ListRecord(
                   schema,
                   listOf(GenericData.Array(arraySchema, listOf(Utf8("we23"), Utf8("54z"))))
@@ -45,7 +46,7 @@ class ArrayEncoderTest : WordSpec({
           val schema = Avro.default.schema(SetLongTest.serializer())
           val arraySchema = schema.getField("a").schema()
           val expected = ListRecord(schema, listOf(GenericData.Array(arraySchema, listOf(123L, 643L, 912))))
-          val actual = Avro.default.encode(SetLongTest.serializer(), SetLongTest(setOf(123L, 643L, 912L)))
+          val actual = Avro.default.encodeToGenericData(SetLongTest(setOf(123L, 643L, 912L)))
           actual shouldBeContentOf expected
       }
 //    "generate array for an Array of records" {

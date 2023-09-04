@@ -3,20 +3,12 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
-
-enum class Cream {
-   Bruce, Baker, Clapton
-}
-
-enum class BBM {
-   Bruce, Baker, Moore
-}
 
 class EnumIoTest : StringSpec({
 
@@ -55,5 +47,13 @@ class EnumIoTest : StringSpec({
 
    @Serializable
    data class NullableEnumTest(val a: Cream?)
+
+    enum class Cream {
+        Bruce, Baker, Clapton
+    }
+
+    enum class BBM {
+        Bruce, Baker, Moore
+    }
 
 }

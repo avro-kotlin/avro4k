@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.schema.Operation
 import com.github.avrokotlin.avro4k.schema.ReferencingNullableSealedClass
 import com.github.avrokotlin.avro4k.schema.ReferencingSealedClass
@@ -19,7 +20,7 @@ class SealedClassEncoderTest : StringSpec({
       addRecord.put("left", 1)
       addRecord.put("right", 2)
       record.put("notNullable", addRecord)
-      Avro.default.encode(
+      Avro.default.encodeToGenericData(
               ReferencingSealedClass.serializer(),
               ReferencingSealedClass(Operation.Binary.Add(1, 2))
       ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
@@ -28,14 +29,14 @@ class SealedClassEncoderTest : StringSpec({
       val schema = Avro.default.schema(ReferencingNullableSealedClass.serializer())
       val addSchema = Avro.default.schema(Operation.Binary.Add.serializer())
 
-      Avro.default.encode(
+      Avro.default.encodeToGenericData(
               ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
               Operation.Binary.Add(1, 2)
       )
       ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
 
 
-      Avro.default.encode(
+      Avro.default.encodeToGenericData(
               ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
               null
       )

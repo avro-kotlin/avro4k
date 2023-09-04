@@ -238,10 +238,10 @@ class Avro(
      * be derived from the type using [Avro.schema].
      */
     fun <T> openOutputStream(
-            serializer: SerializationStrategy<T>,
-            f: AvroOutputStreamBuilder<T>.() -> Unit = {}
+        serializer: SerializationStrategy<T>,
+        f: AvroOutputStreamBuilder<T>.() -> Unit = {}
     ): AvroOutputStreamBuilder<T> {
-        val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { encode(serializer, schema, it) } }
+        val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { encodeToGenericData(serializer, schema, it) } }
         builder.f()
         return builder
     }
@@ -254,33 +254,27 @@ class Avro(
             serializer: SerializationStrategy<T>,
             obj: T,
     ): GenericRecord {
-        return toRecord(serializer, schema(serializer), obj)
+        return toRecord(serializer, schema(serializer.descriptor), obj)
     }
 
     /**
      * Converts an instance of <T> to an Avro [Record] using the given [Schema].
      */
-    @Deprecated("Has been replaced by #encode that is able to not-only encode records", replaceWith = ReplaceWith("this.encode(serializer, schema, obj)"))
+    @Deprecated("Has been replaced by #encode that is able to encode everything", replaceWith = ReplaceWith("this.encode(serializer, schema, obj)"))
     fun <T> toRecord(serializer: SerializationStrategy<T>,
                      schema: Schema,
                      obj: T): GenericRecord {
-        val encodedValue = encode(serializer, schema, obj)
+        val encodedValue = encodeToGenericData(serializer, schema, obj)
         if (encodedValue !is GenericRecord)
             throw AvroRuntimeException("Expected a GenericRecord, found $encodedValue")
         return encodedValue
     }
 
-    fun <T> encode(serializer: SerializationStrategy<T>, value: T): Any? =
-            encode(serializer, schema(serializer), value)
-
-    fun <T> encode(serializer: SerializationStrategy<T>,
-                   schema: Schema,
-                   value: T): Any? {
-        val encoder = GenericAvroEncoder(schema, serializersModule, configuration)
-        encoder.resolveSchema(serializer.descriptor, value == null)
-        serializer.serialize(encoder, value)
-        return encoder.encodedValue
-    }
+    fun <T> encodeToGenericData(serializer: SerializationStrategy<T>, schema: Schema, value: T): Any? =
+        GenericAvroEncoder(schema, serializersModule, configuration).apply {
+            resolveSchema(serializer.descriptor, value == null)
+            encodeSerializableValue(serializer, value)
+        }.encodedValue
 
     /**
      * Converts an Avro [GenericRecord] to an instance of <T> using the schema
@@ -304,8 +298,7 @@ class Avro(
                 .decodeNullableSerializableValue(deserializer)
     }
 
-    fun schema(descriptor: SerialDescriptor): Schema =
-            schemaFor(
+    fun schema(descriptor: SerialDescriptor): Schema = schemaFor(
                     serializersModule,
                     descriptor,
                     descriptor.annotations,
@@ -313,20 +306,20 @@ class Avro(
                     mutableMapOf()
             ).schema()
 
-    fun <T> schema(
-            serializer: SerializationStrategy<T>,
-    ): Schema {
-        return schema(serializer.descriptor)
-    }
+    fun <T> schema(serializer: SerializationStrategy<T>): Schema =
+        schema(serializer.descriptor)
 }
 
-inline fun <reified T> Avro.encode(value: T): Any? {
+inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
     val serializer = serializersModule.serializer<T>()
-    return encode(serializer, schema(serializer), value)
+    return encodeToGenericData(serializer, schema(serializer.descriptor), value)
 }
 
-inline fun <reified T> Avro.decode(value: Any?) = decode(serializersModule.serializer<T>(), value)
+fun <T> Avro.encodeToGenericData(serializer: SerializationStrategy<T>, value: T): Any? =
+    encodeToGenericData(serializer, schema(serializer.descriptor), value)
 
-inline fun <reified T> Avro.encode(schema: Schema, value: T) = encode(serializersModule.serializer(), schema, value)
+inline fun <reified T> Avro.encodeToGenericData(schema: Schema, value: T) =
+    encodeToGenericData(serializersModule.serializer(), schema, value)
 
-inline fun <reified T> Avro.schema() = schema(serializersModule.serializer<T>())
+inline fun <reified T> Avro.schema() =
+    schema(serializersModule.serializer<T>().descriptor)

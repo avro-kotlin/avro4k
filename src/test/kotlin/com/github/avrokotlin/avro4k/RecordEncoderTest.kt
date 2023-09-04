@@ -16,7 +16,7 @@ class RecordEncoderTest : FunSpec({
             S(setOf(1, 2, 3)),
             ValueClass(listOf(1, 2, 3))
         )
-        val record = Avro.default.encode(input)
+        val record = Avro.default.encodeToGenericData(input)
         val output = Avro.default.decode<Foo>(record)
         output shouldBe input
     }
@@ -35,7 +35,7 @@ class RecordEncoderTest : FunSpec({
             S(setOf(1, 2, 3)),
             ValueClass(listOf(1, 2, 3))
         )
-        val record = Avro.default.encode(input)
+        val record = Avro.default.encodeToGenericData(input)
         val output = Avro.default.decode<Foo>(record)
         output shouldBe input
     }

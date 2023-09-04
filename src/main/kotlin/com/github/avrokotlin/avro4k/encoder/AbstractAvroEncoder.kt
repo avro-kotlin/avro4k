@@ -13,6 +13,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -137,7 +138,7 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
         }
     }
 
-    inner class AvroPolymorphicEncoder : PolymorphicEncoder(this@AbstractAvroEncoder.serializersModule) {
+    inner class AvroPolymorphicEncoder : PolymorphicEncoder() {
         override fun encodeSerialName(polymorphicTypeDescriptor: SerialDescriptor, serialName: String) {
             // Not encoding serialName, apache avro library is doing it if necessary
         }
@@ -146,6 +147,9 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
             resolveSchema(serializer.descriptor, value == null)
             this@AbstractAvroEncoder.encodeSerializableValue(serializer, value)
         }
+
+        override val serializersModule: SerializersModule
+            get() = this@AbstractAvroEncoder.serializersModule
     }
 
     //endregion

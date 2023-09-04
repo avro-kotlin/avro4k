@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.getAvroName
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import com.github.avrokotlin.avro4k.schema.getTypeNamed
@@ -20,7 +20,7 @@ class UnionEncoderTest : WordSpec({
         "encode polymorphic types child1"  {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            val record = Avro.default.encode<Parent>(schema, Child1(17, true))
+            val record = Avro.default.encodeToGenericData<Parent>(schema, Child1(17, true))
             record shouldBe GenericRecordBuilder(schema.getTypeNamed(Child1.serializer().descriptor.getAvroName(DefaultNamingStrategy)))
                     .set("i", 17)
                     .set("toto", true)
@@ -31,7 +31,7 @@ class UnionEncoderTest : WordSpec({
 
             println(schema)
 
-            val record = Avro.default.encode<Parent>(schema, Child2("hello", 56.12, null))
+            val record = Avro.default.encodeToGenericData<Parent>(schema, Child2("hello", 56.12, null))
             record shouldBe GenericRecordBuilder(schema.getTypeNamed(Child2.serializer().descriptor.getAvroName(DefaultNamingStrategy)))
                     .set("s", "hello")
                     .set("z", 56.12)
@@ -41,7 +41,7 @@ class UnionEncoderTest : WordSpec({
         "encode polymorphic types null"  {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            val record = Avro.default.encode<Parent?>(schema, null)
+            val record = Avro.default.encodeToGenericData<Parent?>(schema, null)
             record shouldBe null
         }
     }

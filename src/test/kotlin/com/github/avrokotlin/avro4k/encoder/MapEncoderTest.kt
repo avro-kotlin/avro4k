@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.core.spec.style.StringSpec
@@ -29,29 +29,29 @@ class MapEncoderTest : StringSpec({
     "encode a Map with non-string key" should {
         "encode int key as string" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
-            val encoded = Avro.default.encode(schema, mapOf(12 to "a", 56 to "b", 25 to "c"))
+            val encoded = Avro.default.encodeToGenericData(schema, mapOf(12 to "a", 56 to "b", 25 to "c"))
             encoded shouldBe mapOf(Utf8("12") to Utf8("a"), Utf8("56") to Utf8("b"), Utf8("25") to Utf8("c"))
         }
         "encode value class key as string" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
-            val encoded = Avro.default.encode(schema, mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3"))
+            val encoded = Avro.default.encodeToGenericData(schema, mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3"))
             encoded shouldBe mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3"))
         }
         "encode contextual key as string" {
             val schema =SchemaBuilder.record("ContextMapKey").fields().name("map").type( SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
-            val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).encode(schema, ContextMapKey(mapOf(NonSerializableClass("key") to "value")))
+            val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).encodeToGenericData(schema, ContextMapKey(mapOf(NonSerializableClass("key") to "value")))
             encoded shouldBeContentOf ListRecord(schema, mapOf(Utf8("key") to Utf8("value")))
         }
         "encode structure key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
             shouldThrowWithMessage<SerializationException>("Cannot encode structure for map keys: only allowed to encode primitive types for map keys") {
-                Avro.default.encode(schema, mapOf(Foo("", true) to "data"))
+                Avro.default.encodeToGenericData(schema, mapOf(Foo("", true) to "data"))
             }
         }
         "encode collection key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
             shouldThrowWithMessage<SerializationException>("Cannot encode collection for map keys: only allowed to encode primitive types for map keys") {
-                Avro.default.encode(schema, mapOf(listOf("test") to "data"))
+                Avro.default.encodeToGenericData(schema, mapOf(listOf("test") to "data"))
             }
         }
     }
@@ -59,21 +59,21 @@ class MapEncoderTest : StringSpec({
     "encode a Map<String, Boolean>" {
 
         val schema = Avro.default.schema(StringBooleanTest.serializer())
-        val record = Avro.default.encode(StringBooleanTest.serializer(), StringBooleanTest(mapOf("a" to true, "b" to false, "c" to true)))
+        val record = Avro.default.encodeToGenericData(StringBooleanTest(mapOf("a" to true, "b" to false, "c" to true)))
         record shouldBeContentOf ListRecord(schema, mapOf("a" to true, "b" to false, "c" to true))
     }
 
     "encode a Map<String, String>" {
 
         val schema = Avro.default.schema(StringStringTest.serializer())
-        val record = Avro.default.encode(StringStringTest.serializer(), StringStringTest(mapOf("a" to "x", "b" to "y", "c" to "z")))
+        val record = Avro.default.encodeToGenericData(StringStringTest(mapOf("a" to "x", "b" to "y", "c" to "z")))
         record shouldBeContentOf ListRecord(schema, mapOf("a" to "x", "b" to "y", "c" to "z"))
     }
 
     "encode a Map<String, ByteArray>" {
 
         val schema = Avro.default.schema(StringByteArrayTest.serializer())
-        val record = Avro.default.encode(StringByteArrayTest(mapOf(
+        val record = Avro.default.encodeToGenericData(StringByteArrayTest(mapOf(
             "a" to "x".toByteArray(),
             "b" to "y".toByteArray(),
             "c" to "z".toByteArray()
@@ -90,7 +90,7 @@ class MapEncoderTest : StringSpec({
         val schema = Avro.default.schema(StringFooTest.serializer())
         val fooSchema = Avro.default.schema(Foo.serializer())
 
-        val record = Avro.default.encode(StringFooTest(mapOf("a" to Foo("x", true), "b" to Foo("y", false))))
+        val record = Avro.default.encodeToGenericData(StringFooTest(mapOf("a" to Foo("x", true), "b" to Foo("y", false))))
         val xRecord = ListRecord(fooSchema, Utf8("x"), true)
         val yRecord = ListRecord(fooSchema, Utf8("y"), false)
 

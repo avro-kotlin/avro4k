@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
@@ -18,7 +18,7 @@ class FixedEncoderTest : FunSpec({
               .name("s").type(Schema.createFixed("s", null, null, 5)).noDefault()
               .endRecord()
 
-      val record = Avro.default.encode(schema, StringFoo("hello"))
+      val record = Avro.default.encodeToGenericData(schema, StringFoo("hello"))
       record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(
               null,
               byteArrayOf(104, 101, 108, 108, 111),
@@ -32,7 +32,7 @@ class FixedEncoderTest : FunSpec({
               .name("s").type(Schema.createFixed("s", null, null, 5)).noDefault()
               .endRecord()
 
-      val record = Avro.default.encode(schema, ByteArrayFoo(byteArrayOf(1, 2, 3, 4, 5)))
+      val record = Avro.default.encodeToGenericData(schema, ByteArrayFoo(byteArrayOf(1, 2, 3, 4, 5)))
       record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(
               null,
               byteArrayOf(1, 2, 3, 4, 5),

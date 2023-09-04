@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
@@ -25,7 +25,7 @@ class BigDecimalEncoderTest : FunSpec({
         val s = schema.getField("decimal").schema()
         val bytes = Conversions.DecimalConversion().toBytes(value, s, s.logicalType)
 
-        Avro.default.encode(schema, BigDecimalTest(value)) shouldBeContentOf ListRecord(schema, bytes)
+        Avro.default.encodeToGenericData(schema, BigDecimalTest(value)) shouldBeContentOf ListRecord(schema, bytes)
     }
 
     test("encode value as bytes") {
@@ -34,7 +34,7 @@ class BigDecimalEncoderTest : FunSpec({
         val value = BigDecimal("12.34")
         val bytes = Conversions.DecimalConversion().toBytes(value, null, LogicalTypes.decimal(8, 2))
 
-        avro.encode(value) shouldBe bytes
+        avro.encodeToGenericData(value) shouldBe bytes
     }
 
     test("encode field as string") {
@@ -43,7 +43,7 @@ class BigDecimalEncoderTest : FunSpec({
                 .endRecord()
 
         val valueString = "123.456"
-        Avro.default.encode(schema, BigDecimalTest(BigDecimal(valueString))) shouldBeContentOf ListRecord(schema, valueString)
+        Avro.default.encodeToGenericData(schema, BigDecimalTest(BigDecimal(valueString))) shouldBeContentOf ListRecord(schema, valueString)
     }
 
     test("encode value as string") {
@@ -51,13 +51,13 @@ class BigDecimalEncoderTest : FunSpec({
 
         val value = "12.34"
 
-        avro.encode(Schema.create(Schema.Type.STRING), BigDecimal(value)) shouldBe Utf8(value)
+        avro.encodeToGenericData(Schema.create(Schema.Type.STRING), BigDecimal(value)) shouldBe Utf8(value)
     }
 
     test("encode null field") {
         val schema = Avro.default.schema(NullableBigDecimalTest.serializer())
 
-        Avro.default.encode(schema, NullableBigDecimalTest(null)) shouldBeContentOf ListRecord(schema, null)
+        Avro.default.encodeToGenericData(schema, NullableBigDecimalTest(null)) shouldBeContentOf ListRecord(schema, null)
     }
 
     test("encode field as fixed") {
@@ -69,7 +69,7 @@ class BigDecimalEncoderTest : FunSpec({
                 .endRecord()
 
         val value = BigDecimal("12345678")
-        val record = Avro.default.encode(schema, BigDecimalTest(value))
+        val record = Avro.default.encodeToGenericData(schema, BigDecimalTest(value))
         val fixed = Conversions.DecimalConversion().toFixed(value, decimal, decimal.logicalType)
 
         record shouldBeContentOf ListRecord(schema, fixed)

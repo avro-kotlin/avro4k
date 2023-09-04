@@ -9,7 +9,7 @@ class DefaultAvroTest : FunSpec({
 
     test("encoding UUID") {
         val uuid = UUID.randomUUID()
-        val record = Avro.default.encode(Foo.serializer(), Foo(uuid))
+        val record = Avro.default.encodeToGenericData(Foo(uuid))
         record shouldBeContentOf ListRecord(Avro.default.schema(Foo.serializer()), uuid.toString())
     }
 }) {

@@ -4,11 +4,10 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.util.Utf8
@@ -22,15 +21,15 @@ class URLEncoderTest : FunSpec({
 
       val test = UrlTest(URL("http://www.sksamuel.com"))
 
-       Avro.default.encode(schema, test) shouldBeContentOf ListRecord(schema, Utf8("http://www.sksamuel.com"))
+       Avro.default.encodeToGenericData(schema, test) shouldBeContentOf ListRecord(schema, Utf8("http://www.sksamuel.com"))
    }
 
    test("encode nullable URLs") {
 
       val schema = Avro.default.schema(NullableUrlTest.serializer())
-       Avro.default.encode(schema, NullableUrlTest(URL("http://www.sksamuel.com"))) shouldBeContentOf
+       Avro.default.encodeToGenericData(schema, NullableUrlTest(URL("http://www.sksamuel.com"))) shouldBeContentOf
          ListRecord(schema, Utf8("http://www.sksamuel.com"))
-       Avro.default.encode(schema, NullableUrlTest(null)) shouldBeContentOf ListRecord(schema, null)
+       Avro.default.encodeToGenericData(schema, NullableUrlTest(null)) shouldBeContentOf ListRecord(schema, null)
 
    }
 }) {

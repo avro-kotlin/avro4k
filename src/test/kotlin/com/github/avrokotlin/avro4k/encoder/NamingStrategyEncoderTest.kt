@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.schema.PascalCaseNamingStrategy
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
 import com.github.avrokotlin.avro4k.shouldBeContentOf
@@ -19,7 +20,7 @@ class NamingStrategyEncoderTest : WordSpec({
 
          val schema = snakeCaseAvro.schema(Foo.serializer())
 
-         val record = snakeCaseAvro.encode(Foo.serializer(), Foo("hello"))
+         val record = snakeCaseAvro.encodeToGenericData(Foo("hello"))
 
          (record as GenericRecord).hasField("foo_bar") shouldBe true
 
@@ -31,7 +32,7 @@ class NamingStrategyEncoderTest : WordSpec({
 
          val schema = pascalCaseAvro.schema(Foo.serializer())
 
-         val record = pascalCaseAvro.encode(Foo.serializer(), Foo("hello"))
+         val record = pascalCaseAvro.encodeToGenericData(Foo("hello"))
 
          (record as GenericRecord).hasField("FooBar") shouldBe true
 

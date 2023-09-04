@@ -4,7 +4,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
@@ -21,15 +21,15 @@ class BigIntegerEncoderTest : FunSpec({
 
       val test = BigIntegerTest(BigInteger("123123123123213213213123214325365477686789676234"))
 
-       Avro.default.encode(schema, test) shouldBeContentOf ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
+       Avro.default.encodeToGenericData(schema, test) shouldBeContentOf ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
    }
 
    test("encode nullable big ints") {
 
       val schema = Avro.default.schema(NullableBigIntegerTest.serializer())
-       Avro.default.encode(schema, NullableBigIntegerTest(BigInteger("12312312312321312365477686789676234"))) shouldBeContentOf
+       Avro.default.encodeToGenericData(schema, NullableBigIntegerTest(BigInteger("12312312312321312365477686789676234"))) shouldBeContentOf
          ListRecord(schema, Utf8("12312312312321312365477686789676234"))
-       Avro.default.encode(schema, NullableBigIntegerTest(null)) shouldBeContentOf ListRecord(schema, null)
+       Avro.default.encodeToGenericData(schema, NullableBigIntegerTest(null)) shouldBeContentOf ListRecord(schema, null)
 
    }
 }) {

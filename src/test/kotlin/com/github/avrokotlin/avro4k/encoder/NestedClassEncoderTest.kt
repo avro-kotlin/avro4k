@@ -6,6 +6,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.serializer.TimestampSerializer
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.FunSpec
@@ -33,9 +34,9 @@ class NestedClassEncoderTest : FunSpec({
    val townSchema = Avro.default.schema(Town.serializer())
    val birthplaceSchema = Avro.default.schema(Birthplace.serializer())
 
-   test("!encode nested class") {
+   test("encode nested class") {
       val b = Birthplace("sammy", Town("Hardwick", 123))
-      val record = Avro.default.encode(Birthplace.serializer(), b)
+      val record = Avro.default.encodeToGenericData(Birthplace.serializer(), b)
       record shouldBeContentOf ListRecord(
               birthplaceSchema,
               Utf8("sammy"),
@@ -47,13 +48,13 @@ class NestedClassEncoderTest : FunSpec({
       )
    }
 
-   test("!encode nested nullable class") {
+   test("encode nested nullable class") {
 
       val nameSchema = Avro.default.schema(ProductName.serializer())
       val prodSchema = Avro.default.schema(Product.serializer())
 
       val p = Product(ProductName("big shoes"))
-      val record = Avro.default.encode(Product.serializer(), p)
+      val record = Avro.default.encodeToGenericData(Product.serializer(), p)
       record shouldBeContentOf ListRecord(
               prodSchema,
               ListRecord(

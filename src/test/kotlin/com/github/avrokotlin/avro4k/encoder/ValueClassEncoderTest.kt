@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.encode
+import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.schema.ValueClassSchemaTest
 import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.StringSpec
@@ -17,13 +17,13 @@ class ValueClassEncoderTest : StringSpec({
         val uuidStr = uuid.toString()
         val uuidW = ValueClassSchemaTest.UuidWrapper(uuid)
         val schema = Avro.default.schema(ValueClassSchemaTest.ContainsInlineTest.serializer())
-        Avro.default.encode(ValueClassSchemaTest.ContainsInlineTest.serializer(),
+        Avro.default.encodeToGenericData(ValueClassSchemaTest.ContainsInlineTest.serializer(),
             ValueClassSchemaTest.ContainsInlineTest(id, uuidW)) shouldBeContentOf ListRecord(schema, Utf8(id.a), Utf8(uuidStr))
     }
 
     "encode value class even if inside a polymorphic type" {
         val schema = Avro.default.schema(Parent.serializer())
-        val record = Avro.default.encode<Parent>(Product("123", Name("sneakers")))
+        val record = Avro.default.encodeToGenericData<Parent>(Product("123", Name("sneakers")))
         record shouldBeContentOf ListRecord(schema.types[0], listOf(Utf8("123"), Utf8("sneakers")))
     }
 }) {

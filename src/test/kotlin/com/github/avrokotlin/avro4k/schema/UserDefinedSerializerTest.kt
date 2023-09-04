@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
 import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
 import com.github.avrokotlin.avro4k.serializer.AvroSerializer
 import io.kotest.core.spec.style.FunSpec
@@ -33,7 +33,7 @@ class UserDefinedSerializerTest : FunSpec({
          TODO()
       }
 
-      override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
+      override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): String {
          TODO()
       }
 

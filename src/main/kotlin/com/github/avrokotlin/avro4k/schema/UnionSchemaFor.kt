@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.RecordNaming
-import com.github.avrokotlin.avro4k.possibleSerializationSubclasses
+import com.github.avrokotlin.avro4k.decoder.possibleSerializationSubclasses
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
@@ -17,7 +17,7 @@ class UnionSchemaFor(
 ) : SchemaFor {
     override fun schema(): Schema {        
         val leafSerialDescriptors =
-            descriptor.possibleSerializationSubclasses(serializersModule).sortedBy { it.serialName }
+            descriptor.possibleSerializationSubclasses(serializersModule).sortedBy { it.serialName }.toList()
         return Schema.createUnion(
             leafSerialDescriptors.map {
                 ClassSchemaFor(it, configuration, serializersModule, resolvedSchemas).schema()

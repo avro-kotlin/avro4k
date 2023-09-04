@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
 import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
 import com.github.avrokotlin.avro4k.schema.AvroDescriptor
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
@@ -28,7 +28,7 @@ object URLSerializer : AvroSerializer<URL>() {
       encoder.encodeString(obj.toString())
    }
 
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): URL {
+   override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): URL {
       return when (val v = decoder.decodeAny()) {
          is CharSequence -> URL(v.toString())
          else -> throw SerializationException("Unsupported URL type [$v : ${v?.let { it::class }}]")

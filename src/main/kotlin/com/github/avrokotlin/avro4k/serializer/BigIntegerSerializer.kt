@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
 import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
 import com.github.avrokotlin.avro4k.schema.AvroDescriptor
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
@@ -23,7 +23,7 @@ class BigIntegerSerializer : AvroSerializer<BigInteger>() {
    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: BigInteger) =
       encoder.encodeString(obj.toString())
 
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigInteger {
+   override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): BigInteger {
       return BigInteger(decoder.decodeString())
    }
 }

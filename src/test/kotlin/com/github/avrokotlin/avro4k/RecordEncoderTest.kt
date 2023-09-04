@@ -17,7 +17,7 @@ class RecordEncoderTest : FunSpec({
             ValueClass(listOf(1, 2, 3))
         )
         val record = Avro.default.encodeToGenericData(input)
-        val output = Avro.default.decode<Foo>(record)
+        val output = Avro.default.decodeFromGenericData<Foo>(record)
         output shouldBe input
     }
     test("encoding basic data class with different field ordering than schema") {
@@ -36,7 +36,7 @@ class RecordEncoderTest : FunSpec({
             ValueClass(listOf(1, 2, 3))
         )
         val record = Avro.default.encodeToGenericData(input)
-        val output = Avro.default.decode<Foo>(record)
+        val output = Avro.default.decodeFromGenericData<Foo>(record)
         output shouldBe input
     }
 }) {

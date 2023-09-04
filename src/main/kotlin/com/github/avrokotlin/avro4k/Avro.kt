@@ -2,7 +2,7 @@
 
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
+import com.github.avrokotlin.avro4k.decoder.GenericAvroDecoder
 import com.github.avrokotlin.avro4k.encoder.GenericAvroEncoder
 import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
@@ -15,6 +15,7 @@ import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialFormat
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
@@ -35,7 +36,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 open class AvroInputStreamBuilder<T>(
-        private val converter: (Any) -> T
+    private val converter: (Any) -> T
 ) {
     /**
      * The format that should be used to decode the bytes from the input stream.
@@ -90,17 +91,17 @@ open class AvroInputStreamBuilder<T>(
 }
 
 class AvroDeserializerInputStreamBuilder<T>(
-        private val deserializer: DeserializationStrategy<T>,
-        private val avro: Avro,
-        converter: (Any) -> T
+    private val deserializer: DeserializationStrategy<T>,
+    private val avro: Avro,
+    converter: (Any) -> T
 ) : AvroInputStreamBuilder<T>(converter) {
     val defaultReadSchema: Schema by lazy { avro.schema(deserializer.descriptor) }
 }
 
 class AvroOutputStreamBuilder<T>(
-        private val serializer: SerializationStrategy<T>,
-        private val avro: Avro,
-        private val converterFn: (Schema) -> (T) -> Any?
+    private val serializer: SerializationStrategy<T>,
+    private val avro: Avro,
+    private val converterFn: (Schema) -> (T) -> Any?
 ) {
     var encodeFormat: AvroEncodeFormat = defaultEncodeFormat
 
@@ -145,8 +146,8 @@ class AvroOutputStreamBuilder<T>(
 
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
-        override val serializersModule: SerializersModule = defaultModule,
-        private val configuration: AvroConfiguration = AvroConfiguration()
+    override val serializersModule: SerializersModule = defaultModule,
+    private val configuration: AvroConfiguration = AvroConfiguration()
 ) : SerialFormat, BinaryFormat {
     constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
 
@@ -167,9 +168,9 @@ class Avro(
      * using [AvroEncodeFormat.Data]. The schema used will be the embedded schema.
      */
     override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
-            openInputStream(deserializer) {
-                decodeFormat = AvroDecodeFormat.Data(null, null)
-            }.from(bytes).nextOrThrow()
+        openInputStream(deserializer) {
+            decodeFormat = AvroDecodeFormat.Data(null, null)
+        }.from(bytes).nextOrThrow()
 
     /**
      * Creates an [AvroInputStreamBuilder] that will read avro values such as GenericRecord.
@@ -199,11 +200,13 @@ class Avro(
      * </pre>
      */
     fun <T> openInputStream(
-            deserializer: DeserializationStrategy<T>,
-            f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}
+        deserializer: DeserializationStrategy<T>,
+        f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}
     ): AvroDeserializerInputStreamBuilder<T> {
+        val defaultSchema by lazy { schema(deserializer.descriptor) }
         val builder = AvroDeserializerInputStreamBuilder(deserializer, this) {
-            fromRecord(deserializer, it as GenericRecord)
+            decodeFromGenericData(deserializer, (it as? GenericRecord)?.schema ?: defaultSchema, it)
+                ?: throw SerializationException("Decoded record is null")
         }
         builder.f()
         return builder
@@ -251,8 +254,8 @@ class Avro(
      */
     @Deprecated("Has been replaced by #encode that is able to not-only encode records", replaceWith = ReplaceWith("this.encode(serializer, obj)"))
     fun <T> toRecord(
-            serializer: SerializationStrategy<T>,
-            obj: T,
+        serializer: SerializationStrategy<T>,
+        obj: T,
     ): GenericRecord {
         return toRecord(serializer, schema(serializer.descriptor), obj)
     }
@@ -280,31 +283,31 @@ class Avro(
      * Converts an Avro [GenericRecord] to an instance of <T> using the schema
      * present in the record.
      */
+    @Deprecated("Has been replaced by #decodeFromGenericData that is able to decode everything", replaceWith = ReplaceWith("this.decodeFromGenericData(deserializer, record)"))
     fun <T> fromRecord(
-            deserializer: DeserializationStrategy<T>,
-            record: GenericRecord,
+        deserializer: DeserializationStrategy<T>,
+        record: GenericRecord,
     ): T {
-        return RootRecordDecoder(record, serializersModule, configuration).decodeSerializableValue(
-                deserializer
-        )
+        return GenericAvroDecoder(record, record.schema, serializersModule, configuration)
+            .decodeSerializableValue(deserializer)
     }
 
-    fun <T> decode(
-            deserializer: DeserializationStrategy<T>,
-            value: Any?,
+    fun <T> decodeFromGenericData(
+        deserializer: DeserializationStrategy<T>,
+        schema: Schema,
+        value: Any?,
     ): T? {
-        check(value is GenericRecord) { "Expected a GenericRecord, given a ${value?.let { it::class }}" }
-        return RootRecordDecoder(value, serializersModule, configuration)
-                .decodeNullableSerializableValue(deserializer)
+        return GenericAvroDecoder(value, schema, serializersModule, configuration)
+            .decodeNullableSerializableValue(deserializer)
     }
 
     fun schema(descriptor: SerialDescriptor): Schema = schemaFor(
-                    serializersModule,
-                    descriptor,
-                    descriptor.annotations,
-                    configuration,
-                    mutableMapOf()
-            ).schema()
+        serializersModule,
+        descriptor,
+        descriptor.annotations,
+        configuration,
+        mutableMapOf()
+    ).schema()
 
     fun <T> schema(serializer: SerializationStrategy<T>): Schema =
         schema(serializer.descriptor)
@@ -320,6 +323,14 @@ fun <T> Avro.encodeToGenericData(serializer: SerializationStrategy<T>, value: T)
 
 inline fun <reified T> Avro.encodeToGenericData(schema: Schema, value: T) =
     encodeToGenericData(serializersModule.serializer(), schema, value)
+
+inline fun <reified T> Avro.decodeFromGenericData(value: Any?): T? {
+    val deserializer = serializersModule.serializer<T>()
+    return decodeFromGenericData(deserializer, schema(deserializer.descriptor), value)
+}
+
+inline fun <reified T> Avro.decodeFromGenericData(schema: Schema, value: Any?): T? =
+    decodeFromGenericData(serializersModule.serializer<T>(), schema, value)
 
 inline fun <reified T> Avro.schema() =
     schema(serializersModule.serializer<T>().descriptor)

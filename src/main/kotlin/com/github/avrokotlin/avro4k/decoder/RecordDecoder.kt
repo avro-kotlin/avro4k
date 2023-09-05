@@ -7,15 +7,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
-
-interface NativeAvroDecoder : Decoder {
-    fun decodeAny(): Any
-    val currentSchema: Schema
-}
 
 @ExperimentalSerializationApi
 class RecordDecoder(

@@ -4,6 +4,7 @@ import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.getElementAvroName
 import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
@@ -31,8 +32,9 @@ class RecordDecoder(
     private fun fieldValue(): Any? =
         record.get(currentField.pos())
 
-    override val currentSchema: Schema get() =
-        currentField.schema().extractNonNull()
+    override val currentSchema: Schema
+        get() =
+            currentField.schema().extractNonNull()
 
     override fun decodeAny(): Any = fieldValue()!!
 
@@ -45,7 +47,9 @@ class RecordDecoder(
             return CompositeDecoder.DECODE_DONE
         }
         currentField = record.schema.fields[currentRecordFieldIndex]
-        return (elementsNameToIndex[currentField.name()]
-            ?: return decodeElementIndex(descriptor))
+        val foundElementIndex = elementsNameToIndex[currentField.name()]
+        if (foundElementIndex == null && !configuration.ignoreUnknownFields)
+            throw SerializationException("Missing field ${currentField.name()} in descriptor ${descriptor}. This means that the decoded schema field is not present in the kotlin class. Try use another schema/kotlin class or define the configuration 'ignoreUnknownFields' to true to stop throwing this exception")
+        return (foundElementIndex ?: return decodeElementIndex(descriptor))
     }
 }

@@ -22,8 +22,6 @@ import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
-val NULL_SCHEMA = Schema.create(Schema.Type.NULL)
-
 @OptIn(ExperimentalSerializationApi::class)
 abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
     final override lateinit var currentResolvedSchema: Schema
@@ -194,3 +192,5 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
 
     //endregion
 }
+
+private val NULL_SCHEMA: Schema = Schema.create(Schema.Type.NULL)

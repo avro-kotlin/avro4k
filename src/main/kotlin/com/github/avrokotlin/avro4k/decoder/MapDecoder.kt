@@ -22,7 +22,6 @@ class MapDecoder(
     private val entries = map.toList()
     private var index = -1
 
-    @ExperimentalSerializationApi
     override fun decodeNotNullMark() =
         value() != null
 

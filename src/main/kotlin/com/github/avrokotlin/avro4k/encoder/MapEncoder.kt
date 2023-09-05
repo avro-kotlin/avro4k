@@ -44,11 +44,11 @@ class MapEncoder(
 
     override fun encodeNativeValue(value: Any?) {
         if (currentKey == null) {
-            currentKey = if (value is Utf8) {
-                value
-            } else {
-                Utf8(value?.toString())
-            }
+           currentKey = when (value) {
+              is Utf8 -> value
+              is CharSequence -> Utf8(value.toString())
+              else -> throw SerializationException("Maps schema types requires strings as key")
+           }
         } else {
             finalizeMapEntry(value)
         }

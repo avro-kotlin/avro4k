@@ -4,6 +4,7 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.encodeToGenericData
 import com.github.avrokotlin.avro4k.shouldBeContentOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
@@ -27,10 +28,11 @@ import java.nio.ByteBuffer
 class MapEncoderTest : StringSpec({
 
     "encode a Map with non-string key" should {
-        "encode int key as string" {
+        "encode int key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
-            val encoded = Avro.default.encodeToGenericData(schema, mapOf(12 to "a", 56 to "b", 25 to "c"))
-            encoded shouldBe mapOf(Utf8("12") to Utf8("a"), Utf8("56") to Utf8("b"), Utf8("25") to Utf8("c"))
+            shouldThrow<SerializationException> {
+                Avro.default.encodeToGenericData(schema, mapOf(12 to "a", 56 to "b", 25 to "c"))
+            }
         }
         "encode value class key as string" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
@@ -38,7 +40,7 @@ class MapEncoderTest : StringSpec({
             encoded shouldBe mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3"))
         }
         "encode contextual key as string" {
-            val schema =SchemaBuilder.record("ContextMapKey").fields().name("map").type( SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
+            val schema = SchemaBuilder.record("ContextMapKey").fields().name("map").type(SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
             val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).encodeToGenericData(schema, ContextMapKey(mapOf(NonSerializableClass("key") to "value")))
             encoded shouldBeContentOf ListRecord(schema, mapOf(Utf8("key") to Utf8("value")))
         }

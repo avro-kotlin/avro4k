@@ -2,15 +2,39 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.decodeFromGenericData
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.serializersModuleOf
+import org.apache.avro.Schema
+import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 class MapDecoderTest : StringSpec({
 
+    "encode value class key as string" {
+        val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
+        val encoded = Avro.default.decodeFromGenericData<Map<StringKey, String>>(schema, mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3")))
+        encoded shouldBe mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3")
+    }
+
+    "encode contextual key as string" {
+        val schema = SchemaBuilder.record("ContextMapKey").fields().name("map").type(SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
+        val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).decodeFromGenericData<ContextMapKey>(schema, ListRecord(schema, mapOf(Utf8("key") to Utf8("value"))))
+        encoded shouldBe ContextMapKey(mapOf(NonSerializableClass("key") to "value"))
+    }
+    
    "decode a Map<String, Long> from strings/longs" {
 
       val schema = Avro.default.schema(MapStringLong.serializer())
@@ -74,8 +98,23 @@ class MapDecoderTest : StringSpec({
           MapStringStructure(mapOf("a" to Foo("x", true), "b" to Foo("y", false)))
    }
 }) {
+    @JvmInline
+    @Serializable
+    value class StringKey(val value: String)
 
-   @Serializable
+    @Serializable
+    @SerialName("ContextMapKey")
+    data class ContextMapKey(val map: Map<@Contextual NonSerializableClass, String>)
+
+    data class NonSerializableClass(val key: String)
+
+    object NonSerializableClassSerializer : KSerializer<NonSerializableClass> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NonSerializableClass", PrimitiveKind.STRING)
+        override fun deserialize(decoder: Decoder) = NonSerializableClass(decoder.decodeString())
+        override fun serialize(encoder: Encoder, value: NonSerializableClass) = Unit
+    }
+
+    @Serializable
    data class MapStringLong(val a: Map<String, Long>)
 
    @Serializable

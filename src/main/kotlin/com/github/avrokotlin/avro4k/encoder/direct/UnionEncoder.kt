@@ -24,14 +24,15 @@ class UnionEncoder(private val unionSchema : Schema,
          is StructureKind.CLASS, is StructureKind.OBJECT -> {
             //Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
             val serialName = RecordNaming(descriptor, DefaultNamingStrategy)
-            val leafSchema = unionSchema.types.first{
+            val leafSchemaIndex = unionSchema.types.indexOfFirst{
                val schemaName = RecordNaming(it.fullName, emptyList(), DefaultNamingStrategy)               
                serialName == schemaName
             }
-            avroEncoder.writeUnionSchema(unionSchema, leafSchema)
+            val leafSchema = unionSchema.types[leafSchemaIndex]
+            avroEncoder.writeUnionSchema(unionSchema, leafSchemaIndex)
             RecordEncoder(leafSchema, serializersModule, avroEncoder)
          }
-         else -> throw SerializationException("Unsupported root element passed to root record encoder")
+         else -> throw SerializationException("Unsupported root element passed to union encoder")
       }
    }
 

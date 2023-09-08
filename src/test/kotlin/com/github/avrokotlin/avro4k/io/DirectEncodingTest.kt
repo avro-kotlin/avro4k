@@ -8,24 +8,33 @@ import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 import kotlin.random.Random
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
-@OptIn(ExperimentalTime::class)
 class DirectEncodingTest : StringSpec({
 
-    val ennio = Composer("ennio morricone", "rome", listOf(Work("legend of 1900", 1986, Color.ORANGE), Work("ecstasy of gold", 1969, Color.RED)))
+    val ennio = Composer(
+        PossibleType1("a"),
+        "ennio morricone",
+        "rome",
+        listOf(Work("legend of 1900", 1986, Color.ORANGE), Work("ecstasy of gold", 1969, Color.RED))
+    )
 
-    val hans = Composer("hans zimmer", "frankfurt", listOf(Work("batman begins", 2007, Color.GREEN), Work("dunkirk", 2017, Color.BLUE)))
+    val hans = Composer(
+        PossibleType2(17),
+        "hans zimmer",
+        "frankfurt",
+        listOf(Work("batman begins", 2007, Color.GREEN), Work("dunkirk", 2017, Color.BLUE))
+    )
 
     "Direct encoding should produce the same output" {
         val serializer = Composer.serializer()
@@ -35,27 +44,41 @@ class DirectEncodingTest : StringSpec({
             encodeFormat = AvroEncodeFormat.Binary
             this.schema = schema
         }.to(baos)
-        val repetitions = 100000
-//        val timeAvro = measureTime {
-//            for (i in 1..repetitions) {
-//                aos.write(ennio).write(hans)
-//            }
-//        }
+        aos.write(ennio).write(hans)
         aos.close()
         System.gc()
         val avroLibByteArray = baos.toByteArray()
         val buffer = Buffer()
         val avroEncoder = AvroBinaryEncoder(buffer)
-        val timeDirect = measureTime {
-            for (i in 1..repetitions) {
-                Avro.default.encode(avroEncoder, serializer, ennio, schema)
-                Avro.default.encode(avroEncoder, serializer, hans, schema)
-            }
-        }
+        Avro.default.encode(avroEncoder, serializer, ennio, schema)
+        Avro.default.encode(avroEncoder, serializer, hans, schema)
+        avroEncoder.flush()
         val directByteArray = buffer.readByteArray()
 
-       //directByteArray.shouldBe(avroLibByteArray)
-        //println("Time direct: $timeDirect is less than avro $timeAvro")
+        directByteArray.shouldBe(avroLibByteArray)
+    }
+    "Encode all possible variations" {
+        val varations = SchemaVariations(
+            "ennio morricone",
+            "rome",
+            listOf(Work("legend of 1900", 1986, Color.ORANGE), Work("ecstasy of gold", 1969, Color.RED)),
+            PossibleType1("name")
+        )
+        val serializer = SchemaVariations.serializer()
+        val schema = Avro.default.schema(serializer)
+        val buffer = Buffer()
+        val avroEncoder = AvroBinaryEncoder(buffer)
+        Avro.default.encode(avroEncoder, serializer, varations, schema)
+        val byteArray = buffer.readByteArray()
+        byteArray.isNotEmpty() shouldBe true
+
+    }
+    "Encode primitives" {
+        val buffer = Buffer()
+        val avroEncoder = AvroBinaryEncoder(buffer)
+        Avro.default.encode(avroEncoder, Long.serializer(), 2L, Avro.default.schema(Long.serializer()))
+        avroEncoder.flush()
+        buffer.readByteArray() shouldBe byteArrayOf(4)
     }
     "Encoding of Clients should work" {
         val serializer = Clients.serializer()
@@ -63,51 +86,63 @@ class DirectEncodingTest : StringSpec({
         val buffer = Buffer()
         val avroEncoder = AvroBinaryEncoder(buffer)
         val clients = Clients()
-        clients.clients.add(Client(
-            id = 9852,
-            index = 7079,
-            guid = UUID.randomUUID(),
-            isActive = false,
-            balance = BigDecimal.valueOf(123.1244),
-            picture = Random.nextBytes(1024),
-            age = 4615,
-            eyeColor = EyeColor.BROWN,
-            name = "My Name",
-            gender = "my gender",
-            company = "my company",
-            emails = arrayOf("email"),
-            phones = longArrayOf(12344L),
-            address = "addr",
-            about = "about",
-            registered = LocalDate.now(),
-            latitude = 4.5,
-            longitude = 6.7,
-            tags = listOf("Tag1"),
-            partners = listOf()
-        ))
+        clients.clients.add(
+            Client(
+                id = 9852,
+                index = 7079,
+                guid = UUID.randomUUID(),
+                isActive = false,
+                balance = BigDecimal.valueOf(123.1244),
+                picture = Random.nextBytes(1024),
+                age = 4615,
+                eyeColor = EyeColor.BROWN,
+                name = "My Name",
+                gender = "my gender",
+                company = "my company",
+                emails = arrayOf("email"),
+                phones = longArrayOf(12344L),
+                address = "addr",
+                about = "about",
+                registered = LocalDate.now(),
+                latitude = 4.5,
+                longitude = 6.7,
+                tags = listOf("Tag1"),
+                partners = listOf()
+            )
+        )
         Thread.sleep(10000)
-        for(i in 1..1000000) Avro.default.encode(avroEncoder, serializer, clients, schema)
+        for (i in 1..1000000) Avro.default.encode(avroEncoder, serializer, clients, schema)
         println("Written ${buffer.size} bytes.")
     }
 
 }) {
     @Serializable
-    enum class Color{RED, BLUE, GREEN, ORANGE}
+    enum class Color { RED, BLUE, GREEN, ORANGE }
+
     @Serializable
     data class Work(val name: String, val year: Int, val color: Color)
 
     @Serializable
     data class Composer(
+        val union: Union,
+        val name: String,
+        val birthplace: String,
+        val works: List<Work>
+    )
+
+    @Serializable
+    data class SchemaVariations(
         val name: String,
         val birthplace: String,
         val works: List<Work>,
+        val union: Union,
         val nullableReference: Work? = works.first(),
         val nullableList: List<Work>? = works,
         val nullableMap: Map<String, Work>? = works.associateBy { it.name },
         val nullableMapValue: Map<String, Work?> = works.associateBy { it.name } + mapOf("work" to null),
         val binary: ByteArray = byteArrayOf(0x01, 0x02, 0x03),
         @AvroFixed(4)
-        val fixedByteArray: ByteArray = byteArrayOf(0x01,0x78),
+        val fixedByteArray: ByteArray = byteArrayOf(0x01, 0x78),
         val mapOfWorks: Map<String, Work> = works.associateBy { it.name },
         val nullableListElements: List<Work?> = works + null,
         val doubleValue: Double = 1.023,
@@ -124,14 +159,24 @@ class DirectEncodingTest : StringSpec({
         val nullableString: String? = "blub",
         val nullableStringWithNull: String? = null
     )
-   
 
-   
+    @Serializable
+    sealed interface Union
+    @Serializable
+    data class PossibleType1(
+        val name: String
+    ) : Union
+
+    @Serializable
+    data class PossibleType2(
+        val age: Int
+    ) : Union
 
     @Serializable
     data class Clients(
         var clients: MutableList<Client> = mutableListOf()
     )
+
     @Serializable
     data class Client(
         var id: Long = 0,
@@ -140,7 +185,7 @@ class DirectEncodingTest : StringSpec({
         var guid: UUID? = null,
         var isActive: Boolean = false,
         @Serializable(with = BigDecimalSerializer::class)
-        @ScalePrecision(5,10)
+        @ScalePrecision(5, 10)
         var balance: BigDecimal? = null,
         var picture: ByteArray? = null,
         var age: Int = 0,
@@ -154,7 +199,7 @@ class DirectEncodingTest : StringSpec({
         var about: String? = null,
         @Serializable(with = LocalDateSerializer::class)
         var registered: LocalDate? = null,
-        var latitude : Double = 0.0,
+        var latitude: Double = 0.0,
         var longitude: Double = 0.0,
         var tags: List<String> = emptyList(),
         var partners: List<Partner> = emptyList(),
@@ -166,6 +211,7 @@ class DirectEncodingTest : StringSpec({
         BLUE,
         GREEN;
     }
+
     @Serializable
     class Partner(
         val id: Long = 0,

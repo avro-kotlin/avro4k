@@ -1,4 +1,4 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.encoder.avro
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException

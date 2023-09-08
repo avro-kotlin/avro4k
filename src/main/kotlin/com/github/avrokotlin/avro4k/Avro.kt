@@ -3,19 +3,12 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
-import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
-import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
-import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
-import com.github.avrokotlin.avro4k.io.AvroFormat
-import com.github.avrokotlin.avro4k.io.AvroInputStream
-import com.github.avrokotlin.avro4k.io.AvroOutputStream
+import com.github.avrokotlin.avro4k.encoder.avro.RootRecordEncoder
+import com.github.avrokotlin.avro4k.encoder.direct.DirectRootRecordEncoder
+import com.github.avrokotlin.avro4k.io.*
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
-import kotlinx.serialization.BinaryFormat
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialFormat
-import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -202,6 +195,11 @@ class Avro(
          encodeFormat = AvroEncodeFormat.Data()
       }.to(baos).write(value).close()
       return baos.toByteArray()
+   }
+
+   fun <T> encode(avroEncoder: AvroEncoder, serializer: SerializationStrategy<T>, obj: T, schema: Schema = schema(serializer)) {      
+      val encoder = DirectRootRecordEncoder(schema, serializersModule, avroEncoder)
+      encoder.encodeSerializableValue(serializer, obj)
    }
 
    /**

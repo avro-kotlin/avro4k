@@ -1,6 +1,6 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.encoder.direct
 
-import com.github.avrokotlin.avro4k.Record
+import com.github.avrokotlin.avro4k.io.AvroEncoder
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -12,14 +12,14 @@ import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
-class RootRecordEncoder(private val schema: Schema,
-                        override val serializersModule: SerializersModule,
-                        private val callback: (Record) -> Unit) : AbstractEncoder() {
+class DirectRootRecordEncoder(private val schema: Schema,
+                              override val serializersModule: SerializersModule,
+                              private val avroEncoder: AvroEncoder) : AbstractEncoder() {
 
    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
       return when (descriptor.kind) {
-         is StructureKind.CLASS -> RecordEncoder(schema, serializersModule, callback)
-         is PolymorphicKind -> UnionEncoder(schema,serializersModule,callback)
+         is StructureKind.CLASS -> RecordEncoder(schema, serializersModule, avroEncoder)
+         is PolymorphicKind -> UnionEncoder(schema,serializersModule, avroEncoder)
          else -> throw SerializationException("Unsupported root element passed to root record encoder")
       }
    }

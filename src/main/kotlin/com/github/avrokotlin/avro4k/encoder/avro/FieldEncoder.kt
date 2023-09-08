@@ -1,4 +1,4 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.encoder.avro
 
 import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Schema
@@ -10,7 +10,10 @@ interface ExtendedEncoder : Encoder {
    fun encodeFixed(fixed: GenericFixed)
 }
 
-interface FieldEncoder : ExtendedEncoder {
+interface FieldEncoder : ExtendedEncoder, SchemaBasedEncoder {
    fun addValue(value: Any)
-   fun fieldSchema(): Schema
+}
+
+interface SchemaBasedEncoder {
+   fun fieldSchema() : Schema
 }

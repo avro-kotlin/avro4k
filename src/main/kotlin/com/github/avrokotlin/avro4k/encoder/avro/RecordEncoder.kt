@@ -1,4 +1,4 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.encoder.avro
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.ListRecord

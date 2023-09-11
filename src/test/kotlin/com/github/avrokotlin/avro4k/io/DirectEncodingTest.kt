@@ -73,6 +73,13 @@ class DirectEncodingTest : StringSpec({
         byteArray.isNotEmpty() shouldBe true
 
     }
+    "Encode polymorphic" {
+        val buffer = Buffer()
+        val avroEncoder = AvroBinaryEncoder(buffer)
+        Avro.default.encode(avroEncoder, Union.serializer(), PossibleType1("name"), Avro.default.schema(Union.serializer()))
+        avroEncoder.flush()
+        buffer.readByteArray().isEmpty() shouldBe false 
+    }
     "Encode primitives" {
         val buffer = Buffer()
         val avroEncoder = AvroBinaryEncoder(buffer)

@@ -2,12 +2,9 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.RecordNaming
-import com.github.avrokotlin.avro4k.getAvroName
-import com.github.avrokotlin.avro4k.getElementAvroName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
@@ -18,7 +15,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -26,16 +22,15 @@ import org.apache.avro.SchemaBuilder
 @ExperimentalSerializationApi
 class ClassSchemaFor(
    private val descriptor: SerialDescriptor,
-   private val configuration: AvroConfiguration,
-   private val serializersModule: SerializersModule,
+   private val avro: Avro,
    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
-   private val naming = descriptor.getAvroName(DefaultNamingStrategy)
+   private val naming = avro.nameResolver.resolveTypeName(descriptor)
    private val json by lazy {
       Json{
-         serializersModule = this@ClassSchemaFor.serializersModule
+         serializersModule = avro.serializersModule
       }
    }
 
@@ -78,12 +73,11 @@ class ClassSchemaFor(
 
       val fieldDescriptor = descriptor.getElementDescriptor(index)
       val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
-      val fieldNaming = descriptor.getElementAvroName(configuration.namingStrategy, index)
+      val fieldNaming = avro.nameResolver.resolveElementName(descriptor, index)
       val schema = schemaFor(
-         serializersModule,
+         avro,
          fieldDescriptor,
          descriptor.getElementAnnotations(index),
-         configuration,
          resolvedSchemas
       ).schema()
 
@@ -93,8 +87,8 @@ class ClassSchemaFor(
       val (size, name) = when (val fieldFixedSize = annos.fixed()) {
          null -> {
             val fieldTypeFixedSize = AnnotationExtractor(fieldDescriptor.annotations).fixed()
-            val fieldTypeName = fieldDescriptor.getAvroName(configuration.namingStrategy)
-            fieldTypeFixedSize to fieldTypeName.name
+            val fieldTypeName = avro.configuration.namingStrategy.to(avro.nameResolver.resolveTypeName(fieldDescriptor).name)
+            fieldTypeFixedSize to fieldTypeName
          }
          else -> fieldFixedSize to fieldNaming.name
       }
@@ -146,7 +140,7 @@ class ClassSchemaFor(
 
          else -> json.parseToJsonElement(annotationDefaultValue).convertToAvroDefault()
       }
-   } ?: if (configuration.implicitNulls && fieldDescriptor.isNullable) {
+   } ?: if (avro.configuration.implicitNulls && fieldDescriptor.isNullable) {
       Schema.Field.NULL_DEFAULT_VALUE
    } else null
 

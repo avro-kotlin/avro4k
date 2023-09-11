@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.getSchemaNameForUnion
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -20,14 +20,16 @@ import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
 abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
-    abstract val configuration: AvroConfiguration
+    abstract val avro: Avro
+    final override val serializersModule: SerializersModule
+        get() = avro.serializersModule
 
     @Suppress("UNCHECKED_CAST")
     final override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         val value = decodeAny()
         return when (descriptor.kind) {
-            StructureKind.CLASS, StructureKind.OBJECT -> RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
-            StructureKind.MAP -> MapDecoder(currentSchema, value as Map<String, *>, serializersModule, configuration)
+            StructureKind.CLASS, StructureKind.OBJECT -> RecordDecoder(value as GenericRecord, avro)
+            StructureKind.MAP -> MapDecoder(currentSchema, value as Map<String, *>, avro)
             StructureKind.LIST -> when (descriptor.getElementDescriptor(0).kind) {
                 PrimitiveKind.BYTE -> when (value) {
                     is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray(), serializersModule)
@@ -38,8 +40,8 @@ abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
                 }
 
                 else -> when (value) {
-                    is List<*> -> ListDecoder(currentSchema, value, serializersModule, configuration)
-                    is Array<*> -> ListDecoder(currentSchema, value.asList(), serializersModule, configuration)
+                    is List<*> -> ListDecoder(currentSchema, value, avro)
+                    is Array<*> -> ListDecoder(currentSchema, value.asList(), avro)
                     else -> throw SerializationException("Unable to decode ${value::class} as byte array")
                 }
             }
@@ -51,12 +53,12 @@ abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
     }
 
     override fun decodeString() = when (val value = decodeAny()) {
-            is CharSequence -> value.toString()
-            is GenericData.Fixed -> String(value.bytes())
-            is ByteArray -> String(value)
-            is ByteBuffer -> String(value.array())
-            else -> throw SerializationException("Unsupported type for String [is ${value.javaClass}]")
-        }
+        is CharSequence -> value.toString()
+        is GenericData.Fixed -> String(value.bytes())
+        is ByteArray -> String(value)
+        is ByteBuffer -> String(value.array())
+        else -> throw SerializationException("Unsupported type for String [is ${value.javaClass}]")
+    }
 
     final override fun decodeBoolean() = when (val value = decodeAny()) {
         is Boolean -> value
@@ -67,7 +69,10 @@ abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
 
     final override fun decodeByte() = when (val value = decodeAny()) {
         is Byte -> value
-        is Int -> if (value <= Byte.MAX_VALUE && value >= Byte.MIN_VALUE) value.toByte() else throw SerializationException("Out of bound integer cannot be converted to byte [$value]")
+        is Int -> if (value <= Byte.MAX_VALUE && value >= Byte.MIN_VALUE) value.toByte() else throw SerializationException(
+            "Out of bound integer cannot be converted to byte [$value]"
+        )
+
         else -> throw SerializationException("Unsupported type for Byte ${value::class}")
     }
 
@@ -129,8 +134,11 @@ abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
 
     @ExperimentalSerializationApi
     inner class AvroPolymorphicDecoder(private val value: GenericRecord) : PolymorphicDecoder() {
-        override fun decodeSerialName(polymorphicDescriptor: SerialDescriptor, possibleSubclasses: Sequence<SerialDescriptor>): String {
-            return possibleSubclasses.firstOrNull { it.getSchemaNameForUnion().fullName == value.schema.fullName }
+        override fun decodeSerialName(
+            polymorphicDescriptor: SerialDescriptor,
+            possibleSubclasses: Sequence<SerialDescriptor>
+        ): String {
+            return possibleSubclasses.firstOrNull { it.getSchemaNameForUnion(avro.nameResolver).fullName == value.schema.fullName }
                 ?.serialName
                 ?: throw SerializationException("Cannot find a subtype of ${polymorphicDescriptor.serialName} that can be used to deserialize a record of schema ${value.schema}.")
         }

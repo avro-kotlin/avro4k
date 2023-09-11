@@ -2,9 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.RecordNaming
-import com.github.avrokotlin.avro4k.getAvroName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -16,7 +14,6 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.descriptors.capturedKClass
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.descriptors.getContextualDescriptor
-import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -48,10 +45,10 @@ interface SchemaFor {
 @ExperimentalSerializationApi
 class EnumSchemaFor(
    private val descriptor: SerialDescriptor,
-   private val configuration: AvroConfiguration,
+   private val avro: Avro,
 ) : SchemaFor {
    override fun schema(): Schema {
-      val naming = descriptor.getAvroName(DefaultNamingStrategy)
+      val naming = avro.nameResolver.resolveTypeName(descriptor)
       val entityAnnotations = AnnotationExtractor(descriptor.annotations)
       val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 
@@ -74,24 +71,21 @@ class EnumSchemaFor(
 
 @ExperimentalSerializationApi
 class PairSchemaFor(private val descriptor: SerialDescriptor,
-                    private val configuration: AvroConfiguration,
-                    private val serializersModule: SerializersModule,
+                    private val avro: Avro,
                     private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
    override fun schema(): Schema {
       val a = schemaFor(
-         serializersModule,
+          avro,
          descriptor.getElementDescriptor(0),
          descriptor.getElementAnnotations(0),
-         configuration,
          resolvedSchemas
       )
       val b = schemaFor(
-         serializersModule,
+         avro,
          descriptor.getElementDescriptor(1),
          descriptor.getElementAnnotations(1),
-         configuration,
          resolvedSchemas
       )
       return SchemaBuilder.unionOf()
@@ -104,8 +98,7 @@ class PairSchemaFor(private val descriptor: SerialDescriptor,
 
 @ExperimentalSerializationApi
 class ListSchemaFor(private val descriptor: SerialDescriptor,
-                    private val serializersModule: SerializersModule,
-                    private val configuration: AvroConfiguration,
+                    private val avro: Avro,
                     private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
@@ -115,10 +108,9 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
       return when (descriptor.unwrapValueClass.getElementDescriptor(0).kind) {
          PrimitiveKind.BYTE -> SchemaBuilder.builder().bytesType()
          else -> {
-            val elementSchema = schemaFor(serializersModule,
+            val elementSchema = schemaFor(avro,
                elementType,
                descriptor.getElementAnnotations(0),
-               configuration,
                resolvedSchemas
             ).schema()
             return Schema.createArray(elementSchema)
@@ -129,8 +121,7 @@ class ListSchemaFor(private val descriptor: SerialDescriptor,
 
 @ExperimentalSerializationApi
 class MapSchemaFor(private val descriptor: SerialDescriptor,
-                   private val serializersModule: SerializersModule,
-                   private val configuration: AvroConfiguration,
+                   private val avro: Avro,
                    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
 ) : SchemaFor {
 
@@ -140,10 +131,9 @@ class MapSchemaFor(private val descriptor: SerialDescriptor,
          is PrimitiveKind.STRING -> {
             val valueType = descriptor.getElementDescriptor(1)
             val valueSchema = schemaFor(
-               serializersModule,
+               avro,
                valueType,
                descriptor.getElementAnnotations(1),
-               configuration,
                resolvedSchemas
             ).schema()
             return Schema.createMap(valueSchema)
@@ -177,10 +167,9 @@ class NullableSchemaFor(
 
 @OptIn(InternalSerializationApi::class)
 @ExperimentalSerializationApi
-fun schemaFor(serializersModule: SerializersModule,
+fun schemaFor(avro: Avro,
               descriptor: SerialDescriptor,
               annos: List<Annotation>,
-              configuration: AvroConfiguration,
               resolvedSchemas: MutableMap<RecordNaming, Schema>
 ): SchemaFor {
 
@@ -191,7 +180,7 @@ fun schemaFor(serializersModule: SerializersModule,
    } else descriptor
 
    val schemaFor: SchemaFor = when (underlying) {
-      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, serializersModule, configuration.namingStrategy))
+      is AvroDescriptor -> SchemaFor.const(underlying.schema(annos, avro.serializersModule, avro.configuration.namingStrategy))
       else -> when (descriptor.unwrapValueClass.kind) {
          PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
          PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
@@ -201,28 +190,27 @@ fun schemaFor(serializersModule: SerializersModule,
          PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
          PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
          PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-         SerialKind.ENUM -> EnumSchemaFor(descriptor, configuration)
+         SerialKind.ENUM -> EnumSchemaFor(descriptor, avro)
          SerialKind.CONTEXTUAL -> schemaFor(
-            serializersModule,
+            avro,
             requireNotNull(
-               serializersModule.getContextualDescriptor(descriptor.unwrapValueClass)
+               avro.serializersModule.getContextualDescriptor(descriptor.unwrapValueClass)
                   ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
             ) {
                "Contextual or default serializer not found for $descriptor "
             },
             annos,
-            configuration,
             resolvedSchemas
          )
 
          StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
-            "kotlin.Pair" -> PairSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
-            else -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
+            "kotlin.Pair" -> PairSchemaFor(descriptor, avro, resolvedSchemas)
+            else -> ClassSchemaFor(descriptor, avro, resolvedSchemas)
          }
 
-         StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
-         StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
-         is PolymorphicKind -> UnionSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
+         StructureKind.LIST -> ListSchemaFor(descriptor, avro, resolvedSchemas)
+         StructureKind.MAP -> MapSchemaFor(descriptor, avro, resolvedSchemas)
+         is PolymorphicKind -> UnionSchemaFor(descriptor, avro, resolvedSchemas)
          else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
       }
    }

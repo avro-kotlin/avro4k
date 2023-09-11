@@ -1,44 +1,53 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.MutableListRecord
 import com.github.avrokotlin.avro4k.encodeToGenericData
-import com.github.avrokotlin.avro4k.getAvroName
-import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import com.github.avrokotlin.avro4k.schema.getTypeNamed
+import com.github.avrokotlin.avro4k.shouldBeContentOf
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.nullable
-import org.apache.avro.generic.GenericRecordBuilder
 
 
 @OptIn(ExperimentalSerializationApi::class)
 class UnionEncoderTest : WordSpec({
 
     "UnionEncoder" should {
-        "encode polymorphic types child1"  {
+        "encode polymorphic types child1" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
             val record = Avro.default.encodeToGenericData<Parent>(schema, Child1(17, true))
-            record shouldBe GenericRecordBuilder(schema.getTypeNamed(Child1.serializer().descriptor.getAvroName(DefaultNamingStrategy)))
-                    .set("i", 17)
-                    .set("toto", true)
-                    .build()
+            record shouldBeContentOf MutableListRecord(
+                schema.getTypeNamed(
+                    Avro.default.nameResolver.resolveTypeName(
+                        Child1.serializer().descriptor
+                    )
+                )!!
+            ) {
+                this["i"] = 17
+                this["toto"] = true
+            }
         }
-        "encode polymorphic types child2"  {
+        "encode polymorphic types child2" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            println(schema)
-
             val record = Avro.default.encodeToGenericData<Parent>(schema, Child2("hello", 56.12, null))
-            record shouldBe GenericRecordBuilder(schema.getTypeNamed(Child2.serializer().descriptor.getAvroName(DefaultNamingStrategy)))
-                    .set("s", "hello")
-                    .set("z", 56.12)
-                    .set("toto", null)
-                    .build()
+            record shouldBeContentOf MutableListRecord(
+                schema.getTypeNamed(
+                    Avro.default.nameResolver.resolveTypeName(
+                        Child2.serializer().descriptor
+                    )
+                )!!
+            ) {
+                this["s"] = "hello"
+                this["z"] = 56.12
+                this["toto"] = null
+            }
         }
-        "encode polymorphic types null"  {
+        "encode polymorphic types null" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
             val record = Avro.default.encodeToGenericData<Parent?>(schema, null)

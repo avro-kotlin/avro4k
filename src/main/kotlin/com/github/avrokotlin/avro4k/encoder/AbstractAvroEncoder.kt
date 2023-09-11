@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.getElementAvroName
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.getSchemaNameForUnion
 import com.github.avrokotlin.avro4k.schema.getTypeNamed
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -30,7 +29,9 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
     abstract val currentUnresolvedSchema: Schema
 
 
-    abstract val configuration: AvroConfiguration
+    abstract val avro: Avro
+    final override val serializersModule: SerializersModule
+        get() = avro.serializersModule
 
     protected abstract fun encodeNativeValue(value: Any?)
 
@@ -69,7 +70,9 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
         encodeNativeValue(value)
 
     final override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) =
-        encodeNativeValue(GenericData.get().createEnum(enumDescriptor.getElementName(index), currentResolvedSchema) as EnumSymbol)
+        encodeNativeValue(
+            GenericData.get().createEnum(enumDescriptor.getElementName(index), currentResolvedSchema) as EnumSymbol
+        )
 
     final override fun encodeChar(value: Char) =
         encodeNativeValue(value.code)
@@ -98,23 +101,38 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
 
     //region structure encode methods
 
-    private fun typeError(schema: Schema, descriptor: SerialDescriptor) = SerializationException("Cannot write schema type of ${schema.type} for descriptor $descriptor")
+    private fun typeError(schema: Schema, descriptor: SerialDescriptor) =
+        SerializationException("Cannot write schema type of ${schema.type} for descriptor $descriptor")
 
-    override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder = when (descriptor.kind) {
-        StructureKind.LIST -> beginList(descriptor, descriptor.getElementDescriptor(0), collectionSize)
-        StructureKind.MAP -> beginMap(collectionSize)
-        else -> throw SerializationException("beginCollection expected descriptor kind as a MAP or LIST, but had ${descriptor.kind}. Descriptor: $descriptor")
-    }
+    override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder =
+        when (descriptor.kind) {
+            StructureKind.LIST -> beginList(descriptor, descriptor.getElementDescriptor(0), collectionSize)
+            StructureKind.MAP -> beginMap(collectionSize)
+            else -> throw SerializationException("beginCollection expected descriptor kind as a MAP or LIST, but had ${descriptor.kind}. Descriptor: $descriptor")
+        }
 
-    private fun beginList(listDescriptor: SerialDescriptor, elementDescriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder = when (currentResolvedSchema.type) {
-        Schema.Type.ARRAY -> ListEncoder(currentResolvedSchema, collectionSize, serializersModule, configuration) { encodeNativeValue(it) }
+    private fun beginList(
+        listDescriptor: SerialDescriptor,
+        elementDescriptor: SerialDescriptor,
+        collectionSize: Int
+    ): CompositeEncoder = when (currentResolvedSchema.type) {
+        Schema.Type.ARRAY -> ListEncoder(currentResolvedSchema, collectionSize, avro) { encodeNativeValue(it) }
         Schema.Type.BYTES -> when {
-            elementDescriptor.kind == PrimitiveKind.BYTE -> BytesEncoder(collectionSize, serializersModule) { encodeNativeValue(it) }
+            elementDescriptor.kind == PrimitiveKind.BYTE -> BytesEncoder(
+                collectionSize,
+                serializersModule
+            ) { encodeNativeValue(it) }
+
             else -> throw typeError(currentResolvedSchema, listDescriptor)
         }
 
         Schema.Type.FIXED -> when {
-            elementDescriptor.kind == PrimitiveKind.BYTE -> ZeroPaddedBytesEncoder(currentResolvedSchema, collectionSize, serializersModule) { encodeNativeValue(it) }
+            elementDescriptor.kind == PrimitiveKind.BYTE -> ZeroPaddedBytesEncoder(
+                currentResolvedSchema,
+                collectionSize,
+                serializersModule
+            ) { encodeNativeValue(it) }
+
             else -> throw typeError(currentResolvedSchema, listDescriptor)
         }
 
@@ -122,14 +140,14 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
     }
 
     private fun beginMap(collectionSize: Int) = when (currentResolvedSchema.type) {
-        Schema.Type.MAP -> MapEncoder(currentResolvedSchema, collectionSize, serializersModule, configuration) { encodeNativeValue(it) }
+        Schema.Type.MAP -> MapEncoder(currentResolvedSchema, collectionSize, avro) { encodeNativeValue(it) }
         else -> throw SerializationException("beginMap has been called with a non-compatible schema type. Expected MAP. Actual schema: $currentResolvedSchema")
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.kind) {
             StructureKind.CLASS,
-            StructureKind.OBJECT -> RecordEncoder(currentResolvedSchema, serializersModule, configuration) { encodeNativeValue(it) }
+            StructureKind.OBJECT -> RecordEncoder(currentResolvedSchema, avro) { encodeNativeValue(it) }
 
             is PolymorphicKind -> AvroPolymorphicEncoder()
             else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
@@ -159,14 +177,23 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
     }
 
     internal open fun doResolveElementSchema(descriptor: SerialDescriptor, index: Int, isValueNull: Boolean): Schema {
-        return doResolveSchema(descriptor.getElementDescriptor(index), isValueNull) { descriptor.getElementAvroName(configuration.namingStrategy, index).namespace }
+        return doResolveSchema(
+            descriptor.getElementDescriptor(index),
+            isValueNull
+        ) {
+            avro.nameResolver.resolveElementName(descriptor, index).namespace
+        }
     }
 
     internal fun resolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean) {
         currentResolvedSchema = doResolveSchema(descriptor, isValueNull)
     }
 
-    private fun doResolveSchema(descriptor: SerialDescriptor, isValueNull: Boolean, namespaceOverrideSupplier: () -> String? = { null }): Schema {
+    private fun doResolveSchema(
+        descriptor: SerialDescriptor,
+        isValueNull: Boolean,
+        namespaceOverrideSupplier: () -> String? = { null }
+    ): Schema {
         if (currentUnresolvedSchema.type == Schema.Type.UNION) {
             if (descriptor.isInline)
                 return doResolveElementSchema(descriptor, 0, isValueNull)
@@ -176,7 +203,7 @@ abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
                 return NULL_SCHEMA
             }
             if (descriptor.kind !is PolymorphicKind) {
-                val typeName = descriptor.getSchemaNameForUnion().let { typeName ->
+                val typeName = descriptor.getSchemaNameForUnion(avro.nameResolver).let { typeName ->
                     val namespaceOverride = namespaceOverrideSupplier()
                     if (namespaceOverride != null)
                         typeName.copy(namespace = namespaceOverride)

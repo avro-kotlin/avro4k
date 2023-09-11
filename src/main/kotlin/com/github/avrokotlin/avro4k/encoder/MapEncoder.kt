@@ -1,22 +1,20 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.util.Utf8
 
 
 @ExperimentalSerializationApi
 class MapEncoder(
-        mapSchema: Schema,
-        mapSize: Int,
-        override val serializersModule: SerializersModule,
-        override val configuration: AvroConfiguration,
-        private val callback: (Map<Utf8, *>) -> Unit,
+    mapSchema: Schema,
+    mapSize: Int,
+    override val avro: Avro,
+    private val callback: (Map<Utf8, *>) -> Unit,
 ) : AvroStructureEncoder() {
     private val map = HashMap<Utf8, Any?>(Math.multiplyExact(mapSize, 2)) // times 2 to prevent the map growing
     private var currentKey: Utf8? = null

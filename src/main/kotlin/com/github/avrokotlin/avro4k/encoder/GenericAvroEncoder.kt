@@ -1,15 +1,13 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
 class GenericAvroEncoder(
-        schema: Schema,
-        override val serializersModule: SerializersModule,
-        override val configuration: AvroConfiguration,
+    schema: Schema,
+    override val avro: Avro,
 ) : AbstractAvroEncoder() {
     var encodedValue: Any? = null
         private set

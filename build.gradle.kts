@@ -132,6 +132,11 @@ publishing {
                   name.set("Thorsten Hake")
                   email.set("mail@thorsten-hake.com")
                }
+               developer {
+                  id.set("chuckame")
+                  name.set("Chuckame")
+                  email.set("chuckame@gmail.com")
+               }
             }
          }
       }

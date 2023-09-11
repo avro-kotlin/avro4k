@@ -147,9 +147,11 @@ class AvroOutputStreamBuilder<T>(
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
     override val serializersModule: SerializersModule = defaultModule,
-    private val configuration: AvroConfiguration = AvroConfiguration()
+    internal val configuration: AvroConfiguration = AvroConfiguration(),
 ) : SerialFormat, BinaryFormat {
-    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
+    internal val nameResolver = AvroNameResolver(this)
+
+   constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
 
     companion object {
         val defaultModule = SerializersModule {
@@ -274,7 +276,7 @@ class Avro(
     }
 
     fun <T> encodeToGenericData(serializer: SerializationStrategy<T>, schema: Schema, value: T): Any? =
-        GenericAvroEncoder(schema, serializersModule, configuration).apply {
+        GenericAvroEncoder(schema, this).apply {
             resolveSchema(serializer.descriptor, value == null)
             encodeSerializableValue(serializer, value)
         }.encodedValue
@@ -288,7 +290,7 @@ class Avro(
         deserializer: DeserializationStrategy<T>,
         record: GenericRecord,
     ): T {
-        return GenericAvroDecoder(record, record.schema, serializersModule, configuration)
+        return GenericAvroDecoder(record, record.schema, this)
             .decodeSerializableValue(deserializer)
     }
 
@@ -297,15 +299,14 @@ class Avro(
         schema: Schema,
         value: Any?,
     ): T? {
-        return GenericAvroDecoder(value, schema, serializersModule, configuration)
+        return GenericAvroDecoder(value, schema, this)
             .decodeNullableSerializableValue(deserializer)
     }
 
     fun schema(descriptor: SerialDescriptor): Schema = schemaFor(
-        serializersModule,
+        this,
         descriptor,
         descriptor.annotations,
-        configuration,
         mutableMapOf()
     ).schema()
 

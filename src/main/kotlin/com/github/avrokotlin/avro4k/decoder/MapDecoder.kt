@@ -1,18 +1,16 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
 class MapDecoder(
     private val schema: Schema,
     map: Map<*, *>,
-    override val serializersModule: SerializersModule,
-    override val configuration: AvroConfiguration
+    override val avro: Avro
 ) : AvroStructureDecoder() {
 
     init {

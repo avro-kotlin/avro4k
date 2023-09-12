@@ -31,29 +31,35 @@ class MapEncoderTest : StringSpec({
         "encode int key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
             shouldThrow<SerializationException> {
-                Avro.default.encodeToGenericData(schema, mapOf(12 to "a", 56 to "b", 25 to "c"))
+                Avro.default.encodeToGenericData(mapOf(12 to "a", 56 to "b", 25 to "c"), schema)
             }
         }
         "encode value class key as string" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
-            val encoded = Avro.default.encodeToGenericData(schema, mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3"))
+            val encoded = Avro.default.encodeToGenericData(
+                mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3"),
+                schema
+            )
             encoded shouldBe mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3"))
         }
         "encode contextual key as string" {
             val schema = SchemaBuilder.record("ContextMapKey").fields().name("map").type(SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
-            val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).encodeToGenericData(schema, ContextMapKey(mapOf(NonSerializableClass("key") to "value")))
+            val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).encodeToGenericData(
+                ContextMapKey(mapOf(NonSerializableClass("key") to "value")),
+                schema
+            )
             encoded shouldBeContentOf ListRecord(schema, mapOf(Utf8("key") to Utf8("value")))
         }
         "encode structure key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
             shouldThrowWithMessage<SerializationException>("Cannot encode structure for map keys: only allowed to encode primitive types for map keys") {
-                Avro.default.encodeToGenericData(schema, mapOf(Foo("", true) to "data"))
+                Avro.default.encodeToGenericData(mapOf(Foo("", true) to "data"), schema)
             }
         }
         "encode collection key should fail" {
             val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
             shouldThrowWithMessage<SerializationException>("Cannot encode collection for map keys: only allowed to encode primitive types for map keys") {
-                Avro.default.encodeToGenericData(schema, mapOf(listOf("test") to "data"))
+                Avro.default.encodeToGenericData(mapOf(listOf("test") to "data"), schema)
             }
         }
     }

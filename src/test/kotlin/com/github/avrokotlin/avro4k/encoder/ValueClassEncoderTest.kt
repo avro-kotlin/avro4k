@@ -17,8 +17,10 @@ class ValueClassEncoderTest : StringSpec({
         val uuidStr = uuid.toString()
         val uuidW = ValueClassSchemaTest.UuidWrapper(uuid)
         val schema = Avro.default.schema(ValueClassSchemaTest.ContainsInlineTest.serializer())
-        Avro.default.encodeToGenericData(ValueClassSchemaTest.ContainsInlineTest.serializer(),
-            ValueClassSchemaTest.ContainsInlineTest(id, uuidW)) shouldBeContentOf ListRecord(schema, Utf8(id.a), Utf8(uuidStr))
+        Avro.default.encodeToGenericData(
+            ValueClassSchemaTest.ContainsInlineTest(id, uuidW),
+            ValueClassSchemaTest.ContainsInlineTest.serializer()
+        ) shouldBeContentOf ListRecord(schema, Utf8(id.a), Utf8(uuidStr))
     }
 
     "encode value class even if inside a polymorphic type" {

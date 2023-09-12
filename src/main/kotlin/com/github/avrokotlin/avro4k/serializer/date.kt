@@ -2,8 +2,8 @@
 
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
-import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
 import com.github.avrokotlin.avro4k.schema.AvroDescriptor
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -31,10 +31,10 @@ object LocalDateSerializer : AvroSerializer<LocalDate>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: LocalDate) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalDate) =
             encoder.encodeInt(obj.toEpochDay().toInt())
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): LocalDate =
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalDate =
             LocalDate.ofEpochDay(decoder.decodeLong())
 }
 
@@ -46,10 +46,10 @@ object LocalTimeSerializer : AvroSerializer<LocalTime>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: LocalTime) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalTime) =
             encoder.encodeInt(obj.toSecondOfDay() * 1000 + obj.nano / 1000)
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): LocalTime {
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalTime {
         // avro stores times as either millis since midnight or micros since midnight
         return when (schema.logicalType) {
             is LogicalTypes.TimeMicros -> LocalTime.ofNanoOfDay(decoder.decodeInt() * 1000L)
@@ -68,10 +68,10 @@ object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
                 }
             }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: LocalDateTime) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalDateTime) =
             InstantSerializer.encodeAvroValue(schema, encoder, obj.toInstant(ZoneOffset.UTC))
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): LocalDateTime =
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): LocalDateTime =
             LocalDateTime.ofInstant(InstantSerializer.decodeAvroValue(schema, decoder), ZoneOffset.UTC)
 }
 
@@ -83,10 +83,10 @@ object TimestampSerializer : AvroSerializer<Timestamp>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: Timestamp) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Timestamp) =
             encoder.encodeLong(obj.time)
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): Timestamp =
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Timestamp =
             Timestamp(decoder.decodeLong())
 }
 
@@ -98,10 +98,10 @@ object InstantSerializer : AvroSerializer<Instant>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: Instant) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Instant) =
             encoder.encodeLong(obj.toEpochMilli())
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): Instant =
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Instant =
             Instant.ofEpochMilli(decoder.decodeLong())
 }
 
@@ -117,9 +117,9 @@ object InstantToMicroSerializer : AvroSerializer<Instant>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: Instant) =
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Instant) =
             encoder.encodeLong(ChronoUnit.MICROS.between(Instant.EPOCH, obj))
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): Instant =
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): Instant =
             Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS)
 }

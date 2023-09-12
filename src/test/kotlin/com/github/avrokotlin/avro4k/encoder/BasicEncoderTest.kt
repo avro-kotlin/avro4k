@@ -27,7 +27,7 @@ class BasicEncoderTest : WordSpec({
                     .name("s").type(Schema.createFixed("FixedString", null, null, 7)).noDefault()
                     .endRecord()
 
-            val record = Avro.default.encodeToGenericData<StringFoo>(schema, StringFoo("hello"))
+            val record = Avro.default.encodeToGenericData<StringFoo>(StringFoo("hello"), schema)
             record shouldBeContentOf
                     ListRecord(schema, GenericData.get().createFixed(null, byteArrayOf(104, 101, 108, 108, 111, 0, 0), schema.fields[0].schema()))
         }
@@ -78,50 +78,50 @@ class BasicEncoderTest : WordSpec({
         "encode strings as UTF8" {
 
             val schema = Schema.create(Schema.Type.STRING)
-            val record = Avro.default.encodeToGenericData(schema, "hello")
+            val record = Avro.default.encodeToGenericData("hello", schema)
             record shouldBe Utf8("hello")
         }
         "encode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
             val schema = Schema.createFixed("FixedString", null, null, 7)
 
-            val record = Avro.default.encodeToGenericData(schema, "hello")
+            val record = Avro.default.encodeToGenericData("hello", schema)
             record shouldBe
                     GenericData.get().createFixed(null, byteArrayOf(104, 101, 108, 108, 111, 0, 0), schema)
         }
         "encode longs" {
             val schema = Schema.create(Schema.Type.LONG)
             val value = 123456L
-            Avro.default.encodeToGenericData(schema, value) shouldBe value
+            Avro.default.encodeToGenericData(value, schema) shouldBe value
         }
         "encode doubles" {
             val schema = Schema.create(Schema.Type.DOUBLE)
             val value = 123.435
-            Avro.default.encodeToGenericData(schema, value) shouldBe value
+            Avro.default.encodeToGenericData(value, schema) shouldBe value
         }
         "encode booleans" {
             val schema = Schema.create(Schema.Type.BOOLEAN)
             val value = true
-            Avro.default.encodeToGenericData(schema, value) shouldBe value
+            Avro.default.encodeToGenericData(value, schema) shouldBe value
         }
         "encode floats" {
             val schema = Schema.create(Schema.Type.FLOAT)
             val value = 123.456f
-            Avro.default.encodeToGenericData(schema, value) shouldBe value
+            Avro.default.encodeToGenericData(value, schema) shouldBe value
         }
         "encode ints" {
             val schema = Schema.create(Schema.Type.INT)
             val value = 123
-            Avro.default.encodeToGenericData(schema, value) shouldBe value
+            Avro.default.encodeToGenericData(value, schema) shouldBe value
         }
         "encode shorts" {
             val schema = Schema.create(Schema.Type.INT)
             val value = 123.toShort()
-            Avro.default.encodeToGenericData(schema, value) shouldBe value.toInt()
+            Avro.default.encodeToGenericData(value, schema) shouldBe value.toInt()
         }
         "encode bytes" {
             val schema = Schema.create(Schema.Type.INT)
             val value = 123.toByte()
-            Avro.default.encodeToGenericData(schema, value) shouldBe value.toInt()
+            Avro.default.encodeToGenericData(value, schema) shouldBe value.toInt()
         }
     }
 

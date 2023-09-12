@@ -21,8 +21,8 @@ class SealedClassEncoderTest : StringSpec({
       addRecord.put("right", 2)
       record.put("notNullable", addRecord)
       Avro.default.encodeToGenericData(
-              ReferencingSealedClass.serializer(),
-              ReferencingSealedClass(Operation.Binary.Add(1, 2))
+          ReferencingSealedClass(Operation.Binary.Add(1, 2)),
+          ReferencingSealedClass.serializer()
       ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
    }
    "support nullable sealed classes" {
@@ -30,16 +30,16 @@ class SealedClassEncoderTest : StringSpec({
       val addSchema = Avro.default.schema(Operation.Binary.Add.serializer())
 
       Avro.default.encodeToGenericData(
-              ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
-              Operation.Binary.Add(1, 2)
-      )
+          ReferencingNullableSealedClass(
+          Operation.Binary.Add(1, 2)
+  ), ReferencingNullableSealedClass.serializer()
       ) shouldBeContentOf ListRecord(schema, ListRecord(addSchema, 1, 2))
 
 
       Avro.default.encodeToGenericData(
-              ReferencingNullableSealedClass.serializer(), ReferencingNullableSealedClass(
-              null
-      )
+          ReferencingNullableSealedClass(
+          null
+  ), ReferencingNullableSealedClass.serializer()
       ) shouldBeContentOf ListRecord(schema, null)
    }
 })

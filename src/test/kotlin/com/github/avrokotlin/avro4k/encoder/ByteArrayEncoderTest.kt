@@ -35,7 +35,7 @@ class ByteArrayEncoderTest : FunSpec({
        val schema = SchemaBuilder.record("ByteArrayTest").fields()
                .name("z").type(Schema.createFixed("ByteArray", null, null, 8)).noDefault()
                .endRecord()
-       val record = Avro.default.encodeToGenericData(schema, ByteArrayTest(byteArrayOf(1, 4, 9)))
+       val record = Avro.default.encodeToGenericData(ByteArrayTest(byteArrayOf(1, 4, 9)), schema)
        record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(null, byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9), schema.fields[0].schema()))
    }
 }) {

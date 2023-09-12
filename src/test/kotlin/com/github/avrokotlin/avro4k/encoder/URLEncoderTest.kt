@@ -21,15 +21,15 @@ class URLEncoderTest : FunSpec({
 
       val test = UrlTest(URL("http://www.sksamuel.com"))
 
-       Avro.default.encodeToGenericData(schema, test) shouldBeContentOf ListRecord(schema, Utf8("http://www.sksamuel.com"))
+       Avro.default.encodeToGenericData(test, schema) shouldBeContentOf ListRecord(schema, Utf8("http://www.sksamuel.com"))
    }
 
    test("encode nullable URLs") {
 
       val schema = Avro.default.schema(NullableUrlTest.serializer())
-       Avro.default.encodeToGenericData(schema, NullableUrlTest(URL("http://www.sksamuel.com"))) shouldBeContentOf
+       Avro.default.encodeToGenericData(NullableUrlTest(URL("http://www.sksamuel.com")), schema) shouldBeContentOf
          ListRecord(schema, Utf8("http://www.sksamuel.com"))
-       Avro.default.encodeToGenericData(schema, NullableUrlTest(null)) shouldBeContentOf ListRecord(schema, null)
+       Avro.default.encodeToGenericData(NullableUrlTest(null), schema) shouldBeContentOf ListRecord(schema, null)
 
    }
 }) {

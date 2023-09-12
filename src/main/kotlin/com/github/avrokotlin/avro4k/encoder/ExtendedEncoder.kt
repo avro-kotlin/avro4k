@@ -5,7 +5,7 @@ import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer
 
-interface NativeAvroEncoder : Encoder {
+interface ExtendedEncoder : Encoder {
     val currentResolvedSchema: Schema
     fun encodeBytes(value: ByteBuffer)
     fun encodeFixed(value: GenericFixed)

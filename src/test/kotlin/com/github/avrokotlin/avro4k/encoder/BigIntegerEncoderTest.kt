@@ -21,15 +21,18 @@ class BigIntegerEncoderTest : FunSpec({
 
       val test = BigIntegerTest(BigInteger("123123123123213213213123214325365477686789676234"))
 
-       Avro.default.encodeToGenericData(schema, test) shouldBeContentOf ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
+       Avro.default.encodeToGenericData(test, schema) shouldBeContentOf ListRecord(schema, Utf8("123123123123213213213123214325365477686789676234"))
    }
 
    test("encode nullable big ints") {
 
       val schema = Avro.default.schema(NullableBigIntegerTest.serializer())
-       Avro.default.encodeToGenericData(schema, NullableBigIntegerTest(BigInteger("12312312312321312365477686789676234"))) shouldBeContentOf
+       Avro.default.encodeToGenericData(
+           NullableBigIntegerTest(BigInteger("12312312312321312365477686789676234")),
+           schema
+       ) shouldBeContentOf
          ListRecord(schema, Utf8("12312312312321312365477686789676234"))
-       Avro.default.encodeToGenericData(schema, NullableBigIntegerTest(null)) shouldBeContentOf ListRecord(schema, null)
+       Avro.default.encodeToGenericData(NullableBigIntegerTest(null), schema) shouldBeContentOf ListRecord(schema, null)
 
    }
 }) {

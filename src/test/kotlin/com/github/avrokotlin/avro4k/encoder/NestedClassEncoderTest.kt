@@ -36,7 +36,7 @@ class NestedClassEncoderTest : FunSpec({
 
    test("encode nested class") {
       val b = Birthplace("sammy", Town("Hardwick", 123))
-      val record = Avro.default.encodeToGenericData(Birthplace.serializer(), b)
+      val record = Avro.default.encodeToGenericData(b, Birthplace.serializer())
       record shouldBeContentOf ListRecord(
               birthplaceSchema,
               Utf8("sammy"),
@@ -54,7 +54,7 @@ class NestedClassEncoderTest : FunSpec({
       val prodSchema = Avro.default.schema(Product.serializer())
 
       val p = Product(ProductName("big shoes"))
-      val record = Avro.default.encodeToGenericData(Product.serializer(), p)
+      val record = Avro.default.encodeToGenericData(p, Product.serializer())
       record shouldBeContentOf ListRecord(
               prodSchema,
               ListRecord(

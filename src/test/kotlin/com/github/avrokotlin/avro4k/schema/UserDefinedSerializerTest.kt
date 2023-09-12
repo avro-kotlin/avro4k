@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
-import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
 import com.github.avrokotlin.avro4k.serializer.AvroSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -29,11 +29,11 @@ class UserDefinedSerializerTest : FunSpec({
    @OptIn(ExperimentalSerializationApi::class)
    class StringAsFixedSerializer : AvroSerializer<String>() {
 
-      override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: String) {
+      override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: String) {
          TODO()
       }
 
-      override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): String {
+      override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): String {
          TODO()
       }
 

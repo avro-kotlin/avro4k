@@ -15,11 +15,11 @@ class UnionSchemaFor(
 ) : SchemaFor {
     override fun schema(): Schema {        
         val leafSerialDescriptors =
-            descriptor.possibleSerializationSubclasses(avro.serializersModule).sortedBy { it.serialName }.toList()
+            descriptor.possibleSerializationSubclasses(avro.serializersModule).sortedBy { it.serialName }
         return Schema.createUnion(
             leafSerialDescriptors.map {
                 ClassSchemaFor(it, avro, resolvedSchemas).schema()
-            }
+            }.toList()
         )
     }
 }

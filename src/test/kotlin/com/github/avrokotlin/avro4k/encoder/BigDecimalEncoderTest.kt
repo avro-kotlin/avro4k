@@ -25,7 +25,7 @@ class BigDecimalEncoderTest : FunSpec({
         val s = schema.getField("decimal").schema()
         val bytes = Conversions.DecimalConversion().toBytes(value, s, s.logicalType)
 
-        Avro.default.encodeToGenericData(schema, BigDecimalTest(value)) shouldBeContentOf ListRecord(schema, bytes)
+        Avro.default.encodeToGenericData(BigDecimalTest(value), schema) shouldBeContentOf ListRecord(schema, bytes)
     }
 
     test("encode value as bytes") {
@@ -43,7 +43,7 @@ class BigDecimalEncoderTest : FunSpec({
                 .endRecord()
 
         val valueString = "123.456"
-        Avro.default.encodeToGenericData(schema, BigDecimalTest(BigDecimal(valueString))) shouldBeContentOf ListRecord(schema, valueString)
+        Avro.default.encodeToGenericData(BigDecimalTest(BigDecimal(valueString)), schema) shouldBeContentOf ListRecord(schema, valueString)
     }
 
     test("encode value as string") {
@@ -51,13 +51,13 @@ class BigDecimalEncoderTest : FunSpec({
 
         val value = "12.34"
 
-        avro.encodeToGenericData(Schema.create(Schema.Type.STRING), BigDecimal(value)) shouldBe Utf8(value)
+        avro.encodeToGenericData(BigDecimal(value), Schema.create(Schema.Type.STRING)) shouldBe Utf8(value)
     }
 
     test("encode null field") {
         val schema = Avro.default.schema(NullableBigDecimalTest.serializer())
 
-        Avro.default.encodeToGenericData(schema, NullableBigDecimalTest(null)) shouldBeContentOf ListRecord(schema, null)
+        Avro.default.encodeToGenericData(NullableBigDecimalTest(null), schema) shouldBeContentOf ListRecord(schema, null)
     }
 
     test("encode field as fixed") {
@@ -69,7 +69,7 @@ class BigDecimalEncoderTest : FunSpec({
                 .endRecord()
 
         val value = BigDecimal("12345678")
-        val record = Avro.default.encodeToGenericData(schema, BigDecimalTest(value))
+        val record = Avro.default.encodeToGenericData(BigDecimalTest(value), schema)
         val fixed = Conversions.DecimalConversion().toFixed(value, decimal, decimal.logicalType)
 
         record shouldBeContentOf ListRecord(schema, fixed)

@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.github.avrokotlin.avro4k.decoder.NativeAvroDecoder
-import com.github.avrokotlin.avro4k.encoder.NativeAvroEncoder
+import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
+import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
 import com.github.avrokotlin.avro4k.schema.AvroDescriptor
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -37,7 +37,7 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>() {
         }
     }
 
-    override fun encodeAvroValue(schema: Schema, encoder: NativeAvroEncoder, obj: BigDecimal) {
+    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: BigDecimal) {
         when (schema.type) {
             Schema.Type.STRING -> encoder.encodeString(obj.toString())
 
@@ -55,7 +55,7 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>() {
         }
     }
 
-    override fun decodeAvroValue(schema: Schema, decoder: NativeAvroDecoder): BigDecimal {
+    override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigDecimal {
         fun logical() = when (val l = schema.logicalType) {
             is LogicalTypes.Decimal -> l
             else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$schema] does not define Decimal logical type [$l]")

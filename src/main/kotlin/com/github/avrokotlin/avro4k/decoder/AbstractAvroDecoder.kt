@@ -19,7 +19,7 @@ import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
-abstract class AbstractAvroDecoder : Decoder, NativeAvroDecoder {
+abstract class AbstractAvroDecoder : Decoder, ExtendedDecoder {
     abstract val avro: Avro
     final override val serializersModule: SerializersModule
         get() = avro.serializersModule

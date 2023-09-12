@@ -25,13 +25,19 @@ class MapDecoderTest : StringSpec({
 
     "encode value class key as string" {
         val schema = SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))
-        val encoded = Avro.default.decodeFromGenericData<Map<StringKey, String>>(schema, mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3")))
+        val encoded = Avro.default.decodeFromGenericData<Map<StringKey, String>>(
+            mapOf(Utf8("a") to Utf8("1"), Utf8("b") to Utf8("2"), Utf8("c") to Utf8("3")),
+            schema
+        )
         encoded shouldBe mapOf(StringKey("a") to "1", StringKey("b") to "2", StringKey("c") to "3")
     }
 
     "encode contextual key as string" {
         val schema = SchemaBuilder.record("ContextMapKey").fields().name("map").type(SchemaBuilder.map().values(Schema.create(Schema.Type.STRING))).noDefault().endRecord()
-        val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).decodeFromGenericData<ContextMapKey>(schema, ListRecord(schema, mapOf(Utf8("key") to Utf8("value"))))
+        val encoded = Avro(serializersModuleOf(NonSerializableClassSerializer)).decodeFromGenericData<ContextMapKey>(
+            ListRecord(schema, mapOf(Utf8("key") to Utf8("value"))),
+            schema
+        )
         encoded shouldBe ContextMapKey(mapOf(NonSerializableClass("key") to "value"))
     }
     

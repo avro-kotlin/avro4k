@@ -14,7 +14,7 @@ import org.apache.avro.generic.GenericData
 class EnumEncoderTest : FunSpec({
     test("encode enum value") {
         val schema = Avro.default.schema<Wine>()
-        Avro.default.encodeToGenericData(schema, Wine.Malbec) shouldBe
+        Avro.default.encodeToGenericData(Wine.Malbec, schema) shouldBe
                 GenericData.EnumSymbol(schema, "Malbec")
     }
 

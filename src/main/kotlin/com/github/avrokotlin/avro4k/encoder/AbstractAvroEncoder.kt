@@ -22,7 +22,7 @@ import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 @OptIn(ExperimentalSerializationApi::class)
-abstract class AbstractAvroEncoder : Encoder, NativeAvroEncoder {
+abstract class AbstractAvroEncoder : Encoder, ExtendedEncoder {
     final override lateinit var currentResolvedSchema: Schema
         private set
 

@@ -207,7 +207,7 @@ class Avro(
     ): AvroDeserializerInputStreamBuilder<T> {
         val defaultSchema by lazy { schema(deserializer.descriptor) }
         val builder = AvroDeserializerInputStreamBuilder(deserializer, this) {
-            decodeFromGenericData(deserializer, (it as? GenericRecord)?.schema ?: defaultSchema, it)
+            decodeFromGenericData(it, deserializer, (it as? GenericRecord)?.schema ?: defaultSchema)
                 ?: throw SerializationException("Decoded record is null")
         }
         builder.f()
@@ -246,7 +246,11 @@ class Avro(
         serializer: SerializationStrategy<T>,
         f: AvroOutputStreamBuilder<T>.() -> Unit = {}
     ): AvroOutputStreamBuilder<T> {
-        val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { encodeToGenericData(serializer, schema, it) } }
+        val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { encodeToGenericData(
+            it,
+            serializer,
+            schema
+        ) } }
         builder.f()
         return builder
     }
@@ -269,13 +273,13 @@ class Avro(
     fun <T> toRecord(serializer: SerializationStrategy<T>,
                      schema: Schema,
                      obj: T): GenericRecord {
-        val encodedValue = encodeToGenericData(serializer, schema, obj)
+        val encodedValue = encodeToGenericData(obj, serializer, schema)
         if (encodedValue !is GenericRecord)
             throw AvroRuntimeException("Expected a GenericRecord, found $encodedValue")
         return encodedValue
     }
 
-    fun <T> encodeToGenericData(serializer: SerializationStrategy<T>, schema: Schema, value: T): Any? =
+    fun <T> encodeToGenericData(value: T, serializer: SerializationStrategy<T>, schema: Schema): Any? =
         GenericAvroEncoder(schema, this).apply {
             resolveSchema(serializer.descriptor, value == null)
             encodeSerializableValue(serializer, value)
@@ -295,9 +299,9 @@ class Avro(
     }
 
     fun <T> decodeFromGenericData(
+        value: Any?,
         deserializer: DeserializationStrategy<T>,
         schema: Schema,
-        value: Any?,
     ): T? {
         return GenericAvroDecoder(value, schema, this)
             .decodeNullableSerializableValue(deserializer)
@@ -316,22 +320,22 @@ class Avro(
 
 inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
     val serializer = serializersModule.serializer<T>()
-    return encodeToGenericData(serializer, schema(serializer.descriptor), value)
+    return encodeToGenericData(value, serializer, schema(serializer.descriptor))
 }
 
-fun <T> Avro.encodeToGenericData(serializer: SerializationStrategy<T>, value: T): Any? =
-    encodeToGenericData(serializer, schema(serializer.descriptor), value)
+fun <T> Avro.encodeToGenericData(value: T, serializer: SerializationStrategy<T>): Any? =
+    encodeToGenericData(value, serializer, schema(serializer.descriptor))
 
-inline fun <reified T> Avro.encodeToGenericData(schema: Schema, value: T) =
-    encodeToGenericData(serializersModule.serializer(), schema, value)
+inline fun <reified T> Avro.encodeToGenericData(value: T, schema: Schema) =
+    encodeToGenericData(value, serializersModule.serializer(), schema)
 
 inline fun <reified T> Avro.decodeFromGenericData(value: Any?): T? {
     val deserializer = serializersModule.serializer<T>()
-    return decodeFromGenericData(deserializer, schema(deserializer.descriptor), value)
+    return decodeFromGenericData(value, deserializer, schema(deserializer.descriptor))
 }
 
-inline fun <reified T> Avro.decodeFromGenericData(schema: Schema, value: Any?): T? =
-    decodeFromGenericData(serializersModule.serializer<T>(), schema, value)
+inline fun <reified T> Avro.decodeFromGenericData(value: Any?, schema: Schema): T? =
+    decodeFromGenericData(value, serializersModule.serializer<T>(), schema)
 
 inline fun <reified T> Avro.schema() =
     schema(serializersModule.serializer<T>().descriptor)

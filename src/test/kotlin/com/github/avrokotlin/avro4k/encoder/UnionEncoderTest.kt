@@ -19,7 +19,7 @@ class UnionEncoderTest : WordSpec({
         "encode polymorphic types child1" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            val record = Avro.default.encodeToGenericData<Parent>(schema, Child1(17, true))
+            val record = Avro.default.encodeToGenericData<Parent>(Child1(17, true), schema)
             record shouldBeContentOf MutableListRecord(
                 schema.getTypeNamed(
                     Avro.default.nameResolver.resolveTypeName(
@@ -34,7 +34,7 @@ class UnionEncoderTest : WordSpec({
         "encode polymorphic types child2" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            val record = Avro.default.encodeToGenericData<Parent>(schema, Child2("hello", 56.12, null))
+            val record = Avro.default.encodeToGenericData<Parent>(Child2("hello", 56.12, null), schema)
             record shouldBeContentOf MutableListRecord(
                 schema.getTypeNamed(
                     Avro.default.nameResolver.resolveTypeName(
@@ -50,7 +50,7 @@ class UnionEncoderTest : WordSpec({
         "encode polymorphic types null" {
             val schema = Avro.default.schema(Parent.serializer().nullable)
 
-            val record = Avro.default.encodeToGenericData<Parent?>(schema, null)
+            val record = Avro.default.encodeToGenericData<Parent?>(null, schema)
             record shouldBe null
         }
     }

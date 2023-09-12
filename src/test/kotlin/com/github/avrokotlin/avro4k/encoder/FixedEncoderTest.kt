@@ -18,7 +18,7 @@ class FixedEncoderTest : FunSpec({
               .name("s").type(Schema.createFixed("s", null, null, 5)).noDefault()
               .endRecord()
 
-      val record = Avro.default.encodeToGenericData(schema, StringFoo("hello"))
+      val record = Avro.default.encodeToGenericData(StringFoo("hello"), schema)
       record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(
               null,
               byteArrayOf(104, 101, 108, 108, 111),
@@ -32,7 +32,7 @@ class FixedEncoderTest : FunSpec({
               .name("s").type(Schema.createFixed("s", null, null, 5)).noDefault()
               .endRecord()
 
-      val record = Avro.default.encodeToGenericData(schema, ByteArrayFoo(byteArrayOf(1, 2, 3, 4, 5)))
+      val record = Avro.default.encodeToGenericData(ByteArrayFoo(byteArrayOf(1, 2, 3, 4, 5)), schema)
       record shouldBeContentOf ListRecord(schema, GenericData.get().createFixed(
               null,
               byteArrayOf(1, 2, 3, 4, 5),

@@ -15,7 +15,7 @@ object PascalCaseNamingStrategy : NamingStrategy {
 object SnakeCaseNamingStrategy : NamingStrategy {
     override fun to(name: String): String {
         var previousWasUppercase = true
-        return name.foldIndexed(StringBuilder(name.length)) { index, sb, c ->
+        return name.fold(StringBuilder(name.length)) { sb, c ->
             if (c.isUpperCase()) {
                 if (!previousWasUppercase) {
                     sb.append('_')

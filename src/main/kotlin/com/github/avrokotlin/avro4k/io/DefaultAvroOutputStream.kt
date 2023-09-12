@@ -40,7 +40,7 @@ class AvroBinaryOutputStream<T>(output: OutputStream,
    constructor(output: OutputStream,
                serializer: SerializationStrategy<T>,
                schema: Schema,
-               avro: Avro = Avro.default) : this(output, { avro.encodeToGenericData(serializer, schema, it) }, schema)
+               avro: Avro = Avro.default) : this(output, { avro.encodeToGenericData(it, serializer, schema) }, schema)
 
    override val encoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(output, null)
 }
@@ -52,7 +52,7 @@ class AvroJsonOutputStream<T>(output: OutputStream,
    constructor(output: OutputStream,
                serializer: SerializationStrategy<T>,
                schema: Schema,
-               avro: Avro = Avro.default) : this(output, { avro.encodeToGenericData(serializer, schema, it) }, schema)
+               avro: Avro = Avro.default) : this(output, { avro.encodeToGenericData(it, serializer, schema) }, schema)
 
    override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output, true)
 }

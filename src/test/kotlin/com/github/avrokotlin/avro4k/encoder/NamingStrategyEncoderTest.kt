@@ -2,41 +2,35 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.schema.PascalCaseNamingStrategy
 import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.wordSpec
+import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.Serializable
-import org.apache.avro.util.Utf8
 
-class NamingStrategyEncoderTest : WordSpec({
-   "Encoder" should {
-      "support encoding fields with snake_casing" {
-         val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
+fun namingStrategyEncoderTests(encoderToTest: EncoderToTest) : TestFactory {
+   return wordSpec{
+      @Serializable
+      data class Foo(val fooBar: String)
+      "Encoder" should {
+         "support encoding fields with snake_casing" {
+            encoderToTest.avro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
+            val schema = encoderToTest.avro.schema(Foo.serializer())
+            schema.getField("foo_bar") shouldNotBe null
+            encoderToTest.testEncodeDecode(Foo("hello"), record("hello"))
+         }
 
-         val schema = snakeCaseAvro.schema(Foo.serializer())
-
-         val record = snakeCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
-
-         record.hasField("foo_bar") shouldBe true
-
-         record shouldBe ListRecord(schema, listOf(Utf8("hello")))
-      }
-
-      "support encoding fields with PascalCasing" {
-         val pascalCaseAvro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
-
-         val schema = pascalCaseAvro.schema(Foo.serializer())
-
-         val record = pascalCaseAvro.toRecord(Foo.serializer(), Foo("hello"))
-
-         record.hasField("FooBar") shouldBe true
-
-         record shouldBe ListRecord(schema, listOf(Utf8("hello")))
-      }
+         "support encoding fields with PascalCasing" {
+            encoderToTest.avro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
+            val schema = encoderToTest.avro.schema(Foo.serializer())
+            schema.getField("FooBar") shouldNotBe null
+            encoderToTest.testEncodeDecode(Foo("hello"), record("hello"))
+         }
+      }   
    }
-}) {
-   @Serializable
-   data class Foo(val fooBar: String)
 }
+class NamingStrategyEncoderTest : WordSpec({
+   includeForEveryEncoder { namingStrategyEncoderTests(it) }
+})

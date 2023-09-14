@@ -1,21 +1,23 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.ListRecord
-import io.kotest.matchers.shouldBe
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.funSpec
 import kotlinx.serialization.Serializable
-import org.apache.avro.util.Utf8
+import kotlinx.serialization.Transient
+
+fun transientEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+    @Serializable
+    data class Foo(val a: String, @Transient val b: String = "foo", val c: String)
+    return funSpec {
+
+        test("encoder should skip @Transient fields") {
+            val value = Foo("a", "b", "c")
+            encoderToTest.testEncodeIsEqual(value, record("a", "c"))
+        }
+    }
+}
 
 class TransientEncoderTest : FunSpec({
-
-   test("encoder should skip @Transient fields") {
-
-      val schema = Avro.default.schema(Test.serializer())
-      val record = Avro.default.toRecord(Test.serializer(), Test("a", "b", "c"))
-      record shouldBe ListRecord(schema, Utf8("a"), Utf8("c"))
-   }
-}) {
-   @Serializable
-   data class Test(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
-}
+    includeForEveryEncoder { transientEncoderTests(it) }
+}) 

@@ -1,17 +1,16 @@
 @file:UseSerializers(
-   LocalDateTimeSerializer::class,
-   LocalDateSerializer::class,
-   LocalTimeSerializer::class,
-   TimestampSerializer::class,
+    LocalDateTimeSerializer::class,
+    LocalDateSerializer::class,
+    LocalTimeSerializer::class,
+    TimestampSerializer::class,
 )
 
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.serializer.*
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.funSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import java.sql.Timestamp
@@ -21,87 +20,76 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-class DateEncoderTest : FunSpec({
+fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+    return funSpec {
+        test("encode LocalTime as an Int") {
+            @Serializable
+            data class LocalTimeTest(val t: LocalTime)
+            encoderToTest.testEncodeDecode(LocalTimeTest(LocalTime.of(12, 50, 45)), record(46245000))
+        }
 
-   test("encode LocalTime as an Int") {
+        test("encode nullable LocalTime") {
+            @Serializable
+            data class NullableLocalTimeTest(val t: LocalTime?)
+            encoderToTest.testEncodeDecode(NullableLocalTimeTest(LocalTime.of(12, 50, 45)), record(46245000))
+            encoderToTest.testEncodeDecode(NullableLocalTimeTest(null), record(null))
+        }
 
-      val schema = Avro.default.schema(LocalTimeTest.serializer())
-      Avro.default.toRecord(LocalTimeTest.serializer(), LocalTimeTest(LocalTime.of(12, 50, 45))) shouldBe
-         ListRecord(schema, 46245000)
-   }
+        test("encode LocalDate as an Int") {
+            @Serializable
+            data class LocalDateTest(val d: LocalDate)
+            encoderToTest.testEncodeDecode(LocalDateTest(LocalDate.of(2018, 9, 10)), record(17784))
+        }
 
-   test("encode nullable LocalTime") {
+        test("encode LocalDateTime as Long") {
+            @Serializable
+            data class LocalDateTimeTest(val dt: LocalDateTime)
+            encoderToTest.testEncodeDecode(
+                LocalDateTimeTest(LocalDateTime.of(2018, 9, 10, 11, 58, 59)),
+                record(1536580739000L)
+            )
+        }
 
-      val schema = Avro.default.schema(NullableLocalTimeTest.serializer())
-      Avro.default.toRecord(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(LocalTime.of(12, 50, 45))) shouldBe ListRecord(schema, 46245000)
-      Avro.default.toRecord(NullableLocalTimeTest.serializer(), NullableLocalTimeTest(null)) shouldBe ListRecord(schema, null)
-   }
+        test("encode Timestamp as Long") {
+            @Serializable
+            data class TimestampTest(val t: Timestamp)
+            encoderToTest.testEncodeDecode(
+                TimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L))),
+                record(1538312231000L)
+            )
+        }
 
-   test("encode LocalDate as an Int") {
+        test("encode nullable Timestamp as Long") {
+            @Serializable
+            data class NullableTimestampTest(val t: Timestamp?)
+            encoderToTest.testEncodeDecode(NullableTimestampTest(null), record(null))
+            encoderToTest.testEncodeDecode(
+                NullableTimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L))),
+                record(1538312231000L)
+            )
+        }
 
-      val schema = Avro.default.schema(LocalDateTest.serializer())
-      Avro.default.toRecord(LocalDateTest.serializer(), LocalDateTest(LocalDate.of(2018, 9, 10))) shouldBe
-         ListRecord(schema, 17784)
-   }
+        test("encode Instant as Long") {
+            @Serializable
+            data class InstantMillisTest(@Serializable(with = InstantSerializer::class) val i: Instant)
+            encoderToTest.testEncodeDecode(
+                InstantMillisTest(Instant.ofEpochMilli(1538312231000L)),
+                record(1538312231000L)
+            )
+        }
 
-   test("encode LocalDateTime as Long") {
+        test("encode Instant with microseconds as Long") {
+            @Serializable
+            data class InstantMicrosTest(@Serializable(with = InstantToMicroSerializer::class) val i: Instant)
 
-      val schema = Avro.default.schema(LocalDateTimeTest.serializer())
-      Avro.default.toRecord(LocalDateTimeTest.serializer(), LocalDateTimeTest(LocalDateTime.of(2018, 9, 10, 11, 58, 59))) shouldBe
-         ListRecord(schema, 1536580739000L)
-   }
-
-   test("encode Timestamp as Long") {
-
-      val schema = Avro.default.schema(TimestampTest.serializer())
-      Avro.default.toRecord(TimestampTest.serializer(), TimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBe
-         ListRecord(schema, 1538312231000L)
-   }
-
-   test("encode nullable Timestamp as Long") {
-
-      val schema = Avro.default.schema(NullableTimestampTest.serializer())
-      Avro.default.toRecord(NullableTimestampTest.serializer(), NullableTimestampTest(null)) shouldBe ListRecord(schema, null)
-      Avro.default.toRecord(NullableTimestampTest.serializer(), NullableTimestampTest(Timestamp.from(Instant.ofEpochMilli(1538312231000L)))) shouldBe
-         ListRecord(schema, 1538312231000L)
-   }
-
-   test("encode Instant as Long") {
-
-      val schema = Avro.default.schema(InstantMillisTest.serializer())
-      Avro.default.toRecord(InstantMillisTest.serializer(), InstantMillisTest(Instant.ofEpochMilli(1538312231000L))) shouldBe
-         ListRecord(schema, 1538312231000L)
-   }
-
-   test("encode Instant with microseconds as Long") {
-
-      val schema = Avro.default.schema(InstantMicrosTest.serializer())
-      val time = Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)
-
-      Avro.default.toRecord(InstantMicrosTest.serializer(), InstantMicrosTest(time)) shouldBe ListRecord(schema, 1538312231000005L)
-   }
-}) {
-   @Serializable
-   data class LocalTimeTest(val t: LocalTime)
-
-   @Serializable
-   data class NullableLocalTimeTest(val t: LocalTime?)
-
-   @Serializable
-   data class LocalDateTest(val d: LocalDate)
-
-   @Serializable
-   data class LocalDateTimeTest(val dt: LocalDateTime)
-
-   @Serializable
-   data class TimestampTest(val t: Timestamp)
-
-   @Serializable
-   data class NullableTimestampTest(val t: Timestamp?)
-
-   @Serializable
-   data class InstantMillisTest(@Serializable(with = InstantSerializer::class) val i: Instant)
-
-   @Serializable
-   data class InstantMicrosTest(@Serializable(with = InstantToMicroSerializer::class) val i: Instant)
+            encoderToTest.testEncodeDecode(
+                InstantMicrosTest(Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)),
+                record(1538312231000005L)
+            )
+        }
+    }
 }
+
+class DateEncoderTest : FunSpec({
+    includeForEveryEncoder { dateEncoderTests(it) }
+})

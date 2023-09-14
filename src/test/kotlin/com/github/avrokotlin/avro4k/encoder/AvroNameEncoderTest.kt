@@ -1,20 +1,23 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroName
-import com.github.avrokotlin.avro4k.ListRecord
-import io.kotest.matchers.shouldBe
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.wordSpec
 import kotlinx.serialization.Serializable
-import org.apache.avro.util.Utf8
 
+fun avroNameEncodingTests(encoderToTest: EncoderToTest): TestFactory {
+   return wordSpec { 
+      "encoder" should {
+         "take into account @AvroName on fields" {
+            @Serializable
+            data class Foo(@AvroName("bar") val foo: String)
+            encoderToTest.testEncodeDecode(Foo("hello"), record("hello"))
+         }
+      }
+   }
+}
 class AvroNameEncoderTest : FunSpec({
 
-   test("encoder should take into account @AvroName on fields") {
-      val schema = Avro.default.schema(Foo.serializer())
-      Avro.default.toRecord(Foo.serializer(), Foo("hello")) shouldBe ListRecord(schema, listOf(Utf8("hello")))
-   }
-}) {
-   @Serializable
-   data class Foo(@AvroName("bar") val foo: String)
-}
+   includeForEveryEncoder { avroNameEncodingTests(it) }
+})

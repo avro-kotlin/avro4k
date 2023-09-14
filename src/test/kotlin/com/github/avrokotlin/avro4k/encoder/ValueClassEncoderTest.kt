@@ -1,23 +1,25 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.schema.ValueClassSchemaTest
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
-import org.apache.avro.util.Utf8
-import java.util.UUID
+import io.kotest.core.spec.style.stringSpec
+import java.util.*
+
+fun valueClassEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+    return stringSpec {
+        "encode value class" {
+            val uuid = UUID.randomUUID()
+            encoderToTest.testEncodeDecode(
+                ValueClassSchemaTest.ContainsInlineTest(
+                    ValueClassSchemaTest.StringWrapper("100500"), ValueClassSchemaTest.UuidWrapper(uuid)
+                ),
+                record("100500", uuid.toString())
+            )
+        }
+    }
+}
 
 class ValueClassEncoderTest : StringSpec({
-
-   "encode value class" {
-
-      val id = ValueClassSchemaTest.StringWrapper("100500")
-      val uuid = UUID.randomUUID()
-      val uuidStr = uuid.toString()
-      val uuidW = ValueClassSchemaTest.UuidWrapper(uuid)
-      val schema = Avro.default.schema(ValueClassSchemaTest.ContainsInlineTest.serializer())
-      Avro.default.toRecord(ValueClassSchemaTest.ContainsInlineTest.serializer(),
-         ValueClassSchemaTest.ContainsInlineTest(id, uuidW)) shouldBe ListRecord(schema, Utf8(id.a), Utf8(uuidStr))
-   }
+    includeForEveryEncoder { valueClassEncoderTests(it) }
 })

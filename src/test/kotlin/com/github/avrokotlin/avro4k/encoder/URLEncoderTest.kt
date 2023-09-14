@@ -2,39 +2,35 @@
 
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.serializer.URLSerializer
-import io.kotest.matchers.shouldBe
+import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.funSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import org.apache.avro.util.Utf8
 import java.net.URL
 
-class URLEncoderTest : FunSpec({
+fun urlEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+    return funSpec {
+        test("use string for URL") {
+            @Serializable
+            data class UrlTest(val b: URL)
 
-   test("use string for URL") {
+            val test = UrlTest(URL("https://www.sksamuel.com"))
+            encoderToTest.testEncodeDecode(test, record("https://www.sksamuel.com"))
+        }
 
-      val schema = Avro.default.schema(UrlTest.serializer())
-
-      val test = UrlTest(URL("http://www.sksamuel.com"))
-
-      Avro.default.toRecord(UrlTest.serializer(), schema, test) shouldBe ListRecord(schema, Utf8("http://www.sksamuel.com"))
-   }
-
-   test("encode nullable URLs") {
-
-      val schema = Avro.default.schema(NullableUrlTest.serializer())
-      Avro.default.toRecord(NullableUrlTest.serializer(), schema, NullableUrlTest(URL("http://www.sksamuel.com"))) shouldBe
-         ListRecord(schema, Utf8("http://www.sksamuel.com"))
-      Avro.default.toRecord(NullableUrlTest.serializer(), schema, NullableUrlTest(null)) shouldBe ListRecord(schema, null)
-
-   }
-}) {
-   @Serializable
-   data class UrlTest(val b: URL)
-
-   @Serializable
-   data class NullableUrlTest(val b: URL?)
+        test("encode nullable URLs") {
+            @Serializable
+            data class NullableUrlTest(val b: URL?)
+            encoderToTest.testEncodeDecode(
+                NullableUrlTest(URL("https://www.sksamuel.com")), record("https://www.sksamuel.com")
+            )
+            encoderToTest.testEncodeDecode(NullableUrlTest(null), record(null))
+        }
+    }
 }
+
+class URLEncoderTest : FunSpec({
+    includeForEveryEncoder { urlEncoderTests(it) }
+})

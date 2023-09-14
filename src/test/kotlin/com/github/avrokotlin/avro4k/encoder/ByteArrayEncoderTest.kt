@@ -42,10 +42,17 @@ fun byteArrayEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             val schema = SchemaBuilder.record("ByteArrayTest").fields()
                 .name("z").type(fixedSchema).noDefault()
                 .endRecord()
-            encoderToTest.testEncodeDecode(
-                value = ByteArrayTest(byteArrayOf(1, 4, 9)),
-                shouldMatch = record(GenericData.Fixed(fixedSchema, byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9))),
+            val unpaddedByteArray = byteArrayOf(1, 4, 9)
+            val paddedByteArray = byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)
+            val encoded = encoderToTest.testEncodeIsEqual(
+                value = ByteArrayTest(unpaddedByteArray),
+                shouldMatch = record(GenericData.Fixed(fixedSchema, paddedByteArray)),
                 schema = schema
+            )
+            encoderToTest.testDecodeIsEqual(
+                byteArray = encoded,
+                value = ByteArrayTest(paddedByteArray),
+                readSchema = schema
             )
         }
     }

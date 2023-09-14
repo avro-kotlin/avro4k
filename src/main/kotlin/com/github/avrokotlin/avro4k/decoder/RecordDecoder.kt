@@ -153,6 +153,15 @@ class RecordDecoder(
         }
     }
 
+    override fun decodeShort(): Short {
+        return when (val v = fieldValue()) {
+            is Short -> v
+            is Int -> v.toShort()
+            null -> throw SerializationException("Cannot decode <null> as a Short")
+            else -> throw SerializationException("Unsupported type for Short ${v.javaClass}")
+        }
+    }
+
     override fun decodeLong(): Long {
         return when (val v = fieldValue()) {
             is Long -> v

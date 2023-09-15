@@ -1,6 +1,7 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.endecode
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.RecordBuilderForTest
 import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
 import io.kotest.core.factory.TestFactory
@@ -13,7 +14,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
@@ -26,8 +26,8 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 
-sealed interface EncoderToTest {
-    val encoderName: String
+sealed interface EnDecoder {
+    val name: String
     var avro: Avro
     fun encodeGenericRecordForComparison(value: GenericRecord, schema: Schema): ByteArray
 
@@ -41,9 +41,9 @@ sealed interface EncoderToTest {
     fun <T> encode(value: T, serializer: SerializationStrategy<T>, schema: Schema): ByteArray
 }
 
-class AvroLibEncoder : EncoderToTest {
+class AvroLibEnDecoder : EnDecoder {
     override var avro: Avro = Avro.default
-    override val encoderName: String = "AvroLibrary"
+    override val name: String = "AvroLibrary"
     override fun <T> encode(value: T, serializer: SerializationStrategy<T>, schema: Schema): ByteArray {
         val asRecord = avro.toRecord(serializer, schema, value)
         return encodeGenericRecordForComparison(asRecord, schema)
@@ -77,7 +77,7 @@ class AvroLibEncoder : EncoderToTest {
         DecoderFactory.get().jsonDecoder(schema, inputStream)
 }
 
-inline fun <reified T> EncoderToTest.testEncodeDecode(
+inline fun <reified T> EnDecoder.testEncodeDecode(
     value: T,
     shouldMatch: RecordBuilderForTest,
     serializer: KSerializer<T> = avro.serializersModule.serializer<T>(),
@@ -87,7 +87,7 @@ inline fun <reified T> EncoderToTest.testEncodeDecode(
     testDecodeIsEqual(encoded, value,serializer, schema)
 }
 
-inline fun <reified T> EncoderToTest.testEncodeIsEqual(
+inline fun <reified T> EnDecoder.testEncodeIsEqual(
     value: T,
     shouldMatch: RecordBuilderForTest,
     serializer: SerializationStrategy<T> = avro.serializersModule.serializer<T>(),
@@ -100,8 +100,7 @@ inline fun <reified T> EncoderToTest.testEncodeIsEqual(
     }
     return encodedValue
 }
-
-inline fun <reified T> EncoderToTest.testDecodeIsEqual(
+inline fun <reified T> EnDecoder.testDecodeIsEqual(
     byteArray: ByteArray,
     value: T,
     serializer: KSerializer<T> = avro.serializersModule.serializer<T>(),
@@ -119,47 +118,8 @@ inline fun <reified T> EncoderToTest.testDecodeIsEqual(
     return decodedValue
 }
 
-fun DslDrivenSpec.includeForEveryEncoder(createFactoryToInlcude: (EncoderToTest) -> TestFactory) {
-    EncoderToTest::class.sealedSubclasses.map { it.newInstanceNoArgConstructorOrObjectInstance() }.forEach {
-        include(it.encoderName, createFactoryToInlcude.invoke(it))
+fun DslDrivenSpec.includeForEveryEncoder(createFactoryToInclude: (EnDecoder) -> TestFactory) {
+    EnDecoder::class.sealedSubclasses.map { it.newInstanceNoArgConstructorOrObjectInstance() }.forEach {
+        include(it.name, createFactoryToInclude.invoke(it))
     }
-}
-
-data class RecordBuilderForTest(
-    val fields: List<Any?>
-) {
-    fun createRecord(schema: Schema): GenericRecord {
-        val record = GenericData.Record(schema)
-        fields.forEachIndexed { index, value ->
-            val fieldSchema = schema.fields[index].schema()
-            record.put(index, convertValue(value, fieldSchema))
-        }
-        return record
-    }
-
-    private fun convertValue(
-        value: Any?,
-        schema: Schema
-    ): Any? {
-        return when (value) {
-            is RecordBuilderForTest -> value.createRecord(schema)
-            is Map<*, *> -> createMap(schema, value)
-            is List<*> -> createList(schema, value)
-            else -> value
-        }
-    }
-
-    fun createList(schema: Schema, value: List<*>): List<*> {
-        val valueSchema = schema.elementType
-        return value.map { convertValue(it, valueSchema) }
-    }
-
-    fun <K, V> createMap(schema: Schema, value: Map<K, V>): Map<K, *> {
-        val valueSchema = schema.valueType
-        return value.mapValues { convertValue(it.value, valueSchema) }
-    }
-}
-
-fun record(vararg fields: Any?): RecordBuilderForTest {
-    return RecordBuilderForTest(listOf(*fields))
 }

@@ -5,12 +5,13 @@
     TimestampSerializer::class,
 )
 
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.endecode
 
+import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.serializer.*
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.spec.style.funSpec
+import io.kotest.core.spec.style.stringSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import java.sql.Timestamp
@@ -20,28 +21,32 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
-    return funSpec {
-        test("encode LocalTime as an Int") {
+class DateEncoderTest : FunSpec({
+    includeForEveryEncoder { dateEncoderTests(it) }
+})
+
+fun dateEncoderTests(encoderToTest: EnDecoder): TestFactory {
+    return stringSpec {
+        "encode/decode LocalTime as an Int" {
             @Serializable
             data class LocalTimeTest(val t: LocalTime)
             encoderToTest.testEncodeDecode(LocalTimeTest(LocalTime.of(12, 50, 45)), record(46245000))
         }
 
-        test("encode nullable LocalTime") {
+        "encode/decode nullable LocalTime" {
             @Serializable
             data class NullableLocalTimeTest(val t: LocalTime?)
             encoderToTest.testEncodeDecode(NullableLocalTimeTest(LocalTime.of(12, 50, 45)), record(46245000))
             encoderToTest.testEncodeDecode(NullableLocalTimeTest(null), record(null))
         }
 
-        test("encode LocalDate as an Int") {
+        "encode/decode LocalDate as an Int" {
             @Serializable
             data class LocalDateTest(val d: LocalDate)
             encoderToTest.testEncodeDecode(LocalDateTest(LocalDate.of(2018, 9, 10)), record(17784))
         }
 
-        test("encode LocalDateTime as Long") {
+        "encode/decode LocalDateTime as Long" {
             @Serializable
             data class LocalDateTimeTest(val dt: LocalDateTime)
             encoderToTest.testEncodeDecode(
@@ -50,7 +55,7 @@ fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             )
         }
 
-        test("encode Timestamp as Long") {
+        "encode/decode Timestamp as Long" {
             @Serializable
             data class TimestampTest(val t: Timestamp)
             encoderToTest.testEncodeDecode(
@@ -59,7 +64,7 @@ fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             )
         }
 
-        test("encode nullable Timestamp as Long") {
+        "encode/decode nullable Timestamp as Long" {
             @Serializable
             data class NullableTimestampTest(val t: Timestamp?)
             encoderToTest.testEncodeDecode(NullableTimestampTest(null), record(null))
@@ -69,7 +74,7 @@ fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             )
         }
 
-        test("encode Instant as Long") {
+        "encode/decode Instant as Long" {
             @Serializable
             data class InstantMillisTest(@Serializable(with = InstantSerializer::class) val i: Instant)
             encoderToTest.testEncodeDecode(
@@ -78,7 +83,7 @@ fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             )
         }
 
-        test("encode Instant with microseconds as Long") {
+        "encode/decode Instant with microseconds as Long" {
             @Serializable
             data class InstantMicrosTest(@Serializable(with = InstantToMicroSerializer::class) val i: Instant)
 
@@ -89,7 +94,3 @@ fun dateEncoderTests(encoderToTest: EncoderToTest): TestFactory {
         }
     }
 }
-
-class DateEncoderTest : FunSpec({
-    includeForEveryEncoder { dateEncoderTests(it) }
-})

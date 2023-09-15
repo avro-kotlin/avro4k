@@ -1,14 +1,18 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.endecode
 
+import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema.ValueClassSchemaTest
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.spec.style.stringSpec
 import java.util.*
 
-fun valueClassEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+class ValueClassEncoderTest : StringSpec({
+    includeForEveryEncoder { valueClassEncoderTests(it) }
+})
+fun valueClassEncoderTests(encoderToTest: EnDecoder): TestFactory {
     return stringSpec {
-        "encode value class" {
+        "encode/decode value class" {
             val uuid = UUID.randomUUID()
             encoderToTest.testEncodeDecode(
                 ValueClassSchemaTest.ContainsInlineTest(
@@ -19,7 +23,3 @@ fun valueClassEncoderTests(encoderToTest: EncoderToTest): TestFactory {
         }
     }
 }
-
-class ValueClassEncoderTest : StringSpec({
-    includeForEveryEncoder { valueClassEncoderTests(it) }
-})

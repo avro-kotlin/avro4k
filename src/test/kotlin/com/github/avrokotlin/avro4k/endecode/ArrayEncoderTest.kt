@@ -1,13 +1,18 @@
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.endecode
 
+import com.github.avrokotlin.avro4k.record
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.core.spec.style.wordSpec
 import kotlinx.serialization.Serializable
 
-fun arrayEncodingTests(encoderToTest: EncoderToTest): TestFactory {
+class ArrayEncoderTest : WordSpec({
+   includeForEveryEncoder { arrayEncodingTests(it) }
+})
+
+fun arrayEncodingTests(encoderToTest: EnDecoder): TestFactory {
    return wordSpec {
-      "encoder" should {
+      "en-/decoder" should {
          "generate GenericData.Array for an Array<Boolean>" {
             @Serializable
             data class ArrayBooleanTest(val a: Array<Boolean>)
@@ -22,14 +27,17 @@ fun arrayEncodingTests(encoderToTest: EncoderToTest): TestFactory {
                "foo", 
                listOf(true,false,true),
                123L
-            ))
+            )
+            )
          }
+         
          "generate GenericData.Array for a List<String>" {
             @Serializable
             data class ListStringTest(val a: List<String>)
             encoderToTest.testEncodeDecode(ListStringTest(listOf("we23", "54z")), record(
                listOf("we23", "54z")
-            ))
+            )
+            )
          }
          "generate GenericData.Array for a Set<Long>" {
             @Serializable
@@ -41,6 +49,3 @@ fun arrayEncodingTests(encoderToTest: EncoderToTest): TestFactory {
       }
    }
 }
-class ArrayEncoderTest : WordSpec({
-   includeForEveryEncoder { arrayEncodingTests(it) }
-})

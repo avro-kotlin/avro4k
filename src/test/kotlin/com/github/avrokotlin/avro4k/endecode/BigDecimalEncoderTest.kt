@@ -1,11 +1,12 @@
 @file:UseSerializers(BigDecimalSerializer::class)
 
-package com.github.avrokotlin.avro4k.encoder
+package com.github.avrokotlin.avro4k.endecode
 
+import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.spec.style.funSpec
+import io.kotest.core.spec.style.stringSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.Conversions
@@ -15,12 +16,15 @@ import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
 import java.math.BigDecimal
 
-fun bigDecimalEncoderTests(encoderToTest: EncoderToTest): TestFactory {
+class BigDecimalEncoderTest : FunSpec({
+    includeForEveryEncoder { bigDecimalEncoderTests(it) }
+})
+fun bigDecimalEncoderTests(encoderToTest: EnDecoder): TestFactory {
     @Serializable
     data class BigDecimalTest(val decimal: BigDecimal)
 
-    return funSpec {
-        test("use byte array for decimal") {
+    return stringSpec {
+        "use byte array for BigDecimal" {
             val schema = encoderToTest.avro.schema(BigDecimalTest.serializer())
             val obj = BigDecimalTest(BigDecimal("12.34"))
             val s = schema.getField("decimal").schema()
@@ -29,7 +33,7 @@ fun bigDecimalEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             encoderToTest.testEncodeDecode(value = obj, shouldMatch = record(bytes), schema = schema)
         }
 
-        test("allow decimals to be encoded as strings") {
+        "allow BigDecimal to be en-/decoded as strings" {
             val decimalSchema = Schema.create(Schema.Type.STRING)
             val schema = SchemaBuilder.record("Test").fields()
                 .name("decimal").type(decimalSchema).noDefault()
@@ -40,7 +44,7 @@ fun bigDecimalEncoderTests(encoderToTest: EncoderToTest): TestFactory {
                 schema = schema
             )
         }
-        test("support nullable big decimals") {
+        "support nullable big decimals" {
             @Serializable
             data class NullableBigDecimalTest(val big: BigDecimal?)
 
@@ -53,7 +57,7 @@ fun bigDecimalEncoderTests(encoderToTest: EncoderToTest): TestFactory {
             encoderToTest.testEncodeDecode(NullableBigDecimalTest(null), record(null))
         }
 
-        test("allow bigdecimals to be encoded as generic fixed") {
+        "allow BigDecimal to be en-/decoded as generic fixed" {
             //Schema needs to have the precision of 16 in order to serialize a 8 digit integer with a scale of 8
             val decimal = LogicalTypes.decimal(16, 8).addToSchema(Schema.createFixed("decimal", null, null, 8))
 
@@ -68,7 +72,3 @@ fun bigDecimalEncoderTests(encoderToTest: EncoderToTest): TestFactory {
         }
     }
 }
-
-class BigDecimalEncoderTest : FunSpec({
-    includeForEveryEncoder { bigDecimalEncoderTests(it) }
-})

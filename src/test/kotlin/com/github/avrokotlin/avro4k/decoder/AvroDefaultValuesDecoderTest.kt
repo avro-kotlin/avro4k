@@ -51,13 +51,13 @@ data class ContainerWithDefaultFields(
 @Serializable
 @AvroEnumDefault("UNKNOWN")
 enum class EnumWithDefault {
-   UNKNOWN, A, B
+   UNKNOWN, A
 }
 
 @Serializable
 @AvroEnumDefault("UNKNOWN")
 enum class FutureEnumWithDefault {
-   UNKNOWN, A, B, C
+   UNKNOWN, A, C
 }
 
 @Serializable

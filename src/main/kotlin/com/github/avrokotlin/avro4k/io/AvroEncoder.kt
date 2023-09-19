@@ -28,7 +28,7 @@ import org.apache.avro.Schema
  *
  * This class has two types of methods. One type of methods support the writing
  * of leaf values (for example, [.writeLong] and [.writeString]).
- * These methods have analogs in [Decoder].
+ * These methods have analogs in [AvroDecoder].
  *
  *
  * The other type of methods support the writing of maps and arrays. These

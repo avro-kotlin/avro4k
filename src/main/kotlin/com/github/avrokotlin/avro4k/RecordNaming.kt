@@ -25,8 +25,11 @@ data class RecordNaming internal constructor(
      * The namespace for this type to be used when creating
      * an avro record. This method takes into account @AvroNamespace.
      */
-    val namespace: String
+    val namespace: String?
 ) {
+   val fullName : String by lazy { 
+      namespace?.let { "$namespace.$name" } ?: name
+   }
 
    companion object {
       operator fun invoke(name: String, annotations: List<Annotation>, namingStrategy: NamingStrategy): RecordNaming {

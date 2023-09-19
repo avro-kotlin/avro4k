@@ -10,9 +10,7 @@ import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
 class RecordEncoder(
-    private val schema: Schema,
-    override val serializersModule: SerializersModule,
-    override val avroEncoder: AvroEncoder
+    private val schema: Schema, override val serializersModule: SerializersModule, override val avroEncoder: AvroEncoder
 ) : StructureEncoder() {
 
     private var currentIndex = -1
@@ -24,14 +22,11 @@ class RecordEncoder(
         fieldSchema = schema.fields[currentIndex].schema()
         return true
     }
-
-
+    
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         // if we have a value type, then we don't want to begin a new structure
-        return if (AnnotationExtractor(descriptor.annotations).valueType())
-            this
-        else
-            super.beginStructure(descriptor)
+        return if (AnnotationExtractor(descriptor.annotations).valueType()) this
+        else super.beginStructure(descriptor)
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {

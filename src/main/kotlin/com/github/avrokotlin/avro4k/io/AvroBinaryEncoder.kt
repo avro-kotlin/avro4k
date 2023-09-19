@@ -22,21 +22,24 @@ import kotlinx.io.Sink
 import org.apache.avro.Schema
 
 const val DEFAULT_BUFFER_SIZE = 2048
+
 /**
  * An [AvroEncoder] for Avro's binary encoding.
- * 
+ *
  * This encoder uses an internal buffer to speed up serialization.
  */
 class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) : AvroEncoder() {
     private val buf: ByteArray = ByteArray(bufferSize)
     private var pos = 0
     private var bulkLimit: Int
+
     init {
         bulkLimit = bufferSize ushr 1
         if (bulkLimit > 512) {
             bulkLimit = 512
         }
     }
+
     override fun writeNull() {
         //no op
     }
@@ -45,15 +48,17 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         flushBuffer()
         sink.flush()
     }
+
     private fun flushBuffer() {
         if (pos > 0) {
             try {
-                sink.write(buf,0,pos)
+                sink.write(buf, 0, pos)
             } finally {
                 pos = 0
             }
         }
     }
+
     private fun ensureBounds(num: Int) {
         val remaining = buf.size - pos
         if (remaining < num) {
@@ -80,7 +85,7 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         }
         buf[pos++] = if (b) 1.toByte() else 0.toByte()
     }
-    
+
 
     override fun writeInt(n: Int) {
         ensureBounds(5)
@@ -152,7 +157,7 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
 
     override fun writeFloat(f: Float) {
         ensureBounds(4)
-        val bits = f.toRawBits()
+        val bits = f.toBits()
         buf[pos + 3] = (bits ushr 24).toByte()
         buf[pos + 2] = (bits ushr 16).toByte()
         buf[pos + 1] = (bits ushr 8).toByte()
@@ -162,7 +167,7 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
 
     override fun writeDouble(d: Double) {
         ensureBounds(8)
-        val bits = d.toRawBits()
+        val bits = d.toBits()
         val first = (bits and 0xFFFFFFFFL).toInt()
         val second = (bits ushr 32 and 0xFFFFFFFFL).toInt()
         // the compiler seems to execute this order the best, likely due to
@@ -180,21 +185,22 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         pos += 8
     }
 
-    override fun writeFixed(bytes: Buffer) {        
+    override fun writeFixed(bytes: Buffer) {
         // always write directly
         flushBuffer()
-        sink.transferFrom(bytes)            
+        sink.transferFrom(bytes)
     }
+
     override fun writeFixed(bytes: ByteArray) {
         val len = bytes.size
-        if(len > bulkLimit) {
+        if (len > bulkLimit) {
             flushBuffer()
             sink.write(bytes)
             return
         }
         ensureBounds(len)
         System.arraycopy(bytes, 0, buf, pos, len)
-        pos+=len
+        pos += len
     }
 
     fun writeZero() {
@@ -221,9 +227,9 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
     }
 
     override fun writeBytes(bytes: ByteArray) {
-        if(bytes.isEmpty()) {
+        if (bytes.isEmpty()) {
             writeZero()
-        }else {
+        } else {
             writeInt(bytes.size)
             writeFixed(bytes)
         }

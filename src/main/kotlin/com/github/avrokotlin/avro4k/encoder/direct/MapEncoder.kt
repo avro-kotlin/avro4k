@@ -11,12 +11,8 @@ import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
 class MapEncoder(
-    schema: Schema,
-    override val serializersModule: SerializersModule,
-    override val avroEncoder: AvroEncoder,
-    size: Int
-) : StructureEncoder(),
-    CompositeEncoder {
+    schema: Schema, override val serializersModule: SerializersModule, override val avroEncoder: AvroEncoder, size: Int
+) : StructureEncoder(), CompositeEncoder {
 
     private var key: String? = null
     private val valueSchema = schema.valueType

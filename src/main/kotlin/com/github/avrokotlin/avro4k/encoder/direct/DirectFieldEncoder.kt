@@ -7,14 +7,14 @@ import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer
 
 interface DirectExtendedEncoder : ExtendedEncoder {
-   val avroEncoder : AvroEncoder
-   override fun encodeFixed(fixed: GenericFixed) {
-      avroEncoder.writeFixed(fixed.bytes())
-   }
+    val avroEncoder: AvroEncoder
+    override fun encodeFixed(fixed: GenericFixed) {
+        avroEncoder.writeFixed(fixed.bytes())
+    }
 
-   override fun encodeByteArray(buffer: ByteBuffer) {
-      avroEncoder.writeBytes(buffer.array())
-   }
+    override fun encodeByteArray(buffer: ByteBuffer) {
+        avroEncoder.writeBytes(buffer.array())
+    }
 }
 
 interface DirectFieldEncoder : DirectExtendedEncoder, SchemaBasedEncoder

@@ -3,9 +3,11 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
+import com.github.avrokotlin.avro4k.decoder.direct.RootDecoder
 import com.github.avrokotlin.avro4k.encoder.avro.RootRecordEncoder
 import com.github.avrokotlin.avro4k.encoder.direct.DirectRootRecordEncoder
 import com.github.avrokotlin.avro4k.io.*
+import com.github.avrokotlin.avro4k.schema.Resolver
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.*
@@ -121,8 +123,10 @@ class AvroOutputStreamBuilder<T>(
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
    override val serializersModule: SerializersModule = defaultModule,
-   private val configuration: AvroConfiguration = AvroConfiguration()
+   val configuration: AvroConfiguration = AvroConfiguration()
 ) : SerialFormat, BinaryFormat {
+   internal val nameResolver = AvroNameResolver(this)
+   internal val resolver = Resolver(this)
    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
    companion object {
       val defaultModule = SerializersModule {
@@ -200,6 +204,11 @@ class Avro(
    fun <T> encode(avroEncoder: AvroEncoder, serializer: SerializationStrategy<T>, obj: T, schema: Schema = schema(serializer)) {      
       val encoder = DirectRootRecordEncoder(schema, serializersModule, avroEncoder)
       encoder.encodeSerializableValue(serializer, obj)
+   }
+   fun <T> decode(avroDecoder: AvroDecoder, deserializer: DeserializationStrategy<T>, writeSchema: Schema, readSchema: Schema = schema(deserializer.descriptor)): T {
+      val action = resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
+      val rootRecordDecoder = RootDecoder(serializersModule, avroDecoder, action)
+      return rootRecordDecoder.decodeSerializableValue(deserializer)
    }
 
    /**

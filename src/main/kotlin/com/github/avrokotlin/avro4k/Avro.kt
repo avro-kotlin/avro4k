@@ -127,6 +127,7 @@ class Avro(
 ) : SerialFormat, BinaryFormat {
    internal val nameResolver = AvroNameResolver(this)
    internal val resolver = Resolver(this)
+   internal val resolvedSchemas = mutableMapOf<Pair<Schema, Schema>, Resolver.Action>()
    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
    companion object {
       val defaultModule = SerializersModule {
@@ -207,7 +208,9 @@ class Avro(
       avroEncoder.flush()
    }
    fun <T> decode(avroDecoder: AvroDecoder, deserializer: DeserializationStrategy<T>, writeSchema: Schema, readSchema: Schema = schema(deserializer.descriptor)): T {
-      val action = resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
+      val action = resolvedSchemas.computeIfAbsent(readSchema to writeSchema) {
+         resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
+      }
       val rootRecordDecoder = RootDecoder(serializersModule, avroDecoder, action)
       return rootRecordDecoder.decodeSerializableValue(deserializer)
    }

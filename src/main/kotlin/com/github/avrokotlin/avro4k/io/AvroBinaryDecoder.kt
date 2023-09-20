@@ -51,12 +51,12 @@ class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
                 if (b > 0x7f) {
                     b = source.readByte().toInt() and 0xff
                     n = n xor (b and 0x7f shl 21)
-                    if (b > 0x7f) {
+                    l = if (b > 0x7f) {
                         // only the low 28 bits can be set, so this won't carry
                         // the sign bit to the long
-                        l = innerLongDecode(n.toLong())
+                        innerLongDecode(n.toLong())
                     } else {
-                        l = n.toLong()
+                        n.toLong()
                     }
                 } else {
                     l = n.toLong()

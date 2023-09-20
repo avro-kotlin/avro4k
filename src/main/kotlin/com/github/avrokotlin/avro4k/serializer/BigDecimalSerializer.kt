@@ -21,15 +21,15 @@ import kotlin.reflect.jvm.jvmName
 
 @OptIn(ExperimentalSerializationApi::class)
 class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
-   override fun decodeAvroValue(readSchema: Schema, decoder: ExtendedDecoder): BigDecimal {
-      fun logical() = when (val l = readSchema.logicalType) {
+   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigDecimal {
+      fun logical() = when (val l = schema.logicalType) {
          is LogicalTypes.Decimal -> l
-         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$readSchema] does not define Decimal logical type [$l]")
+         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$schema] does not define Decimal logical type [$l]")
       }
-      return when(readSchema.type) {
+      return when(schema.type) {
          Schema.Type.STRING -> BigDecimal(decoder.decodeString())
          Schema.Type.BYTES, Schema.Type.FIXED -> createFromByteArray(decoder.decodeByteArray(), logical())
-         else -> throw SerializationException("The schema type ${readSchema.type} is no supported type for the logical type 'Decimal'")
+         else -> throw SerializationException("The schema type ${schema.type} is no supported type for the logical type 'Decimal'")
       }
    }
    fun createFromByteArray(byteArray: ByteArray, logicalType: LogicalTypes.Decimal) : BigDecimal {

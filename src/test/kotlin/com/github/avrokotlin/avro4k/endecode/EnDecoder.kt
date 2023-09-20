@@ -88,7 +88,7 @@ class DirectEnDecoder() : EnDecoder {
         //Encode as binary
         val writer = GenericDatumWriter<GenericRecord>(schema)
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val encoder = avroLibEncoder(schema, byteArrayOutputStream)
+        val encoder = avroLibEncoder(byteArrayOutputStream)
         writer.write(value, encoder)
         encoder.flush()
         return byteArrayOutputStream.toByteArray()
@@ -113,7 +113,7 @@ class DirectEnDecoder() : EnDecoder {
         return buffer.readByteArray()
     }
 
-    fun avroLibEncoder(schema: Schema, outputStream: ByteArrayOutputStream): Encoder =
+    fun avroLibEncoder(outputStream: ByteArrayOutputStream): Encoder =
         EncoderFactory.get().binaryEncoder(outputStream, null)
 }
 

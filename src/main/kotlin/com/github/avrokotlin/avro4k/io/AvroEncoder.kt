@@ -18,6 +18,7 @@
 package com.github.avrokotlin.avro4k.io
 
 import kotlinx.io.Buffer
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
@@ -41,6 +42,7 @@ import org.apache.avro.Schema
  * This code has been derived from `org.apache.avro.io.Encoder` of the avro project
  * and converted to kotlin multiplatform.
  */
+@OptIn(ExperimentalSerializationApi::class)
 abstract class AvroEncoder {
     /**
      * "Writes" a null value. (Doesn't actually write anything, but advances the
@@ -76,7 +78,7 @@ abstract class AvroEncoder {
     /**
      * Write a Unicode character string.
      */
-    abstract fun writeString(str: CharSequence);
+    abstract fun writeString(str: CharSequence)
 
     /**
      * Write a byte string.
@@ -93,7 +95,6 @@ abstract class AvroEncoder {
      * Writes a fixed size binary object.
      *
      * @param bytes The contents to write
-     * @param len   The number of bytes to write.
      */
     abstract fun writeFixed(bytes: Buffer)
 

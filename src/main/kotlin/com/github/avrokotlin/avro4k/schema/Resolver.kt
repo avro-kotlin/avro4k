@@ -59,9 +59,6 @@ class Resolver(
      * resulting [Action] objects will not be the same schema as provided to
      * this method. However, the <tt>reader</tt> field will be.
      *
-     * @param writer The schema used by the writer
-     * @param reader The schema used by the reader
-     * @param data   Used for <tt>getDefaultValue</tt> and getting conversions
      * @return Nested actions for resolving the two
      */
     /**

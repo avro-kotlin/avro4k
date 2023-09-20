@@ -10,6 +10,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 
@@ -57,8 +58,31 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
             else -> throw SerializationException("Can't perform $fieldAction on the descriptor $descriptor. Make sure that the data corresponds to the passed schemas.")
         }
     }
+    private val Resolver.Action.isNotNull: Boolean
+        get() = this !is Resolver.ReaderUnion || reader.types[firstMatch].type != Schema.Type.NULL
+    private val Resolver.ReaderUnion.isSimpleKotlinNullableType: Boolean
+        get() = reader.types.size <= 2 && reader.isNullable
 
-    fun decodeByteArray(): ByteArray {
+    private fun decodeWrittenUnionSchema(): Resolver.Action {
+        return when (val action = currentAction) {
+            is Resolver.WriterUnion -> action.actions[decoder.readIndex()]
+            else -> action
+        }
+    }
+
+    override fun decodeNotNullMark(): Boolean {
+        val resolvedAction = decodeWrittenUnionSchema()
+        val isNotNull = resolvedAction.isNotNull
+        currentAction = if (resolvedAction is Resolver.ReaderUnion && resolvedAction.isSimpleKotlinNullableType) {
+            //Unwrap because nullability has been handled by this method
+            resolvedAction.actualAction
+        } else {
+            resolvedAction
+        }
+        return isNotNull
+    }
+
+    override fun decodeByteArray(): ByteArray {
         return when (currentAction) {
             is Resolver.DoNothing -> when (currentAction.reader.type) {
                 Schema.Type.FIXED -> decoder.readFixed(currentAction.reader.fixedSize)
@@ -73,6 +97,21 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
 
             else -> throw SerializationException("Can't read byte array for action: $currentAction.")
         }
+    }
+
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        val action = currentAction
+        if(action !is Resolver.EnumAdjust) throw SerializationException("Schema does not specify an enum. Cannot decode it as such.")
+        val decodeIndex = decoder.readEnum()
+        return if(action.noAdjustmentsNeeded) {
+            decodeIndex
+        } else{
+            action.adjustments[decodeIndex]   
+        }
+    }
+
+    override fun decodeInline(descriptor: SerialDescriptor): Decoder {
+        return super.decodeInline(descriptor)
     }
 
     override fun decodeDouble(): Double {
@@ -131,29 +170,7 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         }
     }
 
-    private val Resolver.Action.isNotNull: Boolean
-        get() = this !is Resolver.ReaderUnion || reader.types[firstMatch].type != Schema.Type.NULL
-    private val Resolver.ReaderUnion.isSimpleKotlinNullableType: Boolean
-        get() = reader.types.size <= 2 && reader.isNullable
-
-    private fun decodeWrittenUnionSchema(): Resolver.Action {
-        return when (val action = currentAction) {
-            is Resolver.WriterUnion -> action.actions[decoder.readIndex()]
-            else -> action
-        }
-    }
-
-    override fun decodeNotNullMark(): Boolean {
-        val resolvedAction = decodeWrittenUnionSchema()
-        val isNotNull = resolvedAction.isNotNull
-        currentAction = if (resolvedAction is Resolver.ReaderUnion && resolvedAction.isSimpleKotlinNullableType) {
-            //Unwrap because nullability has been handled by this method
-            resolvedAction.actualAction
-        } else {
-            resolvedAction
-        }
-        return isNotNull
-    }
+    
 
     override fun decodeBoolean(): Boolean {
         return decoder.readBoolean()
@@ -174,10 +191,6 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
     override fun decodeShort(): Short {
         return decoder.readInt().toShort()
     }
-
-    override fun decodeBytes(): ByteArray = decodeByteArray()
-
-    override fun decodeFixed(): ByteArray = decodeByteArray()
 
     override fun fieldSchema(): Schema = currentAction.reader
 }

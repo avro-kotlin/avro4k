@@ -28,8 +28,7 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
       }
       return when(readSchema.type) {
          Schema.Type.STRING -> BigDecimal(decoder.decodeString())
-         Schema.Type.BYTES -> createFromByteArray(decoder.decodeBytes(), logical())
-         Schema.Type.FIXED -> createFromByteArray(decoder.decodeFixed(), logical())
+         Schema.Type.BYTES, Schema.Type.FIXED -> createFromByteArray(decoder.decodeByteArray(), logical())
          else -> throw SerializationException("The schema type ${readSchema.type} is no supported type for the logical type 'Decimal'")
       }
    }

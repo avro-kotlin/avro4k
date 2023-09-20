@@ -20,9 +20,7 @@ import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
 
 interface ExtendedDecoder : Decoder {
-    fun decodeBytes(): ByteArray
-    
-    fun decodeFixed(): ByteArray
+    fun decodeByteArray(): ByteArray
 }
 
 interface FieldDecoder : ExtendedDecoder {
@@ -31,7 +29,7 @@ interface FieldDecoder : ExtendedDecoder {
 
 interface GenericDataFieldDecoder : FieldDecoder{
     fun decodeAny() : Any?
-    override fun decodeBytes(): ByteArray {
+    override fun decodeByteArray(): ByteArray {
         val decodedValue = decodeAny()
         return when (decodedValue) {
             is ByteArray -> decodedValue
@@ -40,7 +38,6 @@ interface GenericDataFieldDecoder : FieldDecoder{
             else -> throw SerializationException("Cannot decode bytes from value $decodedValue")
         }
     }
-    override fun decodeFixed(): ByteArray = decodeBytes()
 }
 
 @ExperimentalSerializationApi

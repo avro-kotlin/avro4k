@@ -221,19 +221,14 @@ class Resolver(
         val rsymbols = r.enumSymbols
         val defaultIndex = if (r.enumDefault == null) -1 else rsymbols.indexOf(r.enumDefault)
         val adjustments = IntArray(wsymbols.size)
-        val values = arrayOfNulls<Any>(wsymbols.size)
-        val defaultValue =
-            if (defaultIndex == -1) null else TODO("NOT YET IMPLEMENTED") //d.createEnum(r.enumDefault, r)
         for (i in adjustments.indices) {
             var j = rsymbols.indexOf(wsymbols[i])
             if (j < 0) {
                 j = defaultIndex
             }
             adjustments[i] = j
-            values[i] =
-                if (j == defaultIndex) defaultValue else TODO("NOT YET IMPLEMENTED") //d.createEnum(rsymbols[j], r)
         }
-        return EnumAdjust(w, r, adjustments, values)
+        return EnumAdjust(w, r, adjustments)
     }
 
     fun resolveWriterUnion(
@@ -604,9 +599,9 @@ class Resolver(
      * <tt>noAdjustmentsNeeded</tt> is set to true.
      */
     class EnumAdjust(
-        w: Schema, r: Schema, val adjustments: IntArray, values: Array<Any?>
+        w: Schema, r: Schema, val adjustments: IntArray
     ) : Action(w, r) {
-        val values: Array<Any?>
+        
         val noAdjustmentsNeeded: Boolean
 
         init {
@@ -616,11 +611,10 @@ class Resolver(
             noAdj = adjustments.size <= rsymCount
             var i = 0
             while (noAdj && i < count) {
-                noAdj = noAdj and (i == adjustments[i])
+                noAdj = i == adjustments[i]
                 i++
             }
             noAdjustmentsNeeded = noAdj
-            this.values = values
         }
     }
 

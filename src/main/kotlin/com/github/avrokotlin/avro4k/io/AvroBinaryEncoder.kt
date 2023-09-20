@@ -203,7 +203,7 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         pos += len
     }
 
-    fun writeZero() {
+    private fun writeZero() {
         buf[pos++] = 0
     }
 

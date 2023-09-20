@@ -207,6 +207,7 @@ class Resolver(
             else -> throw IllegalArgumentException("Unknown schema type: " + write.type)
         }
     }
+
     /**
      * If writer and reader don't have same name, a
      * [ErrorAction.ErrorType.NAMES_DONT_MATCH] is returned, otherwise an
@@ -234,6 +235,7 @@ class Resolver(
         }
         return EnumAdjust(w, r, adjustments, values)
     }
+
     fun resolveWriterUnion(
         writeSchema: Schema,
         readSchema: Schema,
@@ -245,15 +247,17 @@ class Resolver(
         val writeTypeLength = writeTypes.size
         val actions = ArrayList<Action>(writeTypeLength)
         for (i in 0 until writeTypeLength) {
-            actions[i] =
+            actions.add(
                 doResolve(
                     writeTypes[i],
                     readSchema,
                     readerDescriptor,
                     seen
                 )
+            )
         }
-        return WriterUnion(writeSchema, readSchema, unionEquivalent, actions)
+        val nullIndex = writeTypes.indexOfFirst { it.type == Schema.Type.NULL }
+        return WriterUnion(writeSchema, readSchema, unionEquivalent, actions, nullIndex)
     }
 
     /**
@@ -273,11 +277,13 @@ class Resolver(
         require(w.type != UNION) { "Writer schema is union." }
         val i = firstMatchingBranch(w, r, readDescriptor, seen)
         return if (0 <= i) {
+
             val schemaNameToSerialName =
                 readDescriptor.possibleSerializationSubclasses(avro.serializersModule).associate {
                     Pair(it.getSchemaNameForUnion(avro.nameResolver).fullName, it.serialName)
                 }
-            val possibleNames = r.types.map { schemaNameToSerialName[it.fullName]!! }
+            val possibleNames =
+                r.types.map { if (it.type == Schema.Type.NULL) "null" else schemaNameToSerialName[it.fullName]!! }
             ReaderUnion(w, r, i, possibleNames, doResolve(w, r.types[i], readDescriptor, seen))
         } else ErrorAction(w, r, ErrorAction.ErrorType.NO_MATCHING_BRANCH)
     }
@@ -285,7 +291,12 @@ class Resolver(
     // Note: This code was taken verbatim from the 1.8.x branch of Apache Avro. It implements
     // a "soft match" algorithm that seems to disagree with the spec. However, in the
     // interest of "bug-for-bug" compatibility, we imported the old algorithm.
-    private fun firstMatchingBranch(w: Schema, r: Schema, readerDescriptor: SerialDescriptor, seen: MutableMap<SeenPair, Action>): Int {
+    private fun firstMatchingBranch(
+        w: Schema,
+        r: Schema,
+        readerDescriptor: SerialDescriptor,
+        seen: MutableMap<SeenPair, Action>
+    ): Int {
         val vt = w.type
         // first scan for exact match
         var j = 0
@@ -400,6 +411,7 @@ class Resolver(
             else -> false
         }
     }
+
     /**
      * Returns a [RecordAdjust] for the two schemas, or an [ErrorAction]
      * if there was a problem resolving. An [ErrorAction] is returned when
@@ -436,20 +448,20 @@ class Resolver(
         val reordered = ArrayList<Schema.Field>(readFields.size)
         var result: Action = RecordAdjust(writeSchema, readSchema, actions, reordered, firstDefault)
         seen[writeReadPair] = result // Insert early to handle recursion
-        var i = 0
-        var ridx = 0
         for (writeField in writeFields) {
             val readField = readSchema.getField(writeField.name())
             if (readField != null) {
-                reordered[ridx++] = readField
-                actions[i++] = doResolve(
-                    writeField.schema(),
-                    readField.schema(),
-                    readerDescriptor.getElementDescriptor(readField.pos()),
-                    seen
+                reordered.add(readField)
+                actions.add(
+                    doResolve(
+                        writeField.schema(),
+                        readField.schema(),
+                        readerDescriptor.getElementDescriptor(readField.pos()),
+                        seen
+                    )
                 )
             } else {
-                actions[i++] = Skip(writeField.schema())
+                actions.add(Skip(writeField.schema()))
             }
         }
         for (readField in readFields) {
@@ -462,8 +474,8 @@ class Resolver(
                     seen[writeReadPair] = result
                     return result
                 } else {
-                    actions[i++] = SetDefault(readField.schema(), readField.defaultVal())
-                    reordered[ridx++] = readField
+                    actions.add(SetDefault(readField.schema(), readField.defaultVal()))
+                    reordered.add(readField)
                     TODO("Not yet implemented")
                     //defaults[ridx - firstDefault] = data.getDefaultValue(readField)
                 }
@@ -682,7 +694,7 @@ class Resolver(
      * reader (if the reader is a union, that will result in ReaderUnion actions).
      */
     class WriterUnion(
-        w: Schema, r: Schema, val unionEquiv: Boolean, val actions: MutableList<Action>
+        w: Schema, r: Schema, val unionEquiv: Boolean, val actions: MutableList<Action>, val nullIndex: Int
     ) : Action(w, r)
 
     class SetDefault(r: Schema, val defaultValue: Any?) : Action(r, r)
@@ -707,5 +719,5 @@ class Resolver(
         val readerSerialNames: List<String>,
         val actualAction: Action
     ) : Action(w, r)
-    
+
 }

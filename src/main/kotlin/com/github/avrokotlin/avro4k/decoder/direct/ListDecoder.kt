@@ -13,16 +13,18 @@ class ListDecoder(
     override val serializersModule: SerializersModule,
     containerAction: Resolver.Container
 ) : StructureDecoder() {
-    override val currentAction: Resolver.Action = containerAction.elementAction
-    var index = 0
-    var size = 0
+    override var currentAction: Resolver.Action = containerAction.elementAction
+    private var index = -1
+    private var currentKnownSize = -1
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         index++
-        return if (index == size) CompositeDecoder.DECODE_DONE else index
+        if(currentKnownSize == -1) {
+            currentKnownSize = decoder.readArrayStart().toInt()
+        }else if(index == currentKnownSize) {
+            currentKnownSize += decoder.arrayNext().toInt()
+        }
+        return if (index == currentKnownSize) CompositeDecoder.DECODE_DONE else index
     }
 
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int =
-        decoder.readArrayStart().toInt().also { size = it }
-
-    override fun decodeSequentially(): Boolean = true
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = -1
 }

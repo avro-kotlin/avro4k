@@ -59,6 +59,8 @@ abstract class AvroDecoder {
      * Reads a char-string written by [AvroEncoder.writeString].
      */
     abstract fun readString(): String
+    
+    abstract fun readFixedString(length: Long) : String
 
     /**
      * Discards a char-string written by [AvroEncoder.writeString].
@@ -87,8 +89,10 @@ abstract class AvroDecoder {
     /**
      * A shorthand for <tt>readFixed(bytes, 0, bytes.length)</tt>.
      */
-    fun readFixed(bytes: ByteArray) {
+    fun readFixed(length: Int) : ByteArray {
+        val bytes = ByteArray(length)
         readFixed(bytes, 0, bytes.size)
+        return bytes
     }
 
     /**

@@ -7,7 +7,6 @@ import com.github.avrokotlin.avro4k.schema.AvroDescriptor
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
@@ -15,16 +14,29 @@ import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import org.apache.avro.generic.GenericFixed
-import org.apache.avro.util.Utf8
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.math.RoundingMode
-import java.nio.ByteBuffer
 import kotlin.reflect.jvm.jvmName
 
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = BigDecimal::class)
 class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
+   override fun decodeAvroValue(readSchema: Schema, decoder: ExtendedDecoder): BigDecimal {
+      fun logical() = when (val l = readSchema.logicalType) {
+         is LogicalTypes.Decimal -> l
+         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$readSchema] does not define Decimal logical type [$l]")
+      }
+      return when(readSchema.type) {
+         Schema.Type.STRING -> BigDecimal(decoder.decodeString())
+         Schema.Type.BYTES -> createFromByteArray(decoder.decodeBytes(), logical())
+         Schema.Type.FIXED -> createFromByteArray(decoder.decodeFixed(), logical())
+         else -> throw SerializationException("The schema type ${readSchema.type} is no supported type for the logical type 'Decimal'")
+      }
+   }
+   fun createFromByteArray(byteArray: ByteArray, logicalType: LogicalTypes.Decimal) : BigDecimal {
+      val scale = logicalType.scale
+      return BigDecimal(BigInteger(byteArray), scale)
+   }
 
    override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
       override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
@@ -62,22 +74,6 @@ class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
 
          }
          else -> throw SerializationException("Cannot encode BigDecimal as ${schema.type}")
-      }
-   }
-
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigDecimal {
-
-      fun logical() = when (val l = schema.logicalType) {
-         is LogicalTypes.Decimal -> l
-         else -> throw SerializationException("Cannot decode to BigDecimal when field schema [$schema] does not define Decimal logical type [$l]")
-      }
-
-      return when (val v = decoder.decodeAny()) {
-         is Utf8 -> BigDecimal(decoder.decodeString())
-         is ByteArray -> Conversions.DecimalConversion().fromBytes(ByteBuffer.wrap(v), schema, logical())
-         is ByteBuffer -> Conversions.DecimalConversion().fromBytes(v, schema, logical())
-         is GenericFixed -> Conversions.DecimalConversion().fromFixed(v, schema, logical())
-         else -> throw SerializationException("Unsupported BigDecimal type [$v]")
       }
    }
 }

@@ -16,16 +16,20 @@ import org.apache.avro.Schema
 
 
 val byteArraySerializer = serializer<ByteArray>()
+val byteListSerializer = serializer<List<Byte>>()
+val arrayByteSerializer = serializer<Array<Byte>>()
+
 
 @ExperimentalSerializationApi
 abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
-
+    @Suppress("UNCHECKED_CAST")
     override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
         handleNullability()
-        if (serializer.descriptor == byteArraySerializer.descriptor) {
-            encodeByteArray(value as ByteArray)
-        } else {
-            super<AbstractEncoder>.encodeSerializableValue(serializer, value)
+        when (serializer.descriptor) {
+            byteArraySerializer.descriptor -> encodeByteArray(value as ByteArray)
+            byteListSerializer.descriptor -> encodeByteArray((value as List<Byte>).toByteArray())
+            arrayByteSerializer.descriptor -> encodeByteArray((value as Array<Byte>).toByteArray())
+            else -> super<AbstractEncoder>.encodeSerializableValue(serializer, value)
         }
     }
 
@@ -33,11 +37,12 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
         val fieldSchema = fieldSchema()
         val relevantSchema = fieldSchema.nonNullSchema
         if (relevantSchema.type == Schema.Type.FIXED) {
-            avroEncoder.writeFixedWithPadding(byteArray, relevantSchema.fixedSize)
+            avroEncoder.writeFixed(byteArray, relevantSchema)
         } else {
             avroEncoder.writeBytes(byteArray)
         }
     }
+    
 
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
         val schema = fieldSchema()

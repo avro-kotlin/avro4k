@@ -2,6 +2,8 @@ package com.github.avrokotlin.avro4k.endecode
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.RecordBuilderForTest
+import com.github.avrokotlin.avro4k.io.AvroBinaryDecoder
+import com.github.avrokotlin.avro4k.io.AvroBinaryEncoder
 import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
 import io.kotest.core.factory.TestFactory
@@ -9,6 +11,8 @@ import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.kotest.mpp.newInstanceNoArgConstructorOrObjectInstance
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
@@ -67,14 +71,50 @@ class AvroLibEnDecoder : EnDecoder {
         val input = ByteArrayInputStream(byteArray)
         val reader = GenericDatumReader<GenericRecord>(writeSchema, readSchema)
         val genericData = reader.read(null, avroLibDecoder(writeSchema, input))
-        return avro.fromRecord(deserializer,genericData)
+        return avro.fromRecord(deserializer, genericData)
     }
 
     fun avroLibEncoder(schema: Schema, outputStream: ByteArrayOutputStream): Encoder =
         EncoderFactory.get().jsonEncoder(schema, outputStream)
-    
-    fun avroLibDecoder(schema: Schema, inputStream: InputStream) : Decoder = 
+
+    fun avroLibDecoder(schema: Schema, inputStream: InputStream): Decoder =
         DecoderFactory.get().jsonDecoder(schema, inputStream)
+}
+
+class DirectEnDecoder() : EnDecoder {
+    override var avro: Avro = Avro.default
+    override val name: String = "Direct"
+    override fun encodeGenericRecordForComparison(value: GenericRecord, schema: Schema): ByteArray {
+        //Encode as binary
+        val writer = GenericDatumWriter<GenericRecord>(schema)
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        val encoder = avroLibEncoder(schema, byteArrayOutputStream)
+        writer.write(value, encoder)
+        encoder.flush()
+        return byteArrayOutputStream.toByteArray()
+    }
+
+    override fun <T> decode(
+        byteArray: ByteArray,
+        deserializer: DeserializationStrategy<T>,
+        readSchema: Schema,
+        writeSchema: Schema
+    ): T {
+        val buffer = Buffer()
+        buffer.write(byteArray)
+        val decoder = AvroBinaryDecoder(buffer)
+        return avro.decode(decoder, deserializer, writeSchema, readSchema)
+    }
+
+    override fun <T> encode(value: T, serializer: SerializationStrategy<T>, schema: Schema): ByteArray {
+        val buffer = Buffer()
+        val encoder = AvroBinaryEncoder(buffer)
+        avro.encode(encoder, serializer, value, schema)
+        return buffer.readByteArray()
+    }
+
+    fun avroLibEncoder(schema: Schema, outputStream: ByteArrayOutputStream): Encoder =
+        EncoderFactory.get().binaryEncoder(outputStream, null)
 }
 
 inline fun <reified T> EnDecoder.testEncodeDecode(
@@ -84,7 +124,7 @@ inline fun <reified T> EnDecoder.testEncodeDecode(
     schema: Schema = avro.schema(serializer)
 ) {
     val encoded = testEncodeIsEqual(value, shouldMatch, serializer, schema)
-    testDecodeIsEqual(encoded, value,serializer, schema)
+    testDecodeIsEqual(encoded, value, serializer, schema)
 }
 
 inline fun <reified T> EnDecoder.testEncodeIsEqual(
@@ -92,21 +132,22 @@ inline fun <reified T> EnDecoder.testEncodeIsEqual(
     shouldMatch: RecordBuilderForTest,
     serializer: SerializationStrategy<T> = avro.serializersModule.serializer<T>(),
     schema: Schema = avro.schema(serializer)
-) : ByteArray{
+): ByteArray {
     val record = shouldMatch.createRecord(schema)
-    val encodedValue = encode(value, serializer, schema) 
+    val encodedValue = encode(value, serializer, schema)
     withClue("Encoded result was not equal to the encoded result of the apache avro library.") {
-        encodedValue shouldBe encodeGenericRecordForComparison(record, schema)    
+        encodedValue shouldBe encodeGenericRecordForComparison(record, schema)
     }
     return encodedValue
 }
+
 inline fun <reified T> EnDecoder.testDecodeIsEqual(
     byteArray: ByteArray,
     value: T,
     serializer: KSerializer<T> = avro.serializersModule.serializer<T>(),
     readSchema: Schema = avro.schema(serializer),
     writeSchema: Schema = readSchema
-) : T {
+): T {
     val decodedValue = decode(byteArray, serializer, readSchema, writeSchema)
     withClue("Decoded result was not equal to the passed value.") {
         if (decodedValue == null && value != null) {

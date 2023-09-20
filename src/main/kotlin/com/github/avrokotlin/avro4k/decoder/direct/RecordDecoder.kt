@@ -16,12 +16,11 @@ class RecordDecoder(
 ) : StructureDecoder() {
     private var currentWriterFieldIndex = 0
     private var currentReaderFieldIndex = 0
-    private lateinit var currentFieldAction: Resolver.Action
+    override var currentAction: Resolver.Action = resolvedAction
     
-    override val currentAction: Resolver.Action
-        get() = currentFieldAction
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         while (currentWriterFieldIndex < resolvedAction.fieldActions.size && resolvedAction.fieldActions[currentWriterFieldIndex] is Resolver.Skip) {
+            //Just skip the field
             currentWriterFieldIndex++
             val skipAction = resolvedAction.fieldActions[currentWriterFieldIndex] as Resolver.Skip
             skip(skipAction.writer)
@@ -29,7 +28,7 @@ class RecordDecoder(
         return if (currentWriterFieldIndex < resolvedAction.fieldActions.size) {
             //Decode from writer
             val readField = resolvedAction.readerOrder[currentReaderFieldIndex++]
-            currentFieldAction = resolvedAction.fieldActions[currentWriterFieldIndex]
+            currentAction = resolvedAction.fieldActions[currentWriterFieldIndex++]
             readField.pos()
         } else {
             CompositeDecoder.DECODE_DONE

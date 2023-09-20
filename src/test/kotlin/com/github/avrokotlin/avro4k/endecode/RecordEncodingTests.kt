@@ -21,14 +21,14 @@ fun recordEncodingTests(encoderToTest: EnDecoder): TestFactory {
             encoderToTest.testEncodeDecode(StringFoo("hello"), record("hello"))
         }
         "encode/decode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
-            val fixedSchema = Schema.createFixed("FixedString", null, null, 7)
+            val fixedSchema = Schema.createFixed("FixedString", null, null, 5)
             val schema = SchemaBuilder.record("Foo").fields().name("s").type(fixedSchema).noDefault().endRecord()
             val encoded = encoderToTest.testEncodeIsEqual(
                 value = StringFoo("hello"),
-                shouldMatch = record(GenericData.Fixed(fixedSchema, byteArrayOf(104, 101, 108, 108, 111, 0, 0))),
+                shouldMatch = record(GenericData.Fixed(fixedSchema, byteArrayOf(104, 101, 108, 108, 111))),
                 schema = schema
             )
-            encoderToTest.testDecodeIsEqual(encoded, StringFoo(String("hello".toByteArray() + byteArrayOf(0, 0))))
+            encoderToTest.testDecodeIsEqual(encoded, StringFoo("hello"), readSchema = schema, writeSchema = schema)
         }
         "encode/decode nullable string" {
             @Serializable

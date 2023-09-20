@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.decoder.direct
 import com.github.avrokotlin.avro4k.io.AvroDecoder
 import com.github.avrokotlin.avro4k.schema.Resolver
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
@@ -12,13 +11,15 @@ import kotlinx.serialization.modules.SerializersModule
 class PolymorphicDecoder(
     override val serializersModule: SerializersModule,
     override val decoder: AvroDecoder,
-    override var currentAction: Resolver.Action
+    private val readerUnionAction: Resolver.ReaderUnion
 ) : StructureDecoder() {
+    override var currentAction: Resolver.Action = readerUnionAction
     private enum class State(val elementIndex: Int) {
         KEY(0), VALUE(1), DONE(CompositeDecoder.DECODE_DONE)
     }
 
     private var decodedState: State? = null
+
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         val nextState = when (decodedState) {
             null -> State.KEY
@@ -35,19 +36,8 @@ class PolymorphicDecoder(
         else super.decodeString()
     }
     private fun decodeSerialName(): String {
-        val readerUnion = determineReaderUnion()
-        currentAction = readerUnion.actualAction
-        return readerUnion.readerSerialNames[readerUnion.firstMatch]
-    }
-    private fun determineReaderUnion() : Resolver.ReaderUnion {
-        return when (val resolvedAction = currentAction) {
-            is Resolver.ReaderUnion -> resolvedAction
-            is Resolver.WriterUnion -> {
-                val writerIndex = decoder.readIndex()
-                val readerUnion = resolvedAction.actions[writerIndex] as Resolver.ReaderUnion
-                readerUnion
-            }
-            else -> throw SerializationException("No schema defined for resolution.")
-        }
+        val serialName = readerUnionAction.readerSerialNames[readerUnionAction.firstMatch]
+        currentAction = readerUnionAction.actualAction
+        return serialName
     }
 }

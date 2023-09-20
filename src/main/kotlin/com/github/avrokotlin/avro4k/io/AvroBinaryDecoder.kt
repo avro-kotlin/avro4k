@@ -1,8 +1,6 @@
 package com.github.avrokotlin.avro4k.io
 
-import kotlinx.io.Source
-import kotlinx.io.readString
-import kotlinx.io.readTo
+import kotlinx.io.*
 import java.io.IOException
 
 const val EMPTY_STRING = ""
@@ -104,13 +102,16 @@ class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
         return l
     }
 
-    override fun readFloat(): Float = Float.fromBits(source.readInt())
+    override fun readFloat(): Float = Float.fromBits(source.readIntLe())
 
-    override fun readDouble(): Double = Double.fromBits(source.readLong())
+    override fun readDouble(): Double = Double.fromBits(source.readLongLe())
 
     override fun readString(): String {
-        val length = readLong()
-        if (0L != length) {
+        return readFixedString(readLong())
+    }
+
+    override fun readFixedString(length: Long): String {
+        if(0L != length) {
             return source.readString(length, Charsets.UTF_8)
         }
         return EMPTY_STRING

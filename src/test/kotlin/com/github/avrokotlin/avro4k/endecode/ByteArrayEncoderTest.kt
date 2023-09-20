@@ -38,18 +38,18 @@ fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
         }
 
         "encode/decode ByteArray as FIXED when schema is Type.Fixed" {
-            val fixedSchema = Schema.createFixed("ByteArray", null, null, 8)
+            val fixedSchema = Schema.createFixed("ByteArray", null, null, 3)
             val schema =
                 SchemaBuilder.record("ByteArrayTest").fields().name("z").type(fixedSchema).noDefault().endRecord()
             val unpaddedByteArray = byteArrayOf(1, 4, 9)
-            val paddedByteArray = byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)
+            
             val encoded = encoderToTest.testEncodeIsEqual(
                 value = ByteArrayTest(unpaddedByteArray),
-                shouldMatch = record(GenericData.Fixed(fixedSchema, paddedByteArray)),
+                shouldMatch = record(GenericData.Fixed(fixedSchema, unpaddedByteArray)),
                 schema = schema
             )
             encoderToTest.testDecodeIsEqual(
-                byteArray = encoded, value = ByteArrayTest(paddedByteArray), readSchema = schema
+                byteArray = encoded, value = ByteArrayTest(unpaddedByteArray), readSchema = schema
             )
         }
     }

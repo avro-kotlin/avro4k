@@ -18,8 +18,8 @@
 package com.github.avrokotlin.avro4k.io
 
 import kotlinx.io.Buffer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 
 
@@ -197,26 +197,11 @@ abstract class AvroEncoder {
     abstract fun writeIndex(unionIndex: Int)
 
     abstract fun flush()
-
-    fun writeFixedWithPadding(bytes: ByteArray, fixedSize: Int) {
-        val actualSize = bytes.size
-        val padding = fixedSize - actualSize
-        if(padding < 0) {
-            throw AvroRuntimeException("Cannot write string with ${actualSize} bytes to fixed type of size ${fixedSize}")
-        } else if(padding > 0) {
-            val paddingArr = ByteArray(padding)
-            writeFixed(paddingArr)
-            if(actualSize > 0) {
-                writeFixed(bytes)
-            }
-        } else {
-            writeFixed(bytes)
-        }
-    }
+    
     fun writeString(schema: Schema, t: String) {
         when (schema.type) {
             Schema.Type.FIXED -> {
-                writeFixedWithPadding(t.encodeToByteArray(), schema.fixedSize)
+                writeFixed(t.encodeToByteArray(), schema)
             }
 
             Schema.Type.BYTES -> {
@@ -225,6 +210,12 @@ abstract class AvroEncoder {
 
             else -> writeString(t)
         }
+    }
+    fun writeFixed(byteArray: ByteArray, relevantSchema: Schema) {
+        if(byteArray.size != relevantSchema.fixedSize) {
+            throw SerializationException("Cannot serialize a byte array of size ${byteArray.size} for the schema $relevantSchema. The array needs to have the length of exactly ${relevantSchema.fixedSize}.")
+        }
+        writeFixed(byteArray)
     }
 
     fun writeUnionSchema(unionSchema: Schema, actualSchema: Schema) {

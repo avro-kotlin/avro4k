@@ -35,7 +35,7 @@ class AvroJsonDecoder(val source: Source) : AvroDecoder() {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun readBytes(): ByteArray = decodePrimitive().content.hexStringToByteArray()
+    override fun readBytes(): ByteArray = decodePrimitive().content.toAvroJsonByteArray()
 
     override fun skipBytes() {
         decodePrimitive()
@@ -44,13 +44,15 @@ class AvroJsonDecoder(val source: Source) : AvroDecoder() {
     private fun decodeNextElement(): JsonElement {
         if (currentDecoder.isAllRead) {
             currentDecoder = decoderStack.removeLastOrNull() ?: initDecoderFromSource()
-        }
-        val nextElement = currentDecoder.nextElement()
-        if (nextElement is JsonObject && currentDecoder.elementSchema.type == Schema.Type.RECORD) {
-            push(RecordDecoder(nextElement, currentDecoder.elementSchema))
             return decodeNextElement()
+        }else {
+            val nextElement = currentDecoder.nextElement()
+            if (nextElement is JsonObject && currentDecoder.elementSchema.type == Schema.Type.RECORD) {
+                push(RecordDecoder(nextElement, currentDecoder.elementSchema))
+                return decodeNextElement()
+            }
+            return nextElement
         }
-        return nextElement
     }
 
     private fun push(decoder: JsonElementDecoder) {
@@ -157,20 +159,17 @@ class AvroJsonDecoder(val source: Source) : AvroDecoder() {
     }
 
     class MapDecoder(jsonObject: JsonObject, schema: Schema) : JsonElementDecoder {
-        override val elementSchema: Schema = schema.elementType
+        override val elementSchema: Schema = schema.valueType
         private var index: Int = 0
-        private var keyNotDecoded = true
         private val mapEntries = jsonObject.entries.toList()
         override val isAllRead: Boolean
-            get() = index == mapEntries.size
+            get() = index/2 == mapEntries.size
 
         override fun nextElement(): JsonElement {
-            val entry = mapEntries[index]
-            return if (keyNotDecoded) {
-                keyNotDecoded = false
+            val entry = mapEntries[index/2]
+            return if (index++ % 2 == 0) {
                 JsonPrimitive(entry.key)
             } else {
-                index++
                 entry.value
             }
         }
@@ -190,7 +189,7 @@ class AvroJsonDecoder(val source: Source) : AvroDecoder() {
                         throw SerializationException("Cannot decode a JsonObject with size ${jsonElement.size} as a Union. A Union object must have only one property.")
                     }
                     val name = jsonElement.keys.first()
-                    unionSchema.types.withIndex().first { it.value.name == name }
+                    unionSchema.types.withIndex().first { it.value.fullName == name }
                 }
 
                 else -> throw SerializationException("Cannot decode $jsonElement as a Union. It needs to either be 'null' or a json object.")
@@ -204,22 +203,5 @@ class AvroJsonDecoder(val source: Source) : AvroDecoder() {
         }
 
     }
-}
-
-private val HEX_CHARS = "0123456789abcdef"
-
-fun String.hexStringToByteArray() : ByteArray {
-    val hexStr = substring(2) //remove \u in front of hex string
-    val length = hexStr.length
-    val result = ByteArray(length / 2)
-
-    for (i in 0 until length step 2) {
-        val firstIndex = HEX_CHARS.indexOf(hexStr[i]);
-        val secondIndex = HEX_CHARS.indexOf(hexStr[i + 1]);
-
-        val octet = firstIndex.shl(4).or(secondIndex)
-        result.set(i.shr(1), octet.toByte())
-    }
-
-    return result
+    private fun String.toAvroJsonByteArray() : ByteArray = this.toByteArray(Charsets.ISO_8859_1)
 }

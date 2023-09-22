@@ -115,29 +115,6 @@ abstract class AvroEncoder {
     /**
      * Call this method to start writing an array.
      *
-     * When starting to serialize an array, call [.writeArrayStart]. Then,
-     * before writing any data for any item call [.setItemCount] followed by a
-     * sequence of [.startItem] and the item itself. The number of
-     * [.startItem] should match the number specified in
-     * [.setItemCount]. When actually writing the data of the item, you can
-     * call any [AvroEncoder] method (e.g., [.writeLong]). When all items of
-     * the array have been written, call [.writeArrayEnd].
-     *
-     * As an example, let's say you want to write an array of records, the record
-     * consisting of an Long field and a Boolean field. Your code would look
-     * something like this:
-     *
-     * <pre>
-     * out.writeArrayStart();
-     * out.setItemCount(list.size());
-     * for (Record r : list) {
-     * out.startItem();
-     * out.writeLong(r.longField);
-     * out.writeBoolean(r.boolField);
-     * }
-     * out.writeArrayEnd();
-    </pre> *
-     *
      */
     abstract fun writeArrayStart(size: Int)
     
@@ -221,7 +198,7 @@ abstract class AvroEncoder {
     fun writeEnum(schema: Schema, enumDescription: SerialDescriptor, ordinal: Int) {
         // the schema provided will be a union, so we should extract the correct schema
         val symbol = enumDescription.getElementName(ordinal)
-        writeInt(schema.enumSymbols.indexOf(symbol))
+        writeEnum(schema.enumSymbols.indexOf(symbol))
     }
 
     abstract fun writeByte(value: Byte)

@@ -14,7 +14,7 @@ class SealedClassEncoderTest : StringSpec({
     includeForEveryEncoder { sealedClassEncoderTests(it) }
 })
 
-fun sealedClassEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun sealedClassEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode sealed classes" {
             val addSchema = encoderToTest.avro.schema(Operation.Binary.Add.serializer())

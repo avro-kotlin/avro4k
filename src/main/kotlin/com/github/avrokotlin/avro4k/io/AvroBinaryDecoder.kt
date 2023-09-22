@@ -1,11 +1,16 @@
 package com.github.avrokotlin.avro4k.io
 
 import kotlinx.io.*
+import org.apache.avro.Schema
 import java.io.IOException
 
 const val EMPTY_STRING = ""
 
 class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
+    override fun configure(writeSchema: Schema) {
+        //Nothing to do
+    }
+
     override fun readNull() {
         //no op
     }
@@ -111,7 +116,7 @@ class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
     }
 
     override fun readFixedString(length: Long): String {
-        if(0L != length) {
+        if (0L != length) {
             return source.readString(length, Charsets.UTF_8)
         }
         return EMPTY_STRING
@@ -128,13 +133,12 @@ class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
     override fun readBytes(): ByteArray {
         val length = readInt()
         val array = ByteArray(length)
-        source.readTo(array,0, length)
+        source.readTo(array, 0, length)
         return array
     }
 
     override fun skipBytes() = doSkip(readInt().toLong())
-
-    override fun readFixed(bytes: ByteArray, start: Int, length: Int) = source.readTo(bytes, start, length)
+    override fun readFixed(length: Int): ByteArray = source.readByteArray(length)
 
     override fun skipFixed(length: Int) = doSkip(length.toLong())
 
@@ -162,6 +166,7 @@ class AvroBinaryDecoder(val source: Source) : AvroDecoder() {
         }
         return result
     }
+
     private fun doSkipItems(): Long {
         var result = readLong()
         while (result < 0L) {

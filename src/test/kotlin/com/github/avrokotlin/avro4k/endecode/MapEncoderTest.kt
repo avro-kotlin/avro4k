@@ -11,7 +11,7 @@ class MapEncoderTest : StringSpec({
     includeForEveryEncoder { mapEncoderTests(it) }
 })
 
-fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
+fun mapEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
     return stringSpec {
 
         "encode/decode a Map<String, Boolean>" {

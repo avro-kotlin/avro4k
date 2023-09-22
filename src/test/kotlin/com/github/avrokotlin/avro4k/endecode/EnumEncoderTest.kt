@@ -11,7 +11,7 @@ import org.apache.avro.generic.GenericData
 class EnumEncoderTest : FunSpec({
     includeForEveryEncoder { enumEncoderTests(it) }
 })
-fun enumEncoderTests(enDecoder: EnDecoder): TestFactory {
+fun enumEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
     @Serializable
     data class MyWine(val wine: Wine)
 

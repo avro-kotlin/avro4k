@@ -19,7 +19,7 @@ import java.math.BigDecimal
 class BigDecimalEncoderTest : FunSpec({
     includeForEveryEncoder { bigDecimalEncoderTests(it) }
 })
-fun bigDecimalEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun bigDecimalEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     @Serializable
     data class BigDecimalTest(val decimal: BigDecimal)
 

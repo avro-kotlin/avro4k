@@ -14,7 +14,7 @@ import java.util.*
 class UUIDEncoderTest : FunSpec({
     includeForEveryEncoder { uuidEncoderTests(it) }
 })
-fun uuidEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun uuidEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode UUIDs" {
             @Serializable

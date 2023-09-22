@@ -10,7 +10,7 @@ import java.util.*
 class ValueClassEncoderTest : StringSpec({
     includeForEveryEncoder { valueClassEncoderTests(it) }
 })
-fun valueClassEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun valueClassEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode value class" {
             val uuid = UUID.randomUUID()

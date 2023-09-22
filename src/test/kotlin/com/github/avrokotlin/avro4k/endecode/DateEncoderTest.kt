@@ -25,7 +25,7 @@ class DateEncoderTest : FunSpec({
     includeForEveryEncoder { dateEncoderTests(it) }
 })
 
-fun dateEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun dateEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode LocalTime as an Int" {
             @Serializable

@@ -203,11 +203,13 @@ class Avro(
    }
 
    fun <T> encode(avroEncoder: AvroEncoder, serializer: SerializationStrategy<T>, obj: T, schema: Schema = schema(serializer)) {      
+      avroEncoder.configure(schema)
       val encoder = DirectRootRecordEncoder(schema, serializersModule, avroEncoder)
       encoder.encodeSerializableValue(serializer, obj)
       avroEncoder.flush()
    }
    fun <T> decode(avroDecoder: AvroDecoder, deserializer: DeserializationStrategy<T>, writeSchema: Schema, readSchema: Schema = schema(deserializer.descriptor)): T {
+      avroDecoder.configure(writeSchema)
       val action = resolvedSchemas.computeIfAbsent(readSchema to writeSchema) {
          resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
       }

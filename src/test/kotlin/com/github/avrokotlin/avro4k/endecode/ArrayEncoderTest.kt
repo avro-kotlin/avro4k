@@ -10,7 +10,7 @@ class ArrayEncoderTest : WordSpec({
    includeForEveryEncoder { arrayEncodingTests(it) }
 })
 
-fun arrayEncodingTests(encoderToTest: EnDecoder): TestFactory {
+fun arrayEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
    return wordSpec {
       "en-/decoder" should {
          "generate GenericData.Array for an Array<Boolean>" {

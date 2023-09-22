@@ -11,7 +11,7 @@ class AvroNameEncoderTest : FunSpec({
     includeForEveryEncoder { avroNameEncodingTests(it) }
 })
 
-fun avroNameEncodingTests(endecoder: EnDecoder): TestFactory {
+fun avroNameEncodingTests(endecoder: EnDecoder<*>): TestFactory {
     return stringSpec {
         "take into account @AvroName on fields" {
             @Serializable

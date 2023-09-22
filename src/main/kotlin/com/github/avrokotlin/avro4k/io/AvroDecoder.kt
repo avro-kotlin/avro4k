@@ -17,6 +17,8 @@
  */
 package com.github.avrokotlin.avro4k.io
 
+import org.apache.avro.Schema
+
 /**
  * Low-level support for de-serializing Avro values.
  *
@@ -24,6 +26,8 @@ package com.github.avrokotlin.avro4k.io
  * and converted to kotlin multiplatform.
  */
 abstract class AvroDecoder {
+    abstract fun configure(writeSchema: Schema)
+    
     /**
      * "Reads" a null value. (Doesn't actually read anything, but advances the state
      * of the parser if the implementation is stateful.)
@@ -78,22 +82,9 @@ abstract class AvroDecoder {
     abstract fun skipBytes()
 
     /**
-     * Reads fixed sized binary object.
-     *
-     * @param bytes  The buffer to store the contents being read.
-     * @param start  The position where the data needs to be written.
-     * @param length The size of the binary object.
+     * Reads the number of bytes.
      */
-    abstract fun readFixed(bytes: ByteArray, start: Int, length: Int)
-
-    /**
-     * A shorthand for <tt>readFixed(bytes, 0, bytes.length)</tt>.
-     */
-    fun readFixed(length: Int) : ByteArray {
-        val bytes = ByteArray(length)
-        readFixed(bytes, 0, bytes.size)
-        return bytes
-    }
+    abstract fun readFixed(length: Int) : ByteArray
 
     /**
      * Discards fixed sized binary object.

@@ -15,7 +15,7 @@ class NamingStrategyEncoderTest : WordSpec({
     includeForEveryEncoder { namingStrategyEncoderTests(it) }
 })
 
-fun namingStrategyEncoderTests(enDecoder: EnDecoder): TestFactory {
+fun namingStrategyEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
     return stringSpec {
         @Serializable
         data class Foo(val fooBar: String)

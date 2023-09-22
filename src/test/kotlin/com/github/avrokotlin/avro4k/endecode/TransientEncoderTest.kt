@@ -12,7 +12,7 @@ import org.apache.avro.generic.GenericData
 class TransientEncoderTest : FunSpec({
     includeForEveryEncoder { transientEncoderTests(it) }
 })
-fun transientEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun transientEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     @Serializable
     data class Foo(val a: String, @Transient val b: String = "foo", val c: String)
     return stringSpec {

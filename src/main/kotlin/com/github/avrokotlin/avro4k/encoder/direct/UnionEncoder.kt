@@ -32,7 +32,7 @@ class UnionEncoder(
                     serialName == schemaName
                 }
                 val leafSchema = unionSchema.types[leafSchemaIndex]
-                avroEncoder.writeUnionSchema(unionSchema, leafSchemaIndex)
+                avroEncoder.writeIndex(leafSchemaIndex)
                 RecordEncoder(leafSchema, serializersModule, avroEncoder)
             }
 

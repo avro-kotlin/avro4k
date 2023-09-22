@@ -69,7 +69,7 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
         val currentFieldSchema = fieldSchema()
         val nullIndex = currentFieldSchema.nullSchemaIndex
         if (nullIndex == -1) throw IllegalArgumentException("Cannot encode null value for non nullable schema field.")
-        avroEncoder.writeUnionSchema(currentFieldSchema, nullIndex)
+        avroEncoder.writeIndex(nullIndex)
         avroEncoder.writeNull()
     }
 
@@ -85,7 +85,7 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
         val fieldSchema = fieldSchema()
         val nonNullSchemaIndex = fieldSchema.nonNullSchemaIndex
         if (nonNullSchemaIndex != -1) {
-            avroEncoder.writeUnionSchema(fieldSchema, nonNullSchemaIndex)
+            avroEncoder.writeIndex(nonNullSchemaIndex)
         }
     }
 

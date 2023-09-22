@@ -14,7 +14,7 @@ class ByteArrayEncoderTest : FunSpec({
     includeForEveryEncoder { byteArrayEncoderTests(it) }
 })
 
-fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun byteArrayEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         @Serializable
         data class ByteArrayTest(val z: ByteArray)
@@ -49,7 +49,7 @@ fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
                 schema = schema
             )
             encoderToTest.testDecodeIsEqual(
-                byteArray = encoded, value = ByteArrayTest(unpaddedByteArray), readSchema = schema
+                serialized = encoded, value = ByteArrayTest(unpaddedByteArray), readSchema = schema
             )
         }
     }

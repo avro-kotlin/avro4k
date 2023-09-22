@@ -13,7 +13,7 @@ class RecordEncodingTests : WordSpec({
     includeForEveryEncoder { recordEncodingTests(it) }
 })
 
-fun recordEncodingTests(encoderToTest: EnDecoder): TestFactory {
+fun recordEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
     @Serializable
     data class StringFoo(val s: String)
     return stringSpec {

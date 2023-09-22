@@ -14,7 +14,7 @@ import java.math.BigInteger
 class BigIntegerEncoderTest : FunSpec({
     includeForEveryEncoder { bigIntegerEncoderTests(it) }
 })
-fun bigIntegerEncoderTests(encoderToTest: EnDecoder): TestFactory {
+fun bigIntegerEncoderTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "use string for BigInteger" {
             @Serializable

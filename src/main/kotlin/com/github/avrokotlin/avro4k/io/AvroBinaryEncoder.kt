@@ -40,6 +40,10 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         }
     }
 
+    override fun configure(schema: Schema) {
+        //do nothing
+    }
+
     override fun writeNull() {
         //no op
     }
@@ -66,9 +70,6 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         }
     }
 
-    override fun writeUnionSchema(unionSchema: Schema, indexOfActualSchema: Int) {
-        writeInt(indexOfActualSchema)
-    }
 
     override fun writeByte(value: Byte) {
         // inlined, shorter version of ensureBounds
@@ -262,8 +263,6 @@ class AvroBinaryEncoder(val sink: Sink, bufferSize: Int = DEFAULT_BUFFER_SIZE) :
         writeZero()
     }
 
-    override fun writeIndex(unionIndex: Int) {
-        writeInt(unionIndex)
-    }
+    override fun writeIndex(unionIndex: Int) = writeInt(unionIndex)
 
 }

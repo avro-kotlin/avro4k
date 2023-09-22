@@ -14,7 +14,7 @@ import java.net.URL
 class URLEncoderTest : FunSpec({
     includeForEveryEncoder { urlEncoderTests(it) }
 })
-fun urlEncoderTests(enDecoder: EnDecoder): TestFactory {
+fun urlEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode URLs as string" {
             @Serializable

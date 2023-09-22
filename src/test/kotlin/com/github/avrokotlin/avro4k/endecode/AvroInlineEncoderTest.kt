@@ -14,7 +14,7 @@ class AvroInlineEncoderTest : FunSpec({
 @Serializable
 @JvmInline
 value class Name(val value: String)
-fun inlineEncodingTests(encoderToTest: EnDecoder): TestFactory {
+fun inlineEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
     return stringSpec {
         "encode/decode @AvroInline" {
             @Serializable

@@ -218,12 +218,6 @@ abstract class AvroEncoder {
         }
         writeFixed(byteArray)
     }
-
-    fun writeUnionSchema(unionSchema: Schema, actualSchema: Schema) {
-        writeUnionSchema(unionSchema, unionSchema.types.indexOf(actualSchema))
-    }
-
-    abstract fun writeUnionSchema(unionSchema: Schema, indexOfActualSchema: Int)
     fun writeEnum(schema: Schema, enumDescription: SerialDescriptor, ordinal: Int) {
         // the schema provided will be a union, so we should extract the correct schema
         val symbol = enumDescription.getElementName(ordinal)
@@ -231,4 +225,5 @@ abstract class AvroEncoder {
     }
 
     abstract fun writeByte(value: Byte)
+    abstract fun configure(schema: Schema)
 }

@@ -17,15 +17,21 @@
  */
 package com.github.avrokotlin.avro4k.schema
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.getSchemaNameForUnion
 import com.github.avrokotlin.avro4k.possibleSerializationSubclasses
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import org.apache.avro.LogicalType
+import kotlinx.serialization.descriptors.capturedKClass
+import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import org.apache.avro.Schema.SeenPair
 import org.apache.avro.Schema.Type.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 /**
@@ -38,6 +44,8 @@ import kotlin.math.min
 class Resolver(
     private val avro: Avro
 ) {
+    private val cache = ConcurrentHashMap<SchemaCombination, Action>()
+
     /**
      * Returns a [Resolver.Action] tree for resolving the writer schema
      * <tt>writer</tt> and the reader schema <tt>reader</tt>.
@@ -61,20 +69,20 @@ class Resolver(
      *
      * @return Nested actions for resolving the two
      */
-    /**
-     * Uses <tt>GenericData.get()</tt> for the <tt>data</tt> param.
-     */
-    @JvmOverloads
     fun resolve(writer: Schema?, reader: Schema, readerDescriptor: SerialDescriptor): Action {
-        return doResolve(Schema.applyAliases(writer, reader), reader, readerDescriptor, HashMap())
+        return doResolve(Schema.applyAliases(writer, reader), reader, readerDescriptor, HashMap(cache))
     }
 
     private fun doResolve(
         writerSchema: Schema,
         readerSchema: Schema,
         readerDescriptor: SerialDescriptor,
-        seen: MutableMap<SeenPair, Action>
+        seen: MutableMap<SchemaCombination, Action>
     ): Action {
+        val cachedValue = seen[SchemaCombination(writerSchema, readerSchema)]
+        if (cachedValue != null) {
+            return cachedValue
+        }
         val writerType = writerSchema.type
         val readerType = readerSchema.type
         if (writerType == UNION) {
@@ -91,10 +99,8 @@ class Resolver(
                 STRING,
                 BYTES -> DoNothing(writerSchema, readerSchema)
 
-                FIXED -> if (writerSchema.name != null && writerSchema.name != readerSchema.name) {
-                    ErrorAction(writerSchema, readerSchema, ErrorAction.ErrorType.NAMES_DONT_MATCH)
-                } else if (writerSchema.fixedSize != readerSchema.fixedSize) {
-                    ErrorAction(writerSchema, readerSchema, ErrorAction.ErrorType.SIZES_DONT_MATCH)
+                FIXED -> if (writerSchema.fullName != readerSchema.fullName || writerSchema.fixedSize != readerSchema.fixedSize) {
+                    throw incompatibleSchemaTypes(writerSchema, readerSchema)
                 } else {
                     DoNothing(writerSchema, readerSchema)
                 }
@@ -130,90 +136,11 @@ class Resolver(
         }
     }
 
-    private fun unionEquiv(write: Schema, read: Schema, seen: MutableMap<SeenPair, Boolean>): Boolean {
-        val wt = write.type
-        if (wt != read.type) {
-            return false
-        }
-
-        // Previously, the spec was somewhat ambiguous as to whether getFullName or
-        // getName should be used here. Using name rather than fully qualified name
-        // maintains backwards compatibility.
-        return if ((wt == RECORD || wt == FIXED || wt == ENUM) && !(write.name == null || write.name == read.name)) {
-            false
-        } else when (wt) {
-            NULL, BOOLEAN, INT, LONG, FLOAT, DOUBLE, STRING, BYTES -> true
-            ARRAY -> unionEquiv(
-                write.elementType, read.elementType, seen
-            )
-
-            MAP -> unionEquiv(
-                write.valueType, read.valueType, seen
-            )
-
-            FIXED -> write.fixedSize == read.fixedSize
-            ENUM -> {
-                val ws = write.enumSymbols
-                val rs = read.enumSymbols
-                ws == rs
-            }
-
-            UNION -> {
-                val wb = write.types
-                val rb = read.types
-                if (wb.size != rb.size) {
-                    return false
-                }
-                var i = 0
-                while (i < wb.size) {
-                    if (!unionEquiv(wb[i], rb[i], seen)) {
-                        return false
-                    }
-                    i++
-                }
-                true
-            }
-
-            RECORD -> {
-                val wsc = SeenPair(write, read)
-                if (!seen.containsKey(wsc)) {
-                    seen[wsc] = true // Be optimistic, but we may change our minds
-                    val wb = write.fields
-                    val rb = read.fields
-                    if (wb.size != rb.size) {
-                        seen[wsc] = false
-                    } else {
-                        var i = 0
-                        while (i < wb.size) {
-
-                            // Loop through each of the elements, and check if they are equal
-                            if (wb[i].name() != rb[i].name() || !unionEquiv(
-                                    wb[i].schema(), rb[i].schema(), seen
-                                )
-                            ) {
-                                seen[wsc] = false
-                                break
-                            }
-                            i++
-                        }
-                    }
-                }
-                seen[wsc]!!
-            }
-
-            else -> throw IllegalArgumentException("Unknown schema type: " + write.type)
-        }
-    }
-
     /**
-     * If writer and reader don't have same name, a
-     * [ErrorAction.ErrorType.NAMES_DONT_MATCH] is returned, otherwise an
-     * appropriate [EnumAdjust] is.
+     * Resolve an [EnumAdjust].
      */
-    fun resolveEnum(w: Schema, r: Schema): Action {
-        if (w.name != null && w.name != r.name) return ErrorAction(
-            w, r, ErrorAction.ErrorType.NAMES_DONT_MATCH
-        )
+    fun resolveEnum(w: Schema, r: Schema): EnumAdjust {
+        if (w.name != r.name) throw incompatibleSchemaTypes(w, r)
         val wsymbols = w.enumSymbols
         val rsymbols = r.enumSymbols
         val defaultIndex = if (r.enumDefault == null) -1 else rsymbols.indexOf(r.enumDefault)
@@ -232,24 +159,12 @@ class Resolver(
         writeSchema: Schema,
         readSchema: Schema,
         readerDescriptor: SerialDescriptor,
-        seen: MutableMap<SeenPair, Action>
+        seen: MutableMap<SchemaCombination, Action>
     ): Action {
-        val unionEquivalent = unionEquiv(writeSchema, readSchema, HashMap())
-        val writeTypes = writeSchema.types
-        val writeTypeLength = writeTypes.size
-        val actions = ArrayList<Action>(writeTypeLength)
-        for (i in 0 until writeTypeLength) {
-            actions.add(
-                doResolve(
-                    writeTypes[i],
-                    readSchema,
-                    readerDescriptor,
-                    seen
-                )
-            )
+        val actions = writeSchema.types.map {
+            doResolve(it, readSchema, readerDescriptor, seen)
         }
-        val nullIndex = writeTypes.indexOfFirst { it.type == Schema.Type.NULL }
-        return WriterUnion(writeSchema, readSchema, unionEquivalent, actions, nullIndex)
+        return WriterUnion(writeSchema, readSchema, actions)
     }
 
     /**
@@ -264,20 +179,19 @@ class Resolver(
         w: Schema,
         r: Schema,
         readDescriptor: SerialDescriptor,
-        seen: MutableMap<SeenPair, Action>
-    ): Action {
+        seen: MutableMap<SchemaCombination, Action>
+    ): ReaderUnion {
         require(w.type != UNION) { "Writer schema is union." }
         val i = firstMatchingBranch(w, r, readDescriptor, seen)
-        return if (0 <= i) {
+        if (i == -1) throw incompatibleSchemaTypes(w, r)
+        val schemaNameToSerialName =
+            readDescriptor.possibleSerializationSubclasses(avro.serializersModule).associate {
+                Pair(it.getSchemaNameForUnion(avro.nameResolver).fullName, it.serialName)
+            }
+        val possibleNames =
+            r.types.map { if (it.type == Schema.Type.NULL) "null" else schemaNameToSerialName[it.fullName]!! }
+        return ReaderUnion(w, r, i, possibleNames, doResolve(w, r.types[i], readDescriptor, seen))
 
-            val schemaNameToSerialName =
-                readDescriptor.possibleSerializationSubclasses(avro.serializersModule).associate {
-                    Pair(it.getSchemaNameForUnion(avro.nameResolver).fullName, it.serialName)
-                }
-            val possibleNames =
-                r.types.map { if (it.type == Schema.Type.NULL) "null" else schemaNameToSerialName[it.fullName]!! }
-            ReaderUnion(w, r, i, possibleNames, doResolve(w, r.types[i], readDescriptor, seen))
-        } else ErrorAction(w, r, ErrorAction.ErrorType.NO_MATCHING_BRANCH)
     }
 
     // Note: This code was taken verbatim from the 1.8.x branch of Apache Avro. It implements
@@ -287,75 +201,42 @@ class Resolver(
         w: Schema,
         r: Schema,
         readerDescriptor: SerialDescriptor,
-        seen: MutableMap<SeenPair, Action>
+        seen: MutableMap<SchemaCombination, Action>
     ): Int {
-        val vt = w.type
+        val writeType = w.type
         // first scan for exact match
-        var j = 0
-        var structureMatch = -1
-        for (b in r.types) {
-            if (vt == b.type) {
-                if (vt == RECORD || vt == ENUM || vt == FIXED) {
-                    val vname = w.fullName
-                    val bname = b.fullName
-                    // return immediately if the name matches exactly according to spec
-                    if (vname != null && vname == bname) return j
-                    if (vt == RECORD && !hasMatchError(resolveRecord(w, b, readerDescriptor, seen))) {
-                        val vShortName = w.name
-                        val bShortName = b.name
-                        // use the first structure match or one where the name matches
-                        if (structureMatch < 0 || vShortName != null && vShortName == bShortName) {
-                            structureMatch = j
-                        }
-                    }
-                } else {
-                    return j
-                }
+        val matchByFullName = r.types.indexOfFirst {
+            if (writeType != it.type) {
+                false
+            } else if (writeType.isNamedType) {
+                w.fullName == it.fullName
+            } else {
+                true
             }
-            j++
         }
-
-        // if there is a record structure match, return it
-        if (structureMatch >= 0) {
-            return structureMatch
+        if (matchByFullName != -1) return matchByFullName
+        //No fast match found, now looking for structure match with same name
+        val isStructureMatch = { readSchema: Schema ->
+            writeType == readSchema.type && !hasMatchError { resolveRecord(w, readSchema, readerDescriptor, seen) }
         }
-
-        // then scan match via numeric promotion
-        j = 0
-        for (b in r.types) {
-            when (vt) {
-                INT -> when (b.type) {
-                    LONG, DOUBLE, FLOAT -> return j
-                }
-
-                LONG -> when (b.type) {
-                    DOUBLE, FLOAT -> return j
-                }
-
-                FLOAT -> when (b.type) {
-                    DOUBLE -> return j
-                }
-
-                STRING -> when (b.type) {
-                    BYTES -> return j
-                }
-
-                BYTES -> when (b.type) {
-                    STRING -> return j
-                }
-            }
-            j++
+        val structureMatchSameName = r.types.indexOfFirst {
+            w.name == it.name && isStructureMatch.invoke(it)
         }
-        return -1
+        if (structureMatchSameName != -1) return structureMatchSameName
+        val structureMatch = r.types.indexOfFirst(isStructureMatch)
+        if (structureMatch != -1) return structureMatch
+
+        // then scan match via promotion
+        return r.types.indexOfFirst { writeType.canBePromotedTo(it.type) }
     }
 
-    private fun hasMatchError(action: Action?): Boolean {
-        if (action is ErrorAction) return true else for (a in (action as RecordAdjust?)!!.fieldActions) {
-            if (a is ErrorAction) {
-                return true
-            }
+    private fun hasMatchError(doResolve: () -> Unit): Boolean {
+        return try {
+            doResolve.invoke()
+            false
+        } catch (e: Exception) {
+            true
         }
-        return false
     }
 
     /**
@@ -368,41 +249,11 @@ class Resolver(
      * @throws IllegalArgumentException if *getType()* of the two schemas are
      * not different.
      */
-    fun resolvePromote(w: Schema, r: Schema): Action {
-        return if (isValidPromotion(w, r)) {
-            Promote(w, r)
-        } else {
-            ErrorAction(w, r, ErrorAction.ErrorType.INCOMPATIBLE_SCHEMA_TYPES)
-        }
+    fun resolvePromote(w: Schema, r: Schema): Promote {
+        if (!w.type.canBePromotedTo(r.type)) throw incompatibleSchemaTypes(w, r)
+        return Promote(w, r)
     }
 
-    /**
-     * Returns true iff <tt>w</tt> and <tt>r</tt> are both primitive types and
-     * either they are the same type or <tt>w</tt> is promotable to <tt>r</tt>.
-     * Should
-     */
-    fun isValidPromotion(w: Schema, r: Schema): Boolean {
-        val wt = w.type
-        val rt = r.type
-        require(wt != rt) { "Only use when reader and writer are different." }
-
-        return when (rt) {
-            LONG -> wt == INT
-            FLOAT -> when (wt) {
-                INT, LONG -> true
-                else -> false
-            }
-
-            DOUBLE -> when (wt) {
-                INT, LONG, FLOAT -> true
-                else -> false
-            }
-
-            BYTES -> wt == STRING
-            STRING -> wt == BYTES
-            else -> false
-        }
-    }
 
     /**
      * Returns a [RecordAdjust] for the two schemas, or an [ErrorAction]
@@ -413,20 +264,22 @@ class Resolver(
      * @throws RuntimeException if writer and reader schemas are not both records
      */
     fun resolveRecord(
-        writeSchema: Schema, readSchema: Schema, readerDescriptor: SerialDescriptor, seen: MutableMap<SeenPair, Action>
+        writeSchema: Schema,
+        readSchema: Schema,
+        readerDescriptor: SerialDescriptor,
+        seen: MutableMap<SchemaCombination, Action>
     ): Action {
-        val writeReadPair = SeenPair(writeSchema, readSchema)
+        val writeReadPair = SchemaCombination(writeSchema, readSchema)
         val alreadySeenResult = seen[writeReadPair]
         if (alreadySeenResult != null) {
             return alreadySeenResult
         }
 
-        /*
-     * Current implementation doesn't do this check. To pass regressions tests, we
-     * can't either. if (w.getFullName() != null && !
-     * w.getFullName().equals(r.getFullName())) { result = new ErrorAction(w, r, d,
-     * ErrorType.NAMES_DONT_MATCH); seen.put(wr, result); return result; }
-     */
+
+        // Current implementation doesn't do this check. To pass regressions tests, we
+        // can't either. if (w.getFullName() != null && !
+        // w.getFullName().equals(r.getFullName())) { result = new ErrorAction(w, r, d,
+        // ErrorType.NAMES_DONT_MATCH); seen.put(wr, result); return result; }
         val writeFields = writeSchema.fields
         val readFields = readSchema.fields
         var firstDefault = 0
@@ -440,39 +293,59 @@ class Resolver(
         val reordered = ArrayList<Schema.Field>(readFields.size)
         var result: Action = RecordAdjust(writeSchema, readSchema, actions, reordered, firstDefault)
         seen[writeReadPair] = result // Insert early to handle recursion
-        for (writeField in writeFields) {
-            val readField = readSchema.getField(writeField.name())
-            if (readField != null) {
-                reordered.add(readField)
-                actions.add(
-                    doResolve(
-                        writeField.schema(),
-                        readField.schema(),
-                        readerDescriptor.getElementDescriptor(readField.pos()),
-                        seen
-                    )
-                )
-            } else {
-                actions.add(Skip(writeField.schema()))
-            }
-        }
-        for (readField in readFields) {
-            // The field is not in the writeSchema, so we can never read it
-            // Use the default value, or throw an error otherwise
-            val writeField = writeSchema.getField(readField.name())
-                ?: if (readField.defaultVal() == null) {
-                    result =
-                        ErrorAction(writeSchema, readSchema, ErrorAction.ErrorType.MISSING_REQUIRED_FIELD)
-                    seen[writeReadPair] = result
-                    return result
-                } else {
-                    actions.add(SetDefault(readField.schema(), readField.defaultVal()))
+        try {
+            for (writeField in writeFields) {
+                val readField = readSchema.getField(writeField.name())
+                if (readField != null) {
                     reordered.add(readField)
-                    TODO("Not yet implemented")
-                    //defaults[ridx - firstDefault] = data.getDefaultValue(readField)
+                    actions.add(
+                        doResolve(
+                            writeField.schema(),
+                            readField.schema(),
+                            readerDescriptor.getElementDescriptor(readField.pos()),
+                            seen
+                        )
+                    )
+                } else {
+                    actions.add(Skip(writeField.schema()))
                 }
+            }
+
+            for (readField in readFields) {
+                // The field is not in the writeSchema, so we can never read it
+                // Use the default value, or throw an error otherwise
+                if (writeSchema.getField(readField.name()) == null) {
+                    val defaultValue = readField.defaultValue
+                    if (defaultValue == null) {
+                        throw missingRequiredField(writeSchema, readSchema)
+                    } else {
+                        //Create default
+                        val descriptor = readerDescriptor.getElementDescriptor(readField.pos())
+                        println(descriptor.capturedKClass)
+
+                        actions.add(SetDefault(readField.schema(), defaultValue))
+                        reordered.add(readField)
+
+                        //TODO("Not yet implemented")
+                        //defaults[ridx - firstDefault] = data.getDefaultValue(readField)
+                    }
+                }
+            }
+            return result
+        } catch (e: SerializationException) {
+            seen.remove(writeReadPair)
+            throw e
         }
-        return result
+
+    }
+
+    private fun incompatibleSchemaTypes(w: Schema, r: Schema): SerializationException {
+        return SerializationException("The given schema types are not compatible. Found ${w.fullName}, expecting ${r.fullName}.")
+    }
+
+    private fun missingRequiredField(w: Schema, r: Schema): SerializationException {
+        val fname = r.fields.first { w.getField(it.name()) == null && it.defaultVal() == null }.name()
+        return SerializationException("Found ${w.fullName}, expecting ${r.fullName}, missing required field $fname")
     }
 
     /**
@@ -485,14 +358,7 @@ class Resolver(
      */
     sealed class Action(
         val writer: Schema, val reader: Schema
-    ) {
-
-        /**
-         * If the reader has a logical type, it's stored here for fast access, otherwise
-         * this will be null.
-         */
-        var logicalType: LogicalType? = reader.logicalType
-    }
+    )
 
     /**
      * In this case, there's nothing to be done for resolution: the two schemas are
@@ -500,63 +366,6 @@ class Resolver(
      * primitive types and fixed types, and not for any other kind of schema.
      */
     class DoNothing(w: Schema, r: Schema) : Action(w, r)
-
-    /**
-     * In this case there is an error. We put error Actions into trees because Avro
-     * reports these errors in a lazy fashion: if a particular input doesn't
-     * "tickle" the error (typically because it's in a branch of a union that isn't
-     * found in the data being read), then it's safe to ignore it.
-     */
-    class ErrorAction(w: Schema, r: Schema, val error: ErrorType) : Action(w, r) {
-        enum class ErrorType {
-            /**
-             * Use when Schema types don't match and can't be converted. For example,
-             * resolving "int" and "enum".
-             */
-            INCOMPATIBLE_SCHEMA_TYPES,
-
-            /**
-             * Use when Schema types match but, in the case of record, enum, or fixed, the
-             * names don't match.
-             */
-            NAMES_DONT_MATCH,
-
-            /**
-             * Use when two fixed types match and their names match by their sizes don't.
-             */
-            SIZES_DONT_MATCH,
-
-            /**
-             * Use when matching two records and the reader has a field with no default
-             * value and that field is missing in the writer..
-             */
-            MISSING_REQUIRED_FIELD,
-
-            /**
-             * Use when matching a reader's union against a non-union and can't find a
-             * branch that matches.
-             */
-            NO_MATCHING_BRANCH
-        }
-
-        override fun toString(): String {
-            return when (error) {
-                ErrorType.INCOMPATIBLE_SCHEMA_TYPES, ErrorType.NAMES_DONT_MATCH, ErrorType.SIZES_DONT_MATCH, ErrorType.NO_MATCHING_BRANCH -> "Found " + writer.fullName + ", expecting " + reader.fullName
-                ErrorType.MISSING_REQUIRED_FIELD -> {
-                    val rfields = reader.fields
-                    var fname = "<oops>"
-                    for (rf in rfields) {
-                        if (writer.getField(rf.name()) == null && rf.defaultVal() == null) {
-                            fname = rf.name()
-                        }
-                    }
-                    ("Found " + writer.fullName + ", expecting " + reader.fullName + ", missing required field " + fname)
-                }
-
-                else -> throw IllegalArgumentException("Unknown error.")
-            }
-        }
-    }
 
     /**
      * In this case, the writer's type needs to be promoted to the reader's. These
@@ -598,7 +407,7 @@ class Resolver(
     class EnumAdjust(
         w: Schema, r: Schema, val adjustments: IntArray
     ) : Action(w, r) {
-        
+
         val noAdjustmentsNeeded: Boolean
 
         init {
@@ -675,8 +484,7 @@ class Resolver(
      * In this case, the writer was a union. There are two subcases here:
      *
      *
-     * If the reader and writer are the same union, then the <tt>unionEquiv</tt>
-     * variable is set to true and the <tt>actions</tt> list holds the resolutions
+     * The <tt>actions</tt> list holds the resolutions
      * of each branch of the writer against the corresponding branch of the reader
      * (which will result in no material resolution work, because the branches will
      * be equivalent). If they reader is not a union or is a different union, then
@@ -685,10 +493,36 @@ class Resolver(
      * reader (if the reader is a union, that will result in ReaderUnion actions).
      */
     class WriterUnion(
-        w: Schema, r: Schema, val unionEquiv: Boolean, val actions: MutableList<Action>, val nullIndex: Int
+        w: Schema, r: Schema, val actions: List<Action>
     ) : Action(w, r)
 
-    class SetDefault(r: Schema, val defaultValue: Any?) : Action(r, r)
+    inner class SetDefault(r: Schema, private val jsonDefault: String) : Action(r, r) {
+        val isDefaultNull = jsonDefault == "null"
+        val decodedDefaultValue: Any? = when (r.type) {
+            Schema.Type.FIXED,
+            Schema.Type.BYTES -> ByteArraySerializer()
+
+            Schema.Type.STRING -> String.serializer()
+            Schema.Type.INT -> Int.serializer()
+            Schema.Type.LONG -> Long.serializer()
+            Schema.Type.BOOLEAN -> Boolean.serializer()
+            Schema.Type.FLOAT -> Float.serializer()
+            Schema.Type.DOUBLE -> Double.serializer()
+            else -> null
+        }?.let { avro.decodeFromJsonString(jsonDefault, it, r, r) }
+
+        fun <T> decodeDefault(deserializationStrategy: DeserializationStrategy<T>): T {
+            @Suppress("UNCHECKED_CAST")
+            if (decodedDefaultValue != null) return decodedDefaultValue as T
+            return avro.decodeFromJsonString(jsonDefault, deserializationStrategy, reader, reader)
+        }
+
+        inline fun <reified T> decodeDefault(): T {
+            if (decodedDefaultValue != null) return decodedDefaultValue as T
+            return decodeDefault(serializer())
+        }
+    }
+
 
     /**
      * In this case, the reader is a union and the writer is not. For this case, we
@@ -711,4 +545,60 @@ class Resolver(
         val actualAction: Action
     ) : Action(w, r)
 
+    private val Schema.Type.isNamedType: Boolean
+        get() = this == Schema.Type.FIXED || this == Schema.Type.RECORD || this == Schema.Type.ENUM
+
+    private fun Schema.Type.canBePromotedTo(otherType: Schema.Type): Boolean {
+        return when (this) {
+            INT -> when (otherType) {
+                LONG, DOUBLE, FLOAT -> true
+                else -> false
+            }
+
+            LONG -> when (otherType) {
+                DOUBLE, FLOAT -> true
+                else -> false
+            }
+
+            FLOAT -> otherType == DOUBLE
+            STRING -> otherType == BYTES
+            BYTES -> otherType == STRING
+            else -> false
+        }
+    }
 }
+
+private val defaultValueField = Schema.Field::class.java.getDeclaredField("defaultValue")
+private val Schema.Field.defaultValue: String?
+    get() {
+        try {
+            defaultValueField.isAccessible = true
+            val jsonNode: JsonNode = defaultValueField.get(this) as? JsonNode ?: return null
+            return jsonNode.toString()
+        } finally {
+            defaultValueField.isAccessible = false
+        }
+    }
+
+class SchemaCombination(
+    val writeSchema: Schema,
+    val readSchema: Schema
+) {
+    private val hashCode: Int by lazy {
+        //Take the fullname for speed
+        writeSchema.fullName.hashCode() + readSchema.fullName.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SchemaCombination) return false
+
+        if (writeSchema !== other.writeSchema) return false
+        if (readSchema !== other.readSchema) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int = hashCode
+}
+

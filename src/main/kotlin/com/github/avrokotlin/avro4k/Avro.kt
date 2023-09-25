@@ -10,6 +10,8 @@ import com.github.avrokotlin.avro4k.io.*
 import com.github.avrokotlin.avro4k.schema.Resolver
 import com.github.avrokotlin.avro4k.schema.schemaFor
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import kotlinx.io.Buffer
+import kotlinx.io.writeString
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
@@ -127,7 +129,6 @@ class Avro(
 ) : SerialFormat, BinaryFormat {
    internal val nameResolver = AvroNameResolver(this)
    internal val resolver = Resolver(this)
-   internal val resolvedSchemas = mutableMapOf<Pair<Schema, Schema>, Resolver.Action>()
    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
    companion object {
       val defaultModule = SerializersModule {
@@ -210,11 +211,15 @@ class Avro(
    }
    fun <T> decode(avroDecoder: AvroDecoder, deserializer: DeserializationStrategy<T>, writeSchema: Schema, readSchema: Schema = schema(deserializer.descriptor)): T {
       avroDecoder.configure(writeSchema)
-      val action = resolvedSchemas.computeIfAbsent(readSchema to writeSchema) {
-         resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
-      }
+      val action = resolver.resolve(writeSchema, readSchema, deserializer.descriptor)
       val rootRecordDecoder = RootDecoder(serializersModule, avroDecoder, action)
       return rootRecordDecoder.decodeSerializableValue(deserializer)
+   }
+   fun <T> decodeFromJsonString(str: String, deserializationStrategy: DeserializationStrategy<T>, writeSchema: Schema, readSchema: Schema) : T {
+      val buffer = Buffer()
+      buffer.writeString(str)
+      val decoder = AvroJsonDecoder(buffer)
+      return decode(decoder, deserializationStrategy, writeSchema, readSchema)
    }
 
    /**

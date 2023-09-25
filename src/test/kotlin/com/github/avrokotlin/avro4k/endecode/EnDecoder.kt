@@ -40,7 +40,7 @@ sealed interface EnDecoder<R : Any> {
     fun <T> decode(
         serialized: R,
         deserializer: DeserializationStrategy<T>,
-        readSchema: Schema,
+        readSchema: Schema = avro.schema(deserializer.descriptor),
         writeSchema: Schema
     ): T
 

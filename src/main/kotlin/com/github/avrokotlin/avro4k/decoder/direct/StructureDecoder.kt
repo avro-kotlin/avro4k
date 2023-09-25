@@ -10,7 +10,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 
@@ -26,8 +25,8 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any?> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
         val action = currentAction
-        return if (action is Resolver.SetDefault) {
-            action.defaultValue as T
+        return if (action is Resolver.SetDefault && action.reader.logicalType == null) {
+            action.decodeDefault(deserializer)
         } else if (deserializer.descriptor == byteArraySerializer.descriptor) {
             decodeByteArray() as T
         } else if (deserializer.descriptor == arrayByteSerializer.descriptor) {
@@ -58,8 +57,9 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
             else -> throw SerializationException("Can't perform $fieldAction on the descriptor $descriptor. Make sure that the data corresponds to the passed schemas.")
         }
     }
+
     private val Resolver.Action.isNotNull: Boolean
-        get() = this !is Resolver.ReaderUnion || reader.types[firstMatch].type != Schema.Type.NULL
+        get() = !(this is Resolver.ReaderUnion && reader.types[firstMatch].type != Schema.Type.NULL) && !(this is Resolver.SetDefault && this.isDefaultNull)
     private val Resolver.ReaderUnion.isSimpleKotlinNullableType: Boolean
         get() = reader.types.size <= 2 && reader.isNullable
 
@@ -82,7 +82,7 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         return isNotNull
     }
 
-    override fun decodeByteArray(): ByteArray {
+    override fun decodeByteArray() : ByteArray = handlePrimitiveDefault {
         return when (currentAction) {
             is Resolver.DoNothing -> when (currentAction.reader.type) {
                 Schema.Type.FIXED -> decoder.readFixed(currentAction.reader.fixedSize)
@@ -101,20 +101,16 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
         val action = currentAction
-        if(action !is Resolver.EnumAdjust) throw SerializationException("Schema does not specify an enum. Cannot decode it as such.")
+        if (action !is Resolver.EnumAdjust) throw SerializationException("Schema does not specify an enum. Cannot decode it as such.")
         val decodeIndex = decoder.readEnum()
-        return if(action.noAdjustmentsNeeded) {
+        return if (action.noAdjustmentsNeeded) {
             decodeIndex
-        } else{
-            action.adjustments[decodeIndex]   
+        } else {
+            action.adjustments[decodeIndex]
         }
     }
 
-    override fun decodeInline(descriptor: SerialDescriptor): Decoder {
-        return super.decodeInline(descriptor)
-    }
-
-    override fun decodeDouble(): Double {
+    override fun decodeDouble(): Double = handlePrimitiveDefault {
         return when (currentAction) {
             is Resolver.DoNothing -> decoder.readDouble()
             is Resolver.Promote -> when (currentAction.writer.type) {
@@ -128,7 +124,7 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         }
     }
 
-    override fun decodeFloat(): Float {
+    override fun decodeFloat(): Float = handlePrimitiveDefault {
         return when (currentAction) {
             is Resolver.DoNothing -> decoder.readFloat()
             is Resolver.Promote -> when (currentAction.writer.type) {
@@ -141,7 +137,7 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         }
     }
 
-    override fun decodeLong(): Long {
+    override fun decodeLong(): Long = handlePrimitiveDefault {
         return when (currentAction) {
             is Resolver.DoNothing -> decoder.readLong()
             is Resolver.Promote -> if (currentAction.writer.type == Schema.Type.INT) decoder.readInt()
@@ -151,10 +147,10 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         }
     }
 
-    override fun decodeString(): String {
-        return when (currentAction) {
+    override fun decodeString(): String = handlePrimitiveDefault {
+        return when (val action = currentAction) {
             is Resolver.DoNothing -> doDecodeString()
-            is Resolver.Promote -> if (currentAction.writer.type == Schema.Type.BYTES) doDecodeString() else throw SerializationException(
+            is Resolver.Promote -> if (action.writer.type == Schema.Type.BYTES) doDecodeString() else throw SerializationException(
                 "The resolved promote action is not correct."
             )
 
@@ -170,26 +166,34 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
         }
     }
 
-    
 
-    override fun decodeBoolean(): Boolean {
+    override fun decodeBoolean(): Boolean = handlePrimitiveDefault {
         return decoder.readBoolean()
     }
 
-    override fun decodeByte(): Byte {
+    override fun decodeByte(): Byte = handlePrimitiveDefault {
         return decoder.readInt().toByte()
     }
 
-    override fun decodeChar(): Char {
+    override fun decodeChar(): Char = handlePrimitiveDefault {
         return decoder.readInt().toChar()
     }
 
-    override fun decodeInt(): Int {
+    override fun decodeInt(): Int = handlePrimitiveDefault {
         return decoder.readInt()
     }
 
-    override fun decodeShort(): Short {
+    override fun decodeShort(): Short = handlePrimitiveDefault {
         return decoder.readInt().toShort()
+    }
+
+    inline fun <reified T> handlePrimitiveDefault(doDecode: () -> T): T {
+        val action = currentAction
+        return if (action is Resolver.SetDefault) {
+            action.decodeDefault()
+        } else {
+            doDecode.invoke()
+        }
     }
 
     override fun fieldSchema(): Schema = currentAction.reader

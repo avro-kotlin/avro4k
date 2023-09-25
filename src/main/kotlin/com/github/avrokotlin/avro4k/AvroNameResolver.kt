@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
@@ -15,7 +17,7 @@ class AvroNameResolver(private val avro: Avro) {
     fun resolveTypeName(descriptor: SerialDescriptor): RecordNaming {
         return typeNameByDescriptor.getOrPut(descriptor) {
             getAvroName(
-                if (descriptor.isNullable) descriptor.serialName.removeSuffix('?') else descriptor.serialName,
+                descriptor.avroSerialName,
                 descriptor.annotations,
                 DefaultNamingStrategy,
             )
@@ -69,6 +71,9 @@ private fun splitSerialName(serialName: String): RecordNaming {
         namespace = namespace,
     )
 }
-
+private val SerialDescriptor.avroSerialName: String
+    get() = (if (isNullable) serialName.removeSuffix('?') else serialName)
+            .replace(".<init>", "")
+            .replace(".<anonymous>", "")
 internal fun String.removeSuffix(char: Char): String =
     if (endsWith(char)) substring(0, length - 1) else this

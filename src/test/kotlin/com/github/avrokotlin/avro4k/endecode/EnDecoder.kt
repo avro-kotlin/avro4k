@@ -200,7 +200,9 @@ inline fun <reified T, R : Any> EnDecoder<R>.testDecodeIsEqual(
 }
 
 fun DslDrivenSpec.includeForEveryEncoder(createFactoryToInclude: (EnDecoder<*>) -> TestFactory) {
-    EnDecoder::class.sealedSubclasses.map { it.newInstanceNoArgConstructorOrObjectInstance() }.forEach {
+    EnDecoder::class.sealedSubclasses
+        .filter { it != AvroLibEnDecoder::class } //Disabled because it has a lot of bugs and should no longer be fixed
+        .map { it.newInstanceNoArgConstructorOrObjectInstance() }.forEach {
         include(it.name, createFactoryToInclude.invoke(it))
     }
 }

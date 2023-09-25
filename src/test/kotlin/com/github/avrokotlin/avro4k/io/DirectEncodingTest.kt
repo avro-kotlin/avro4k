@@ -117,9 +117,7 @@ class DirectEncodingTest : StringSpec({
                 partners = listOf()
             )
         )
-        Thread.sleep(10000)
-        for (i in 1..1000000) Avro.default.encode(avroEncoder, serializer, clients, schema)
-        println("Written ${buffer.size} bytes.")
+        Avro.default.encode(avroEncoder, serializer, clients, schema)
     }
 
 }) {
@@ -149,7 +147,7 @@ class DirectEncodingTest : StringSpec({
         val nullableMapValue: Map<String, Work?> = works.associateBy { it.name } + mapOf("work" to null),
         val binary: ByteArray = byteArrayOf(0x01, 0x02, 0x03),
         @AvroFixed(4)
-        val fixedByteArray: ByteArray = byteArrayOf(0x01, 0x78),
+        val fixedByteArray: ByteArray = byteArrayOf(0x01, 0x78, 0x60, 0x22),
         val mapOfWorks: Map<String, Work> = works.associateBy { it.name },
         val nullableListElements: List<Work?> = works + null,
         val doubleValue: Double = 1.023,

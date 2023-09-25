@@ -162,7 +162,9 @@ inline fun <reified T, R: Any> EnDecoder<R>.testEncodeDecode(
     schema: Schema = avro.schema(serializer)
 ) {
     val encoded = testEncodeIsEqual(value, shouldMatch, serializer, schema)
-    testDecodeIsEqual(encoded, value, serializer, schema)
+    withClue("Encoding worked but decoding failed.") {
+        testDecodeIsEqual(encoded, value, serializer, schema)
+    }
 }
 
 inline fun <reified T, R: Any> EnDecoder<R>.testEncodeIsEqual(

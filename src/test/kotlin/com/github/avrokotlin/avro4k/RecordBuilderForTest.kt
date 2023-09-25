@@ -17,8 +17,7 @@ data class RecordBuilderForTest(
     }
 
     private fun convertValue(
-        value: Any?,
-        schema: Schema
+        value: Any?, schema: Schema
     ): Any? {
         return when (value) {
             is RecordBuilderForTest -> value.createRecord(schema)
@@ -29,12 +28,19 @@ data class RecordBuilderForTest(
     }
 
     fun createList(schema: Schema, value: List<*>): List<*> {
-        val valueSchema = schema.elementType
+        val valueSchema =
+            if (schema.type == Schema.Type.ARRAY) schema.elementType
+            else if (schema.type == Schema.Type.UNION) schema.types.find { it.type == Schema.Type.ARRAY }!!.elementType
+            else throw IllegalArgumentException("No matching array schema found.")
         return value.map { convertValue(it, valueSchema) }
     }
 
     fun <K, V> createMap(schema: Schema, value: Map<K, V>): Map<K, *> {
-        val valueSchema = schema.valueType
+        val valueSchema = if (schema.type == Schema.Type.MAP) {
+            schema.valueType
+        } else if (schema.type == Schema.Type.UNION) {
+            schema.types.find { it.type == Schema.Type.MAP }!!.valueType
+        } else throw IllegalArgumentException("No matching schema found for MAP")
         return value.mapValues { convertValue(it.value, valueSchema) }
     }
 }

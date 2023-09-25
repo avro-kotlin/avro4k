@@ -22,9 +22,9 @@ val arrayByteSerializer = serializer<Array<Byte>>()
 
 @ExperimentalSerializationApi
 abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
+
     @Suppress("UNCHECKED_CAST")
     override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
-        handleNullability()
         when (serializer.descriptor) {
             byteArraySerializer.descriptor -> encodeByteArray(value as ByteArray)
             byteListSerializer.descriptor -> encodeByteArray((value as List<Byte>).toByteArray())
@@ -46,7 +46,8 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
 
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
         val schema = fieldSchema()
-        return when (schema.type) {
+        val nonNullSchema = schema.nonNullSchema
+        return when (nonNullSchema.type) {
             Schema.Type.ARRAY -> ListEncoder(schema.nonNullSchema, serializersModule, avroEncoder, collectionSize)
             Schema.Type.MAP -> MapEncoder(schema.nonNullSchema, serializersModule, avroEncoder, collectionSize)
             else -> super<AbstractEncoder>.beginCollection(descriptor, collectionSize)
@@ -72,6 +73,13 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
         avroEncoder.writeIndex(nullIndex)
         avroEncoder.writeNull()
     }
+    override fun encodeNotNullMark() {
+        val fieldSchema = fieldSchema()
+        val nonNullSchemaIndex = fieldSchema.nonNullSchemaIndex
+        if (nonNullSchemaIndex != -1) {
+            avroEncoder.writeIndex(nonNullSchemaIndex)
+        }
+    }
 
     override fun encodeString(value: String) = writeNonNullValue {
         avroEncoder.writeString(fieldSchema().nonNullSchema, value)
@@ -79,14 +87,6 @@ abstract class StructureEncoder : AbstractEncoder(), DirectFieldEncoder {
 
     protected open fun writeNonNullValue(doWriteValue: () -> Unit) {
         doWriteValue.invoke()
-    }
-
-    private fun handleNullability() {
-        val fieldSchema = fieldSchema()
-        val nonNullSchemaIndex = fieldSchema.nonNullSchemaIndex
-        if (nonNullSchemaIndex != -1) {
-            avroEncoder.writeIndex(nonNullSchemaIndex)
-        }
     }
 
     override fun encodeBoolean(value: Boolean) {

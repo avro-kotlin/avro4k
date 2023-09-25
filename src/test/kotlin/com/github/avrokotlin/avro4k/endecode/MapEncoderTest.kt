@@ -22,6 +22,26 @@ fun mapEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
                 record(mapOf("a" to true, "b" to false, "c" to true))
             )
         }
+        "encode/decode a Map<String, Boolean?>" {
+            @Serializable
+            data class StringBooleanTest(val a: Map<String, Boolean?>)
+            enDecoder.testEncodeDecode(
+                StringBooleanTest(mapOf("a" to true, "b" to null, "c" to true)),
+                record(mapOf("a" to true, "b" to null, "c" to true))
+            )
+        }
+        "encode/decode a Map<String, Boolean>?" {
+            @Serializable
+            data class StringBooleanTest(val a: Map<String, Boolean>?)
+            enDecoder.testEncodeDecode(
+                StringBooleanTest(mapOf("a" to true, "b" to false, "c" to true)),
+                record(mapOf("a" to true, "b" to false, "c" to true))
+            )
+            enDecoder.testEncodeDecode(
+                StringBooleanTest(null),
+                record(null)
+            )
+        }
 
         "encode/decode a Map<String, String>" {
 
@@ -53,6 +73,48 @@ fun mapEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
                 )
             )
         }
+        "encode/decode a Map<String, ByteArray?>" {
+            @Serializable
+            data class StringByteArrayTest(val a: Map<String, ByteArray?>)
+            enDecoder.testEncodeDecode(
+                StringByteArrayTest(
+                    mapOf(
+                        "a" to "x".toByteArray(),
+                        "b" to null,
+                        "c" to "z".toByteArray()
+                    )
+                ),
+                record(
+                    mapOf(
+                        "a" to ByteBuffer.wrap("x".toByteArray()),
+                        "b" to null,
+                        "c" to ByteBuffer.wrap("z".toByteArray())
+                    )
+                )
+            )
+        }
+        "encode/decode a Map<String, ByteArray>?" {
+            @Serializable
+            data class StringByteArrayTest(val a: Map<String, ByteArray>?)
+            enDecoder.testEncodeDecode(
+                StringByteArrayTest(
+                    mapOf(
+                        "a" to "x".toByteArray(),
+                        "c" to "z".toByteArray()
+                    )
+                ),
+                record(
+                    mapOf(
+                        "a" to ByteBuffer.wrap("x".toByteArray()),
+                        "c" to ByteBuffer.wrap("z".toByteArray())
+                    )
+                )
+            )
+            enDecoder.testEncodeDecode(
+                StringByteArrayTest(null), record(null)
+            )
+
+        }
 
         "encode/decode a Map of records" {
 
@@ -70,6 +132,41 @@ fun mapEncoderTests(enDecoder: EnDecoder<*>): TestFactory {
                     )
                 )
             )
+        }
+        "encode/decode a Map of nullable records" {
+
+            @Serializable
+            data class Foo(val a: String, val b: Boolean)
+
+            @Serializable
+            data class StringFooTest(val a: Map<String, Foo?>)
+            enDecoder.testEncodeDecode(
+                StringFooTest(mapOf("a" to Foo("x", true), "b" to null)),
+                record(
+                    mapOf(
+                        "a" to record("x", true),
+                        "b" to null
+                    )
+                )
+            )
+        }
+        "encode/decode a nullable Map of records" {
+
+            @Serializable
+            data class Foo(val a: String, val b: Boolean)
+
+            @Serializable
+            data class StringFooTest(val a: Map<String, Foo>?)
+            enDecoder.testEncodeDecode(
+                StringFooTest(mapOf("a" to Foo("x", true), "b" to Foo("y", false))),
+                record(
+                    mapOf(
+                        "a" to record("x", true),
+                        "b" to record("y", false)
+                    )
+                )
+            )
+            enDecoder.testEncodeDecode(StringFooTest(null), record(null))
         }
     }
 }

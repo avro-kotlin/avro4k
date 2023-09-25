@@ -10,8 +10,8 @@ import kotlinx.serialization.modules.SerializersModule
 @ExperimentalSerializationApi
 class ListDecoder(
     override val decoder: AvroDecoder,
-    override val serializersModule: SerializersModule,
-    containerAction: Resolver.Container
+    override val serializersModule: SerializersModule, 
+    private val containerAction: Resolver.Container
 ) : StructureDecoder() {
     override var currentAction: Resolver.Action = containerAction.elementAction
     private var index = -1
@@ -23,6 +23,8 @@ class ListDecoder(
         }else if(index == currentKnownSize) {
             currentKnownSize += decoder.arrayNext().toInt()
         }
+        // Always set the action for each container action.
+        currentAction = containerAction.elementAction
         return if (index == currentKnownSize) CompositeDecoder.DECODE_DONE else index
     }
 

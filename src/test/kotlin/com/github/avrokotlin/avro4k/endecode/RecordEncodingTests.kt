@@ -41,11 +41,23 @@ fun recordEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
             data class LongFoo(val l: Long)
             encoderToTest.testEncodeDecode(LongFoo(123456L), record(123456L))
         }
+        "encode/decode nullable longs" {
+            @Serializable
+            data class LongFoo(val l: Long?)
+            encoderToTest.testEncodeDecode(LongFoo(123456L), record(123456L))
+            encoderToTest.testEncodeDecode(LongFoo(null), record(null))
+        }
         "encode/decode doubles" {
 
             @Serializable
             data class DoubleFoo(val d: Double)
             encoderToTest.testEncodeDecode(DoubleFoo(123.435), record(123.435))
+        }
+        "encode/deocde nullable doubles" {
+            @Serializable
+            data class DoubleFoo(val d: Double?)
+            encoderToTest.testEncodeDecode(DoubleFoo(123.435), record(123.435))
+            encoderToTest.testEncodeDecode(DoubleFoo(null), record(null))
         }
         "encode/decode booleans" {
             @Serializable
@@ -63,20 +75,44 @@ fun recordEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
             data class FloatFoo(val d: Float)
             encoderToTest.testEncodeDecode(FloatFoo(123.435F), record(123.435F))
         }
+        "encode/decode nullable floats" {
+            @Serializable
+            data class FloatFoo(val d: Float?)
+            encoderToTest.testEncodeDecode(FloatFoo(123.435F), record(123.435F))
+            encoderToTest.testEncodeDecode(FloatFoo(null), record(null))
+        }
         "encode/decode ints" {
             @Serializable
             data class IntFoo(val i: Int)
             encoderToTest.testEncodeDecode(IntFoo(123), record(123))
+        }
+        "encode/decode nullable ints" {
+            @Serializable
+            data class IntFoo(val i: Int?)
+            encoderToTest.testEncodeDecode(IntFoo(123), record(123))
+            encoderToTest.testEncodeDecode(IntFoo(null), record(null))
         }
         "encode/decode shorts" {
             @Serializable
             data class ShortFoo(val s: Short)
             encoderToTest.testEncodeDecode(ShortFoo(123.toShort()), record(123.toShort()))
         }
+        "encode/decode nullable shorts" {
+            @Serializable
+            data class ShortFoo(val s: Short?)
+            encoderToTest.testEncodeDecode(ShortFoo(123.toShort()), record(123.toShort()))
+            encoderToTest.testEncodeDecode(ShortFoo(null), record(null))
+        }
         "encode/decode bytes" {
             @Serializable
             data class ByteFoo(val b: Byte)
             encoderToTest.testEncodeDecode(ByteFoo(123.toByte()), record(123.toByte()))
+        }
+        "encode/decode nullable bytes" {
+            @Serializable
+            data class ByteFoo(val b: Byte?)
+            encoderToTest.testEncodeDecode(ByteFoo(123.toByte()), record(123.toByte()))
+            encoderToTest.testEncodeDecode(ByteFoo(null), record(null))
         }
 
     }

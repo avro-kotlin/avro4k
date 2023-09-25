@@ -11,7 +11,7 @@ import kotlinx.serialization.modules.SerializersModule
 class MapDecoder(
     override val decoder: AvroDecoder,
     override val serializersModule: SerializersModule,
-    containerAction: Resolver.Container
+    private val containerAction: Resolver.Container
 ) : StructureDecoder() {
     private var index = -1
     private var currentKnownSize = -1
@@ -23,6 +23,9 @@ class MapDecoder(
         } else if (currentKnownSize == index) {
             currentKnownSize += decoder.mapNext().toInt() * 2
         }
+        //Reset the current action for each element.
+        currentAction = containerAction.elementAction
+        
         return if (index == currentKnownSize) CompositeDecoder.DECODE_DONE else index
     }
 

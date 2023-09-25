@@ -7,45 +7,101 @@ import io.kotest.core.spec.style.wordSpec
 import kotlinx.serialization.Serializable
 
 class ArrayEncoderTest : WordSpec({
-   includeForEveryEncoder { arrayEncodingTests(it) }
+    includeForEveryEncoder { arrayEncodingTests(it) }
 })
 
 fun arrayEncodingTests(encoderToTest: EnDecoder<*>): TestFactory {
-   return wordSpec {
-      "en-/decoder" should {
-         "generate GenericData.Array for an Array<Boolean>" {
-            @Serializable
-            data class ArrayBooleanTest(val a: Array<Boolean>)
-            val value = ArrayBooleanTest(arrayOf(true, false, true))
-            encoderToTest.testEncodeDecode(value, record(value.a.asList()))
-         }
-         "support GenericData.Array for an Array<Boolean> with other fields" {
-            @Serializable
-            data class ArrayBooleanWithOthersTest(val a: String, val b: Array<Boolean>, val c: Long)
-            val value = ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L)
-            encoderToTest.testEncodeDecode(value, record(
-               "foo", 
-               listOf(true,false,true),
-               123L
-            )
-            )
-         }
-         
-         "generate GenericData.Array for a List<String>" {
-            @Serializable
-            data class ListStringTest(val a: List<String>)
-            encoderToTest.testEncodeDecode(ListStringTest(listOf("we23", "54z")), record(
-               listOf("we23", "54z")
-            )
-            )
-         }
-         "generate GenericData.Array for a Set<Long>" {
-            @Serializable
-            data class SetLongTest(val a: Set<Long>)
-            val value = SetLongTest(setOf(123L, 643L, 912L))
-            val record = record(listOf(123L, 643L, 912))
-            encoderToTest.testEncodeDecode(value, record)
-         }
-      }
-   }
+    return wordSpec {
+        "en-/decoder" should {
+            "generate GenericData.Array for an Array<Boolean>" {
+                @Serializable
+                data class ArrayBooleanTest(val a: Array<Boolean>)
+
+                val value = ArrayBooleanTest(arrayOf(true, false, true))
+                encoderToTest.testEncodeDecode(value, record(value.a.asList()))
+            }
+            "generate GenericData.Array for an Array<Boolean?>" {
+                @Serializable
+                data class ArrayBooleanTest(val a: Array<Boolean?>)
+
+                val value = ArrayBooleanTest(arrayOf(true, null, true))
+                encoderToTest.testEncodeDecode(value, record(value.a.asList()))
+            }
+            "support nullable array" {
+                @Serializable
+                data class ArrayBooleanTest(val a: Array<Boolean>?)
+
+                val value = ArrayBooleanTest(arrayOf(true, false, true))
+                encoderToTest.testEncodeDecode(value, record(value.a!!.asList()))
+                encoderToTest.testEncodeDecode(ArrayBooleanTest(null), record(null))
+            }
+            "support GenericData.Array for an Array<Boolean> with other fields" {
+                @Serializable
+                data class ArrayBooleanWithOthersTest(val a: String, val b: Array<Boolean>, val c: Long)
+
+                val value = ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L)
+                encoderToTest.testEncodeDecode(
+                    value, record(
+                        "foo",
+                        listOf(true, false, true),
+                        123L
+                    )
+                )
+            }
+
+            "generate GenericData.Array for a List<String>" {
+                @Serializable
+                data class ListStringTest(val a: List<String>)
+                encoderToTest.testEncodeDecode(
+                    ListStringTest(listOf("we23", "54z")), record(
+                        listOf("we23", "54z")
+                    )
+                )
+            }
+            "generate GenericData.Array for a List<String?>" {
+                @Serializable
+                data class ListStringTest(val a: List<String?>)
+                encoderToTest.testEncodeDecode(
+                    ListStringTest(listOf("we23", null, "54z")), record(
+                        listOf("we23", null, "54z")
+                    )
+                )
+            }
+            "support nullable list" {
+                @Serializable
+                data class ListStringTest(val a: List<String>?)
+                encoderToTest.testEncodeDecode(
+                    ListStringTest(listOf("we23", "54z")), record(
+                        listOf("we23", "54z")
+                    )
+                )
+                encoderToTest.testEncodeDecode(ListStringTest(null), record(null))
+            }
+            "generate GenericData.Array for a Set<Long>" {
+                @Serializable
+                data class SetLongTest(val a: Set<Long>)
+
+                val value = SetLongTest(setOf(123L, 643L, 912L))
+                val record = record(listOf(123L, 643L, 912))
+                encoderToTest.testEncodeDecode(value, record)
+            }
+            "generate GenericData.Array for a Set<Long?>" {
+                @Serializable
+                data class SetLongTest(val a: Set<Long?>)
+
+                val value = SetLongTest(setOf(123L, null, 643L, 912L))
+                val record = record(listOf(123L, null, 643L, 912))
+                encoderToTest.testEncodeDecode(value, record)
+            }
+            "support nullable set" {
+                @Serializable
+                data class SetLongTest(val a: Set<Long>?)
+
+                val value = SetLongTest(setOf(123L, 643L, 912L))
+                val record = record(listOf(123L, 643L, 912))
+                encoderToTest.testEncodeDecode(value, record)
+                encoderToTest.testEncodeDecode(SetLongTest(null), record(null))
+            }
+        }
+    }
 }

@@ -59,7 +59,8 @@ abstract class StructureDecoder : AbstractDecoder(), FieldDecoder {
     }
 
     private val Resolver.Action.isNotNull: Boolean
-        get() = !(this is Resolver.ReaderUnion && reader.types[firstMatch].type != Schema.Type.NULL) && !(this is Resolver.SetDefault && this.isDefaultNull)
+        get() = !(this is Resolver.ReaderUnion && reader.types[firstMatch].type == Schema.Type.NULL) 
+                && !(this is Resolver.SetDefault && isDefaultNull)
     private val Resolver.ReaderUnion.isSimpleKotlinNullableType: Boolean
         get() = reader.types.size <= 2 && reader.isNullable
 

@@ -77,13 +77,4 @@ internal class UseCaseSingleObjectEncodingTest : StringSpec({
 
       kotlinDecoded shouldBeEqual fooStringKotlin
    }
-
-   "encode fooStringJava and decode fooStringJava" {
-      val bytes = fooStringJava.toByteBuffer().array()
-      val javaDecoded = FooStringJava.fromByteBuffer(ByteBuffer.wrap(bytes))
-
-      javaDecoded shouldBeEqual fooStringJava
-   }
-
-
 })

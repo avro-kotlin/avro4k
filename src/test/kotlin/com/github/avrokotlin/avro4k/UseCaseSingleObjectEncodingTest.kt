@@ -1,6 +1,11 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.TestFixtures.FOO_STRING_SINGLE_OBJECT_HEX
+import com.github.avrokotlin.avro4k.TestFixtures.decodeSingleObject
+import com.github.avrokotlin.avro4k.TestFixtures.encodeSingleObject
 import com.github.avrokotlin.avro4k.TestFixtures.fingerprint
+import com.github.avrokotlin.avro4k.TestFixtures.readBytes
+import com.github.avrokotlin.avro4k.TestFixtures.toHexList
 import com.github.avrokotlin.avro4k.decoder.FooString
 import com.github.avrokotlin.avro4k.decoder.FooStringJava
 import io.kotest.core.spec.style.StringSpec
@@ -9,16 +14,12 @@ import io.kotest.matchers.longs.shouldBeExactly
 import io.kotest.matchers.shouldNotBe
 import org.apache.avro.Schema
 import org.apache.avro.message.SchemaStore.Cache
-import java.nio.ByteBuffer
 
 /**
  * Use case test that takes [FooString] and [FooStringJava] and checks encoded bytes can be decoded/encoded and vice versa.
  */
 internal class UseCaseSingleObjectEncodingTest : StringSpec({
    val str = "bar"
-
-   val fooStringJava = FooStringJava.newBuilder().setStr(str).build()
-   val fooStringKotlin = FooString(str)
 
    val schemaFooStringKotlin = Avro.default.schema(FooString.serializer())
    val schemaFooStringJava = FooStringJava.`SCHEMA$`
@@ -32,7 +33,6 @@ internal class UseCaseSingleObjectEncodingTest : StringSpec({
       addSchema(schemaFooStringJava)
    }
 
-
    "schema fingerprint for java and kotlin is the same if schema.name is the same" {
       // fingerprints differ because name is different
       fingerprintFooStringKotlin shouldNotBe fingerprintFooStringJava
@@ -44,37 +44,33 @@ internal class UseCaseSingleObjectEncodingTest : StringSpec({
       renamedSchemaJava.fingerprint() shouldBeExactly fingerprintFooStringKotlin
    }
 
-   "encode fooStringKotlin and decode fooStringJava" {
-      val bytes = TestFixtures.encodeSingleObject(FooString.serializer(), fooStringKotlin)
+   "encoding kotlin to bytes is equal to expected hex" {
+      val kotlinEncoded = encodeSingleObject(FooString.serializer(), FooString("bar"))
 
-      val javaDecoded = FooStringJava.createDecoder(schemaStore).decode(bytes)
+      // we used a different writer schema for encoding, so the HEX String differs from the java String.
+      // we have to ignore the schema-fingerprint bytes for comparison
+      val encodedHexValues = kotlinEncoded.toHexList()
+      val existingHexValues = readBytes(FOO_STRING_SINGLE_OBJECT_HEX).toHexList()
 
-      javaDecoded shouldBeEqual fooStringJava
+      // first two marker bytes
+      encodedHexValues.subList(0, 1) shouldBeEqual existingHexValues.subList(0, 1)
+
+      // 4 actual payload bytes for "bar"
+      encodedHexValues.subList(10, 13) shouldBeEqual existingHexValues.subList(10, 13)
    }
 
-   "encode fooStringKotlin and decode fooStringKotlin" {
-      val bytes = TestFixtures.encodeSingleObject(FooString.serializer(), fooStringKotlin)
+   "decoding from hex to kotlin contains correct value" {
+      val singleObjectBytes = readBytes(FOO_STRING_SINGLE_OBJECT_HEX)
+      val decoded = decodeSingleObject(singleObjectBytes, FooString.serializer(), schemaFooStringKotlin, schemaStore)
 
-      val kotlinDecoded = TestFixtures.decodeSingleObject(
-         bytes = bytes,
-         serializer = FooString.serializer(),
-         readerSchema = schemaFooStringKotlin,
-         schemaStore = schemaStore
-      )
-
-      kotlinDecoded shouldBeEqual fooStringKotlin
+      decoded shouldBeEqual FooString("bar")
    }
 
-   "encode fooStringJava and decode fooStringKotlin" {
-      val bytes = fooStringJava.toByteBuffer().array()
+   "encode with kotlin and decode with java" {
+      val kotlinEncoded = encodeSingleObject(FooString.serializer(), FooString("bar"))
 
-      val kotlinDecoded = TestFixtures.decodeSingleObject(
-         bytes = bytes,
-         serializer = FooString.serializer(),
-         readerSchema = schemaFooStringKotlin,
-         schemaStore = schemaStore
-      )
+      val javaDecoded = FooStringJava.createDecoder(schemaStore).decode(kotlinEncoded)
 
-      kotlinDecoded shouldBeEqual fooStringKotlin
+      javaDecoded.str shouldBeEqual "bar"
    }
 })

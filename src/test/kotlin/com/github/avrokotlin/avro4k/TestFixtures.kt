@@ -11,15 +11,31 @@ import java.io.ByteArrayOutputStream
 
 object TestFixtures {
 
-   fun ByteArray.toHexList() = toHexString(prefix = "", postfix = "", separator = ",").split(",")
+   /**
+    * This is the avro single object encoded hex representation of `FooString(str="bar")`.
+    *
+    * C3 01 - avro marker bytes
+    * CD 1D 19 01 C3 39 C6 61 - encoded writer schema fingerprint for lookup.
+    * 06 62 61 72 - payload: 06: 3-letters in HEX, b=62,a=61,r=72
+    *
+    */
+   const val FOO_STRING_SINGLE_OBJECT_HEX = "[C3 01 CD 1D 19 01 C3 39 C6 61 06 62 61 72]"
 
-   fun ByteArray.toHexString(separator: String = " ", prefix: String = "[", postfix: String = "]"): String =
+   fun ByteArray.toHexList() = toHexString(prefix = "", suffix = "", separator = ",").split(",")
+
+   fun ByteArray.toHexString(separator: String = " ", prefix: String = "[", suffix: String = "]"): String =
       this.joinToString(
          separator = separator,
          prefix = prefix,
-         postfix = postfix
+         postfix = suffix
       ) { "%02X".format(it) }
 
+   fun readBytes(hexString: String, separator: String = " ", prefix: String = "[", suffix: String = "]"): ByteArray =
+      hexString
+         .removePrefix(prefix)
+         .removeSuffix(suffix).split(separator)
+         .map { Integer.valueOf(it, 16) }
+         .map { it.toByte() }.toByteArray()
 
    fun Schema.fingerprint() = SchemaNormalization.parsingFingerprint64(this)
 

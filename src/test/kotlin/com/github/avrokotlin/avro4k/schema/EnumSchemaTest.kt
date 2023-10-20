@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroAliases
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroEnumDefault
@@ -89,7 +89,7 @@ enum class Wine {
 }
 
 @Serializable
-@AvroAliases(["MySuit"])
+@AvroAlias("MySuit")
 @AvroDoc("documentation")
 enum class Suit {
    SPADES, HEARTS, DIAMONDS, CLUBS;

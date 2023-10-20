@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
+
 @ExperimentalSerializationApi
 class AnnotationExtractor(private val annotations: List<Annotation>) {
 
@@ -19,14 +20,9 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
    fun name(): String? = annotations.filterIsInstance<AvroName>().firstOrNull()?.value
    fun valueType(): Boolean = annotations.filterIsInstance<AvroInline>().isNotEmpty()
    fun doc(): String? = annotations.filterIsInstance<AvroDoc>().firstOrNull()?.value
-   fun aliases(): List<String> =
-      if(annotations.any { it is AvroAlias }){
-         annotations.filterIsInstance<AvroAlias>().map { it.value }
-      }else{
-         annotations.filterIsInstance<AvroAliases>().flatMap { it.value.toList() }
-      }
+   fun aliases(): List<String> = (annotations.firstNotNullOfOrNull { it as? AvroAlias }?.value ?: emptyArray()).asList() + (annotations.firstNotNullOfOrNull {it as? AvroAliases}?.value ?: emptyArray())
    fun props(): List<Pair<String, String>> = annotations.filterIsInstance<AvroProp>().map { it.key to it.value }
+   fun jsonProps(): List<Pair<String, String>> = annotations.filterIsInstance<AvroJsonProp>().map { it.key to it.jsonValue }
    fun default(): String? = annotations.filterIsInstance<AvroDefault>().firstOrNull()?.value
    fun enumDefault(): String? = annotations.filterIsInstance<AvroEnumDefault>().firstOrNull()?.value
 }
-

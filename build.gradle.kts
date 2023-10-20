@@ -19,6 +19,7 @@ plugins {
    id("org.jetbrains.dokka") version Libs.dokkaVersion
    id("io.kotest") version Libs.kotestGradlePlugin
    id("com.github.ben-manes.versions") version Libs.versionsPlugin
+   id("io.github.gradle-nexus.publish-plugin") version Libs.nexusPublishPlugin
 }
 
 repositories {
@@ -49,7 +50,7 @@ dependencies {
 tasks.withType<KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
    kotlinOptions.apiVersion = "1.5"
-   kotlinOptions.languageVersion = "1.5"   
+   kotlinOptions.languageVersion = "1.5"
    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }
 java {
@@ -93,20 +94,12 @@ signing {
    }
 }
 
-publishing {
-   repositories {
-      maven {
-         val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-         val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-         name = "deploy"
-         url = if (Ci.isRelease) releasesRepoUrl else snapshotsRepoUrl
-         credentials {
-            username = System.getenv("OSSRH_USERNAME") ?: ""
-            password = System.getenv("OSSRH_PASSWORD") ?: ""
-         }
-      }
+nexusPublishing {
+   this.repositories {
+      sonatype()
    }
-
+}
+publishing {
    publications {
       register("mavenJava", MavenPublication::class) {
          from(components["java"])

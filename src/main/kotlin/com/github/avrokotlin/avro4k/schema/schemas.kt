@@ -12,10 +12,56 @@ fun createSafeUnion(nullFirst : Boolean,vararg schemas: Schema): Schema {
    return Schema.createUnion(if(nullFirst) nulls + rest else rest + nulls)
 }
 
-fun Schema.extractNonNull(): Schema = when (this.type) {
-   Schema.Type.UNION -> this.types.filter { it.type != Schema.Type.NULL }.let { if(it.size > 1) Schema.createUnion(it) else it[0] }
-   else -> this
-}
+fun Schema.extractNonNull(): Schema = nonNullSchema
+val Schema.nonNullSchema : Schema
+   get() = if(type == Schema.Type.UNION) {
+      //Writing the simple "nullable" case explicitly for faster performance
+      if(types.size == 2) {
+         if (types[0].type == Schema.Type.NULL) {
+            types[1]
+         } else if (types[1].type == Schema.Type.NULL) {
+            types[0]
+         } else {
+            this
+         }
+      } else {
+         this.types.filter { it.type != Schema.Type.NULL }.let { if(it.size > 1) Schema.createUnion(it) else it[0] }
+      }
+   } else {
+      this
+   }
+val Schema.nonNullSchemaIndex : Int
+   get() {
+      //Writing the simple "nullable" case explicitly for faster performance
+      return if(type == Schema.Type.UNION && types.size == 2) {
+         var nonNullSchemaIndex = -1
+         if (types[0].type == Schema.Type.NULL) {
+              nonNullSchemaIndex = 1
+         } else if (types[1].type == Schema.Type.NULL) {
+              nonNullSchemaIndex = 0
+         }
+         nonNullSchemaIndex
+      } else {
+         -1
+      }
+   }      
+val Schema.nullSchemaIndex : Int 
+   get() = if(type == Schema.Type.UNION) {
+      //Writing the simple "nullable" case explicitly for faster performance
+      if(types.size == 2) {
+         var nullSchemaIndex = -1
+         if (types[0].type == Schema.Type.NULL) {
+            nullSchemaIndex = 0
+         } else if (types[1].type == Schema.Type.NULL) {
+            nullSchemaIndex = 1
+         }
+         nullSchemaIndex
+      } else {
+         this.types.indexOfFirst { it.type == Schema.Type.NULL }
+      }
+   } else {
+      -1
+   }
 
 /**
  * Takes an Avro schema, and overrides the namespace of that schema with the given namespace.

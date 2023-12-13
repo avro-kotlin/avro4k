@@ -18,7 +18,7 @@ class UnionDecoder (descriptor: SerialDescriptor,
                     private val value: GenericRecord,
                     override val serializersModule: SerializersModule,
                     private  val configuration: AvroConfiguration
-) : AbstractDecoder(), FieldDecoder
+) : AbstractDecoder(), GenericDataFieldDecoder
 {
    private enum class DecoderState(val index : Int){
       BEFORE(0),

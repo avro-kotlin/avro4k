@@ -2,10 +2,10 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
-import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
+import com.github.avrokotlin.avro4k.encoder.avro.ExtendedEncoder
 import com.github.avrokotlin.avro4k.serializer.AvroSerializer
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer

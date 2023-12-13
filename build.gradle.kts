@@ -41,10 +41,13 @@ dependencies {
    implementation(Libs.Kotlinx.serializationJson)
    implementation(kotlin("reflect"))
    implementation(Libs.Xerial.snappy)
+   api("org.jetbrains.kotlinx:kotlinx-io-core:0.2.1")
+   implementation("org.jetbrains.kotlinx:kotlinx-io-bytestring:0.2.1")
    testImplementation(Libs.Kotest.junit5)
    testImplementation(Libs.Kotest.assertionsCore)
    testImplementation(Libs.Kotest.assertionsJson)
    testImplementation(Libs.Kotest.proptest)
+
 }
 
 tasks.withType<KotlinCompile>().configureEach {

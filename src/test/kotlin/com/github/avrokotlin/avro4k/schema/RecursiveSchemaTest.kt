@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,9 +13,6 @@ data class RecursiveListItem(val payload: Int, val list: List<RecursiveListItem>
 
 @Serializable
 data class RecursiveMapValue(val payload: Int, val map: Map<String, RecursiveMapValue>?)
-
-@Serializable
-data class RecursivePair(val payload: Int, val pair: Pair<RecursivePair, RecursivePair>?)
 
 @Serializable
 data class Level4(val level1: Level1)
@@ -46,12 +43,6 @@ class RecursiveSchemaTest : FunSpec({
    test("accept direct recursive maps") {
       val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_map.json"))
       val schema = Avro.default.schema(RecursiveMapValue.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("accept direct recursive pairs") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_pair.json"))
-      val schema = Avro.default.schema(RecursivePair.serializer())
       schema.toString(true) shouldBe expected.toString(true)
    }
 

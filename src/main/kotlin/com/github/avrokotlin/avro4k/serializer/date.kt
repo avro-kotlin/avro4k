@@ -1,33 +1,35 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package com.github.avrokotlin.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.AvroTimeLogicalType
+import com.github.avrokotlin.avro4k.LogicalTimeTypeEnum
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
 import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
-import com.github.avrokotlin.avro4k.schema.AvroDescriptor
-import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.descriptors.buildSerialDescriptor
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
-import org.apache.avro.SchemaBuilder
 import java.sql.Timestamp
-import java.time.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.KClass
+
+@OptIn(InternalSerializationApi::class)
+private fun buildTimeSerialDescriptor(clazz: KClass<*>, type: LogicalTimeTypeEnum) = buildSerialDescriptor(clazz.qualifiedName!!, type.kind) {
+   annotations = listOf(AvroTimeLogicalType(type))
+}
 
 @Serializer(forClass = LocalDate::class)
 class LocalDateSerializer : AvroSerializer<LocalDate>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalDate::class.jvmName, PrimitiveKind.INT) {
-      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-         val schema = SchemaBuilder.builder().intType()
-         return LogicalTypes.date().addToSchema(schema)
-      }
-   }
+   override val descriptor = buildTimeSerialDescriptor(LocalDate::class, LogicalTimeTypeEnum.DATE)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalDate) =
       encoder.encodeInt(obj.toEpochDay().toInt())
@@ -38,12 +40,7 @@ class LocalDateSerializer : AvroSerializer<LocalDate>() {
 @Serializer(forClass = LocalTime::class)
 class LocalTimeSerializer : AvroSerializer<LocalTime>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(LocalTime::class.jvmName, PrimitiveKind.INT) {
-      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-         val schema = SchemaBuilder.builder().intType()
-         return LogicalTypes.timeMillis().addToSchema(schema)
-      }
-   }
+   override val descriptor = buildTimeSerialDescriptor(LocalTime::class, LogicalTimeTypeEnum.TIME_MILLIS)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalTime) =
       encoder.encodeInt(obj.toSecondOfDay() * 1000 + obj.nano / 1000)
@@ -60,13 +57,7 @@ class LocalTimeSerializer : AvroSerializer<LocalTime>() {
 @Serializer(forClass = LocalDateTime::class)
 class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
 
-   override val descriptor: SerialDescriptor =
-      object : AvroDescriptor(LocalDateTime::class.jvmName, PrimitiveKind.LONG) {
-         override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-            val schema = SchemaBuilder.builder().longType()
-            return LogicalTypes.timestampMillis().addToSchema(schema)
-         }
-   }
+   override val descriptor = buildTimeSerialDescriptor(LocalDateTime::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: LocalDateTime) =
       InstantSerializer().encodeAvroValue(schema, encoder, obj.toInstant(ZoneOffset.UTC))
@@ -77,12 +68,7 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
 @Serializer(forClass = Timestamp::class)
 class TimestampSerializer : AvroSerializer<Timestamp>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(Timestamp::class.jvmName, PrimitiveKind.LONG) {
-      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-         val schema = SchemaBuilder.builder().longType()
-         return LogicalTypes.timestampMillis().addToSchema(schema)
-      }
-   }
+   override val descriptor = buildTimeSerialDescriptor(Timestamp::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Timestamp) =
       InstantSerializer().encodeAvroValue(schema, encoder, obj.toInstant())
@@ -92,12 +78,7 @@ class TimestampSerializer : AvroSerializer<Timestamp>() {
 @Serializer(forClass = Instant::class)
 class InstantSerializer : AvroSerializer<Instant>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(Instant::class.jvmName, PrimitiveKind.LONG) {
-      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-         val schema = SchemaBuilder.builder().longType()
-         return LogicalTypes.timestampMillis().addToSchema(schema)
-      }
-   }
+   override val descriptor = buildTimeSerialDescriptor(Instant::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Instant) =
       encoder.encodeLong(obj.toEpochMilli())
@@ -108,16 +89,7 @@ class InstantSerializer : AvroSerializer<Instant>() {
 @Serializer(forClass = Instant::class)
 class InstantToMicroSerializer : AvroSerializer<Instant>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(Instant::class.jvmName, PrimitiveKind.LONG) {
-      override fun schema(
-         annos: List<Annotation>,
-         serializersModule: SerializersModule,
-         namingStrategy: NamingStrategy
-      ): Schema {
-         val schema = SchemaBuilder.builder().longType()
-         return LogicalTypes.timestampMicros().addToSchema(schema)
-      }
-   }
+   override val descriptor = buildTimeSerialDescriptor(Instant::class, LogicalTimeTypeEnum.TIMESTAMP_MICROS)
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: Instant) =
       encoder.encodeLong(ChronoUnit.MICROS.between(Instant.EPOCH, obj))

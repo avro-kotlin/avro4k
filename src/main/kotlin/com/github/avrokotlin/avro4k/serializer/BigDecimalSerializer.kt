@@ -1,37 +1,37 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.AnnotationExtractor
+import com.github.avrokotlin.avro4k.AvroDecimalLogicalType
+import com.github.avrokotlin.avro4k.ScalePrecision
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
 import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
-import com.github.avrokotlin.avro4k.schema.AvroDescriptor
-import com.github.avrokotlin.avro4k.schema.NamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
-import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.nio.ByteBuffer
-import kotlin.reflect.jvm.jvmName
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = BigDecimal::class)
 class BigDecimalSerializer : AvroSerializer<BigDecimal>() {
 
-   override val descriptor: SerialDescriptor = object : AvroDescriptor(BigDecimal::class.jvmName, PrimitiveKind.BYTE) {
-      override fun schema(annos: List<Annotation>, serializersModule: SerializersModule, namingStrategy: NamingStrategy): Schema {
-         val schema = SchemaBuilder.builder().bytesType()
-         val (scale, precision) = AnnotationExtractor(annos).scalePrecision() ?: (2 to 8)
-         return LogicalTypes.decimal(precision, scale).addToSchema(schema)
-      }
+   private val defaultScalePrecision = ScalePrecision()
+   private val defaultLogicalDecimal = AvroDecimalLogicalType()
+
+   @OptIn(InternalSerializationApi::class)
+   override val descriptor = buildSerialDescriptor(BigDecimal::class.qualifiedName!!, StructureKind.OBJECT) {
+      annotations = listOf(
+         defaultScalePrecision,
+         defaultLogicalDecimal,
+      )
    }
 
    override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: BigDecimal) {

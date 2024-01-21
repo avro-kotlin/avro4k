@@ -46,7 +46,7 @@ class MapDecoder(
       return when (val v = value()) {
          is Float -> v
          null -> throw SerializationException("Cannot decode <null> as a Float")
-         else -> throw SerializationException("Unsupported type for Float ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Float ${v::class.qualifiedName}")
       }
    }
 
@@ -54,7 +54,7 @@ class MapDecoder(
       return when (val v = value()) {
          is Int -> v
          null -> throw SerializationException("Cannot decode <null> as a Int")
-         else -> throw SerializationException("Unsupported type for Int ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Int ${v::class.qualifiedName}")
       }
    }
 
@@ -63,7 +63,7 @@ class MapDecoder(
          is Long -> v
          is Int -> v.toLong()
          null -> throw SerializationException("Cannot decode <null> as a Long")
-         else -> throw SerializationException("Unsupported type for Long ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Long ${v::class.qualifiedName}")
       }
    }
 
@@ -72,7 +72,7 @@ class MapDecoder(
          is Double -> v
          is Float -> v.toDouble()
          null -> throw SerializationException("Cannot decode <null> as a Double")
-         else -> throw SerializationException("Unsupported type for Double ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Double ${v::class.qualifiedName}")
       }
    }
 
@@ -81,7 +81,7 @@ class MapDecoder(
          is Byte -> v
          is Int -> v.toByte()
          null -> throw SerializationException("Cannot decode <null> as a Byte")
-         else -> throw SerializationException("Unsupported type for Byte ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Byte ${v::class.qualifiedName}")
       }
    }
 
@@ -89,7 +89,7 @@ class MapDecoder(
       return when (val v = value()) {
          is Boolean -> v
          null -> throw SerializationException("Cannot decode <null> as a Boolean")
-         else -> throw SerializationException("Unsupported type for Boolean ${v.javaClass}")
+         else -> throw SerializationException("Unsupported type for Boolean. Actual: ${v::class.qualifiedName}")
       }
    }
 

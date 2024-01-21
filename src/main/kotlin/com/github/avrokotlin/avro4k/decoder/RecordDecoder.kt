@@ -108,7 +108,7 @@ class RecordDecoder(
         return when (val v = fieldValue()) {
             is Boolean -> v
             null -> throw SerializationException("Cannot decode <null> as a Boolean")
-            else -> throw SerializationException("Unsupported type for Boolean ${v.javaClass}")
+            else -> throw SerializationException("Unsupported type for Boolean ${v::class.qualifiedName}")
         }
     }
 
@@ -119,7 +119,7 @@ class RecordDecoder(
             is Byte -> v
             is Int -> if (v < 255) v.toByte() else throw SerializationException("Out of bound integer cannot be converted to byte [$v]")
             null -> throw SerializationException("Cannot decode <null> as a Byte")
-            else -> throw SerializationException("Unsupported type for Byte ${v.javaClass}")
+            else -> throw SerializationException("Unsupported type for Byte ${v::class.qualifiedName}")
         }
     }
 
@@ -141,7 +141,7 @@ class RecordDecoder(
         return when (val v = fieldValue()) {
             is Float -> v
             null -> throw SerializationException("Cannot decode <null> as a Float")
-            else -> throw SerializationException("Unsupported type for Float ${v.javaClass}")
+            else -> throw SerializationException("Unsupported type for Float ${v::class.qualifiedName}")
         }
     }
 
@@ -149,7 +149,7 @@ class RecordDecoder(
         return when (val v = fieldValue()) {
             is Int -> v
             null -> throw SerializationException("Cannot decode <null> as a Int")
-            else -> throw SerializationException("Unsupported type for Int ${v.javaClass}")
+            else -> throw SerializationException("Unsupported type for Int ${v::class.qualifiedName}")
         }
     }
 
@@ -158,7 +158,7 @@ class RecordDecoder(
             is Long -> v
             is Int -> v.toLong()
             null -> throw SerializationException("Cannot decode <null> as a Long")
-            else -> throw SerializationException("Unsupported type for Long [is ${v.javaClass}]")
+            else -> throw SerializationException("Unsupported type for Long [is ${v::class.qualifiedName}]")
         }
     }
 
@@ -167,7 +167,7 @@ class RecordDecoder(
             is Double -> v
             is Float -> v.toDouble()
             null -> throw SerializationException("Cannot decode <null> as a Double")
-            else -> throw SerializationException("Unsupported type for Double ${v.javaClass}")
+            else -> throw SerializationException("Unsupported type for Double ${v::class.qualifiedName}")
         }
     }
 

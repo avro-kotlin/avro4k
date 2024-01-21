@@ -12,14 +12,14 @@ buildscript {
 plugins {
    java
    id("java-library")
-   kotlin("jvm") version Libs.kotlinVersion
-   kotlin("plugin.serialization") version Libs.kotlinVersion
+   kotlin("jvm") version libs.versions.kotlin
+   kotlin("plugin.serialization") version libs.versions.kotlin
    id("maven-publish")
    signing
-   id("org.jetbrains.dokka") version Libs.dokkaVersion
-   id("io.kotest") version Libs.kotestGradlePlugin
-   id("com.github.ben-manes.versions") version Libs.versionsPlugin
-   id("io.github.gradle-nexus.publish-plugin") version Libs.nexusPublishPlugin
+   alias(libs.plugins.dokka)
+   alias(libs.plugins.kotest)
+   alias(libs.plugins.github.versions)
+   alias(libs.plugins.nexus.publish)
 }
 
 repositories {
@@ -36,15 +36,15 @@ group = "com.github.avro-kotlin.avro4k"
 version = Ci.publishVersion
 
 dependencies {
-   api(Libs.Avro.avro)
-   api(Libs.Kotlinx.serializationCore)
-   implementation(Libs.Kotlinx.serializationJson)
+   api(libs.apache.avro)
+   api(libs.kotlinx.serialization.core)
+   implementation(libs.kotlinx.serialization.json)
    implementation(kotlin("reflect"))
-   implementation(Libs.Xerial.snappy)
-   testImplementation(Libs.Kotest.junit5)
-   testImplementation(Libs.Kotest.assertionsCore)
-   testImplementation(Libs.Kotest.assertionsJson)
-   testImplementation(Libs.Kotest.proptest)
+   implementation(libs.xerial.snappy)
+   testImplementation(libs.kotest.junit5)
+   testImplementation(libs.kotest.core)
+   testImplementation(libs.kotest.json)
+   testImplementation(libs.kotest.property)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -104,14 +104,15 @@ publishing {
       register("mavenJava", MavenPublication::class) {
          from(components["java"])
          pom {
+            val projectUrl = "https://github.com/avro-kotlin/avro4k"
             name.set("avro4k-core")
             description.set("Avro format support for kotlinx.serialization")
-            url.set("https://www.github.com/avro-kotlin/avro4k")
+            url.set(projectUrl)
 
             scm {
-               connection.set("scm:git:https://www.github.com/avro-kotlin/avro4k")
-               developerConnection.set("scm:git:https://github.com/avro-kotlin/avro4k")
-               url.set("https://www.github.com/avro-kotlin/avro4k")
+               connection.set("scm:git:$projectUrl")
+               developerConnection.set("scm:git:$projectUrl")
+               url.set(projectUrl)
             }
 
             licenses {
@@ -123,14 +124,14 @@ publishing {
 
             developers {
                developer {
-                  id.set("sksamuel")
-                  name.set("Stephen Samuel")
-                  email.set("sam@sksamuel.com")
-               }
-               developer {
                   id.set("thake")
                   name.set("Thorsten Hake")
                   email.set("mail@thorsten-hake.com")
+               }
+               developer {
+                  id.set("chuckame")
+                  name.set("Antoine Michaud")
+                  email.set("contact@antoine-michaud.fr")
                }
             }
          }
@@ -142,3 +143,22 @@ fun Project.publishing(action: PublishingExtension.() -> Unit) =
 
 fun Project.signing(configure: SigningExtension.() -> Unit): Unit =
    configure(configure)
+
+
+object Ci {
+   // this is the version used for building snapshots
+   // .buildnumber-snapshot will be appended
+   private const val snapshotBase = "1.9.0"
+
+   private val githubBuildNumber = System.getenv("GITHUB_RUN_NUMBER")
+
+   private val snapshotVersion = when (githubBuildNumber) {
+      null -> "$snapshotBase-SNAPSHOT"
+      else -> "$snapshotBase.${githubBuildNumber}-SNAPSHOT"
+   }
+
+   private val releaseVersion = System.getenv("RELEASE_VERSION")
+
+   val isRelease = releaseVersion != null
+   val publishVersion = releaseVersion ?: snapshotVersion
+}

@@ -85,6 +85,13 @@ class RecordDecoder(
         if (record.hasField(resolvedFieldName())) {
             return record.get(resolvedFieldName())
         }
+
+        FieldNaming(desc, currentIndex).aliases().forEach {
+           if (record.hasField(it)) {
+              return record.get(it)
+           }
+        }
+
         return null
     }
 

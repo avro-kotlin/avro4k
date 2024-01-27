@@ -8,11 +8,9 @@ import com.github.avrokotlin.avro4k.schema.Level4
 import com.github.avrokotlin.avro4k.schema.RecursiveClass
 import com.github.avrokotlin.avro4k.schema.RecursiveListItem
 import com.github.avrokotlin.avro4k.schema.RecursiveMapValue
-import com.github.avrokotlin.avro4k.schema.RecursivePair
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
@@ -51,24 +49,6 @@ class RecursiveIoTest : StringSpec({
          map.schema shouldBe Avro.default.schema(RecursiveMapValue.serializer())
          map["payload"] shouldBe 2
          map["map"] shouldBe null
-      }
-   }
-
-   "read / write direct recursive pair" {
-      writeRead(RecursivePair(1, (RecursivePair(2, null) to RecursivePair(3, null))), RecursivePair.serializer())
-      writeRead(RecursivePair(1, (RecursivePair(2, null) to RecursivePair(3, null))), RecursivePair.serializer()) {
-         it["payload"] shouldBe 1
-         it["pair"].shouldBeInstanceOf<GenericData.Record>()
-         val first = (it["pair"] as GenericData.Record)["first"]
-         first.shouldBeInstanceOf<GenericRecord>()
-         first.schema shouldBe Avro.default.schema(RecursivePair.serializer())
-         first["payload"] shouldBe 2
-         first["pair"] shouldBe null
-         val second = (it["pair"] as GenericData.Record)["second"]
-         second.shouldBeInstanceOf<GenericRecord>()
-         second.schema shouldBe Avro.default.schema(RecursivePair.serializer())
-         second["payload"] shouldBe 3
-         second["pair"] shouldBe null
       }
    }
 

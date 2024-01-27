@@ -7,7 +7,14 @@ import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.capturedKClass
+import kotlinx.serialization.descriptors.elementNames
+import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
@@ -60,36 +67,6 @@ class EnumSchemaFor(
       entityAnnotations.aliases().forEach { enumSchema.addAlias(it) }
 
       return enumSchema
-   }
-}
-
-@ExperimentalSerializationApi
-class PairSchemaFor(private val descriptor: SerialDescriptor,
-                    private val configuration: AvroConfiguration,
-                    private val serializersModule: SerializersModule,
-                    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
-) : SchemaFor {
-
-   override fun schema(): Schema {
-      val a = schemaFor(
-         serializersModule,
-         descriptor.getElementDescriptor(0),
-         descriptor.getElementAnnotations(0),
-         configuration,
-         resolvedSchemas
-      )
-      val b = schemaFor(
-         serializersModule,
-         descriptor.getElementDescriptor(1),
-         descriptor.getElementAnnotations(1),
-         configuration,
-         resolvedSchemas
-      )
-      return SchemaBuilder.unionOf()
-         .type(a.schema())
-         .and()
-         .type(b.schema())
-         .endUnion()
    }
 }
 
@@ -206,11 +183,7 @@ fun schemaFor(serializersModule: SerializersModule,
             resolvedSchemas
          )
 
-         StructureKind.CLASS, StructureKind.OBJECT -> when (descriptor.serialName) {
-            "kotlin.Pair" -> PairSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
-            else -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
-         }
-
+         StructureKind.CLASS, StructureKind.OBJECT -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
          StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
          StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
          is PolymorphicKind -> UnionSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)

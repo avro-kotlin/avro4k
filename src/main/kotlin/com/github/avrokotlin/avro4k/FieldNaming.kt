@@ -21,4 +21,11 @@ class FieldNaming(private val name: String, annotations: List<Annotation>) {
     *  Takes into account @AvroName.
     */
    fun name(): String = extractor.name() ?: name
+
+
+   /**
+    *  Returns the avro aliases for the current element.
+    *  Takes into account @AvroAlias.
+    */
+   fun aliases(): List<String> = extractor.aliases()
 }

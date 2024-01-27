@@ -5,8 +5,8 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.Conversions

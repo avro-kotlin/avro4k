@@ -20,7 +20,7 @@ object StringFromAvroValue : FromAvroValue<Any?, String> {
          is CharSequence -> value.toString()
          is ByteBuffer -> String(value.array())
          null -> throw SerializationException("Cannot decode <null> as a string")
-         else -> throw SerializationException("Unsupported type for String [is ${value.javaClass}]")
+         else -> throw SerializationException("Unsupported type for String [is ${value::class.qualifiedName}]")
       }
    }
 }

@@ -39,7 +39,6 @@ dependencies {
    api(libs.apache.avro)
    api(libs.kotlinx.serialization.core)
    implementation(libs.kotlinx.serialization.json)
-   implementation(kotlin("reflect"))
    implementation(libs.xerial.snappy)
    testImplementation(libs.kotest.junit5)
    testImplementation(libs.kotest.core)
@@ -49,8 +48,8 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
    kotlinOptions.jvmTarget = "1.8"
-   kotlinOptions.apiVersion = "1.5"
-   kotlinOptions.languageVersion = "1.5"
+   kotlinOptions.apiVersion = "1.6"
+   kotlinOptions.languageVersion = "1.6"
    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }
 java {

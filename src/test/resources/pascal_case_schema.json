@@ -1,51 +1,48 @@
 {
-   "type": "record",
-   "name": "Interface",
-   "namespace": "com.github.avrokotlin.avro4k.schema.NamingStrategySchemaTest",
-   "fields": [
-      {
-         "name": "Name",
-         "type": "string"
-      },
-      {
-         "name": "Ipv4Address",
-         "type": "string"
-      },
-      {
-         "name": "Ipv4SubnetMask",
-         "type": "int"
-      },
-      {
-         "name": "V",
-         "type": {
-            "type": "enum",
-            "name": "InternetProtocol",
-            "namespace" : "com.github.avrokotlin.avro4k.schema",
-            "symbols": [
-               "IPv4",
-               "IPv6"
-            ]
-         }
-      },
-      {
-         "name": "SubInterface",
-         "type": [
-            "null",
-            {
-               "type": "record",
-               "name": "SubInterface",
-               "fields": [
-                  {
-                     "name": "Name",
-                     "type": "string"
-                  },
-                  {
-                     "name": "Ipv4Address",
-                     "type": "string"
-                  }
-               ]
-            }
-         ]
+  "type": "record",
+  "name": "Interface",
+  "namespace": "com.github.avrokotlin.avro4k.schema.NamingStrategySchemaTest",
+  "fields": [
+    {
+      "name": "Name",
+      "type": "string"
+    },
+    {
+      "name": "Ipv4Address",
+      "type": "string"
+    },
+    {
+      "name": "Ipv4SubnetMask",
+      "type": "int"
+    },
+    {
+      "name": "V",
+      "type": {
+        "type": "enum",
+        "name": "InternetProtocol",
+        "namespace": "com.github.avrokotlin.avro4k.schema",
+        "symbols": ["IPv4", "IPv6"]
       }
-   ]
+    },
+    {
+      "name": "SubInterface",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "SubInterface",
+          "fields": [
+            {
+              "name": "Name",
+              "type": "string"
+            },
+            {
+              "name": "Ipv4Address",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

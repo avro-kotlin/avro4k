@@ -7,12 +7,12 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class NullableWithDefaultsSchemaTest : FunSpec({
-   test("generate null as Union[T, Null] with default null") {
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullables-with-defaults.json"))
-      val schema = Avro(AvroConfiguration(implicitNulls = true)).schema(Test.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    test("generate null as Union[T, Null] with default null") {
+        val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullables-with-defaults.json"))
+        val schema = Avro(AvroConfiguration(implicitNulls = true)).schema(Test.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 }) {
-   @Serializable
-   data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
+    @Serializable
+    data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
 }

@@ -16,7 +16,10 @@ annotation class AvroProp(val key: String, val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroJsonProp(val key: String, @Language("JSON") val jsonValue: String)
+annotation class AvroJsonProp(
+    val key: String,
+    @Language("JSON") val jsonValue: String,
+)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
@@ -35,13 +38,13 @@ annotation class ScalePrecision(val scale: Int = 2, val precision: Int = 8)
 annotation class AvroDecimalLogicalType(val schema: LogicalDecimalTypeEnum = LogicalDecimalTypeEnum.BYTES)
 
 enum class LogicalDecimalTypeEnum {
-   BYTES,
-   STRING,
+    BYTES,
+    STRING,
 
-   /**
-    * Fixed must be accompanied with [AvroFixed]
-    */
-   FIXED,
+    /**
+     * Fixed must be accompanied with [AvroFixed]
+     */
+    FIXED,
 }
 
 @SerialInfo
@@ -53,31 +56,37 @@ annotation class AvroUuidLogicalType
 annotation class AvroTimeLogicalType(val type: LogicalTimeTypeEnum)
 
 enum class LogicalTimeTypeEnum(val logicalTypeName: String, val kind: PrimitiveKind, val schemaFor: () -> Schema) {
-   DATE("date", PrimitiveKind.INT, { LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()) }),
-   TIME_MILLIS(
-      "time-millis",
-      PrimitiveKind.INT,
-      { LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()) }),
-   TIME_MICROS(
-      "time-micros",
-      PrimitiveKind.LONG,
-      { LogicalTypes.timeMicros().addToSchema(SchemaBuilder.builder().longType()) }),
-   TIMESTAMP_MILLIS(
-      "timestamp-millis",
-      PrimitiveKind.LONG,
-      { LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()) }),
-   TIMESTAMP_MICROS(
-      "timestamp-micros",
-      PrimitiveKind.LONG,
-      { LogicalTypes.timestampMicros().addToSchema(SchemaBuilder.builder().longType()) }),
-   LOCAL_TIMESTAMP_MILLIS(
-      "local-timestamp-millis",
-      PrimitiveKind.LONG,
-      { LogicalTypes.localTimestampMillis().addToSchema(SchemaBuilder.builder().longType()) }),
-   LOCAL_TIMESTAMP_MICROS(
-      "local-timestamp-micros",
-      PrimitiveKind.LONG,
-      { LogicalTypes.localTimestampMicros().addToSchema(SchemaBuilder.builder().longType()) }),
+    DATE("date", PrimitiveKind.INT, { LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()) }),
+    TIME_MILLIS(
+        "time-millis",
+        PrimitiveKind.INT,
+        { LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()) }
+    ),
+    TIME_MICROS(
+        "time-micros",
+        PrimitiveKind.LONG,
+        { LogicalTypes.timeMicros().addToSchema(SchemaBuilder.builder().longType()) }
+    ),
+    TIMESTAMP_MILLIS(
+        "timestamp-millis",
+        PrimitiveKind.LONG,
+        { LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
+    ),
+    TIMESTAMP_MICROS(
+        "timestamp-micros",
+        PrimitiveKind.LONG,
+        { LogicalTypes.timestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
+    ),
+    LOCAL_TIMESTAMP_MILLIS(
+        "local-timestamp-millis",
+        PrimitiveKind.LONG,
+        { LogicalTypes.localTimestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
+    ),
+    LOCAL_TIMESTAMP_MICROS(
+        "local-timestamp-micros",
+        PrimitiveKind.LONG,
+        { LogicalTypes.localTimestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
+    ),
 }
 
 @SerialInfo
@@ -94,8 +103,8 @@ annotation class AvroAlias(vararg val value: String)
 
 @SerialInfo
 @Deprecated(
-   message = "Will be removed in the next major release",
-   replaceWith = ReplaceWith("@AvroAlias(alias1, alias2)")
+    message = "Will be removed in the next major release",
+    replaceWith = ReplaceWith("@AvroAlias(alias1, alias2)")
 )
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroAliases(val value: Array<String>)
@@ -121,7 +130,9 @@ annotation class AvroFixed(val size: Int)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroDefault(@Language("JSON") val value: String)
+annotation class AvroDefault(
+    @Language("JSON") val value: String,
+)
 
 @SerialInfo
 @Target(AnnotationTarget.CLASS)

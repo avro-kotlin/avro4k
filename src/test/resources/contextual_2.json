@@ -12,10 +12,7 @@
     },
     {
       "name": "withFallback",
-      "type": [
-        "null",
-        "int"
-      ]
+      "type": ["null", "int"]
     }
   ]
 }

@@ -1,26 +1,26 @@
 {
-   "type": "record",
-   "name": "BarInt",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "a",
-         "type": "string"
-      },
-      {
-         "name": "b",
-         "type": "int",
-         "default": 5
-      },
-      {
-         "name": "nullableInt",
-         "type": ["null","int"],
-         "default" : null
-      },
-      {
-         "name": "c",
-         "type": ["int","null"],
-         "default" : 5
-      }
-   ]
+  "type": "record",
+  "name": "BarInt",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "a",
+      "type": "string"
+    },
+    {
+      "name": "b",
+      "type": "int",
+      "default": 5
+    },
+    {
+      "name": "nullableInt",
+      "type": ["null", "int"],
+      "default": null
+    },
+    {
+      "name": "c",
+      "type": ["int", "null"],
+      "default": 5
+    }
+  ]
 }

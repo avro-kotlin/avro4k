@@ -10,20 +10,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
-import java.util.*
+import java.util.UUID
 
 class UUIDDecoderTest : StringSpec({
 
-   "decode UUIDs encoded as Utf8"  {
-      @Serializable
-      data class UUIDTest(val uuid: UUID)
+    "decode UUIDs encoded as Utf8" {
+        @Serializable
+        data class UUIDTest(val uuid: UUID)
 
-      val uuid = UUID.randomUUID()
-      val schema = Avro.default.schema(UUIDTest.serializer())
+        val uuid = UUID.randomUUID()
+        val schema = Avro.default.schema(UUIDTest.serializer())
 
-      val record = GenericData.Record(schema)
-      record.put("uuid", Utf8(uuid.toString()))
+        val record = GenericData.Record(schema)
+        record.put("uuid", Utf8(uuid.toString()))
 
-      Avro.default.fromRecord(UUIDTest.serializer(), record) shouldBe UUIDTest(uuid)
-   }
+        Avro.default.fromRecord(UUIDTest.serializer(), record) shouldBe UUIDTest(uuid)
+    }
 })

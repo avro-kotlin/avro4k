@@ -1,58 +1,58 @@
 {
-   "type": "record",
-   "name": "BarList",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "defaultEmptyList",
-         "type": {
-            "type": "array",
-            "items": "string"
-         },
-         "default": []
+  "type": "record",
+  "name": "BarList",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "defaultEmptyList",
+      "type": {
+        "type": "array",
+        "items": "string"
       },
-      {
-         "name": "nullableDefaultEmptyList",
-         "type": [
-            "null",
-            {
-               "type": "array",
-               "items": "string"
-            }
-         ],
-         "default": null
+      "default": []
+    },
+    {
+      "name": "nullableDefaultEmptyList",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "string"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "defaultStringListWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "string"
       },
-      {
-         "name": "defaultStringListWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "string"
-         },
-         "default": ["John", "Doe"]
+      "default": ["John", "Doe"]
+    },
+    {
+      "name": "defaultIntListWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "int"
       },
-      {
-         "name": "defaultIntListWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "int"
-         },
-         "default": [1,2]
+      "default": [1, 2]
+    },
+    {
+      "name": "defaultFloatListWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "float"
       },
-      {
-         "name": "defaultFloatListWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "float"
-         },
-         "default": [3.14, 9.89]
+      "default": [3.14, 9.89]
+    },
+    {
+      "name": "defaultStringListWithNullableTypes",
+      "type": {
+        "type": "array",
+        "items": ["null", "string"]
       },
-      {
-         "name": "defaultStringListWithNullableTypes",
-         "type": {
-            "type": "array",
-            "items": [ "null", "string" ]
-         },
-         "default" : [ null ]
-      }
-   ]
+      "default": [null]
+    }
+  ]
 }

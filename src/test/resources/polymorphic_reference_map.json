@@ -7,31 +7,29 @@
       "name": "mapOfRoot",
       "type": {
         "type": "map",
-        "values":  [
-            {
-              "type": "record",
-              "name": "UnsealedChildOne",
-              "fields": [
-                {
-                  "name": "one",
-                  "type": "string"
-                }
-              ]
-            },
-            {
-              "type": "record",
-              "name": "UnsealedChildTwo",
-              "fields": [
-                {
-                  "name": "two",
-                  "type": "string"
-                }
-              ]
-            }
+        "values": [
+          {
+            "type": "record",
+            "name": "UnsealedChildOne",
+            "fields": [
+              {
+                "name": "one",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "UnsealedChildTwo",
+            "fields": [
+              {
+                "name": "two",
+                "type": "string"
+              }
+            ]
+          }
         ]
-        
       }
     }
   ]
 }
-

@@ -14,6 +14,7 @@ import java.math.BigInteger
 class BigIntegerEncoderTest : FunSpec({
     includeForEveryEncoder { bigIntegerEncoderTests(it) }
 })
+
 fun bigIntegerEncoderTests(encoderToTest: EnDecoder): TestFactory {
     return stringSpec {
         "use string for BigInteger" {
@@ -32,7 +33,6 @@ fun bigIntegerEncoderTests(encoderToTest: EnDecoder): TestFactory {
                 record("12312312312321312365477686789676234")
             )
             encoderToTest.testEncodeDecode(NullableBigIntegerTest(null), record(null))
-
         }
     }
 }

@@ -18,103 +18,103 @@ import org.apache.avro.util.Utf8
 
 class CollectionsIoTest : StringSpec({
 
-   "read / write lists of strings" {
+    "read / write lists of strings" {
 
-      writeRead(StringListsTest(listOf("foo", "boo"), listOf("goo", "moo")), StringListsTest.serializer())
-      writeRead(StringListsTest(listOf("foo", "boo"), listOf("goo", "moo")), StringListsTest.serializer()) {
-         it["a"] shouldBe listOf(Utf8("foo"), Utf8("boo"))
-         it["b"] shouldBe listOf(Utf8("goo"), Utf8("moo"))
-      }
-   }
+        writeRead(StringListsTest(listOf("foo", "boo"), listOf("goo", "moo")), StringListsTest.serializer())
+        writeRead(StringListsTest(listOf("foo", "boo"), listOf("goo", "moo")), StringListsTest.serializer()) {
+            it["a"] shouldBe listOf(Utf8("foo"), Utf8("boo"))
+            it["b"] shouldBe listOf(Utf8("goo"), Utf8("moo"))
+        }
+    }
 
-   "read / write sets of booleans" {
+    "read / write sets of booleans" {
 
-      writeRead(BooleanSetsTest(setOf(true, false), setOf(false, true)), BooleanSetsTest.serializer())
-      writeRead(BooleanSetsTest(setOf(true, false), setOf(false, true)), BooleanSetsTest.serializer()) {
-         it["a"] shouldBe listOf(true, false)
-         it["b"] shouldBe listOf(false, true)
-      }
-   }
+        writeRead(BooleanSetsTest(setOf(true, false), setOf(false, true)), BooleanSetsTest.serializer())
+        writeRead(BooleanSetsTest(setOf(true, false), setOf(false, true)), BooleanSetsTest.serializer()) {
+            it["a"] shouldBe listOf(true, false)
+            it["b"] shouldBe listOf(false, true)
+        }
+    }
 
-   "read / write sets of ints" {
+    "read / write sets of ints" {
 
-      writeRead(S(setOf(1, 3)), S.serializer())
-      writeRead(S(setOf(1, 3)), S.serializer()) {
-         (it["t"] as GenericData.Array<Int>).toSet() shouldBe setOf(1, 3)
-      }
-   }
+        writeRead(S(setOf(1, 3)), S.serializer())
+        writeRead(S(setOf(1, 3)), S.serializer()) {
+            (it["t"] as GenericData.Array<Int>).toSet() shouldBe setOf(1, 3)
+        }
+    }
 
-   "read / write arrays of doubles" {
+    "read / write arrays of doubles" {
 
-      // there's a bug in avro with Double.POSINF
-      checkAll(
-         Arb.double(),
-         Arb.double(),
-         Arb.double()
-      ) { a, b, c ->
-         val data = DoubleArrayTest(arrayOf(a, b, c))
-         val serializer = DoubleArrayTest.serializer()
-         val test : (GenericRecord) -> Unit = {it["a"] shouldBe listOf(a,b,c)}
-         writeReadData(data, serializer, test = test)
-         writeReadBinary(data, serializer, test = test)
-      }
-   }
+        // there's a bug in avro with Double.POSINF
+        checkAll(
+            Arb.double(),
+            Arb.double(),
+            Arb.double()
+        ) { a, b, c ->
+            val data = DoubleArrayTest(arrayOf(a, b, c))
+            val serializer = DoubleArrayTest.serializer()
+            val test: (GenericRecord) -> Unit = { it["a"] shouldBe listOf(a, b, c) }
+            writeReadData(data, serializer, test = test)
+            writeReadBinary(data, serializer, test = test)
+        }
+    }
 
-   "read / write arrays of double in json" {
-      //Json does not support -inf/+inf and NaN
-      checkAll(
-         Arb.numericDouble(),
-         Arb.numericDouble(),
-         Arb.numericDouble()
-      ) { a, b, c ->
-         writeReadJson(DoubleArrayTest(arrayOf(a, b, c)), DoubleArrayTest.serializer()) {
-            it["a"] shouldBe listOf(a,b,c)
-         }
-      }
-   }
+    "read / write arrays of double in json" {
+        // Json does not support -inf/+inf and NaN
+        checkAll(
+            Arb.numericDouble(),
+            Arb.numericDouble(),
+            Arb.numericDouble()
+        ) { a, b, c ->
+            writeReadJson(DoubleArrayTest(arrayOf(a, b, c)), DoubleArrayTest.serializer()) {
+                it["a"] shouldBe listOf(a, b, c)
+            }
+        }
+    }
 
-   "read / write lists of long/ints" {
+    "read / write lists of long/ints" {
 
-      checkAll(Arb.long(), Arb.long(), Arb.int(), Arb.int()) { a, b, c, d ->
-         writeRead(LongListsTest(listOf(a, b), listOf(c, d)), LongListsTest.serializer()) {
-            it["a"] shouldBe listOf(a, b)
-            it["b"] shouldBe listOf(c, d)
-         }
-      }
-   }
+        checkAll(Arb.long(), Arb.long(), Arb.int(), Arb.int()) { a, b, c, d ->
+            writeRead(LongListsTest(listOf(a, b), listOf(c, d)), LongListsTest.serializer()) {
+                it["a"] shouldBe listOf(a, b)
+                it["b"] shouldBe listOf(c, d)
+            }
+        }
+    }
 
-   "read / write lists of records" {
+    "read / write lists of records" {
 
-      val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
+        val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
 
-      writeRead(hawaiian, Pizza.serializer())
-      writeRead(hawaiian, Pizza.serializer()) {
-         it["name"] shouldBe Utf8("hawaiian")
-         it["vegetarian"] shouldBe false
-         it["kcals"] shouldBe 391
-         (it["ingredients"] as GenericArray<GenericRecord>)[0]["name"] shouldBe Utf8("ham")
-         (it["ingredients"] as GenericArray<GenericRecord>)[1]["sugar"] shouldBe 5.2
-      }
-   }
+        writeRead(hawaiian, Pizza.serializer())
+        writeRead(hawaiian, Pizza.serializer()) {
+            it["name"] shouldBe Utf8("hawaiian")
+            it["vegetarian"] shouldBe false
+            it["kcals"] shouldBe 391
+            (it["ingredients"] as GenericArray<GenericRecord>)[0]["name"] shouldBe Utf8("ham")
+            (it["ingredients"] as GenericArray<GenericRecord>)[1]["sugar"] shouldBe 5.2
+        }
+    }
 }) {
-   @Serializable
-   data class StringListsTest(val a: List<String>, val b: List<String>)
+    @Serializable
+    data class StringListsTest(val a: List<String>, val b: List<String>)
 
-   @Serializable
-   data class BooleanSetsTest(val a: Set<Boolean>, val b: Set<Boolean>)
+    @Serializable
+    data class BooleanSetsTest(val a: Set<Boolean>, val b: Set<Boolean>)
 
-   @Serializable
-   data class S(val t: Set<Int>)
+    @Serializable
+    data class S(val t: Set<Int>)
 
-   @Serializable
-   data class LongListsTest(val a: List<Long>, val b: List<Int>)
+    @Serializable
+    data class LongListsTest(val a: List<Long>, val b: List<Int>)
 
-   @Serializable
-   data class DoubleArrayTest(val a: Array<Double>)
+    @Serializable
+    data class DoubleArrayTest(val a: Array<Double>)
 
-   @Serializable
-   data class Ingredient(val name: String, val sugar: Double, val fat: Double)
+    @Serializable
+    data class Ingredient(val name: String, val sugar: Double, val fat: Double)
 
-   @Serializable
-   data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
+    @Serializable
+    data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
 }

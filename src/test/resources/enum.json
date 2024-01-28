@@ -9,12 +9,7 @@
         "type": "enum",
         "name": "Wine",
         "namespace": "com.github.avrokotlin.avro4k.schema",
-        "symbols": [
-          "Malbec",
-          "Shiraz",
-          "CabSav",
-          "Merlot"
-        ]
+        "symbols": ["Malbec", "Shiraz", "CabSav", "Merlot"]
       }
     }
   ]

@@ -1,18 +1,18 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class NullableSchemaTest : FunSpec({
 
-  test("generate null as Union[T, Null]") {
+    test("generate null as Union[T, Null]") {
 
-    val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullables.json"))
-    val schema = Avro.default.schema(Test.serializer())
-    schema.toString(true) shouldBe expected.toString(true)
-  }
+        val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/nullables.json"))
+        val schema = Avro.default.schema(Test.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 
 //  test("move default option values to first schema as per avro spec") {
 //    val schema = AvroSchema[OptionWithDefault]
@@ -25,8 +25,7 @@ class NullableSchemaTest : FunSpec({
 //    val expected = new org . apache . avro . Schema . Parser ().parse(getClass.getResourceAsStream("/option_from_null_default.json"))
 //    schema.toString(true) shouldBe expected.toString(true)
 //  }
-
 }) {
-  @Serializable
-  data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
+    @Serializable
+    data class Test(val nullableString: String?, val nullableBoolean: Boolean?)
 }

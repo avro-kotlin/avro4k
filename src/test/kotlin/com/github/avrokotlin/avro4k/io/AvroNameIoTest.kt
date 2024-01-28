@@ -13,56 +13,61 @@ import java.nio.file.Files
 
 class AvroNameIoTest : StringSpec({
 
-   "using @AvroName to write out a record" {
+    "using @AvroName to write out a record" {
 
-      val ennio = Composer("Ennio Morricone", "Maestro")
+        val ennio = Composer("Ennio Morricone", "Maestro")
 
-      // writing out using the schema derived from Compose means fullname should be used
-      val bytes = Avro.default.encodeToByteArray(Composer.serializer(), ennio)
+        // writing out using the schema derived from Compose means fullname should be used
+        val bytes = Avro.default.encodeToByteArray(Composer.serializer(), ennio)
 
-      // using a custom schema to check that fullname was definitely used
-      val schema = SchemaBuilder.record("Composer").fields()
-         .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .endRecord()
+        // using a custom schema to check that fullname was definitely used
+        val schema =
+            SchemaBuilder.record("Composer").fields()
+                .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .endRecord()
 
-      Avro.default.openInputStream(Composer.serializer()){
-         decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
-      }.from(bytes).nextOrThrow() shouldBe ennio
-   }
+        Avro.default.openInputStream(Composer.serializer()) {
+            decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
+        }.from(bytes).nextOrThrow() shouldBe ennio
+    }
 
-   "using @AvroName to read a record back in" {
+    "using @AvroName to read a record back in" {
 
-      val schema1 = SchemaBuilder.record("Composer").fields()
-         .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .endRecord()
+        val schema1 =
+            SchemaBuilder.record("Composer").fields()
+                .name("fullname").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .endRecord()
 
-      val record = GenericData.Record(schema1)
-      record.put("fullname", "Ennio Morricone")
-      record.put("status", "Maestro")
+        val record = GenericData.Record(schema1)
+        record.put("fullname", "Ennio Morricone")
+        record.put("status", "Maestro")
 
-      val file = Files.createTempFile("avroname.avro","")
+        val file = Files.createTempFile("avroname.avro", "")
 
-      val outputStream = Files.newOutputStream(file)
-      AvroBinaryOutputStream<GenericRecord>(outputStream, {it}, schema1).write(record).close()
+        val outputStream = Files.newOutputStream(file)
+        AvroBinaryOutputStream<GenericRecord>(outputStream, { it }, schema1).write(record).close()
 
-      val schema2 = Avro.default.schema(Composer.serializer())
-      val input = Avro.default.openInputStream(Composer.serializer()) {
-         decodeFormat = AvroDecodeFormat.Binary(
-            writerSchema = schema1,
-            readerSchema = schema2
-         )
-      }.from(file)
+        val schema2 = Avro.default.schema(Composer.serializer())
+        val input =
+            Avro.default.openInputStream(Composer.serializer()) {
+                decodeFormat =
+                    AvroDecodeFormat.Binary(
+                        writerSchema = schema1,
+                        readerSchema = schema2
+                    )
+            }.from(file)
 
-      input.next() shouldBe Composer("Ennio Morricone", "Maestro")
-      input.close()
+        input.next() shouldBe Composer("Ennio Morricone", "Maestro")
+        input.close()
 
-      Files.delete(file)
-   }
-
+        Files.delete(file)
+    }
 }) {
-
-   @Serializable
-   data class Composer(@AvroName("fullname") val name: String, val status: String)
+    @Serializable
+    data class Composer(
+        @AvroName("fullname") val name: String,
+        val status: String,
+    )
 }

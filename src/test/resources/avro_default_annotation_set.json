@@ -1,58 +1,58 @@
 {
-   "type": "record",
-   "name": "BarSet",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "defaultEmptySet",
-         "type": {
-            "type": "array",
-            "items": "string"
-         },
-         "default": []
+  "type": "record",
+  "name": "BarSet",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "defaultEmptySet",
+      "type": {
+        "type": "array",
+        "items": "string"
       },
-      {
-         "name": "nullableDefaultEmptySet",
-         "type": [
-            "null",
-            {
-               "type": "array",
-               "items": "string"
-            }
-         ],
-         "default": null
+      "default": []
+    },
+    {
+      "name": "nullableDefaultEmptySet",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "string"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "defaultStringSetWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "string"
       },
-      {
-         "name": "defaultStringSetWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "string"
-         },
-         "default": ["John", "Doe"]
+      "default": ["John", "Doe"]
+    },
+    {
+      "name": "defaultIntSetWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "int"
       },
-      {
-         "name": "defaultIntSetWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "int"
-         },
-         "default": [1,2]
+      "default": [1, 2]
+    },
+    {
+      "name": "defaultFloatSetWith2Defaults",
+      "type": {
+        "type": "array",
+        "items": "float"
       },
-      {
-         "name": "defaultFloatSetWith2Defaults",
-         "type": {
-            "type": "array",
-            "items": "float"
-         },
-         "default": [3.14, 9.89]
+      "default": [3.14, 9.89]
+    },
+    {
+      "name": "defaultStringSetWithNullableTypes",
+      "type": {
+        "type": "array",
+        "items": ["null", "string"]
       },
-      {
-         "name": "defaultStringSetWithNullableTypes",
-         "type": {
-            "type": "array",
-            "items": [ "null", "string" ]
-         },
-         "default" : [ null ]
-      }
-   ]
+      "default": [null]
+    }
+  ]
 }

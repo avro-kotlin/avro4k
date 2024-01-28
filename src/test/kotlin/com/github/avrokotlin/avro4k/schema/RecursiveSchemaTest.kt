@@ -28,27 +28,27 @@ data class Level1(val level2: Level2?)
 
 class RecursiveSchemaTest : FunSpec({
 
-   test("accept direct recursive classes") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_class.json"))
-      val schema = Avro.default.schema(RecursiveClass.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    test("accept direct recursive classes") {
+        val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_class.json"))
+        val schema = Avro.default.schema(RecursiveClass.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 
-   test("accept direct recursive lists") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_list.json"))
-      val schema = Avro.default.schema(RecursiveListItem.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    test("accept direct recursive lists") {
+        val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_list.json"))
+        val schema = Avro.default.schema(RecursiveListItem.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 
-   test("accept direct recursive maps") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_map.json"))
-      val schema = Avro.default.schema(RecursiveMapValue.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    test("accept direct recursive maps") {
+        val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_map.json"))
+        val schema = Avro.default.schema(RecursiveMapValue.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 
-   test("accept nested recursive classes") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_nested.json"))
-      val schema = Avro.default.schema(Level1.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    test("accept nested recursive classes") {
+        val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_nested.json"))
+        val schema = Avro.default.schema(Level1.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 })

@@ -9,7 +9,12 @@ import java.io.OutputStream
  * Formats that can be used to encode a record to an [OutputStream].
  */
 sealed class AvroEncodeFormat {
-    abstract fun <T> createOutputStream(output : OutputStream, schema : Schema, converter : (T) -> GenericRecord) : AvroOutputStream<T>
+    abstract fun <T> createOutputStream(
+        output: OutputStream,
+        schema: Schema,
+        converter: (T) -> GenericRecord,
+    ): AvroOutputStream<T>
+
     /**
      * Encodes a record in a binary format with a header that contains the full schema, this is the format usually used when writing Avro files.
      *
@@ -19,11 +24,12 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> GenericRecord,
         ): AvroOutputStream<T> {
             return AvroDataOutputStream(output, converter, schema, codecFactory)
         }
     }
+
     /**
      * Encodes the record in a binary format without schema information, the most compact format.
      *
@@ -33,10 +39,10 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> GenericRecord,
         ) = AvroBinaryOutputStream(output, converter, schema)
-
     }
+
     /**
      * Encodes the avro records as JSON text. The most verbose format, but easy for a human to read.
      *
@@ -48,7 +54,7 @@ sealed class AvroEncodeFormat {
         override fun <T> createOutputStream(
             output: OutputStream,
             schema: Schema,
-            converter: (T) -> GenericRecord
+            converter: (T) -> GenericRecord,
         ) = AvroJsonOutputStream(output, converter, schema)
     }
 }

@@ -5,27 +5,28 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 
 @ExperimentalSerializationApi
 class FieldNaming(private val name: String, annotations: List<Annotation>) {
+    private val extractor = AnnotationExtractor(annotations)
 
-   private val extractor = AnnotationExtractor(annotations)
+    companion object {
+        operator fun invoke(
+            desc: SerialDescriptor,
+            index: Int,
+        ): FieldNaming =
+            FieldNaming(
+                desc.getElementName(index),
+                desc.getElementAnnotations(index)
+            )
+    }
 
-   companion object {
-      operator fun invoke(desc: SerialDescriptor, index: Int): FieldNaming = FieldNaming(
-         desc.getElementName(index),
-         desc.getElementAnnotations(index)
-      )
-   }
+    /**
+     *  Returns the avro name for the current element.
+     *  Takes into account @AvroName.
+     */
+    fun name(): String = extractor.name() ?: name
 
-
-   /**
-    *  Returns the avro name for the current element.
-    *  Takes into account @AvroName.
-    */
-   fun name(): String = extractor.name() ?: name
-
-
-   /**
-    *  Returns the avro aliases for the current element.
-    *  Takes into account @AvroAlias.
-    */
-   fun aliases(): List<String> = extractor.aliases()
+    /**
+     *  Returns the avro aliases for the current element.
+     *  Takes into account @AvroAlias.
+     */
+    fun aliases(): List<String> = extractor.aliases()
 }

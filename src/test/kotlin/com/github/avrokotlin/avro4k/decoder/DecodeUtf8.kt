@@ -18,5 +18,4 @@ class DecodeUtf8 : StringSpec({
         record.put("a", Utf8("utf8-string"))
         Avro.default.fromRecord(Foo.serializer(), record) shouldBe Foo("utf8-string")
     }
-}) {
-}
+})

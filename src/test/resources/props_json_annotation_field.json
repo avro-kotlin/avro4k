@@ -17,12 +17,12 @@
       "name": "int",
       "type": "int",
       "object": {
-         "a": "foo",
-         "b": 200,
-         "c": true,
-         "d": null,
-         "e": { "e1": null, "e2": 429 },
-         "f": [ "bar", 404, false, null, {} ]
+        "a": "foo",
+        "b": 200,
+        "c": true,
+        "d": null,
+        "e": { "e1": null, "e2": 429 },
+        "f": ["bar", 404, false, null, {}]
       }
     }
   ]

@@ -33,6 +33,5 @@ fun namingStrategyEncoderTests(enDecoder: EnDecoder): TestFactory {
             schema.getField("FooBar") shouldNotBe null
             enDecoder.testEncodeDecode(Foo("hello"), record("hello"))
         }
-
     }
 }

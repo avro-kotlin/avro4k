@@ -1,32 +1,36 @@
 {
-   "type": "record",
-   "name": "BarListOfElements",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "defaultEmptyListOfRecords",
-         "type": {
-            "type": "array",
-            "items": {
-               "type": "record",
-               "name": "FooElement",
-               "fields": [
-                  {
-                     "name": "value",
-                     "type": "string"
-                  }
-               ]
+  "type": "record",
+  "name": "BarListOfElements",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "defaultEmptyListOfRecords",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "FooElement",
+          "fields": [
+            {
+              "name": "value",
+              "type": "string"
             }
-         },
-         "default": []
-      }, {
-         "name" : "defaultListWithOneValue",
-         "type" : {
-            "type" : "array",
-            "items" : "FooElement"
-         },
-         "default" : [ {
-            "value" : "foo"
-         } ]
-      } ]
+          ]
+        }
+      },
+      "default": []
+    },
+    {
+      "name": "defaultListWithOneValue",
+      "type": {
+        "type": "array",
+        "items": "FooElement"
+      },
+      "default": [
+        {
+          "value": "foo"
+        }
+      ]
+    }
+  ]
 }

@@ -2,13 +2,18 @@
     LocalDateTimeSerializer::class,
     LocalDateSerializer::class,
     LocalTimeSerializer::class,
-    TimestampSerializer::class,
+    TimestampSerializer::class
 )
 
 package com.github.avrokotlin.avro4k.endecode
 
 import com.github.avrokotlin.avro4k.record
-import com.github.avrokotlin.avro4k.serializer.*
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer
+import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.TimestampSerializer
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.stringSpec
@@ -76,7 +81,9 @@ fun dateEncoderTests(encoderToTest: EnDecoder): TestFactory {
 
         "encode/decode Instant as Long" {
             @Serializable
-            data class InstantMillisTest(@Serializable(with = InstantSerializer::class) val i: Instant)
+            data class InstantMillisTest(
+                @Serializable(with = InstantSerializer::class) val i: Instant,
+            )
             encoderToTest.testEncodeDecode(
                 InstantMillisTest(Instant.ofEpochMilli(1538312231000L)),
                 record(1538312231000L)
@@ -85,7 +92,9 @@ fun dateEncoderTests(encoderToTest: EnDecoder): TestFactory {
 
         "encode/decode Instant with microseconds as Long" {
             @Serializable
-            data class InstantMicrosTest(@Serializable(with = InstantToMicroSerializer::class) val i: Instant)
+            data class InstantMicrosTest(
+                @Serializable(with = InstantToMicroSerializer::class) val i: Instant,
+            )
 
             encoderToTest.testEncodeDecode(
                 InstantMicrosTest(Instant.ofEpochMilli(1538312231000L).plus(5, ChronoUnit.MICROS)),

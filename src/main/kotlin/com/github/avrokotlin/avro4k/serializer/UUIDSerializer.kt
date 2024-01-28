@@ -14,17 +14,22 @@ import java.util.UUID
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = UUID::class)
 class UUIDSerializer : AvroSerializer<UUID>() {
+    private val avroUuidLogicalTypeAnnotation = AvroUuidLogicalType()
 
-   private val avroUuidLogicalTypeAnnotation = AvroUuidLogicalType()
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor =
+        buildSerialDescriptor("uuid", PrimitiveKind.STRING) {
+            annotations = listOf(avroUuidLogicalTypeAnnotation)
+        }
 
-   @OptIn(InternalSerializationApi::class)
-   override val descriptor = buildSerialDescriptor("uuid", PrimitiveKind.STRING) {
-      annotations = listOf(avroUuidLogicalTypeAnnotation)
-   }
+    override fun encodeAvroValue(
+        schema: Schema,
+        encoder: ExtendedEncoder,
+        obj: UUID,
+    ) = encoder.encodeString(obj.toString())
 
-   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: UUID) =
-      encoder.encodeString(obj.toString())
-
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): UUID =
-      UUID.fromString(decoder.decodeString())
+    override fun decodeAvroValue(
+        schema: Schema,
+        decoder: ExtendedDecoder,
+    ): UUID = UUID.fromString(decoder.decodeString())
 }

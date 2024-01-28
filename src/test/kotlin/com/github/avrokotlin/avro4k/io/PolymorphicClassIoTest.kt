@@ -1,7 +1,11 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.schema.*
+import com.github.avrokotlin.avro4k.schema.PolymorphicRootInList
+import com.github.avrokotlin.avro4k.schema.PolymorphicRootInMap
+import com.github.avrokotlin.avro4k.schema.ReferencingPolymorphicRoot
+import com.github.avrokotlin.avro4k.schema.UnsealedChildOne
+import com.github.avrokotlin.avro4k.schema.polymorphicModule
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

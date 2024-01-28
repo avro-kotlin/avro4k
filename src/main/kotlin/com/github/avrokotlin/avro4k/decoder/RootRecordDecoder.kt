@@ -14,27 +14,29 @@ import org.apache.avro.generic.GenericRecord
 
 @ExperimentalSerializationApi
 class RootRecordDecoder(
-   private val record: GenericRecord,
-   override val serializersModule: SerializersModule,
-   private val configuration: AvroConfiguration,
+    private val record: GenericRecord,
+    override val serializersModule: SerializersModule,
+    private val configuration: AvroConfiguration,
 ) : AbstractDecoder() {
-   var decoded = false
-   override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-      return when (descriptor.kind) {
-         StructureKind.CLASS, StructureKind.OBJECT -> RecordDecoder(
-            descriptor,
-            record,
-            serializersModule,
-            configuration
-         )
-         PolymorphicKind.SEALED -> UnionDecoder(descriptor, record, serializersModule, configuration)
-         else -> throw SerializationException("Non-class structure passed to root record decoder")
-      }
-   }
+    var decoded = false
 
-   override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-      val index = if(decoded) DECODE_DONE else 0
-      decoded = true
-      return index
-   }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        return when (descriptor.kind) {
+            StructureKind.CLASS, StructureKind.OBJECT ->
+                RecordDecoder(
+                    descriptor,
+                    record,
+                    serializersModule,
+                    configuration
+                )
+            PolymorphicKind.SEALED -> UnionDecoder(descriptor, record, serializersModule, configuration)
+            else -> throw SerializationException("Non-class structure passed to root record decoder")
+        }
+    }
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        val index = if (decoded) DECODE_DONE else 0
+        decoded = true
+        return index
+    }
 }

@@ -6,11 +6,13 @@ import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer
 
 interface ExtendedEncoder : Encoder {
-   fun encodeByteArray(buffer: ByteBuffer)
-   fun encodeFixed(fixed: GenericFixed)
+    fun encodeByteArray(buffer: ByteBuffer)
+
+    fun encodeFixed(fixed: GenericFixed)
 }
 
 interface FieldEncoder : ExtendedEncoder {
-   fun addValue(value: Any)
-   fun fieldSchema(): Schema
+    fun addValue(value: Any)
+
+    fun fieldSchema(): Schema
 }

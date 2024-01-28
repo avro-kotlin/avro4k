@@ -23,11 +23,12 @@ fun recordEncodingTests(encoderToTest: EnDecoder): TestFactory {
         "encode/decode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
             val fixedSchema = Schema.createFixed("FixedString", null, null, 7)
             val schema = SchemaBuilder.record("Foo").fields().name("s").type(fixedSchema).noDefault().endRecord()
-            val encoded = encoderToTest.testEncodeIsEqual(
-                value = StringFoo("hello"),
-                shouldMatch = record(GenericData.Fixed(fixedSchema, byteArrayOf(104, 101, 108, 108, 111, 0, 0))),
-                schema = schema
-            )
+            val encoded =
+                encoderToTest.testEncodeIsEqual(
+                    value = StringFoo("hello"),
+                    shouldMatch = record(GenericData.Fixed(fixedSchema, byteArrayOf(104, 101, 108, 108, 111, 0, 0))),
+                    schema = schema
+                )
             encoderToTest.testDecodeIsEqual(encoded, StringFoo(String("hello".toByteArray() + byteArrayOf(0, 0))))
         }
         "encode/decode nullable string" {
@@ -42,7 +43,6 @@ fun recordEncodingTests(encoderToTest: EnDecoder): TestFactory {
             encoderToTest.testEncodeDecode(LongFoo(123456L), record(123456L))
         }
         "encode/decode doubles" {
-
             @Serializable
             data class DoubleFoo(val d: Double)
             encoderToTest.testEncodeDecode(DoubleFoo(123.435), record(123.435))
@@ -78,6 +78,5 @@ fun recordEncodingTests(encoderToTest: EnDecoder): TestFactory {
             data class ByteFoo(val b: Byte)
             encoderToTest.testEncodeDecode(ByteFoo(123.toByte()), record(123.toByte()))
         }
-
     }
 }

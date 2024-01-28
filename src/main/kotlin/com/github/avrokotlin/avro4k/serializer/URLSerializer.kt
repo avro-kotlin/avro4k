@@ -15,20 +15,26 @@ import java.net.URL
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = URL::class)
 class URLSerializer : AvroSerializer<URL>() {
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor = buildSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
 
-   @OptIn(InternalSerializationApi::class)
-   override val descriptor = buildSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
+    override fun encodeAvroValue(
+        schema: Schema,
+        encoder: ExtendedEncoder,
+        obj: URL,
+    ) {
+        encoder.encodeString(obj.toString())
+    }
 
-   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: URL) {
-      encoder.encodeString(obj.toString())
-   }
-
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): URL {
-      return when (val v = decoder.decodeAny()) {
-         is Utf8 -> URL(v.toString())
-         is String -> URL(v)
-         null -> throw SerializationException("Cannot decode <null> as URL")
-         else -> throw SerializationException("Unsupported URL type [$v : ${v::class.qualifiedName}]")
-      }
-   }
+    override fun decodeAvroValue(
+        schema: Schema,
+        decoder: ExtendedDecoder,
+    ): URL {
+        return when (val v = decoder.decodeAny()) {
+            is Utf8 -> URL(v.toString())
+            is String -> URL(v)
+            null -> throw SerializationException("Cannot decode <null> as URL")
+            else -> throw SerializationException("Unsupported URL type [$v : ${v::class.qualifiedName}]")
+        }
+    }
 }

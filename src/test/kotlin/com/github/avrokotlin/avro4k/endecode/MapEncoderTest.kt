@@ -13,7 +13,6 @@ class MapEncoderTest : StringSpec({
 
 fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
     return stringSpec {
-
         "encode/decode a Map<String, Boolean>" {
             @Serializable
             data class StringBooleanTest(val a: Map<String, Boolean>)
@@ -24,7 +23,6 @@ fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
         }
 
         "encode/decode a Map<String, String>" {
-
             @Serializable
             data class StringStringTest(val a: Map<String, String>)
             enDecoder.testEncodeDecode(
@@ -55,7 +53,6 @@ fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
         }
 
         "encode/decode a Map of records" {
-
             @Serializable
             data class Foo(val a: String, val b: Boolean)
 

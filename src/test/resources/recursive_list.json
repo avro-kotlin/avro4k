@@ -1,15 +1,21 @@
 {
-   "type" : "record",
-   "name" : "RecursiveListItem",
-   "namespace" : "com.github.avrokotlin.avro4k.schema",
-   "fields" : [ {
-      "name" : "payload",
-      "type" : "int"
-   }, {
-      "name" : "list",
-      "type" : [ "null", {
-         "type" : "array",
-         "items" : "RecursiveListItem"
-      } ]
-   } ]
+  "type": "record",
+  "name": "RecursiveListItem",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "payload",
+      "type": "int"
+    },
+    {
+      "name": "list",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "RecursiveListItem"
+        }
+      ]
+    }
+  ]
 }

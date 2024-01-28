@@ -19,6 +19,7 @@ import java.math.BigDecimal
 class BigDecimalEncoderTest : FunSpec({
     includeForEveryEncoder { bigDecimalEncoderTests(it) }
 })
+
 fun bigDecimalEncoderTests(encoderToTest: EnDecoder): TestFactory {
     @Serializable
     data class BigDecimalTest(val decimal: BigDecimal)
@@ -35,9 +36,10 @@ fun bigDecimalEncoderTests(encoderToTest: EnDecoder): TestFactory {
 
         "allow BigDecimal to be en-/decoded as strings" {
             val decimalSchema = Schema.create(Schema.Type.STRING)
-            val schema = SchemaBuilder.record("Test").fields()
-                .name("decimal").type(decimalSchema).noDefault()
-                .endRecord()
+            val schema =
+                SchemaBuilder.record("Test").fields()
+                    .name("decimal").type(decimalSchema).noDefault()
+                    .endRecord()
             encoderToTest.testEncodeDecode(
                 value = BigDecimalTest(BigDecimal("123.456")),
                 shouldMatch = record("123.456"),
@@ -51,19 +53,20 @@ fun bigDecimalEncoderTests(encoderToTest: EnDecoder): TestFactory {
             val schema = encoderToTest.avro.schema(NullableBigDecimalTest.serializer())
 
             val obj = NullableBigDecimalTest(BigDecimal("123.40"))
-            val bigSchema = schema.getField("big").schema().types[1] //Nullable is encoded as Union
+            val bigSchema = schema.getField("big").schema().types[1] // Nullable is encoded as Union
             val bytes = Conversions.DecimalConversion().toBytes(obj.big, bigSchema, bigSchema.logicalType)
             encoderToTest.testEncodeDecode(obj, record(bytes))
             encoderToTest.testEncodeDecode(NullableBigDecimalTest(null), record(null))
         }
 
         "allow BigDecimal to be en-/decoded as generic fixed" {
-            //Schema needs to have the precision of 16 in order to serialize a 8 digit integer with a scale of 8
+            // Schema needs to have the precision of 16 in order to serialize a 8 digit integer with a scale of 8
             val decimal = LogicalTypes.decimal(16, 8).addToSchema(Schema.createFixed("decimal", null, null, 8))
 
-            val schema = SchemaBuilder.record("Test").fields()
-                .name("decimal").type(decimal).noDefault()
-                .endRecord()
+            val schema =
+                SchemaBuilder.record("Test").fields()
+                    .name("decimal").type(decimal).noDefault()
+                    .endRecord()
             encoderToTest.testEncodeDecode(
                 value = BigDecimalTest(BigDecimal("12345678.00000000")),
                 shouldMatch = record(GenericData.Fixed(decimal, byteArrayOf(0, 4, 98, -43, 55, 43, -114, 0))),

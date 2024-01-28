@@ -1,17 +1,18 @@
 {
-   "type": "record",
-   "name": "ContainsInlineTest",
-   "namespace": "com.github.avrokotlin.avro4k.schema.ValueClassSchemaTest",
-   "fields": [
-      {
-         "name": "id",
-         "type": "string"
-      }, {
-         "name" : "uuid",
-         "type" : {
-            "type" : "string",
-            "logicalType" : "uuid"
-         }
+  "type": "record",
+  "name": "ContainsInlineTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.ValueClassSchemaTest",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "uuid",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
       }
-   ]
+    }
+  ]
 }

@@ -12,48 +12,58 @@ import org.apache.avro.io.EncoderFactory
 import org.apache.avro.io.JsonEncoder
 import java.io.OutputStream
 
-abstract class DefaultAvroOutputStream<T>(private val output: OutputStream,
-                                          private val converter: (T) -> GenericRecord,
-                                          schema: Schema) : AvroOutputStream<T> {
+abstract class DefaultAvroOutputStream<T>(
+    private val output: OutputStream,
+    private val converter: (T) -> GenericRecord,
+    schema: Schema,
+) : AvroOutputStream<T> {
+    private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
 
-   private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
+    abstract val encoder: Encoder
 
-   abstract val encoder: Encoder
+    override fun close() {
+        flush()
+        output.close()
+    }
 
-   override fun close() {
-      flush()
-      output.close()
-   }
+    override fun flush(): Unit = encoder.flush()
 
-   override fun flush(): Unit = encoder.flush()
-   override fun fSync() {}
+    override fun fSync() {}
 
-   override fun write(t: T): AvroOutputStream<T> {
-      datumWriter.write(converter(t), encoder)
-      return this
-   }
+    override fun write(t: T): AvroOutputStream<T> {
+        datumWriter.write(converter(t), encoder)
+        return this
+    }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-class AvroBinaryOutputStream<T>(output: OutputStream,
-                                converter: (T) -> GenericRecord,
-                                schema: Schema) : DefaultAvroOutputStream<T>(output, converter, schema) {
-   constructor(output: OutputStream,
-               serializer: SerializationStrategy<T>,
-               schema: Schema,
-               avro: Avro = Avro.default) : this(output, { avro.toRecord(serializer, it) }, schema)
+class AvroBinaryOutputStream<T>(
+    output: OutputStream,
+    converter: (T) -> GenericRecord,
+    schema: Schema,
+) : DefaultAvroOutputStream<T>(output, converter, schema) {
+    constructor(
+        output: OutputStream,
+        serializer: SerializationStrategy<T>,
+        schema: Schema,
+        avro: Avro = Avro.default,
+    ) : this(output, { avro.toRecord(serializer, it) }, schema)
 
-   override val encoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(output, null)
+    override val encoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(output, null)
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-class AvroJsonOutputStream<T>(output: OutputStream,
-                              converter: (T) -> GenericRecord,
-                              schema: Schema) : DefaultAvroOutputStream<T>(output, converter, schema) {
-   constructor(output: OutputStream,
-               serializer: SerializationStrategy<T>,
-               schema: Schema,
-               avro: Avro = Avro.default) : this(output, { avro.toRecord(serializer, it) }, schema)
+class AvroJsonOutputStream<T>(
+    output: OutputStream,
+    converter: (T) -> GenericRecord,
+    schema: Schema,
+) : DefaultAvroOutputStream<T>(output, converter, schema) {
+    constructor(
+        output: OutputStream,
+        serializer: SerializationStrategy<T>,
+        schema: Schema,
+        avro: Avro = Avro.default,
+    ) : this(output, { avro.toRecord(serializer, it) }, schema)
 
-   override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output, true)
+    override val encoder: JsonEncoder = EncoderFactory.get().jsonEncoder(schema, output, true)
 }

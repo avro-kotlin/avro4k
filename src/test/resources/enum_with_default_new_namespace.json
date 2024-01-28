@@ -1,19 +1,16 @@
 {
-   "type": "record",
-   "name": "EnumWithDefaultTest",
-   "namespace": "new",
-   "fields": [
-      {
-         "name": "type",
-         "type": {
-            "type": "enum",
-            "name": "IngredientType",
-            "symbols": [
-               "VEGGIE",
-               "MEAT"
-            ],
-            "default": "MEAT"
-         }
+  "type": "record",
+  "name": "EnumWithDefaultTest",
+  "namespace": "new",
+  "fields": [
+    {
+      "name": "type",
+      "type": {
+        "type": "enum",
+        "name": "IngredientType",
+        "symbols": ["VEGGIE", "MEAT"],
+        "default": "MEAT"
       }
-   ]
+    }
+  ]
 }

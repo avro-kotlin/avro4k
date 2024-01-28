@@ -2,7 +2,7 @@
   "type": "record",
   "name": "TypeAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroDocSchemaTest",
-  "doc" : "hello; is it me youre looking for",
+  "doc": "hello; is it me youre looking for",
   "fields": [
     {
       "name": "str",

@@ -17,7 +17,20 @@ class ByteArrayEncoderTest : FunSpec({
 fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
     return stringSpec {
         @Serializable
-        data class ByteArrayTest(val z: ByteArray)
+        data class ByteArrayTest(val z: ByteArray) {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as ByteArrayTest
+
+                return z.contentEquals(other.z)
+            }
+
+            override fun hashCode(): Int {
+                return z.contentHashCode()
+            }
+        }
 
         fun avroByteArray(vararg bytes: Byte) = ByteBuffer.wrap(bytes)
         "encode/decode ByteArray" {
@@ -34,7 +47,20 @@ fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
 
         "encode/decode Array<Byte> to ByteBuffer" {
             @Serializable
-            data class ArrayByteTest(val z: Array<Byte>)
+            data class ArrayByteTest(val z: Array<Byte>) {
+                override fun equals(other: Any?): Boolean {
+                    if (this === other) return true
+                    if (javaClass != other?.javaClass) return false
+
+                    other as ArrayByteTest
+
+                    return z.contentEquals(other.z)
+                }
+
+                override fun hashCode(): Int {
+                    return z.contentHashCode()
+                }
+            }
             encoderToTest.testEncodeDecode(ArrayByteTest(arrayOf(1, 4, 9)), record(avroByteArray(1, 4, 9)))
         }
 

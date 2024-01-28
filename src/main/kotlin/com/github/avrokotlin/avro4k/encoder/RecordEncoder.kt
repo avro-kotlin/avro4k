@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.extractNonNull
@@ -90,12 +89,7 @@ class RecordEncoder(
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        // if we have a value type, then we don't want to begin a new structure
-        return if (AnnotationExtractor(descriptor.annotations).valueType()) {
-            this
-        } else {
-            super<StructureEncoder>.beginStructure(descriptor)
-        }
+        return super<StructureEncoder>.beginStructure(descriptor)
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {

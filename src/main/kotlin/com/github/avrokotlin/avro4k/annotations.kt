@@ -90,10 +90,6 @@ enum class LogicalTimeTypeEnum(val logicalTypeName: String, val kind: PrimitiveK
 }
 
 @SerialInfo
-@Target(AnnotationTarget.CLASS)
-annotation class AvroInline
-
-@SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDoc(val value: String)
 
@@ -110,22 +106,11 @@ annotation class AvroAlias(vararg val value: String)
 annotation class AvroAliases(val value: Array<String>)
 
 /**
- * [AvroFixed] overrides the schema type for a field or a value class
- * so that the schema is set to org.apache.avro.Schema.Type.FIXED
- * rather than whatever the default would be.
- *
- * This annotation can be used in the following ways:
- *
- * - On a field, eg data class `Foo(@AvroField(10) val name: String)`
- * which results in the field `name` having schema type FIXED with
- * a size of 10.
- *
- * - On a value type, eg `@AvroField(7) data class Foo(val name: String)`
- * which results in all usages of this type having schema
- * FIXED with a size of 7 rather than the default.
+ * Indicates that the annotated property should be encoded as an Avro fixed type.
+ * @param size The number of bytes of the fixed type. Note that smaller values will be padded with 0s during encoding, but not unpadded when decoding.
  */
 @SerialInfo
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+@Target(AnnotationTarget.PROPERTY)
 annotation class AvroFixed(val size: Int)
 
 @SerialInfo

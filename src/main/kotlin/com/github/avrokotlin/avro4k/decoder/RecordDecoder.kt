@@ -38,11 +38,10 @@ class RecordDecoder(
 
     @Suppress("UNCHECKED_CAST")
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val valueType = AnnotationExtractor(descriptor.annotations).valueType()
         val value = fieldValue()
         return when (descriptor.kind) {
             StructureKind.CLASS ->
-                if (valueType) {
+                if (descriptor.isInline) {
                     InlineDecoder(fieldValue(), serializersModule)
                 } else {
                     RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)

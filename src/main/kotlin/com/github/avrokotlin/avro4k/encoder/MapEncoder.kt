@@ -19,17 +19,91 @@ class MapEncoder(
 ) : AbstractEncoder(),
     CompositeEncoder,
     StructureEncoder {
-    private val map = mutableMapOf<Utf8, Any>()
-    private var key: Utf8? = null
+    private val map = mutableMapOf<Utf8, Any?>()
+    private var key: String? = null
     private val valueSchema = schema.valueType
 
     override fun encodeString(value: String) {
-        val k = key
-        if (k == null) {
-            key = Utf8(value)
+        if (key == null) {
+            key = value
         } else {
-            map[k] = StringToAvroValue.toValue(valueSchema, value)
-            key = null
+            finalizeMapEntry(StringToAvroValue.toValue(valueSchema, value))
+        }
+    }
+
+    override fun encodeBoolean(value: Boolean) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeByte(value: Byte) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeChar(value: Char) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeDouble(value: Double) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeEnum(
+        enumDescriptor: SerialDescriptor,
+        index: Int,
+    ) {
+        val value = enumDescriptor.getElementName(index)
+        if (key == null) {
+            key = value
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeInt(value: Int) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeLong(value: Long) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeFloat(value: Float) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
+        }
+    }
+
+    override fun encodeShort(value: Short) {
+        if (key == null) {
+            key = value.toString()
+        } else {
+            finalizeMapEntry(value)
         }
     }
 
@@ -38,9 +112,22 @@ class MapEncoder(
         if (k == null) {
             throw SerializationException("Expected key but received value $value")
         } else {
-            map[k] = value
-            key = null
+            finalizeMapEntry(value)
         }
+    }
+
+    override fun encodeNull() {
+        val k = key
+        if (k == null) {
+            throw SerializationException("Expected key but received <null>")
+        } else {
+            finalizeMapEntry(null)
+        }
+    }
+
+    private fun finalizeMapEntry(value: Any?) {
+        map[Utf8(key)] = value
+        key = null
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {

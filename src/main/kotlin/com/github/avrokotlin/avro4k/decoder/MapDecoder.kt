@@ -31,63 +31,99 @@ class MapDecoder(
     private var index = -1
 
     override fun decodeString(): String {
-        val entry = entries[index / 2]
-        val value =
-            when {
-                index % 2 == 0 -> entry.first
-                else -> entry.second
-            }
+        val value = keyOrValue()
         return StringFromAvroValue.fromValue(value)
     }
+
+    private fun keyOrValue() = if (expectKey()) key() else value()
+
+    private fun expectKey() = index % 2 == 0
+
+    private fun key(): Any? = entries[index / 2].first
 
     private fun value(): Any? = entries[index / 2].second
 
     override fun decodeFloat(): Float {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Float -> v
+            is CharSequence -> v.toString().toFloat()
             null -> throw SerializationException("Cannot decode <null> as a Float")
             else -> throw SerializationException("Unsupported type for Float ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeInt(): Int {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Int -> v
+            is CharSequence -> v.toString().toInt()
             null -> throw SerializationException("Cannot decode <null> as a Int")
             else -> throw SerializationException("Unsupported type for Int ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeLong(): Long {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Long -> v
             is Int -> v.toLong()
+            is CharSequence -> v.toString().toLong()
             null -> throw SerializationException("Cannot decode <null> as a Long")
             else -> throw SerializationException("Unsupported type for Long ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeDouble(): Double {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Double -> v
             is Float -> v.toDouble()
+            is CharSequence -> v.toString().toDouble()
             null -> throw SerializationException("Cannot decode <null> as a Double")
             else -> throw SerializationException("Unsupported type for Double ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeByte(): Byte {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Byte -> v
             is Int -> v.toByte()
+            is CharSequence -> v.toString().toByte()
             null -> throw SerializationException("Cannot decode <null> as a Byte")
             else -> throw SerializationException("Unsupported type for Byte ${v::class.qualifiedName}")
         }
     }
 
+    override fun decodeChar(): Char {
+        return when (val v = keyOrValue()) {
+            is Char -> v
+            is Int -> v.toChar()
+            is CharSequence -> v.first()
+            null -> throw SerializationException("Cannot decode <null> as a Char")
+            else -> throw SerializationException("Unsupported type for Char ${v::class.qualifiedName}")
+        }
+    }
+
+    override fun decodeShort(): Short {
+        return when (val v = keyOrValue()) {
+            is Short -> v
+            is Int -> v.toShort()
+            is CharSequence -> v.toString().toShort()
+            null -> throw SerializationException("Cannot decode <null> as a Byte")
+            else -> throw SerializationException("Unsupported type for Byte ${v::class.qualifiedName}")
+        }
+    }
+
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        return when (val v = keyOrValue()) {
+            is CharSequence -> enumDescriptor.getElementIndex(v.toString())
+            null -> throw SerializationException("Cannot decode <null> as a $enumDescriptor")
+            else -> throw SerializationException("Unsupported type for $enumDescriptor: ${v::class.qualifiedName}")
+        }
+    }
+
     override fun decodeBoolean(): Boolean {
-        return when (val v = value()) {
+        return when (val v = keyOrValue()) {
             is Boolean -> v
+            is String -> v.toBooleanStrict()
+            is CharSequence -> v.toString().toBooleanStrict()
             null -> throw SerializationException("Cannot decode <null> as a Boolean")
             else -> throw SerializationException("Unsupported type for Boolean. Actual: ${v::class.qualifiedName}")
         }

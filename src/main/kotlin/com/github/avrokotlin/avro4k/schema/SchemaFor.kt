@@ -112,22 +112,19 @@ class MapSchemaFor(
 ) : SchemaFor {
     override fun schema(): Schema {
         val keyType = descriptor.getElementDescriptor(0).unwrapValueClass
-        when (keyType.kind) {
-            is PrimitiveKind.STRING -> {
-                val valueType = descriptor.getElementDescriptor(1)
-                val valueSchema =
-                    schemaFor(
-                        serializersModule,
-                        valueType,
-                        descriptor.getElementAnnotations(1),
-                        configuration,
-                        resolvedSchemas
-                    ).schema()
-                return Schema.createMap(valueSchema)
-            }
-
-            else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
+        if (keyType.kind !is PrimitiveKind && keyType.kind != SerialKind.ENUM) {
+            throw RuntimeException("Avro4k only supports primitive and enum kinds as the map key. Actual: ${descriptor.getElementDescriptor(0)}")
         }
+
+        val valueSchema =
+            schemaFor(
+                serializersModule,
+                descriptor.getElementDescriptor(1),
+                descriptor.getElementAnnotations(1),
+                configuration,
+                resolvedSchemas
+            ).schema()
+        return Schema.createMap(valueSchema)
     }
 }
 

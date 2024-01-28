@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "NestedValueClasses",
+  "namespace": "toto",
+  "fields": [
+    {
+      "name": "nested",
+      "type": {
+        "type": "record",
+        "name": "Nested3",
+        "namespace": "primaryspace",
+        "fields": [
+          {
+            "name": "s",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

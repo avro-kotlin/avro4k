@@ -280,7 +280,7 @@ class Avro(
         obj: T,
     ): GenericRecord {
         var record: Record? = null
-        val encoder = RootRecordEncoder(schema, serializersModule) { record = it }
+        val encoder = RootRecordEncoder(schema, serializersModule, configuration) { record = it }
         encoder.encodeSerializableValue(serializer, obj)
         return record!!
     }

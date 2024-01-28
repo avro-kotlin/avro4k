@@ -10,6 +10,13 @@ import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.intellij.lang.annotations.Language
 
+/**
+ * When annotated on a property, overrides the namespace for the nested record.
+ */
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroNamespaceOverride(val value: String)
+
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroProp(val key: String, val value: String)
@@ -20,14 +27,6 @@ annotation class AvroJsonProp(
     val key: String,
     @Language("JSON") val jsonValue: String,
 )
-
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroNamespace(val value: String)
-
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroName(val value: String)
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
@@ -55,35 +54,29 @@ annotation class AvroUuidLogicalType
 @Target(AnnotationTarget.PROPERTY)
 annotation class AvroTimeLogicalType(val type: LogicalTimeTypeEnum)
 
-enum class LogicalTimeTypeEnum(val logicalTypeName: String, val kind: PrimitiveKind, val schemaFor: () -> Schema) {
-    DATE("date", PrimitiveKind.INT, { LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()) }),
+enum class LogicalTimeTypeEnum(val kind: PrimitiveKind, val schemaFor: () -> Schema) {
+    DATE(PrimitiveKind.INT, { LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()) }),
     TIME_MILLIS(
-        "time-millis",
         PrimitiveKind.INT,
         { LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()) }
     ),
     TIME_MICROS(
-        "time-micros",
         PrimitiveKind.LONG,
         { LogicalTypes.timeMicros().addToSchema(SchemaBuilder.builder().longType()) }
     ),
     TIMESTAMP_MILLIS(
-        "timestamp-millis",
         PrimitiveKind.LONG,
         { LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
     ),
     TIMESTAMP_MICROS(
-        "timestamp-micros",
         PrimitiveKind.LONG,
         { LogicalTypes.timestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
     ),
     LOCAL_TIMESTAMP_MILLIS(
-        "local-timestamp-millis",
         PrimitiveKind.LONG,
         { LogicalTypes.localTimestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
     ),
     LOCAL_TIMESTAMP_MICROS(
-        "local-timestamp-micros",
         PrimitiveKind.LONG,
         { LogicalTypes.localTimestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
     ),
@@ -93,17 +86,13 @@ enum class LogicalTimeTypeEnum(val logicalTypeName: String, val kind: PrimitiveK
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDoc(val value: String)
 
+/**
+ * Adds aliases to a field of a record. It helps to allow having different names for the same field for better compatibility when changing a schema.
+ * @param value The aliases for the annotated property. Note that the given aliases won't be changed by the configured [AvroConfiguration.fieldNamingStrategy].
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroAlias(vararg val value: String)
-
-@SerialInfo
-@Deprecated(
-    message = "Will be removed in the next major release",
-    replaceWith = ReplaceWith("@AvroAlias(alias1, alias2)")
-)
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroAliases(val value: Array<String>)
 
 /**
  * Indicates that the annotated property should be encoded as an Avro fixed type.

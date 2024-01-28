@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
+import com.github.avrokotlin.avro4k.AnnotationExtractor
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.extractNonNull
@@ -19,17 +21,19 @@ import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
 interface StructureEncoder : FieldEncoder {
+    val configuration: AvroConfiguration
+
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.kind) {
             StructureKind.LIST -> {
                 when (descriptor.getElementDescriptor(0).unwrapValueClass.kind) {
                     PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), serializersModule) { addValue(it) }
-                    else -> ListEncoder(fieldSchema(), serializersModule) { addValue(it) }
+                    else -> ListEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
                 }
             }
-            StructureKind.CLASS -> RecordEncoder(fieldSchema(), serializersModule) { addValue(it) }
-            StructureKind.MAP -> MapEncoder(fieldSchema(), serializersModule) { addValue(it) }
-            is PolymorphicKind -> UnionEncoder(fieldSchema(), serializersModule) { addValue(it) }
+            StructureKind.CLASS -> RecordEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
+            StructureKind.MAP -> MapEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
+            is PolymorphicKind -> UnionEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
             else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
         }
     }
@@ -39,6 +43,7 @@ interface StructureEncoder : FieldEncoder {
 class RecordEncoder(
     private val schema: Schema,
     override val serializersModule: SerializersModule,
+    override val configuration: AvroConfiguration,
     val callback: (Record) -> Unit,
 ) : AbstractEncoder(), StructureEncoder {
     private val builder = RecordBuilder(schema)

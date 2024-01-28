@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroEnumDefault
-import com.github.avrokotlin.avro4k.AvroName
 import com.github.avrokotlin.avro4k.ScalePrecision
 import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
@@ -12,6 +11,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.generic.GenericData
@@ -23,13 +23,13 @@ data class FooElement(
 )
 
 @Serializable
-@AvroName("container")
+@SerialName("container")
 data class ContainerWithoutDefaultFields(
     val name: String,
 )
 
 @Serializable
-@AvroName("container")
+@SerialName("container")
 data class ContainerWithDefaultFields(
     val name: String,
     @AvroDefault("hello")

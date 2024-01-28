@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.RecordNaming
 import com.github.avrokotlin.avro4k.possibleSerializationSubclasses
+import com.github.avrokotlin.avro4k.schema.RecordName
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -33,8 +33,8 @@ class UnionDecoder(
 
     private var leafDescriptor: SerialDescriptor =
         descriptor.possibleSerializationSubclasses(serializersModule).firstOrNull {
-            val schemaName = RecordNaming(value.schema.fullName, emptyList())
-            val serialName = RecordNaming(it)
+            val schemaName = RecordName(name = value.schema.name, namespace = value.schema.namespace)
+            val serialName = configuration.recordNamingStrategy.resolve(it, it.serialName)
             serialName == schemaName
         } ?: throw SerializationException("Cannot find a subtype of ${descriptor.serialName} that can be used to deserialize a record of schema ${value.schema}.")
 

@@ -1,9 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroDefault
-import com.github.avrokotlin.avro4k.AvroName
-import com.github.avrokotlin.avro4k.ScalePrecision
+import com.github.avrokotlin.avro4k.*
 import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
@@ -51,6 +48,23 @@ data class ContainerWithDefaultFields(
    @Serializable(BigDecimalSerializer::class)
    val bigDecimal : BigDecimal
 )
+@Serializable
+@AvroEnumDefault("UNKNOWN")
+enum class EnumWithDefault {
+   UNKNOWN, A
+}
+
+@Serializable
+@AvroEnumDefault("UNKNOWN")
+enum class FutureEnumWithDefault {
+   UNKNOWN, A, C
+}
+
+@Serializable
+data class Wrap(val value: EnumWithDefault)
+
+@Serializable
+data class FutureWrap(val value: FutureEnumWithDefault)
 
 class AvroDefaultValuesDecoderTest : FunSpec({
    test("test default values correctly decoded") {
@@ -73,5 +87,15 @@ class AvroDefaultValuesDecoderTest : FunSpec({
       deserialized.emptyFooList.shouldBeEmpty()
       deserialized.filledFooList.shouldContainExactly(FooElement("bar"))
       deserialized.bigDecimal.shouldBe(BigDecimal.ZERO)
+   
+   }
+   test("Decoding enum with an unknown or future value uses default value") {
+      val encoded = Avro.default.encodeToByteArray(
+         FutureWrap.serializer(),
+         FutureWrap(FutureEnumWithDefault.C)
+      )
+      val decoded = Avro.default.decodeFromByteArray(Wrap.serializer(), encoded)
+
+      decoded shouldBe Wrap(EnumWithDefault.UNKNOWN)
    }
 })

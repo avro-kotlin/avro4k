@@ -15,6 +15,7 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
 import java.nio.ByteBuffer
 
@@ -60,6 +61,7 @@ class RecordDecoder(
                         is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray(), serializersModule)
                         is ByteArray -> ByteArrayDecoder(value, serializersModule)
                         is ByteBuffer -> ByteArrayDecoder(value.array(), serializersModule)
+                        is GenericFixed -> ByteArrayDecoder(value.bytes(), serializersModule)
                         else -> this
                     }
                 } else {
@@ -157,6 +159,15 @@ class RecordDecoder(
             is Int -> v
             null -> throw SerializationException("Cannot decode <null> as a Int")
             else -> throw SerializationException("Unsupported type for Int ${v.javaClass}")
+        }
+    }
+
+    override fun decodeShort(): Short {
+        return when (val v = fieldValue()) {
+            is Short -> v
+            is Int -> v.toShort()
+            null -> throw SerializationException("Cannot decode <null> as a Short")
+            else -> throw SerializationException("Unsupported type for Short ${v.javaClass}")
         }
     }
 

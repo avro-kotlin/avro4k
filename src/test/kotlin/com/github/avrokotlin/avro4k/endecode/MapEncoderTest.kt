@@ -1,11 +1,21 @@
 package com.github.avrokotlin.avro4k.endecode
 
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.record
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.spec.style.stringSpec
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.serializersModuleOf
 import java.nio.ByteBuffer
 
 class MapEncoderTest : StringSpec({
@@ -37,6 +47,16 @@ fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
             data class StringStringTest(val a: Map<MapStringKey, String>)
             enDecoder.testEncodeDecode(
                 StringStringTest(mapOf(MapStringKey("a") to "x", MapStringKey("b") to "y", MapStringKey("c") to "z")),
+                record(mapOf("a" to "x", "b" to "y", "c" to "z"))
+            )
+        }
+
+        "encode/decode a Map<non serializable key, String>" {
+            @Serializable
+            data class StringStringTest(val a: Map<@Contextual NonSerializableKey, String>)
+            enDecoder.avro = Avro(serializersModule = serializersModuleOf(NonSerializableKey::class, NonSerializableKeyKSerializer()))
+            enDecoder.testEncodeDecode(
+                StringStringTest(mapOf(NonSerializableKey("a") to "x", NonSerializableKey("b") to "y", NonSerializableKey("c") to "z")),
                 record(mapOf("a" to "x", "b" to "y", "c" to "z"))
             )
         }
@@ -114,4 +134,21 @@ private enum class MyEnum {
 
     @SerialName("z")
     C,
+}
+
+data class NonSerializableKey(val value: String)
+
+@OptIn(ExperimentalSerializationApi::class)
+class NonSerializableKeyKSerializer : KSerializer<NonSerializableKey> {
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor = buildSerialDescriptor("NonSerializableKey", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder) = NonSerializableKey(decoder.decodeString())
+
+    override fun serialize(
+        encoder: Encoder,
+        value: NonSerializableKey,
+    ) {
+        encoder.encodeString(value.value)
+    }
 }

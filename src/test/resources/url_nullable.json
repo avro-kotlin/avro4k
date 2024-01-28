@@ -1,14 +1,11 @@
 {
-   "type": "record",
-   "name": "NullableTest",
-   "namespace": "com.github.avrokotlin.avro4k.schema.URLSchemaTest",
-   "fields": [
-      {
-         "name": "b",
-         "type": [
-            "null",
-            "string"
-         ]
-      }
-   ]
+  "type": "record",
+  "name": "NullableTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.URLSchemaTest",
+  "fields": [
+    {
+      "name": "b",
+      "type": ["null", "string"]
+    }
+  ]
 }

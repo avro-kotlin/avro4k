@@ -14,6 +14,7 @@ import java.net.URL
 class URLEncoderTest : FunSpec({
     includeForEveryEncoder { urlEncoderTests(it) }
 })
+
 fun urlEncoderTests(enDecoder: EnDecoder): TestFactory {
     return stringSpec {
         "encode/decode URLs as string" {
@@ -28,7 +29,8 @@ fun urlEncoderTests(enDecoder: EnDecoder): TestFactory {
             @Serializable
             data class NullableUrlTest(val b: URL?)
             enDecoder.testEncodeDecode(
-                NullableUrlTest(URL("https://www.sksamuel.com")), record("https://www.sksamuel.com")
+                NullableUrlTest(URL("https://www.sksamuel.com")),
+                record("https://www.sksamuel.com")
             )
             enDecoder.testEncodeDecode(NullableUrlTest(null), record(null))
         }

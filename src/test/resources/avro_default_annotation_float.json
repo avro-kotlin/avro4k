@@ -1,26 +1,26 @@
 {
-   "type": "record",
-   "name": "BarFloat",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "a",
-         "type": "string"
-      },
-      {
-         "name": "b",
-         "type": "float",
-         "default": 3.14
-      },
-      {
-         "name": "nullableFloat",
-         "type": ["null","float"],
-         "default" : null
-      },
-      {
-         "name": "c",
-         "type": ["float","null"],
-         "default": 3.14
-      }
-   ]
+  "type": "record",
+  "name": "BarFloat",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "a",
+      "type": "string"
+    },
+    {
+      "name": "b",
+      "type": "float",
+      "default": 3.14
+    },
+    {
+      "name": "nullableFloat",
+      "type": ["null", "float"],
+      "default": null
+    },
+    {
+      "name": "c",
+      "type": ["float", "null"],
+      "default": 3.14
+    }
+  ]
 }

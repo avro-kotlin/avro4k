@@ -34,7 +34,6 @@ class RecordDecoder(
     override val serializersModule: SerializersModule,
     private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
-
     private var currentIndex = -1
 
     @Suppress("UNCHECKED_CAST")
@@ -43,42 +42,46 @@ class RecordDecoder(
         val value = fieldValue()
         return when (descriptor.kind) {
             StructureKind.CLASS ->
-                if (valueType)
+                if (valueType) {
                     InlineDecoder(fieldValue(), serializersModule)
-                else
-                    RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
-            StructureKind.MAP -> MapDecoder(
-                descriptor,
-                fieldSchema(),
-                value as Map<String, *>,
-                serializersModule,
-                configuration
-            )
-            StructureKind.LIST -> {
-                val decoder: CompositeDecoder = if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
-                    when (value) {
-                        is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray(), serializersModule)
-                        is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray(), serializersModule)
-                        is ByteArray -> ByteArrayDecoder(value, serializersModule)
-                        is ByteBuffer -> ByteArrayDecoder(value.array(), serializersModule)
-                        is GenericFixed -> ByteArrayDecoder(value.bytes(), serializersModule)
-                        else -> this
-                    }
                 } else {
-                    when (value) {
-                        is List<*> -> ListDecoder(fieldSchema(), value, serializersModule, configuration)
-                        is Array<*> -> ListDecoder(fieldSchema(), value.asList(), serializersModule, configuration)
-                        else -> this
-                    }
+                    RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
                 }
+            StructureKind.MAP ->
+                MapDecoder(
+                    descriptor,
+                    fieldSchema(),
+                    value as Map<String, *>,
+                    serializersModule,
+                    configuration
+                )
+            StructureKind.LIST -> {
+                val decoder: CompositeDecoder =
+                    if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
+                        when (value) {
+                            is List<*> -> ByteArrayDecoder((value as List<Byte>).toByteArray(), serializersModule)
+                            is Array<*> -> ByteArrayDecoder((value as Array<Byte>).toByteArray(), serializersModule)
+                            is ByteArray -> ByteArrayDecoder(value, serializersModule)
+                            is ByteBuffer -> ByteArrayDecoder(value.array(), serializersModule)
+                            is GenericFixed -> ByteArrayDecoder(value.bytes(), serializersModule)
+                            else -> this
+                        }
+                    } else {
+                        when (value) {
+                            is List<*> -> ListDecoder(fieldSchema(), value, serializersModule, configuration)
+                            is Array<*> -> ListDecoder(fieldSchema(), value.asList(), serializersModule, configuration)
+                            else -> this
+                        }
+                    }
                 decoder
             }
-            PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(
-                descriptor,
-                value as GenericRecord,
-                serializersModule,
-                configuration
-            )
+            PolymorphicKind.SEALED, PolymorphicKind.OPEN ->
+                UnionDecoder(
+                    descriptor,
+                    value as GenericRecord,
+                    serializersModule,
+                    configuration
+                )
             else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
         }
     }
@@ -89,9 +92,9 @@ class RecordDecoder(
         }
 
         FieldNaming(desc, currentIndex).aliases().forEach {
-           if (record.hasField(it)) {
-              return record.get(it)
-           }
+            if (record.hasField(it)) {
+                return record.get(it)
+            }
         }
 
         return null
@@ -137,7 +140,7 @@ class RecordDecoder(
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)        
+        val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
         val enumValueByEnumName =
             (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
 
@@ -194,4 +197,3 @@ class RecordDecoder(
         return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE
     }
 }
-

@@ -11,21 +11,21 @@ import java.util.UUID
 
 class ValueClassSchemaTest : StringSpec({
 
-   "value class should be primitive in schema" {
-      val expected =
-         org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/value_class.json"))
-      val schema = Avro.default.schema(ContainsInlineTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+    "value class should be primitive in schema" {
+        val expected =
+            org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/value_class.json"))
+        val schema = Avro.default.schema(ContainsInlineTest.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 }) {
-   @Serializable
-   @JvmInline
-   value class StringWrapper(val a: String)
+    @Serializable
+    @JvmInline
+    value class StringWrapper(val a: String)
 
-   @Serializable
-   @JvmInline
-   value class UuidWrapper(val uuid: UUID)
+    @Serializable
+    @JvmInline
+    value class UuidWrapper(val uuid: UUID)
 
-   @Serializable
-   data class ContainsInlineTest(val id: StringWrapper, val uuid: UuidWrapper)
+    @Serializable
+    data class ContainsInlineTest(val id: StringWrapper, val uuid: UuidWrapper)
 }

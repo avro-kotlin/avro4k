@@ -11,6 +11,7 @@ import org.apache.avro.generic.GenericData
 class EnumEncoderTest : FunSpec({
     includeForEveryEncoder { enumEncoderTests(it) }
 })
+
 fun enumEncoderTests(enDecoder: EnDecoder): TestFactory {
     @Serializable
     data class MyWine(val wine: Wine)
@@ -20,9 +21,11 @@ fun enumEncoderTests(enDecoder: EnDecoder): TestFactory {
     return stringSpec {
         "support enums" {
             enDecoder.testEncodeDecode(
-                MyWine(Wine.Malbec), record(
+                MyWine(Wine.Malbec),
+                record(
                     GenericData.EnumSymbol(
-                        null, Wine.Malbec
+                        null,
+                        Wine.Malbec
                     )
                 )
             )
@@ -30,9 +33,11 @@ fun enumEncoderTests(enDecoder: EnDecoder): TestFactory {
 
         "support nullable enums" {
             val enumSchema = enDecoder.avro.schema(NullableWine.serializer()).getField("wine").schema().types[1]
-            enDecoder.testEncodeDecode(NullableWine(Wine.Shiraz), record(
-                GenericData.EnumSymbol(enumSchema, Wine.Shiraz)
-            )
+            enDecoder.testEncodeDecode(
+                NullableWine(Wine.Shiraz),
+                record(
+                    GenericData.EnumSymbol(enumSchema, Wine.Shiraz)
+                )
             )
             enDecoder.testEncodeDecode(NullableWine(null), record(null))
         }

@@ -13,9 +13,9 @@ class UnionSchemaFor(
     private val descriptor: SerialDescriptor,
     private val configuration: AvroConfiguration,
     private val serializersModule: SerializersModule,
-    private val resolvedSchemas: MutableMap<RecordNaming, Schema>
+    private val resolvedSchemas: MutableMap<RecordNaming, Schema>,
 ) : SchemaFor {
-    override fun schema(): Schema {        
+    override fun schema(): Schema {
         val leafSerialDescriptors =
             descriptor.possibleSerializationSubclasses(serializersModule).sortedBy { it.serialName }
         return Schema.createUnion(

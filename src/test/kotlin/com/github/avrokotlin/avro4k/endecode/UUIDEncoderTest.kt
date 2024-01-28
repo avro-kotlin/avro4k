@@ -9,11 +9,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.stringSpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import java.util.*
+import java.util.UUID
 
 class UUIDEncoderTest : FunSpec({
     includeForEveryEncoder { uuidEncoderTests(it) }
 })
+
 fun uuidEncoderTests(encoderToTest: EnDecoder): TestFactory {
     return stringSpec {
         "encode/decode UUIDs" {

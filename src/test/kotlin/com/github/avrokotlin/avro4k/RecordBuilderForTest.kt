@@ -5,7 +5,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericRecord
 
 data class RecordBuilderForTest(
-    val fields: List<Any?>
+    val fields: List<Any?>,
 ) {
     fun createRecord(schema: Schema): GenericRecord {
         val record = GenericData.Record(schema)
@@ -18,7 +18,7 @@ data class RecordBuilderForTest(
 
     private fun convertValue(
         value: Any?,
-        schema: Schema
+        schema: Schema,
     ): Any? {
         return when (value) {
             is RecordBuilderForTest -> value.createRecord(schema)
@@ -28,12 +28,18 @@ data class RecordBuilderForTest(
         }
     }
 
-    fun createList(schema: Schema, value: List<*>): List<*> {
+    fun createList(
+        schema: Schema,
+        value: List<*>,
+    ): List<*> {
         val valueSchema = schema.elementType
         return value.map { convertValue(it, valueSchema) }
     }
 
-    fun <K, V> createMap(schema: Schema, value: Map<K, V>): Map<K, *> {
+    fun <K, V> createMap(
+        schema: Schema,
+        value: Map<K, V>,
+    ): Map<K, *> {
         val valueSchema = schema.valueType
         return value.mapValues { convertValue(it.value, valueSchema) }
     }

@@ -27,7 +27,8 @@ fun arrayEncodingTests(encoderToTest: EnDecoder): TestFactory {
 
                 val value = ArrayBooleanWithOthersTest("foo", arrayOf(true, false, true), 123L)
                 encoderToTest.testEncodeDecode(
-                    value, record(
+                    value,
+                    record(
                         "foo",
                         listOf(true, false, true),
                         123L
@@ -39,7 +40,8 @@ fun arrayEncodingTests(encoderToTest: EnDecoder): TestFactory {
                 @Serializable
                 data class ListStringTest(val a: List<String>)
                 encoderToTest.testEncodeDecode(
-                    ListStringTest(listOf("we23", "54z")), record(
+                    ListStringTest(listOf("we23", "54z")),
+                    record(
                         listOf("we23", "54z")
                     )
                 )

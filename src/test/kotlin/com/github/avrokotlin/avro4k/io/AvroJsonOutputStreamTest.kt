@@ -13,7 +13,7 @@ class AvroJsonOutputStreamTest : StringSpec({
 
     val hans = Composer("hans zimmer", "frankfurt", listOf(Work("batman begins", 2007), Work("dunkirk", 2017)))
 
-    "AvroJsonOutputStream should write schemas"  {
+    "AvroJsonOutputStream should write schemas" {
 
         val baos = ByteArrayOutputStream()
         Avro.default.openOutputStream(Composer.serializer()) {
@@ -25,9 +25,7 @@ class AvroJsonOutputStreamTest : StringSpec({
             jsonString.shouldContain(it)
         }
     }
-
 }) {
-
     @Serializable
     data class Work(val name: String, val year: Int)
 

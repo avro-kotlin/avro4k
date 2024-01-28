@@ -7,10 +7,7 @@
       "name": "map",
       "type": {
         "type": "map",
-        "values": [
-          "null",
-          "boolean"
-        ]
+        "values": ["null", "boolean"]
       }
     }
   ]

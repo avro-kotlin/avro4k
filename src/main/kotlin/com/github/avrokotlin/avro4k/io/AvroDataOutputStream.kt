@@ -20,28 +20,31 @@ import java.io.OutputStream
  * @param schema  the schema that will be used to encode the data, sometimes called the writer schema
  * @param codec   compression codec
  */
-class AvroDataOutputStream<T>(private val output: OutputStream,
-                              private val converter: (T) -> GenericRecord,
-                              private val schema: Schema,
-                              private val codec: CodecFactory) : AvroOutputStream<T> {
+class AvroDataOutputStream<T>(
+    private val output: OutputStream,
+    private val converter: (T) -> GenericRecord,
+    private val schema: Schema,
+    private val codec: CodecFactory,
+) : AvroOutputStream<T> {
+    private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
 
-   private val datumWriter = GenericDatumWriter<GenericRecord>(schema)
-   
-   private val writer = DataFileWriter(datumWriter).apply {
-      setCodec(codec)
-      create(schema, output)
-   }
+    private val writer =
+        DataFileWriter(datumWriter).apply {
+            setCodec(codec)
+            create(schema, output)
+        }
 
-   override fun close() {
-      flush()
-      writer.close()
-   }
+    override fun close() {
+        flush()
+        writer.close()
+    }
 
-   override fun flush(): Unit = writer.flush()
-   override fun fSync(): Unit = writer.fSync()
+    override fun flush(): Unit = writer.flush()
 
-   override fun write(t: T): AvroOutputStream<T> {
-      writer.append(converter(t))
-      return this
-   }
+    override fun fSync(): Unit = writer.fSync()
+
+    override fun write(t: T): AvroOutputStream<T> {
+        writer.append(converter(t))
+        return this
+    }
 }

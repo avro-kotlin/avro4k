@@ -8,15 +8,10 @@
       "type": {
         "type": "enum",
         "name": "Suit",
-        "aliases" : ["MySuit"],
-        "doc" : "documentation",
+        "aliases": ["MySuit"],
+        "doc": "documentation",
         "namespace": "com.github.avrokotlin.avro4k.schema",
-        "symbols": [
-          "SPADES",
-          "HEARTS",
-          "DIAMONDS",
-          "CLUBS"
-        ]
+        "symbols": ["SPADES", "HEARTS", "DIAMONDS", "CLUBS"]
       }
     }
   ]

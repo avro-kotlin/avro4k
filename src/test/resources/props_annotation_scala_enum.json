@@ -8,11 +8,7 @@
       "type": {
         "type": "enum",
         "name": "Colours",
-        "symbols": [
-          "Red",
-          "Green",
-          "Blue"
-        ]
+        "symbols": ["Red", "Green", "Blue"]
       },
       "cold": "play"
     }

@@ -18,17 +18,21 @@ class ContextualSchemaTest : StringSpec({
 
     "schema for contextual serializer" {
 
-        val format1 = Avro(
-            serializersModule = SerializersModule {
-                contextual(InstantSerializer())
-            }
-        )
+        val format1 =
+            Avro(
+                serializersModule =
+                    SerializersModule {
+                        contextual(InstantSerializer())
+                    }
+            )
 
-        val format2 = Avro(
-            serializersModule = SerializersModule {
-                contextual(InstantToMicroSerializer())
-            }
-        )
+        val format2 =
+            Avro(
+                serializersModule =
+                    SerializersModule {
+                        contextual(InstantToMicroSerializer())
+                    }
+            )
 
         val schema1 = format1.schema(Test.serializer())
         val schema2 = format2.schema(Test.serializer())

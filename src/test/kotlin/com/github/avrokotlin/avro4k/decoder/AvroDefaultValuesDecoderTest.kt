@@ -1,6 +1,10 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.*
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.AvroEnumDefault
+import com.github.avrokotlin.avro4k.AvroName
+import com.github.avrokotlin.avro4k.ScalePrecision
 import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
@@ -15,49 +19,54 @@ import java.math.BigDecimal
 
 @Serializable
 data class FooElement(
-   val content : String
+    val content: String,
 )
 
 @Serializable
 @AvroName("container")
 data class ContainerWithoutDefaultFields(
-   val name : String
+    val name: String,
 )
+
 @Serializable
 @AvroName("container")
 data class ContainerWithDefaultFields(
-   val name : String,
-   @AvroDefault("hello")
-   val strDefault : String,
-   @AvroDefault("1")
-   val intDefault : Int,
-   @AvroDefault("true")
-   val booleanDefault : Boolean,
-   @AvroDefault("1.23")
-   val doubleDefault : Double,
-   @AvroDefault(Avro.NULL)
-   val nullableStr : String?,
-   @AvroDefault("""{"content":"foo"}""")
-   val foo : FooElement,
-   @AvroDefault("[]")
-   val emptyFooList : List<FooElement>,
-   @AvroDefault("""[{"content":"bar"}]""")
-   val filledFooList : List<FooElement>,
-   @AvroDefault("\u0000")
-   @ScalePrecision(0,10)
-   @Serializable(BigDecimalSerializer::class)
-   val bigDecimal : BigDecimal
+    val name: String,
+    @AvroDefault("hello")
+    val strDefault: String,
+    @AvroDefault("1")
+    val intDefault: Int,
+    @AvroDefault("true")
+    val booleanDefault: Boolean,
+    @AvroDefault("1.23")
+    val doubleDefault: Double,
+    @AvroDefault(Avro.NULL)
+    val nullableStr: String?,
+    @AvroDefault("""{"content":"foo"}""")
+    val foo: FooElement,
+    @AvroDefault("[]")
+    val emptyFooList: List<FooElement>,
+    @AvroDefault("""[{"content":"bar"}]""")
+    val filledFooList: List<FooElement>,
+    @AvroDefault("\u0000")
+    @ScalePrecision(0, 10)
+    @Serializable(BigDecimalSerializer::class)
+    val bigDecimal: BigDecimal,
 )
+
 @Serializable
 @AvroEnumDefault("UNKNOWN")
 enum class EnumWithDefault {
-   UNKNOWN, A
+    UNKNOWN,
+    A,
 }
 
 @Serializable
 @AvroEnumDefault("UNKNOWN")
 enum class FutureEnumWithDefault {
-   UNKNOWN, A, C
+    UNKNOWN,
+    A,
+    C,
 }
 
 @Serializable
@@ -67,35 +76,36 @@ data class Wrap(val value: EnumWithDefault)
 data class FutureWrap(val value: FutureEnumWithDefault)
 
 class AvroDefaultValuesDecoderTest : FunSpec({
-   test("test default values correctly decoded") {
-      val name = "abc"
-      val writerSchema = Avro.default.schema(ContainerWithoutDefaultFields.serializer())
-      val record = GenericData.Record(writerSchema)
-      record.put("name", name)
+    test("test default values correctly decoded") {
+        val name = "abc"
+        val writerSchema = Avro.default.schema(ContainerWithoutDefaultFields.serializer())
+        val record = GenericData.Record(writerSchema)
+        record.put("name", name)
 
-      val byteArray = Avro.default.encodeToByteArray(ContainerWithoutDefaultFields("abc"))
-      val deserialized = Avro.default.openInputStream(ContainerWithDefaultFields.serializer()){
-         decodeFormat = AvroDecodeFormat.Data(writerSchema, defaultReadSchema)
-      }.from(byteArray).nextOrThrow()
-      deserialized.name.shouldBe("abc")
-      deserialized.strDefault.shouldBe("hello")
-      deserialized.intDefault.shouldBe(1)
-      deserialized.booleanDefault.shouldBe(true)
-      deserialized.doubleDefault.shouldBe(1.23)
-      deserialized.nullableStr.shouldBeNull()
-      deserialized.foo.content.shouldBe("foo")
-      deserialized.emptyFooList.shouldBeEmpty()
-      deserialized.filledFooList.shouldContainExactly(FooElement("bar"))
-      deserialized.bigDecimal.shouldBe(BigDecimal.ZERO)
-   
-   }
-   test("Decoding enum with an unknown or future value uses default value") {
-      val encoded = Avro.default.encodeToByteArray(
-         FutureWrap.serializer(),
-         FutureWrap(FutureEnumWithDefault.C)
-      )
-      val decoded = Avro.default.decodeFromByteArray(Wrap.serializer(), encoded)
+        val byteArray = Avro.default.encodeToByteArray(ContainerWithoutDefaultFields("abc"))
+        val deserialized =
+            Avro.default.openInputStream(ContainerWithDefaultFields.serializer()) {
+                decodeFormat = AvroDecodeFormat.Data(writerSchema, defaultReadSchema)
+            }.from(byteArray).nextOrThrow()
+        deserialized.name.shouldBe("abc")
+        deserialized.strDefault.shouldBe("hello")
+        deserialized.intDefault.shouldBe(1)
+        deserialized.booleanDefault.shouldBe(true)
+        deserialized.doubleDefault.shouldBe(1.23)
+        deserialized.nullableStr.shouldBeNull()
+        deserialized.foo.content.shouldBe("foo")
+        deserialized.emptyFooList.shouldBeEmpty()
+        deserialized.filledFooList.shouldContainExactly(FooElement("bar"))
+        deserialized.bigDecimal.shouldBe(BigDecimal.ZERO)
+    }
+    test("Decoding enum with an unknown or future value uses default value") {
+        val encoded =
+            Avro.default.encodeToByteArray(
+                FutureWrap.serializer(),
+                FutureWrap(FutureEnumWithDefault.C)
+            )
+        val decoded = Avro.default.decodeFromByteArray(Wrap.serializer(), encoded)
 
-      decoded shouldBe Wrap(EnumWithDefault.UNKNOWN)
-   }
+        decoded shouldBe Wrap(EnumWithDefault.UNKNOWN)
+    }
 })

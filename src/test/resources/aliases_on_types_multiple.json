@@ -2,10 +2,7 @@
   "type": "record",
   "name": "TypeAliasAnnotated",
   "namespace": "com.github.avrokotlin.avro4k.schema.AvroAliasSchemaTest",
-  "aliases": [
-    "queen",
-    "ledzep"
-  ],
+  "aliases": ["queen", "ledzep"],
   "fields": [
     {
       "name": "str",

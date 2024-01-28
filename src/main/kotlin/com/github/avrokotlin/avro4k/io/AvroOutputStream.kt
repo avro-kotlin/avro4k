@@ -13,13 +13,14 @@ package com.github.avrokotlin.avro4k.io
  * of these types of stream.
  */
 interface AvroOutputStream<T> : AutoCloseable {
+    fun flush()
 
-   fun flush()
-   fun fSync()
-   fun write(t: T): AvroOutputStream<T>
+    fun fSync()
 
-   fun write(ts: List<T>): AvroOutputStream<T> {
-      ts.forEach { write(it) }
-      return this
-   }
+    fun write(t: T): AvroOutputStream<T>
+
+    fun write(ts: List<T>): AvroOutputStream<T> {
+        ts.forEach { write(it) }
+        return this
+    }
 }

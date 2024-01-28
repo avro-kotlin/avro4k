@@ -22,7 +22,8 @@ fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
         fun avroByteArray(vararg bytes: Byte) = ByteBuffer.wrap(bytes)
         "encode/decode ByteArray" {
             encoderToTest.testEncodeDecode(
-                ByteArrayTest(byteArrayOf(1, 4, 9)), record(avroByteArray(1, 4, 9))
+                ByteArrayTest(byteArrayOf(1, 4, 9)),
+                record(avroByteArray(1, 4, 9))
             )
         }
         "encode/decode List<Byte>" {
@@ -43,13 +44,16 @@ fun byteArrayEncoderTests(encoderToTest: EnDecoder): TestFactory {
                 SchemaBuilder.record("ByteArrayTest").fields().name("z").type(fixedSchema).noDefault().endRecord()
             val unpaddedByteArray = byteArrayOf(1, 4, 9)
             val paddedByteArray = byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)
-            val encoded = encoderToTest.testEncodeIsEqual(
-                value = ByteArrayTest(unpaddedByteArray),
-                shouldMatch = record(GenericData.Fixed(fixedSchema, paddedByteArray)),
-                schema = schema
-            )
+            val encoded =
+                encoderToTest.testEncodeIsEqual(
+                    value = ByteArrayTest(unpaddedByteArray),
+                    shouldMatch = record(GenericData.Fixed(fixedSchema, paddedByteArray)),
+                    schema = schema
+                )
             encoderToTest.testDecodeIsEqual(
-                byteArray = encoded, value = ByteArrayTest(paddedByteArray), readSchema = schema
+                byteArray = encoded,
+                value = ByteArrayTest(paddedByteArray),
+                readSchema = schema
             )
         }
     }

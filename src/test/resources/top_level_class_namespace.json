@@ -1,15 +1,15 @@
 {
-   "type": "record",
-   "name": "Tau",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "a",
-         "type": "string"
-      },
-      {
-         "name": "b",
-         "type": "boolean"
-      }
-   ]
+  "type": "record",
+  "name": "Tau",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "a",
+      "type": "string"
+    },
+    {
+      "name": "b",
+      "type": "boolean"
+    }
+  ]
 }

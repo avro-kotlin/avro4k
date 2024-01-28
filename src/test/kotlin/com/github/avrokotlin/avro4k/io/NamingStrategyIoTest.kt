@@ -16,58 +16,61 @@ import java.nio.file.Files
 
 class NamingStrategyIoTest : StringSpec({
 
-   val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
+    val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
-   "using snake_case namingStrategy to write out a record" {
-      val ennio = Composer("Ennio Morricone", "Maestro")
+    "using snake_case namingStrategy to write out a record" {
+        val ennio = Composer("Ennio Morricone", "Maestro")
 
-      val baos = ByteArrayOutputStream()
+        val baos = ByteArrayOutputStream()
 
-      snakeCaseAvro.openOutputStream(Composer.serializer()) {
-         encodeFormat = AvroEncodeFormat.Data()
-      }.to(baos).use {
-         it.write(ennio)
-      }
+        snakeCaseAvro.openOutputStream(Composer.serializer()) {
+            encodeFormat = AvroEncodeFormat.Data()
+        }.to(baos).use {
+            it.write(ennio)
+        }
 
-      val schema = SchemaBuilder.record("Composer").fields()
-         .name("full_name").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .endRecord()
+        val schema =
+            SchemaBuilder.record("Composer").fields()
+                .name("full_name").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .endRecord()
 
-      snakeCaseAvro.openInputStream(Composer.serializer()) {
-         decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
-      }.from(baos.toByteArray()).nextOrThrow() shouldBe ennio
-   }
+        snakeCaseAvro.openInputStream(Composer.serializer()) {
+            decodeFormat = AvroDecodeFormat.Data(schema, defaultReadSchema)
+        }.from(baos.toByteArray()).nextOrThrow() shouldBe ennio
+    }
 
-   "using snake_case namingStrategy to read a record back in" {
+    "using snake_case namingStrategy to read a record back in" {
 
-      val schema1 = SchemaBuilder.record("Composer").fields()
-         .name("full_name").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
-         .endRecord()
+        val schema1 =
+            SchemaBuilder.record("Composer").fields()
+                .name("full_name").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .name("status").type(Schema.create(Schema.Type.STRING)).noDefault()
+                .endRecord()
 
-      val record = GenericData.Record(schema1)
-      record.put("full_name", "Ennio Morricone")
-      record.put("status", "Maestro")
+        val record = GenericData.Record(schema1)
+        record.put("full_name", "Ennio Morricone")
+        record.put("status", "Maestro")
 
-      val file = tempfile("avroname.avro", "")
+        val file = tempfile("avroname.avro", "")
 
-      AvroBinaryOutputStream<GenericRecord>(Files.newOutputStream(file.toPath()), { it }, schema1).use {
-         it.write(record)
-      }
+        AvroBinaryOutputStream<GenericRecord>(Files.newOutputStream(file.toPath()), { it }, schema1).use {
+            it.write(record)
+        }
 
-      val schema2 = snakeCaseAvro.schema(Composer.serializer())
+        val schema2 = snakeCaseAvro.schema(Composer.serializer())
 
-      snakeCaseAvro.openInputStream(Composer.serializer()) {
-         decodeFormat = AvroDecodeFormat.Binary(
-            writerSchema = schema1,
-            readerSchema = schema2
-         )
-      }.from(file).use {
-         it.next() shouldBe Composer("Ennio Morricone", "Maestro")
-      }
-   }
+        snakeCaseAvro.openInputStream(Composer.serializer()) {
+            decodeFormat =
+                AvroDecodeFormat.Binary(
+                    writerSchema = schema1,
+                    readerSchema = schema2
+                )
+        }.from(file).use {
+            it.next() shouldBe Composer("Ennio Morricone", "Maestro")
+        }
+    }
 }) {
-   @Serializable
-   data class Composer(val fullName: String, val status: String)
+    @Serializable
+    data class Composer(val fullName: String, val status: String)
 }

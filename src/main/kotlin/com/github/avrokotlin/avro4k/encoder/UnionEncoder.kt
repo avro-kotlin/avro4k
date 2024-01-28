@@ -13,28 +13,31 @@ import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 @ExperimentalSerializationApi
-class UnionEncoder(private val unionSchema : Schema,
-                   override val serializersModule: SerializersModule,
-                   private val callback: (Record) -> Unit) : AbstractEncoder() {
-   override fun encodeString(value: String){
-      //No need to encode the name of the concrete type. The name will never be encoded in the avro schema.
-   }
-   override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-      return when (descriptor.kind) {
-         is StructureKind.CLASS, is StructureKind.OBJECT -> {
-            //Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
-            val leafSchema = unionSchema.types.first{
-               val schemaName = RecordNaming(it.fullName, emptyList(), DefaultNamingStrategy)
-               val serialName = RecordNaming(descriptor, DefaultNamingStrategy)
-               serialName == schemaName
+class UnionEncoder(
+    private val unionSchema: Schema,
+    override val serializersModule: SerializersModule,
+    private val callback: (Record) -> Unit,
+) : AbstractEncoder() {
+    override fun encodeString(value: String) {
+        // No need to encode the name of the concrete type. The name will never be encoded in the avro schema.
+    }
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+        return when (descriptor.kind) {
+            is StructureKind.CLASS, is StructureKind.OBJECT -> {
+                // Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
+                val leafSchema =
+                    unionSchema.types.first {
+                        val schemaName = RecordNaming(it.fullName, emptyList(), DefaultNamingStrategy)
+                        val serialName = RecordNaming(descriptor, DefaultNamingStrategy)
+                        serialName == schemaName
+                    }
+                RecordEncoder(leafSchema, serializersModule, callback)
             }
-            RecordEncoder(leafSchema, serializersModule, callback)
-         }
-         else -> throw SerializationException("Unsupported root element passed to root record encoder")
-      }
-   }
+            else -> throw SerializationException("Unsupported root element passed to root record encoder")
+        }
+    }
 
-   override fun endStructure(descriptor: SerialDescriptor) {
-
-   }
+    override fun endStructure(descriptor: SerialDescriptor) {
+    }
 }

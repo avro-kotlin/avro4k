@@ -9,15 +9,18 @@ import org.apache.avro.generic.GenericData
 
 @Serializable
 data class OldFooString(val s: String)
+
 @Serializable
-data class FooStringWithAlias(@AvroAlias("s") val str: String)
+data class FooStringWithAlias(
+    @AvroAlias("s") val str: String,
+)
 
 class AvroAliasTest : FunSpec({
 
-   test("decode with alias") {
-      val schema = Avro.default.schema(OldFooString.serializer())
-      val record = GenericData.Record(schema)
-      record.put("s", "hello")
-      Avro.default.fromRecord(FooStringWithAlias.serializer(), record) shouldBe FooStringWithAlias("hello")
-   }
+    test("decode with alias") {
+        val schema = Avro.default.schema(OldFooString.serializer())
+        val record = GenericData.Record(schema)
+        record.put("s", "hello")
+        Avro.default.fromRecord(FooStringWithAlias.serializer(), record) shouldBe FooStringWithAlias("hello")
+    }
 })

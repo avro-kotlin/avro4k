@@ -15,7 +15,9 @@ fun avroNameEncodingTests(endecoder: EnDecoder): TestFactory {
     return stringSpec {
         "take into account @AvroName on fields" {
             @Serializable
-            data class Foo(@AvroName("bar") val foo: String)
+            data class Foo(
+                @AvroName("bar") val foo: String,
+            )
             endecoder.testEncodeDecode(Foo("hello"), record("hello"))
         }
     }

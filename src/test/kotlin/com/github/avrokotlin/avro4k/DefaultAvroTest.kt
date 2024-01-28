@@ -15,5 +15,7 @@ class DefaultAvroTest : FunSpec({
     }
 }) {
     @Serializable
-    data class Foo(@Contextual val a: UUID)
+    data class Foo(
+        @Contextual val a: UUID,
+    )
 }

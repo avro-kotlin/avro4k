@@ -12,9 +12,14 @@ import org.apache.avro.generic.GenericData
 class TransientEncoderTest : FunSpec({
     includeForEveryEncoder { transientEncoderTests(it) }
 })
+
 fun transientEncoderTests(encoderToTest: EnDecoder): TestFactory {
     @Serializable
-    data class Foo(val a: String, @Transient val b: String = "foo", val c: String)
+    data class Foo(
+        val a: String,
+        @Transient val b: String = "foo",
+        val c: String,
+    )
     return stringSpec {
         "should skip @Transient fields" {
             val value = Foo("a", "b", "c")
@@ -25,8 +30,8 @@ fun transientEncoderTests(encoderToTest: EnDecoder): TestFactory {
             val record = GenericData.Record(schema)
             record.put("a", "hello")
 
-            val encoded = encoderToTest.testEncodeIsEqual(Foo("a", "b","c"), record("a", "c"))
-            encoderToTest.testDecodeIsEqual(encoded, Foo(a = "a", c="c"))
+            val encoded = encoderToTest.testEncodeIsEqual(Foo("a", "b", "c"), record("a", "c"))
+            encoderToTest.testDecodeIsEqual(encoded, Foo(a = "a", c = "c"))
         }
     }
 }

@@ -7,31 +7,29 @@
       "name": "listOfRoot",
       "type": {
         "type": "array",
-        "items":  [
-            {
-              "type": "record",
-              "name": "UnsealedChildOne",
-              "fields": [
-                {
-                  "name": "one",
-                  "type": "string"
-                }
-              ]
-            },
-            {
-              "type": "record",
-              "name": "UnsealedChildTwo",
-              "fields": [
-                {
-                  "name": "two",
-                  "type": "string"
-                }
-              ]
-            }
+        "items": [
+          {
+            "type": "record",
+            "name": "UnsealedChildOne",
+            "fields": [
+              {
+                "name": "one",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "UnsealedChildTwo",
+            "fields": [
+              {
+                "name": "two",
+                "type": "string"
+              }
+            ]
+          }
         ]
-        
       }
     }
   ]
 }
-

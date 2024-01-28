@@ -5,17 +5,11 @@
   "fields": [
     {
       "name": "nullableString",
-      "type": [
-        "null",
-        "string"
-      ]
+      "type": ["null", "string"]
     },
     {
       "name": "nullableBoolean",
-      "type": [
-        "null",
-        "boolean"
-      ]
+      "type": ["null", "boolean"]
     }
   ]
 }

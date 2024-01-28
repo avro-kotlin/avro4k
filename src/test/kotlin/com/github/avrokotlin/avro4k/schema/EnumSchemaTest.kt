@@ -12,87 +12,96 @@ import kotlinx.serialization.Serializable
 
 class EnumSchemaTest : WordSpec({
 
-   "SchemaEncoder" should {
-      "accept enums" {
+    "SchemaEncoder" should {
+        "accept enums" {
 
-         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum.json"))
-         val schema = Avro.default.schema(EnumTest.serializer())
-         schema.toString(true) shouldBe expected.toString(true)
-      }
-   }
-   "Enum with documentation and aliases" should {
+            val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum.json"))
+            val schema = Avro.default.schema(EnumTest.serializer())
+            schema.toString(true) shouldBe expected.toString(true)
+        }
+    }
+    "Enum with documentation and aliases" should {
 
-      val expected =
-         org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_documentation.json"))
-      val schema = Avro.default.schema(EnumWithDocuTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
+        val expected =
+            org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_documentation.json"))
+        val schema = Avro.default.schema(EnumWithDocuTest.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
 
-   "Enum with default values" should {
-      "generate schema" {
+    "Enum with default values" should {
+        "generate schema" {
 
-         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default.json"))
+            val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/enum_with_default.json"))
 
-         val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
+            val schema = Avro.default.schema(EnumWithDefaultTest.serializer())
 
-         schema.toString(true) shouldBe expected.toString(true)
-      }
-      "generate schema with default and nullable union types" {
+            schema.toString(true) shouldBe expected.toString(true)
+        }
+        "generate schema with default and nullable union types" {
 
-         val expected =
-            org.apache.avro.Schema.Parser()
-               .parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
+            val expected =
+                org.apache.avro.Schema.Parser()
+                    .parse(javaClass.getResourceAsStream("/enum_with_default_value_and_null.json"))
 
-         val schema = Avro.default.schema(EnumWithAvroDefaultTest.serializer())
+            val schema = Avro.default.schema(EnumWithAvroDefaultTest.serializer())
 
-         schema.toString(true) shouldBe expected.toString(true)
-      }
-      "modifying namespaces retains enum defaults" {
-         val schemaWithNewNameSpace = Avro.default.schema(EnumWithDefaultTest.serializer()).overrideNamespace("new")
+            schema.toString(true) shouldBe expected.toString(true)
+        }
+        "modifying namespaces retains enum defaults" {
+            val schemaWithNewNameSpace = Avro.default.schema(EnumWithDefaultTest.serializer()).overrideNamespace("new")
 
-         val expected = org.apache.avro.Schema.Parser()
-            .parse(javaClass.getResourceAsStream("/enum_with_default_new_namespace.json"))
+            val expected =
+                org.apache.avro.Schema.Parser()
+                    .parse(javaClass.getResourceAsStream("/enum_with_default_new_namespace.json"))
 
-         schemaWithNewNameSpace.toString(true) shouldBe expected.toString(true)
-      }
-      "fail with unknown values" {
-         shouldThrow<IllegalStateException> {
-            Avro.default.schema(EnumWithUnknownDefaultTest.serializer())
-         }
-      }
-   }
+            schemaWithNewNameSpace.toString(true) shouldBe expected.toString(true)
+        }
+        "fail with unknown values" {
+            shouldThrow<IllegalStateException> {
+                Avro.default.schema(EnumWithUnknownDefaultTest.serializer())
+            }
+        }
+    }
 }) {
+    @Serializable
+    data class EnumTest(val wine: Wine)
 
-   @Serializable
-   data class EnumTest(val wine: Wine)
-   @Serializable
-   data class EnumWithDocuTest(
-       val value: Suit
-   )
-   @Serializable
-   data class EnumWithDefaultTest(
-       val type: IngredientType
-   )
-   @Serializable
-   data class EnumWithAvroDefaultTest(
-       @AvroDefault(Avro.NULL) val type: IngredientType?
-   )
-   @Serializable
-   data class EnumWithUnknownDefaultTest(
-       val type: InvalidIngredientType
-   )
+    @Serializable
+    data class EnumWithDocuTest(
+        val value: Suit,
+    )
 
+    @Serializable
+    data class EnumWithDefaultTest(
+        val type: IngredientType,
+    )
+
+    @Serializable
+    data class EnumWithAvroDefaultTest(
+        @AvroDefault(Avro.NULL) val type: IngredientType?,
+    )
+
+    @Serializable
+    data class EnumWithUnknownDefaultTest(
+        val type: InvalidIngredientType,
+    )
 }
 
 enum class Wine {
-   Malbec, Shiraz, CabSav, Merlot
+    Malbec,
+    Shiraz,
+    CabSav,
+    Merlot,
 }
 
 @Serializable
 @AvroAlias("MySuit")
 @AvroDoc("documentation")
 enum class Suit {
-   SPADES, HEARTS, DIAMONDS, CLUBS;
+    SPADES,
+    HEARTS,
+    DIAMONDS,
+    CLUBS,
 }
 
 @Serializable

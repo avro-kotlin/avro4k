@@ -30,12 +30,7 @@
     },
     {
       "name": "nullableRoot",
-      "type": [
-        "null",
-        "UnsealedChildOne",
-        "UnsealedChildTwo"
-      ]
+      "type": ["null", "UnsealedChildOne", "UnsealedChildTwo"]
     }
   ]
 }
-

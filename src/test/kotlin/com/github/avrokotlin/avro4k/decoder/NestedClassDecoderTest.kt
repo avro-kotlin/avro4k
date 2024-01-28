@@ -2,8 +2,8 @@ package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDefault
-import io.kotest.matchers.shouldBe
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
@@ -23,73 +23,75 @@ data class Birthplace(val person: String, val town: Town)
 data class PersonV1(val name: String, val hasChickenPoxVaccine: Boolean)
 
 @Serializable
-data class PersonV2(val name: String,
-                    val hasChickenPoxVaccine: Boolean,
-                    @AvroDefault(Avro.NULL)
-                    val hasCovidVaccine: Boolean? = null)
+data class PersonV2(
+    val name: String,
+    val hasChickenPoxVaccine: Boolean,
+    @AvroDefault(Avro.NULL)
+    val hasCovidVaccine: Boolean? = null,
+)
 
 class NestedClassDecoderTest : WordSpec({
 
-  "Decoder" should {
+    "Decoder" should {
 
-    "decode nested class" {
+        "decode nested class" {
 
-      val townSchema = Avro.default.schema(Town.serializer())
-      val birthplaceSchema = Avro.default.schema(Birthplace.serializer())
+            val townSchema = Avro.default.schema(Town.serializer())
+            val birthplaceSchema = Avro.default.schema(Birthplace.serializer())
 
-      val hardwick = GenericData.Record(townSchema)
-      hardwick.put("name", Utf8("Hardwick"))
-      hardwick.put("population", 123)
+            val hardwick = GenericData.Record(townSchema)
+            hardwick.put("name", Utf8("Hardwick"))
+            hardwick.put("population", 123)
 
-      val birthplace = GenericData.Record(birthplaceSchema)
-      birthplace.put("person", Utf8("Sammy Sam"))
-      birthplace.put("town", hardwick)
+            val birthplace = GenericData.Record(birthplaceSchema)
+            birthplace.put("person", Utf8("Sammy Sam"))
+            birthplace.put("town", hardwick)
 
-      Avro.default.fromRecord(Birthplace.serializer(), birthplace) shouldBe
-          Birthplace(person = "Sammy Sam", town = Town(name = "Hardwick", population = 123))
-    }
+            Avro.default.fromRecord(Birthplace.serializer(), birthplace) shouldBe
+                Birthplace(person = "Sammy Sam", town = Town(name = "Hardwick", population = 123))
+        }
 
-    "decode nested list of classes" {
+        "decode nested list of classes" {
 
-      val countySchema = Avro.default.schema(County.serializer())
-      val townSchema = Avro.default.schema(Town.serializer())
+            val countySchema = Avro.default.schema(County.serializer())
+            val townSchema = Avro.default.schema(Town.serializer())
 
-      val hardwick = GenericData.Record(townSchema)
-      hardwick.put("name", "Hardwick")
-      hardwick.put("population", 123)
+            val hardwick = GenericData.Record(townSchema)
+            hardwick.put("name", "Hardwick")
+            hardwick.put("population", 123)
 
-      val weedon = GenericData.Record(townSchema)
-      weedon.put("name", "Weedon")
-      weedon.put("population", 225)
+            val weedon = GenericData.Record(townSchema)
+            weedon.put("name", "Weedon")
+            weedon.put("population", 225)
 
-      val bucks = GenericData.Record(countySchema)
-      bucks.put("name", "Bucks")
-      bucks.put("towns", listOf(hardwick, weedon))
-      bucks.put("ceremonial", true)
-      bucks.put("lat", 12.34)
-      bucks.put("long", 0.123)
+            val bucks = GenericData.Record(countySchema)
+            bucks.put("name", "Bucks")
+            bucks.put("towns", listOf(hardwick, weedon))
+            bucks.put("ceremonial", true)
+            bucks.put("lat", 12.34)
+            bucks.put("long", 0.123)
 
-      Avro.default.fromRecord(County.serializer(), bucks) shouldBe
-          County(
-              name = "Bucks",
-              towns = listOf(Town(name = "Hardwick", population = 123), Town(name = "Weedon", population = 225)),
-              ceremonial = true,
-              lat = 12.34,
-              long = 0.123
-          )
-    }
+            Avro.default.fromRecord(County.serializer(), bucks) shouldBe
+                County(
+                    name = "Bucks",
+                    towns = listOf(Town(name = "Hardwick", population = 123), Town(name = "Weedon", population = 225)),
+                    ceremonial = true,
+                    lat = 12.34,
+                    long = 0.123
+                )
+        }
 
-     "decode nested class from previous schema (new schema is back compat)" {
+        "decode nested class from previous schema (new schema is back compat)" {
 
-        val personV1Schema = Avro.default.schema(PersonV1.serializer())
+            val personV1Schema = Avro.default.schema(PersonV1.serializer())
 
-        val personV1 = GenericData.Record(personV1Schema)
-        personV1.put("name", Utf8("Ryan"))
-        personV1.put("hasChickenPoxVaccine", true)
+            val personV1 = GenericData.Record(personV1Schema)
+            personV1.put("name", Utf8("Ryan"))
+            personV1.put("hasChickenPoxVaccine", true)
 
-        Avro.default.fromRecord(PersonV2.serializer(), personV1) shouldBe
-           PersonV2(name="Ryan", hasChickenPoxVaccine = true, hasCovidVaccine = null)
-     }
+            Avro.default.fromRecord(PersonV2.serializer(), personV1) shouldBe
+                PersonV2(name = "Ryan", hasChickenPoxVaccine = true, hasCovidVaccine = null)
+        }
 
 //    "decode optional structs" {
 //      val countySchema = AvroSchema[County]
@@ -123,6 +125,5 @@ class NestedClassDecoderTest : WordSpec({
 //
 //      Decoder[OptionCounty].decode(emptyRecord, optionCountySchema, DefaultFieldMapper) shouldBe OptionCounty(None)
 //    }
-  }
-
+    }
 })

@@ -1,11 +1,11 @@
 {
-   "type": "record",
-   "name": "Test",
-   "namespace": "com.github.avrokotlin.avro4k.schema.BigIntegerSchemaTest",
-   "fields": [
-      {
-         "name": "b",
-         "type": "string"
-      }
-   ]
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.github.avrokotlin.avro4k.schema.BigIntegerSchemaTest",
+  "fields": [
+    {
+      "name": "b",
+      "type": "string"
+    }
+  ]
 }

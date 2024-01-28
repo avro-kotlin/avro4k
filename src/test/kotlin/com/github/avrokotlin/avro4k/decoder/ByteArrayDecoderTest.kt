@@ -14,10 +14,11 @@ class ByteArrayDecoderTest : StringSpec({
         "ByteBuffer" to ByteBuffer.wrap(byteArray),
         "ByteArray" to byteArray,
         "Array<Bytes>" to arrayOf<Byte>(1, 4, 9),
-        "GenericData.Array" to GenericData.Array(
-            Schema.createArray(Schema.create(Schema.Type.BYTES)),
-            byteArray.toList()
-        )
+        "GenericData.Array" to
+            GenericData.Array(
+                Schema.createArray(Schema.create(Schema.Type.BYTES)),
+                byteArray.toList()
+            )
     ).forEach {
         "decode ${it.first} to ByteArray" {
             val schema = Avro.default.schema(ByteArrayTest.serializer())
@@ -39,7 +40,6 @@ class ByteArrayDecoderTest : StringSpec({
         }
     }
 }) {
-
     @Serializable
     data class ByteArrayTest(val z: ByteArray)
 

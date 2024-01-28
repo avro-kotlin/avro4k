@@ -13,14 +13,19 @@ import java.math.BigInteger
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = BigInteger::class)
 class BigIntegerSerializer : AvroSerializer<BigInteger>() {
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor = buildSerialDescriptor(BigInteger::class.qualifiedName!!, PrimitiveKind.STRING)
 
-   @OptIn(InternalSerializationApi::class)
-   override val descriptor = buildSerialDescriptor(BigInteger::class.qualifiedName!!, PrimitiveKind.STRING)
+    override fun encodeAvroValue(
+        schema: Schema,
+        encoder: ExtendedEncoder,
+        obj: BigInteger,
+    ) = encoder.encodeString(obj.toString())
 
-   override fun encodeAvroValue(schema: Schema, encoder: ExtendedEncoder, obj: BigInteger) =
-      encoder.encodeString(obj.toString())
-
-   override fun decodeAvroValue(schema: Schema, decoder: ExtendedDecoder): BigInteger {
-      return BigInteger(decoder.decodeString())
-   }
+    override fun decodeAvroValue(
+        schema: Schema,
+        decoder: ExtendedDecoder,
+    ): BigInteger {
+        return BigInteger(decoder.decodeString())
+    }
 }

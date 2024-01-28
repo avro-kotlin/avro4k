@@ -1,17 +1,17 @@
 {
-   "type": "record",
-   "name": "Test",
-   "namespace": "com.github.avrokotlin.avro4k.schema.DateSchemaTest",
-   "fields": [
-      {
-         "name": "ts",
-         "type": [
-            "null",
-            {
-               "type": "long",
-               "logicalType": "timestamp-millis"
-            }
-         ]
-      }
-   ]
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.github.avrokotlin.avro4k.schema.DateSchemaTest",
+  "fields": [
+    {
+      "name": "ts",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ]
+    }
+  ]
 }

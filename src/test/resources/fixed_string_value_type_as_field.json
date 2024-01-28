@@ -1,15 +1,15 @@
 {
-   "type": "record",
-   "name": "Foo",
-   "namespace": "com.github.avrokotlin.avro4k.schema.AvroFixedSchemaTest",
-   "fields": [
-      {
-         "name": "z",
-         "type": {
-            "type": "fixed",
-            "name": "FixedClass",
-            "size": 8
-         }
+  "type": "record",
+  "name": "Foo",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroFixedSchemaTest",
+  "fields": [
+    {
+      "name": "z",
+      "type": {
+        "type": "fixed",
+        "name": "FixedClass",
+        "size": 8
       }
-   ]
+    }
+  ]
 }

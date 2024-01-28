@@ -7,39 +7,39 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class NamingStrategySchemaTest : WordSpec({
-   "NamingStrategy" should {
-      "convert schema with snake_case to camelCase" {
-         val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
+    "NamingStrategy" should {
+        "convert schema with snake_case to camelCase" {
+            val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
 
-         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/snake_case_schema.json"))
+            val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/snake_case_schema.json"))
 
-         val schema = snakeCaseAvro.schema(Interface.serializer())
+            val schema = snakeCaseAvro.schema(Interface.serializer())
 
-         schema.toString(true) shouldBe expected.toString(true)
-      }
+            schema.toString(true) shouldBe expected.toString(true)
+        }
 
-      "convert schema with PascalCase to camelCase" {
-         val pascalCaseAvro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
+        "convert schema with PascalCase to camelCase" {
+            val pascalCaseAvro = Avro(AvroConfiguration(PascalCaseNamingStrategy))
 
-         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pascal_case_schema.json"))
+            val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pascal_case_schema.json"))
 
-         val schema = pascalCaseAvro.schema(Interface.serializer())
+            val schema = pascalCaseAvro.schema(Interface.serializer())
 
-         schema.toString(true) shouldBe expected.toString(true)
-      }
-   }
+            schema.toString(true) shouldBe expected.toString(true)
+        }
+    }
 }) {
-   @Serializable
-   data class SubInterface(val name: String, val ipv4Address: String)
+    @Serializable
+    data class SubInterface(val name: String, val ipv4Address: String)
 
-   @Serializable
-   data class Interface(
-       val name: String,
-       val ipv4Address: String,
-       val ipv4SubnetMask: Int,
-       val v: InternetProtocol,
-       val subInterface: SubInterface?
-   )
+    @Serializable
+    data class Interface(
+        val name: String,
+        val ipv4Address: String,
+        val ipv4SubnetMask: Int,
+        val v: InternetProtocol,
+        val subInterface: SubInterface?,
+    )
 }
 
 @Serializable

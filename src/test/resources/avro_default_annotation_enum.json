@@ -1,25 +1,30 @@
 {
-   "type" : "record",
-   "name" : "BarEnum",
-   "namespace" : "com.github.avrokotlin.avro4k.schema",
-   "fields" : [ {
-      "name" : "a",
-      "type" : {
-         "type" : "enum",
-         "name" : "FooEnum",
-         "symbols" : [ "A", "B", "C" ]
+  "type": "record",
+  "name": "BarEnum",
+  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "fields": [
+    {
+      "name": "a",
+      "type": {
+        "type": "enum",
+        "name": "FooEnum",
+        "symbols": ["A", "B", "C"]
       }
-   }, {
-      "name" : "b",
-      "type" : "FooEnum",
-      "default" : "A"
-   }, {
-      "name" : "nullableEnum",
-      "type" : [ "null", "FooEnum" ],
-      "default" : null
-   }, {
-      "name" : "c",
-      "type" : [ "FooEnum", "null" ],
-      "default" : "B"
-   } ]
+    },
+    {
+      "name": "b",
+      "type": "FooEnum",
+      "default": "A"
+    },
+    {
+      "name": "nullableEnum",
+      "type": ["null", "FooEnum"],
+      "default": null
+    },
+    {
+      "name": "c",
+      "type": ["FooEnum", "null"],
+      "default": "B"
+    }
+  ]
 }

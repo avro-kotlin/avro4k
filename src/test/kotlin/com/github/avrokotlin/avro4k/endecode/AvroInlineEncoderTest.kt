@@ -29,4 +29,3 @@ fun inlineEncodingTests(encoderToTest: EnDecoder): TestFactory {
         }
     }
 }
-

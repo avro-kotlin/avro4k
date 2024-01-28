@@ -9,7 +9,6 @@ import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.spec.style.stringSpec
 
-
 class SealedClassEncoderTest : StringSpec({
     includeForEveryEncoder { sealedClassEncoderTests(it) }
 })
@@ -19,7 +18,8 @@ fun sealedClassEncoderTests(encoderToTest: EnDecoder): TestFactory {
         "encode/decode sealed classes" {
             val addSchema = encoderToTest.avro.schema(Operation.Binary.Add.serializer())
             encoderToTest.testEncodeDecode(
-                ReferencingSealedClass(Operation.Binary.Add(1, 2)), record(record(1, 2).createRecord(addSchema))
+                ReferencingSealedClass(Operation.Binary.Add(1, 2)),
+                record(record(1, 2).createRecord(addSchema))
             )
         }
         "encode/decode nullable sealed classes" {
@@ -28,7 +28,8 @@ fun sealedClassEncoderTests(encoderToTest: EnDecoder): TestFactory {
             encoderToTest.testEncodeDecode(
                 ReferencingNullableSealedClass(
                     Operation.Binary.Add(1, 2)
-                ), record(record(1, 2).createRecord(addSchema))
+                ),
+                record(record(1, 2).createRecord(addSchema))
             )
 
             encoderToTest.testEncodeDecode(ReferencingNullableSealedClass(null), record(null))

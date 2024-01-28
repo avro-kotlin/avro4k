@@ -30,8 +30,10 @@ dependencyResolutionManagement {
          plugin("kotest", "io.kotest").version("0.4.10")
          plugin("github-versions", "com.github.ben-manes.versions").version("0.46.0")
          plugin("nexus-publish", "io.github.gradle-nexus.publish-plugin").version("1.3.0")
+         plugin("spotless", "com.diffplug.spotless").version("6.25.0")
       }
    }
+   @Suppress("UnstableApiUsage")
    repositories {
       mavenCentral()
    }

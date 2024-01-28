@@ -20,11 +20,7 @@ plugins {
    alias(libs.plugins.kotest)
    alias(libs.plugins.github.versions)
    alias(libs.plugins.nexus.publish)
-}
-
-repositories {
-   mavenCentral()
-   google()
+   alias(libs.plugins.spotless)
 }
 
 tasks {
@@ -160,4 +156,13 @@ object Ci {
 
    val isRelease = releaseVersion != null
    val publishVersion = releaseVersion ?: snapshotVersion
+}
+
+spotless {
+    kotlin {
+        ktlint()
+    }
+    kotlinGradle {
+        ktlint()
+    }
 }

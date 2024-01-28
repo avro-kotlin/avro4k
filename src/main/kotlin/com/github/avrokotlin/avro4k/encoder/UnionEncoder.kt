@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k.encoder
 
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.Record
-import com.github.avrokotlin.avro4k.RecordNaming
-import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
+import com.github.avrokotlin.avro4k.schema.RecordName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -16,6 +16,7 @@ import org.apache.avro.Schema
 class UnionEncoder(
     private val unionSchema: Schema,
     override val serializersModule: SerializersModule,
+    private val configuration: AvroConfiguration,
     private val callback: (Record) -> Unit,
 ) : AbstractEncoder() {
     override fun encodeString(value: String) {
@@ -28,11 +29,11 @@ class UnionEncoder(
                 // Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
                 val leafSchema =
                     unionSchema.types.first {
-                        val schemaName = RecordNaming(it.fullName, emptyList(), DefaultNamingStrategy)
-                        val serialName = RecordNaming(descriptor, DefaultNamingStrategy)
+                        val schemaName = RecordName(name = it.name, namespace = it.namespace)
+                        val serialName = configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName)
                         serialName == schemaName
                     }
-                RecordEncoder(leafSchema, serializersModule, callback)
+                RecordEncoder(leafSchema, serializersModule, configuration, callback)
             }
             else -> throw SerializationException("Unsupported root element passed to root record encoder")
         }

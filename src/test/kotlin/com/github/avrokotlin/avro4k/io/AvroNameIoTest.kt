@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroName
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -67,7 +67,7 @@ class AvroNameIoTest : StringSpec({
 }) {
     @Serializable
     data class Composer(
-        @AvroName("fullname") val name: String,
+        @SerialName("fullname") val name: String,
         val status: String,
     )
 }

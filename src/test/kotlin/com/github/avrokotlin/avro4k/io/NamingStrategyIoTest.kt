@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.schema.SnakeCaseNamingStrategy
+import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
@@ -16,7 +16,7 @@ import java.nio.file.Files
 
 class NamingStrategyIoTest : StringSpec({
 
-    val snakeCaseAvro = Avro(AvroConfiguration(SnakeCaseNamingStrategy))
+    val snakeCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.SnakeCase))
 
     "using snake_case namingStrategy to write out a record" {
         val ennio = Composer("Ennio Morricone", "Maestro")

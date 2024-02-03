@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroName
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class ByteArraySchemaTest : FunSpec({
@@ -45,9 +45,10 @@ class ByteArraySchemaTest : FunSpec({
 //  }
 }) {
     @Serializable
+    @SerialName("ByteArrayTest")
     data class ByteArrayTest(val z: ByteArray)
 
     @Serializable
-    @AvroName("ByteArrayTest")
+    @SerialName("ByteArrayTest")
     data class ByteListTest(val z: List<Byte>)
 }

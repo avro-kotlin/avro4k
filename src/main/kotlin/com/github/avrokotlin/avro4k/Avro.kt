@@ -153,11 +153,16 @@ class AvroOutputStreamBuilder<T>(
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-class Avro(
-    override val serializersModule: SerializersModule = defaultModule,
-    private val configuration: AvroConfiguration = AvroConfiguration(),
+class Avro private constructor(
+    private val configuration: AvroConfiguration,
+    override val serializersModule: SerializersModule,
 ) : SerialFormat, BinaryFormat {
-    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
+    constructor(
+        serializersModule: SerializersModule = defaultModule,
+        configuration: AvroConfiguration = AvroConfiguration(),
+    ) : this(configuration.copyWithCachedNamingStrategy(), serializersModule)
+
+    constructor(configuration: AvroConfiguration) : this(defaultModule, configuration.copyWithCachedNamingStrategy())
 
     companion object {
         val defaultModule =
@@ -280,7 +285,7 @@ class Avro(
         obj: T,
     ): GenericRecord {
         var record: Record? = null
-        val encoder = RootRecordEncoder(schema, serializersModule) { record = it }
+        val encoder = RootRecordEncoder(schema, serializersModule, configuration) { record = it }
         encoder.encodeSerializableValue(serializer, obj)
         return record!!
     }

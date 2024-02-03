@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroName
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class AvroNameSchemaTest : FunSpec({
@@ -24,11 +24,11 @@ class AvroNameSchemaTest : FunSpec({
 }) {
     @Serializable
     data class FieldNamesFoo(
-        @AvroName("foo") val wibble: String,
+        @SerialName("foo") val wibble: String,
         val wobble: String,
     )
 
-    @AvroName("wibble")
+    @SerialName("com.github.avrokotlin.avro4k.schema.AvroNameSchemaTest.wibble")
     @Serializable
     data class ClassNameFoo(val a: String, val b: String)
 }

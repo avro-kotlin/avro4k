@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import kotlinx.serialization.descriptors.SerialDescriptor
+import java.util.concurrent.ConcurrentHashMap
 
 interface RecordNamingStrategy {
     fun resolve(
@@ -22,6 +23,16 @@ interface RecordNamingStrategy {
                         namespace = lastDot?.let { serialName.substring(0, lastDot) }?.takeIf { it.isNotEmpty() }
                     )
                 }
+            }
+
+        internal fun cached(strategy: RecordNamingStrategy): RecordNamingStrategy =
+            object : RecordNamingStrategy {
+                private val cache = ConcurrentHashMap<SerialDescriptor, RecordName>()
+
+                override fun resolve(
+                    descriptor: SerialDescriptor,
+                    serialName: String,
+                ): RecordName = cache.getOrPut(descriptor) { strategy.resolve(descriptor, serialName) }
             }
     }
 }
@@ -98,6 +109,17 @@ interface FieldNamingStrategy {
                     elementIndex: Int,
                     serialName: String,
                 ): String = serialName.replaceFirstChar { it.lowercaseChar() }
+            }
+
+        internal fun cached(strategy: FieldNamingStrategy): FieldNamingStrategy =
+            object : FieldNamingStrategy {
+                private val cache = ConcurrentHashMap<Pair<SerialDescriptor, Int>, String>()
+
+                override fun resolve(
+                    descriptor: SerialDescriptor,
+                    elementIndex: Int,
+                    serialName: String,
+                ): String = cache.getOrPut(descriptor to elementIndex) { strategy.resolve(descriptor, elementIndex, serialName) }
             }
     }
 }

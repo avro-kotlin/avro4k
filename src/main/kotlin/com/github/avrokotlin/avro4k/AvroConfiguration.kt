@@ -11,4 +11,12 @@ data class AvroConfiguration(
      * When set to [true], the nullable fields that haven't any default value are set as null if the value is missing. It also adds `"default": null` to those fields when generating schema using avro4k.
      */
     val implicitNulls: Boolean = false,
-)
+    val namingCacheEnabled: Boolean = true,
+) {
+    internal fun copyWithCachedNamingStrategy(): AvroConfiguration {
+        return copy(
+            recordNamingStrategy = if (namingCacheEnabled) RecordNamingStrategy.cached(recordNamingStrategy) else recordNamingStrategy,
+            fieldNamingStrategy = if (namingCacheEnabled) FieldNamingStrategy.cached(fieldNamingStrategy) else fieldNamingStrategy
+        )
+    }
+}

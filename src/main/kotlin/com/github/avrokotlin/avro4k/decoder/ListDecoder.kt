@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -19,7 +19,7 @@ class ListDecoder(
     private val schema: Schema,
     private val array: List<Any?>,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
     init {
         require(schema.type == Schema.Type.ARRAY)
@@ -85,7 +85,7 @@ class ListDecoder(
         return when (descriptor.kind) {
             StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
             StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule, configuration)
-            StructureKind.MAP -> MapDecoder(descriptor, schema.elementType, array[index] as Map<String, *>, serializersModule, configuration)
+            StructureKind.MAP -> MapDecoder(schema.elementType, array[index] as Map<String, *>, serializersModule, configuration)
             PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
             else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
         }

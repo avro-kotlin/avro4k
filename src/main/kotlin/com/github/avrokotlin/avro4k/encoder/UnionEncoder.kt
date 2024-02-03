@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.RecordName
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -16,7 +16,7 @@ import org.apache.avro.Schema
 class UnionEncoder(
     private val unionSchema: Schema,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
     private val callback: (Record) -> Unit,
 ) : AbstractEncoder() {
     override fun encodeString(value: String) {

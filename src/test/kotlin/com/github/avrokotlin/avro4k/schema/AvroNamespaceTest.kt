@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroInline
 import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -92,17 +91,17 @@ class AvroNamespaceSchemaTest : FunSpec({
     @Serializable
     data class NestedValueClasses(val nested: Nested1)
 
-    @AvroInline
+    @JvmInline
     @SerialName("shouldbeignored.Nested1")
     @Serializable
-    data class Nested1(
+    value class Nested1(
         @AvroNamespaceOverride("primaryspace") val s: Nested2,
     )
 
-    @AvroInline
+    @JvmInline
     @SerialName("shouldbeignored.Nested2")
     @Serializable
-    data class Nested2(
+    value class Nested2(
         @AvroNamespaceOverride("shouldalsobeignored") val s: Nested3,
     )
 

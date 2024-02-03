@@ -2,9 +2,9 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroDecimalLogicalType
 import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.AvroTimeLogicalType
 import com.github.avrokotlin.avro4k.AvroUuidLogicalType
 import com.github.avrokotlin.avro4k.LogicalDecimalTypeEnum
@@ -52,7 +52,7 @@ interface SchemaFor {
 @ExperimentalSerializationApi
 class EnumSchemaFor(
     private val descriptor: SerialDescriptor,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
 ) : SchemaFor {
     override fun schema(): Schema {
         val naming = configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName)
@@ -82,7 +82,7 @@ class EnumSchemaFor(
 class ListSchemaFor(
     private val descriptor: SerialDescriptor,
     private val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
     private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {
     override fun schema(): Schema {
@@ -108,7 +108,7 @@ class ListSchemaFor(
 class MapSchemaFor(
     private val descriptor: SerialDescriptor,
     private val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
     private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {
     override fun schema(): Schema {
@@ -159,7 +159,7 @@ fun schemaFor(
     serializersModule: SerializersModule,
     descriptor: SerialDescriptor,
     annos: List<Annotation>,
-    configuration: AvroConfiguration,
+    configuration: AvroInternalConfiguration,
     resolvedSchemas: MutableMap<RecordName, Schema>,
 ): SchemaFor {
     val schemaFor: SchemaFor =
@@ -202,7 +202,7 @@ fun schemaFor(
 private fun schemaForLogicalTypes(
     descriptor: SerialDescriptor,
     annos: List<Annotation>,
-    configuration: AvroConfiguration,
+    configuration: AvroInternalConfiguration,
 ): Schema? {
     val annotations =
         annos + descriptor.annotations + (if (descriptor.isInline) descriptor.unwrapValueClass.annotations else emptyList())
@@ -241,7 +241,7 @@ private fun schemaForLogicalTypes(
 private fun createFixedSchema(
     descriptor: SerialDescriptor,
     fixedSize: Int,
-    configuration: AvroConfiguration,
+    configuration: AvroInternalConfiguration,
 ): Schema {
     return configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName).let {
         SchemaBuilder.fixed(it.name).namespace(it.namespace).size(fixedSize)

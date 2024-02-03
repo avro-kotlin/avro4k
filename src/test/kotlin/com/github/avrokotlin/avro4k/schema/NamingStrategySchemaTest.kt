@@ -7,9 +7,9 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 
 class NamingStrategySchemaTest : WordSpec({
-    "NamingStrategy" should {
+    "FieldNamingStrategy" should {
         "convert schema with snake_case to camelCase" {
-            val snakeCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.SnakeCase))
+            val snakeCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.Builtins.SnakeCase))
 
             val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/snake_case_schema.json"))
 
@@ -19,7 +19,7 @@ class NamingStrategySchemaTest : WordSpec({
         }
 
         "convert schema with PascalCase to camelCase" {
-            val pascalCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.PascalCase))
+            val pascalCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.Builtins.PascalCase))
 
             val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/pascal_case_schema.json"))
 

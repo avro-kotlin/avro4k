@@ -3,7 +3,7 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
@@ -25,7 +25,7 @@ import org.apache.avro.SchemaBuilder
 @ExperimentalSerializationApi
 class ClassSchemaFor(
     private val descriptor: SerialDescriptor,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
     private val serializersModule: SerializersModule,
     private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {

@@ -16,7 +16,7 @@ import java.nio.file.Files
 
 class NamingStrategyIoTest : StringSpec({
 
-    val snakeCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.SnakeCase))
+    val snakeCaseAvro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.Builtins.SnakeCase))
 
     "using snake_case namingStrategy to write out a record" {
         val ennio = Composer("Ennio Morricone", "Maestro")

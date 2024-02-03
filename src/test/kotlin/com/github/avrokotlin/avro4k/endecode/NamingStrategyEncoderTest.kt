@@ -20,14 +20,14 @@ fun namingStrategyEncoderTests(enDecoder: EnDecoder): TestFactory {
         data class Foo(val fooBar: String)
 
         "encode/decode fields with snake_casing" {
-            enDecoder.avro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.SnakeCase))
+            enDecoder.avro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.Builtins.SnakeCase))
             val schema = enDecoder.avro.schema(Foo.serializer())
             schema.getField("foo_bar") shouldNotBe null
             enDecoder.testEncodeDecode(Foo("hello"), record("hello"))
         }
 
         "encode/decode fields with PascalCasing" {
-            enDecoder.avro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.PascalCase))
+            enDecoder.avro = Avro(AvroConfiguration(fieldNamingStrategy = FieldNamingStrategy.Builtins.PascalCase))
             val schema = enDecoder.avro.schema(Foo.serializer())
             schema.getField("FooBar") shouldNotBe null
             enDecoder.testEncodeDecode(Foo("hello"), record("hello"))

@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.extractNonNull
@@ -21,7 +20,7 @@ import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
 interface StructureEncoder : FieldEncoder {
-    val configuration: AvroConfiguration
+    val configuration: AvroInternalConfiguration
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.kind) {
@@ -43,7 +42,7 @@ interface StructureEncoder : FieldEncoder {
 class RecordEncoder(
     private val schema: Schema,
     override val serializersModule: SerializersModule,
-    override val configuration: AvroConfiguration,
+    override val configuration: AvroInternalConfiguration,
     val callback: (Record) -> Unit,
 ) : AbstractEncoder(), StructureEncoder {
     private val builder = RecordBuilder(schema)

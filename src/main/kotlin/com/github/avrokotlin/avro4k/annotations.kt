@@ -14,18 +14,30 @@ annotation class AvroProp(val key: String, val value: String)
 annotation class AvroJsonProp(val key: String, @Language("JSON") val jsonValue: String)
 
 @SerialInfo
+@Deprecated(message = "Will be removed in the next major release in favour of @SerialName. For overriding namespace on fields, use @AvroNamespaceOverride", replaceWith = ReplaceWith("@SerialName(\"namespace.YourClass\")"))
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroNamespace(val value: String)
 
 @SerialInfo
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroNamespaceOverride(val value: String)
+
+@SerialInfo
+@Deprecated(message = "Will be removed in the next major release in favour of @SerialName", replaceWith = ReplaceWith("@SerialName(\"namespace.YourClass\")"))
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroName(val value: String)
 
 @SerialInfo
+@Deprecated(message = "Will be removed in the next major release in favour of @AvroDecimalLogicalType", replaceWith = ReplaceWith("@AvroDecimalLogicalType(scale, precision)"))
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class ScalePrecision(val scale: Int, val precision: Int)
 
 @SerialInfo
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroDecimalLogicalType(val scale: Int, val precision: Int)
+
+@SerialInfo
+@Deprecated(message = "Will be removed in the next major release in favour of kotlin value classes", replaceWith = ReplaceWith("@JvmInline"))
 @Target(AnnotationTarget.CLASS)
 annotation class AvroInline
 

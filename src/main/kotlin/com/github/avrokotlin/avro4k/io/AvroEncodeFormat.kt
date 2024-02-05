@@ -51,4 +51,22 @@ sealed class AvroEncodeFormat {
             converter: (T) -> GenericRecord
         ) = AvroJsonOutputStream(output, converter, schema)
     }
+
+   /**
+    * Encodes the avro record in single object format. This includes a fingerprint to later look up the writer schema and
+    * the binary encoded payload.
+    *
+    * See https://avro.apache.org/docs/current/specification/#single-object-encoding
+    */
+   object SingleObject : AvroEncodeFormat() {
+      override fun <T> createOutputStream(
+         output: OutputStream,
+         schema: Schema,
+         converter: (T) -> GenericRecord
+      ): AvroOutputStream<T> = AvroSingleObjectOutputStream(
+         output = output,
+         converter = converter,
+         writerSchema = schema
+      )
+   }
 }

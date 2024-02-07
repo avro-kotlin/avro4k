@@ -151,8 +151,7 @@ class NullableSchemaFor(
     }
 }
 
-@OptIn(InternalSerializationApi::class)
-@ExperimentalSerializationApi
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 fun schemaFor(
     serializersModule: SerializersModule,
     descriptor: SerialDescriptor,

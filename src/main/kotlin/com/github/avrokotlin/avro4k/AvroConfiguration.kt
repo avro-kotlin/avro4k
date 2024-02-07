@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.AvroSerializationDelegate.Builtins.Pure
+import com.github.avrokotlin.avro4k.AvroSerializationDelegate.EncodedAs
 import com.github.avrokotlin.avro4k.schema.DefaultNamingStrategy
 import com.github.avrokotlin.avro4k.schema.NamingStrategy
 
@@ -10,4 +12,9 @@ data class AvroConfiguration(
      * When set to [true], the nullable fields that haven't any default value are set as null if the value is missing. It also adds `"default": null` to those fields when generating schema using avro4k.
      */
     val implicitNulls: Boolean = false,
+    /**
+     * [Pure] with [EncodedAs.BINARY] by default.
+     * See [AvroSerializationDelegate] for more details.
+     */
+    val serializationDelegate: AvroSerializationDelegate = Pure(EncodedAs.BINARY)
 )

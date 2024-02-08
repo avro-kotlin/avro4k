@@ -30,7 +30,7 @@ annotation class AvroNamespace(val value: String)
 annotation class AvroName(val value: String)
 
 @SerialInfo
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+@Target(AnnotationTarget.PROPERTY)
 annotation class ScalePrecision(val scale: Int = 2, val precision: Int = 8)
 
 @SerialInfo
@@ -114,7 +114,7 @@ annotation class AvroAliases(val value: Array<String>)
 annotation class AvroFixed(val size: Int)
 
 @SerialInfo
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+@Target(AnnotationTarget.PROPERTY)
 annotation class AvroDefault(
     @Language("JSON") val value: String,
 )

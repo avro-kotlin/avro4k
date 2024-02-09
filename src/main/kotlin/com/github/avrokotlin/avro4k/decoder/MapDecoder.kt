@@ -43,6 +43,10 @@ class MapDecoder(
 
     private fun value(): Any? = entries[index / 2].second
 
+    override fun decodeNotNullMark(): Boolean {
+        return keyOrValue() != null
+    }
+
     override fun decodeFloat(): Float {
         return when (val v = keyOrValue()) {
             is Float -> v

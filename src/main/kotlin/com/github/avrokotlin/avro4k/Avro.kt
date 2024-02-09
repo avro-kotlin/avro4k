@@ -155,7 +155,7 @@ class AvroOutputStreamBuilder<T>(
 @OptIn(ExperimentalSerializationApi::class)
 class Avro(
     override val serializersModule: SerializersModule = defaultModule,
-    private val configuration: AvroConfiguration = AvroConfiguration(),
+    internal val configuration: AvroConfiguration = AvroConfiguration(),
 ) : SerialFormat, BinaryFormat {
     constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
 

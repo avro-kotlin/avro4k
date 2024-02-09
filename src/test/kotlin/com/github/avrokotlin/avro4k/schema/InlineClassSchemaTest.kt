@@ -3,7 +3,6 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroInline
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -19,9 +18,9 @@ class InlineClassSchemaTest : FunSpec({
         schema.toString(true) shouldBe expected.toString(true)
     }
 }) {
+    @JvmInline
     @Serializable
-    @AvroInline
-    data class Name(val value: String)
+    value class Name(val value: String)
 
     @Serializable
     data class Product(val id: String, val name: Name)

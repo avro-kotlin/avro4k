@@ -6,7 +6,6 @@ import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.DslDrivenSpec
-import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.kotest.mpp.newInstanceNoArgConstructorOrObjectInstance
 import kotlinx.serialization.DeserializationStrategy
@@ -132,7 +131,7 @@ inline fun <reified T> EnDecoder.testDecodeIsEqual(
         if (decodedValue == null && value != null) {
             fail("Decoded value is null but '$value' is expected.")
         } else if (decodedValue != null && value != null) {
-            decodedValue shouldBeEqualToComparingFields value
+            decodedValue shouldBe value
         }
     }
     return decodedValue

@@ -19,13 +19,9 @@ class AnnotationExtractor(private val annotations: List<Annotation>) {
 
     fun fixed(): Int? = annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size
 
-    fun scalePrecision(): Pair<Int, Int>? = annotations.filterIsInstance<ScalePrecision>().firstOrNull()?.let { it.scale to it.precision }
-
     fun namespace(): String? = annotations.filterIsInstance<AvroNamespace>().firstOrNull()?.value
 
     fun name(): String? = annotations.filterIsInstance<AvroName>().firstOrNull()?.value
-
-    fun valueType(): Boolean = annotations.filterIsInstance<AvroInline>().isNotEmpty()
 
     fun doc(): String? = annotations.filterIsInstance<AvroDoc>().firstOrNull()?.value
 

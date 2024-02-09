@@ -36,19 +36,12 @@ class ClassSchemaFor(
         }
     }
 
-    override fun schema(): Schema {
-        // if the class is annotated with @AvroInline then we need to encode the single field
-        // of that class directly.
-        return when (entityAnnotations.valueType()) {
-            true -> valueTypeSchema()
-            false -> dataClassSchema()
+    override fun schema(): Schema =
+        if (descriptor.isInline) {
+            buildField(0).schema()
+        } else {
+            dataClassSchema()
         }
-    }
-
-    private fun valueTypeSchema(): Schema {
-        require(descriptor.elementsCount == 1) { "A value type must only have a single field" }
-        return buildField(0).schema()
-    }
 
     private fun dataClassSchema(): Schema {
         // return schema if already resolved - recursive circuit breaker
@@ -103,6 +96,7 @@ class ClassSchemaFor(
                         else -> b to n.name
                     }
                 }
+
                 else -> a to fieldNaming.name
             }
 

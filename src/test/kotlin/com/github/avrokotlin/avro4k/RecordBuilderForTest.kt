@@ -11,38 +11,38 @@ data class RecordBuilderForTest(
         val record = GenericData.Record(schema)
         fields.forEachIndexed { index, value ->
             val fieldSchema = schema.fields[index].schema()
-            record.put(index, convertValue(value, fieldSchema))
+            record.put(index, convertToAvroGenericValue(value, fieldSchema))
         }
         return record
     }
+}
 
-    private fun convertValue(
-        value: Any?,
-        schema: Schema,
-    ): Any? {
-        return when (value) {
-            is RecordBuilderForTest -> value.createRecord(schema)
-            is Map<*, *> -> createMap(schema, value)
-            is List<*> -> createList(schema, value)
-            else -> value
-        }
+fun convertToAvroGenericValue(
+    value: Any?,
+    schema: Schema,
+): Any? {
+    return when (value) {
+        is RecordBuilderForTest -> value.createRecord(schema)
+        is Map<*, *> -> createMap(schema, value)
+        is Collection<*> -> createList(schema, value)
+        else -> value
     }
+}
 
-    fun createList(
-        schema: Schema,
-        value: List<*>,
-    ): List<*> {
-        val valueSchema = schema.elementType
-        return value.map { convertValue(it, valueSchema) }
-    }
+private fun createList(
+    schema: Schema,
+    value: Collection<*>,
+): List<*> {
+    val valueSchema = schema.elementType
+    return value.map { convertToAvroGenericValue(it, valueSchema) }
+}
 
-    fun <K, V> createMap(
-        schema: Schema,
-        value: Map<K, V>,
-    ): Map<K, *> {
-        val valueSchema = schema.valueType
-        return value.mapValues { convertValue(it.value, valueSchema) }
-    }
+private fun <K, V> createMap(
+    schema: Schema,
+    value: Map<K, V>,
+): Map<K, *> {
+    val valueSchema = schema.valueType
+    return value.mapValues { convertToAvroGenericValue(it.value, valueSchema) }
 }
 
 fun record(vararg fields: Any?): RecordBuilderForTest {

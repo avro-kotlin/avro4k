@@ -126,7 +126,6 @@ class MapDecoder(
     override fun decodeBoolean(): Boolean {
         return when (val v = keyOrValue()) {
             is Boolean -> v
-            is String -> v.toBooleanStrict()
             is CharSequence -> v.toString().toBooleanStrict()
             null -> throw SerializationException("Cannot decode <null> as a Boolean")
             else -> throw SerializationException("Unsupported type for Boolean. Actual: ${v::class.qualifiedName}")

@@ -90,7 +90,7 @@ class MapSchemaTest : FunSpec({
         1.toDouble(),
         1.toString(),
         'a',
-        SomeEnum.B,
+        SomeEnum.B
     ).forEach { keyValue ->
         test("handle string-able key type: ${keyValue::class.simpleName}") {
             assertThat(GenericMapForTests(mapOf(keyValue to "something")), GenericMapForTests.serializer(keyValue::class.serializer()))

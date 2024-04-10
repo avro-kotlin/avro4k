@@ -2,10 +2,11 @@ package com.github.avrokotlin.avro4k
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 enum class SomeEnum {
-    A, B, C
+    A,
+    B,
+    C,
 }
 
 @Serializable

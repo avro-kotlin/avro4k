@@ -128,7 +128,7 @@ class MapSchemaFor(
                 return Schema.createMap(valueSchema)
             }
         }
-        throw RuntimeException("Avro4k only supports primitive and enum kinds as the map key. Actual: ${descriptor.getElementDescriptor(0)}")
+        throw SerializationException("Avro4k only supports primitive and enum kinds as the map key. Actual: ${descriptor.getElementDescriptor(0)}")
     }
 }
 

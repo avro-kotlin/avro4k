@@ -52,7 +52,7 @@ class AvroSerializationAssertThat<T>(private val valueToEncode: T, private val s
 
     fun isEncodedAs(
         expectedEncodedGenericValue: Any?,
-        expectedDecodedValue: T? = valueToEncode
+        expectedDecodedValue: T? = valueToEncode,
     ): AvroSerializationAssertThat<T> {
         if (!this::writerSchema.isInitialized) {
             throw IllegalStateException("You must call 'shouldGenerateSchema' before calling 'isEncodedAs'.")
@@ -123,8 +123,12 @@ class AvroSerializationAssertThat<T>(private val valueToEncode: T, private val s
         inline fun <reified T : Any> assertThat(value: T): AvroSerializationAssertThat<T> {
             return AvroSerializationAssertThat(value, T::class.serializer())
         }
+
         @Suppress("UNCHECKED_CAST")
-        inline fun <reified T : Any> assertThat(value: T, serializer: KSerializer<out T>): AvroSerializationAssertThat<T> {
+        inline fun <reified T : Any> assertThat(
+            value: T,
+            serializer: KSerializer<out T>,
+        ): AvroSerializationAssertThat<T> {
             return AvroSerializationAssertThat(value, serializer as KSerializer<T>)
         }
     }

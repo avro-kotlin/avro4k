@@ -2,8 +2,8 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.apache.avro.util.Utf8
@@ -18,7 +18,7 @@ object StringToAvroValue {
             Schema.Type.FIXED -> {
                 val size = t.toByteArray().size
                 if (size > schema.fixedSize) {
-                    throw AvroRuntimeException("Cannot write string with $size bytes to fixed type of size ${schema.fixedSize}")
+                    throw SerializationException("Cannot write string with $size bytes to fixed type of size ${schema.fixedSize}")
                 }
                 // the array passed in must be padded to size
                 val bytes = ByteBuffer.allocate(schema.fixedSize).put(t.toByteArray()).array()

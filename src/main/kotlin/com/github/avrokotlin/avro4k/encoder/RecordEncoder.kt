@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.schema.unwrapValueClass
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -22,7 +22,7 @@ interface StructureEncoder : FieldEncoder {
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.kind) {
             StructureKind.LIST -> {
-                when (descriptor.getElementDescriptor(0).kind) {
+                when (descriptor.getElementDescriptor(0).unwrapValueClass.kind) {
                     PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), serializersModule) { addValue(it) }
                     else -> ListEncoder(fieldSchema(), serializersModule) { addValue(it) }
                 }
@@ -90,12 +90,7 @@ class RecordEncoder(
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        // if we have a value type, then we don't want to begin a new structure
-        return if (AnnotationExtractor(descriptor.annotations).valueType()) {
-            this
-        } else {
-            super<StructureEncoder>.beginStructure(descriptor)
-        }
+        return super<StructureEncoder>.beginStructure(descriptor)
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {

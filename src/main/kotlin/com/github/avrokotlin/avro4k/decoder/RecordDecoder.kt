@@ -38,15 +38,9 @@ class RecordDecoder(
 
     @Suppress("UNCHECKED_CAST")
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val valueType = AnnotationExtractor(descriptor.annotations).valueType()
         val value = fieldValue()
         return when (descriptor.kind) {
-            StructureKind.CLASS ->
-                if (valueType) {
-                    InlineDecoder(fieldValue(), serializersModule)
-                } else {
-                    RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
-                }
+            StructureKind.CLASS -> RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
             StructureKind.MAP ->
                 MapDecoder(
                     descriptor,
@@ -55,6 +49,7 @@ class RecordDecoder(
                     serializersModule,
                     configuration
                 )
+
             StructureKind.LIST -> {
                 val decoder: CompositeDecoder =
                     if (descriptor.getElementDescriptor(0).kind == PrimitiveKind.BYTE) {
@@ -75,6 +70,7 @@ class RecordDecoder(
                     }
                 decoder
             }
+
             PolymorphicKind.SEALED, PolymorphicKind.OPEN ->
                 UnionDecoder(
                     descriptor,
@@ -82,6 +78,7 @@ class RecordDecoder(
                     serializersModule,
                     configuration
                 )
+
             else -> throw UnsupportedOperationException("Decoding descriptor of kind ${descriptor.kind} is currently not supported")
         }
     }

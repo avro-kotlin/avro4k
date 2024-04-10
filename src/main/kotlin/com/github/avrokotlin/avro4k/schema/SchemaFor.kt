@@ -111,23 +111,24 @@ class MapSchemaFor(
     private val resolvedSchemas: MutableMap<RecordNaming, Schema>,
 ) : SchemaFor {
     override fun schema(): Schema {
-        val keyType = descriptor.getElementDescriptor(0).unwrapValueClass
-        when (keyType.kind) {
-            is PrimitiveKind.STRING -> {
-                val valueType = descriptor.getElementDescriptor(1)
+        val keyType =
+            descriptor.getElementDescriptor(0).unwrapValueClass.let {
+                if (it.kind == SerialKind.CONTEXTUAL) serializersModule.getContextualDescriptor(it)?.unwrapValueClass else it
+            }
+        if (keyType != null) {
+            if (keyType.kind is PrimitiveKind || keyType.kind == SerialKind.ENUM) {
                 val valueSchema =
                     schemaFor(
                         serializersModule,
-                        valueType,
+                        descriptor.getElementDescriptor(1),
                         descriptor.getElementAnnotations(1),
                         configuration,
                         resolvedSchemas
                     ).schema()
                 return Schema.createMap(valueSchema)
             }
-
-            else -> throw RuntimeException("Avro only supports STRING as the key type in a MAP")
         }
+        throw SerializationException("Avro4k only supports primitive and enum kinds as the map key. Actual: ${descriptor.getElementDescriptor(0)}")
     }
 }
 

@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroDecimalLogicalType
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroEnumDefault
-import com.github.avrokotlin.avro4k.ScalePrecision
 import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
@@ -49,7 +49,7 @@ data class ContainerWithDefaultFields(
     @AvroDefault("""[{"content":"bar"}]""")
     val filledFooList: List<FooElement>,
     @AvroDefault("\u0000")
-    @ScalePrecision(0, 10)
+    @AvroDecimalLogicalType(0, 10)
     @Serializable(BigDecimalSerializer::class)
     val bigDecimal: BigDecimal,
 )

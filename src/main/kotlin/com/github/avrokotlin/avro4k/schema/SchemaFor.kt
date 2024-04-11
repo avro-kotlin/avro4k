@@ -8,7 +8,6 @@ import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.AvroTimeLogicalType
 import com.github.avrokotlin.avro4k.AvroUuidLogicalType
 import com.github.avrokotlin.avro4k.LogicalDecimalTypeEnum
-import com.github.avrokotlin.avro4k.ScalePrecision
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -207,32 +206,26 @@ private fun schemaForLogicalTypes(
     val annotations =
         annos + descriptor.annotations + (if (descriptor.isInline) descriptor.unwrapValueClass.annotations else emptyList())
 
-    if (annotations.any { it is AvroDecimalLogicalType }) {
-        val decimalLogicalType = annotations.filterIsInstance<AvroDecimalLogicalType>().first()
-        val scaleAndPrecision = annotations.filterIsInstance<ScalePrecision>().first()
-        val schema =
-            when (decimalLogicalType.schema) {
-                LogicalDecimalTypeEnum.BYTES -> SchemaBuilder.builder().bytesType()
-                LogicalDecimalTypeEnum.STRING -> SchemaBuilder.builder().stringType()
-                LogicalDecimalTypeEnum.FIXED -> {
-                    val fixedSize =
-                        annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size
-                            ?: throw UnsupportedOperationException("Fixed size must be specified for FIXED decimal type with @AvroFixed annotation")
-                    createFixedSchema(descriptor, fixedSize, configuration)
-                }
+    for (annotation in annotations) {
+        when (annotation) {
+            is AvroDecimalLogicalType -> {
+                val schema =
+                    when (annotation.schema) {
+                        LogicalDecimalTypeEnum.BYTES -> SchemaBuilder.builder().bytesType()
+                        LogicalDecimalTypeEnum.STRING -> SchemaBuilder.builder().stringType()
+                        LogicalDecimalTypeEnum.FIXED -> {
+                            val fixedSize =
+                                annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size
+                                    ?: throw UnsupportedOperationException("Fixed size must be specified for FIXED decimal type with @AvroFixed annotation")
+                            createFixedSchema(descriptor, fixedSize, configuration)
+                        }
+                    }
+                return LogicalTypes.decimal(annotation.precision, annotation.scale).addToSchema(schema)
             }
-        return LogicalTypes.decimal(scaleAndPrecision.precision, scaleAndPrecision.scale).addToSchema(schema)
-    }
-    if (annotations.any { it is AvroUuidLogicalType }) {
-        return LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType())
-    }
-    if (annotations.any { it is AvroTimeLogicalType }) {
-        val timeLogicalType = annotations.filterIsInstance<AvroTimeLogicalType>().first()
-        return timeLogicalType.type.schemaFor()
-    }
-    if (annotations.any { it is AvroFixed }) {
-        val fixedSize = annotations.filterIsInstance<AvroFixed>().first().size
-        return createFixedSchema(descriptor, fixedSize, configuration)
+            is AvroUuidLogicalType -> return LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType())
+            is AvroTimeLogicalType -> return annotation.type.schemaFor()
+            is AvroFixed -> return createFixedSchema(descriptor, annotation.size, configuration)
+        }
     }
     return null
 }

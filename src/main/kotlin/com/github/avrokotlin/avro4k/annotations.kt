@@ -2,6 +2,7 @@
 
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -28,20 +29,23 @@ annotation class AvroJsonProp(
     @Language("JSON") val jsonValue: String,
 )
 
+/**
+ * To be used with [BigDecimalSerializer] to specify the scale, precision, type and rounding mode of the decimal value.
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class ScalePrecision(val scale: Int = 2, val precision: Int = 8)
-
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY)
-annotation class AvroDecimalLogicalType(val schema: LogicalDecimalTypeEnum = LogicalDecimalTypeEnum.BYTES)
+annotation class AvroDecimalLogicalType(
+    val scale: Int = 2,
+    val precision: Int = 8,
+    val schema: LogicalDecimalTypeEnum = LogicalDecimalTypeEnum.BYTES,
+)
 
 enum class LogicalDecimalTypeEnum {
     BYTES,
     STRING,
 
     /**
-     * Fixed must be accompanied with [AvroFixed]
+     * Fixed requires the field annotated with [AvroFixed]
      */
     FIXED,
 }

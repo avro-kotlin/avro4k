@@ -2,10 +2,11 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroAlias
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.AvroJsonProp
+import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
-import com.github.avrokotlin.avro4k.RecordNaming
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
@@ -24,12 +25,12 @@ import org.apache.avro.SchemaBuilder
 @ExperimentalSerializationApi
 class ClassSchemaFor(
     private val descriptor: SerialDescriptor,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
     private val serializersModule: SerializersModule,
-    private val resolvedSchemas: MutableMap<RecordNaming, Schema>,
+    private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {
     private val entityAnnotations = AnnotationExtractor(descriptor.annotations)
-    private val naming = RecordNaming(descriptor, DefaultNamingStrategy)
+    private val naming = configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName)
     private val json by lazy {
         Json {
             serializersModule = this@ClassSchemaFor.serializersModule
@@ -66,77 +67,53 @@ class ClassSchemaFor(
     }
 
     private fun buildField(index: Int): Schema.Field {
-        val fieldDescriptor = descriptor.getElementDescriptor(index)
-        val annos =
-            AnnotationExtractor(
-                descriptor.getElementAnnotations(
-                    index
-                )
-            )
-        val fieldNaming = RecordNaming(descriptor, index, configuration.namingStrategy)
+        val fieldTypeDescriptor = descriptor.getElementDescriptor(index)
+        val annos = AnnotationExtractor(descriptor.getElementAnnotations(index))
+        val fieldSpecificNamespace: String? = descriptor.getElementAnnotations(index).filterIsInstance<AvroNamespaceOverride>().firstOrNull()?.value
+        val fieldName = configuration.fieldNamingStrategy.resolve(descriptor, index, descriptor.getElementName(index))
         val schema =
-            schemaFor(
+            getFixedSchema(fieldName, annos) ?: schemaFor(
                 serializersModule,
-                fieldDescriptor,
+                fieldTypeDescriptor,
                 descriptor.getElementAnnotations(index),
                 configuration,
                 resolvedSchemas
             ).schema()
 
-        // if we have annotated the field @AvroFixed then we override the type and change it to a Fixed schema
-        // if someone puts @AvroFixed on a complex type, it makes no sense, but that's their cross to bear
-        // in addition, someone could annotate the target type, so we need to check into that too
-        val (size, name) =
-            when (val a = annos.fixed()) {
-                null -> {
-                    val fieldAnnos = AnnotationExtractor(fieldDescriptor.annotations)
-                    val n = RecordNaming(fieldDescriptor, configuration.namingStrategy)
-                    when (val b = fieldAnnos.fixed()) {
-                        null -> 0 to n.name
-                        else -> b to n.name
-                    }
-                }
+        // If the field is annotated with a specific namespace, then we need to override the namespace of the field's schema
+        val schemaWithResolvedNamespace = fieldSpecificNamespace?.let { schema.overrideNamespace(it) } ?: schema
 
-                else -> a to fieldNaming.name
-            }
+        val default: Any? = getDefaultValue(annos, schemaWithResolvedNamespace, fieldTypeDescriptor)
 
-        val schemaOrFixed =
-            when (size) {
-                0 -> schema
-                else ->
-                    SchemaBuilder.fixed(name)
-                        .doc(annos.doc())
-                        .namespace(annos.namespace() ?: naming.namespace)
-                        .size(size)
-            }
-
-        // the field can override the containingNamespace if the Namespace annotation is present on the field
-        // we may have annotated our field with @AvroNamespace so this containingNamespace should be applied
-        // to any schemas we have generated for this field
-        val schemaWithResolvedNamespace =
-            when (val ns = annos.namespace()) {
-                null -> schemaOrFixed
-                else -> schemaOrFixed.overrideNamespace(ns)
-            }
-
-        val default: Any? = getDefaultValue(annos, schemaWithResolvedNamespace, fieldDescriptor)
-
-        val field = Schema.Field(fieldNaming.name, schemaWithResolvedNamespace, annos.doc(), default)
-        this.descriptor.getElementAnnotations(index)
-            .filterIsInstance<AvroProp>()
-            .forEach { field.addProp(it.key, it.value) }
-        this.descriptor.getElementAnnotations(index)
-            .filterIsInstance<AvroJsonProp>()
-            .forEach { field.addProp(it.key, json.parseToJsonElement(it.jsonValue).convertToAvroDefault()) }
-        annos.aliases().forEach { field.addAlias(it) }
-
+        val field = Schema.Field(fieldName, schemaWithResolvedNamespace, annos.doc(), default)
+        field.mutateFieldFromAnnotations(this.descriptor.getElementAnnotations(index))
         return field
     }
+
+    private fun getFixedSchema(
+        fieldName: String,
+        annos: AnnotationExtractor,
+    ): Schema? {
+        val size = annos.fixed() ?: return null
+        return SchemaBuilder.fixed(fieldName)
+            .doc(annos.doc())
+            .namespace(naming.namespace)
+            .size(size)
+    }
+
+    private fun Schema.Field.mutateFieldFromAnnotations(annotations: List<Annotation>) =
+        annotations.forEach {
+            when (it) {
+                is AvroProp -> this.addProp(it.key, it.value)
+                is AvroJsonProp -> this.addProp(it.key, json.parseToJsonElement(it.jsonValue).convertToAvroDefault())
+                is AvroAlias -> it.value.forEach { this.addAlias(it) }
+            }
+        }
 
     private fun getDefaultValue(
         annos: AnnotationExtractor,
         schemaWithResolvedNamespace: Schema,
-        fieldDescriptor: SerialDescriptor,
+        fieldTypeDescriptor: SerialDescriptor,
     ) = annos.default()?.let { annotationDefaultValue ->
         when {
             annotationDefaultValue == Avro.NULL -> Schema.Field.NULL_DEFAULT_VALUE
@@ -151,7 +128,7 @@ class ClassSchemaFor(
 
             else -> json.parseToJsonElement(annotationDefaultValue).convertToAvroDefault()
         }
-    } ?: if (configuration.implicitNulls && fieldDescriptor.isNullable) {
+    } ?: if (configuration.implicitNulls && fieldTypeDescriptor.isNullable) {
         Schema.Field.NULL_DEFAULT_VALUE
     } else {
         null

@@ -2,12 +2,12 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroDecimalLogicalType
+import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.AvroTimeLogicalType
 import com.github.avrokotlin.avro4k.AvroUuidLogicalType
 import com.github.avrokotlin.avro4k.LogicalDecimalTypeEnum
-import com.github.avrokotlin.avro4k.RecordNaming
 import com.github.avrokotlin.avro4k.ScalePrecision
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -52,9 +52,10 @@ interface SchemaFor {
 @ExperimentalSerializationApi
 class EnumSchemaFor(
     private val descriptor: SerialDescriptor,
+    private val configuration: AvroInternalConfiguration,
 ) : SchemaFor {
     override fun schema(): Schema {
-        val naming = RecordNaming(descriptor, DefaultNamingStrategy)
+        val naming = configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName)
         val entityAnnotations = AnnotationExtractor(descriptor.annotations)
         val symbols = (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }
 
@@ -81,8 +82,8 @@ class EnumSchemaFor(
 class ListSchemaFor(
     private val descriptor: SerialDescriptor,
     private val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
-    private val resolvedSchemas: MutableMap<RecordNaming, Schema>,
+    private val configuration: AvroInternalConfiguration,
+    private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {
     override fun schema(): Schema {
         val elementType = descriptor.getElementDescriptor(0) // don't use unwrapValueClass to prevent losing serial annotations
@@ -107,8 +108,8 @@ class ListSchemaFor(
 class MapSchemaFor(
     private val descriptor: SerialDescriptor,
     private val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
-    private val resolvedSchemas: MutableMap<RecordNaming, Schema>,
+    private val configuration: AvroInternalConfiguration,
+    private val resolvedSchemas: MutableMap<RecordName, Schema>,
 ) : SchemaFor {
     override fun schema(): Schema {
         val keyType =
@@ -158,40 +159,41 @@ fun schemaFor(
     serializersModule: SerializersModule,
     descriptor: SerialDescriptor,
     annos: List<Annotation>,
-    configuration: AvroConfiguration,
-    resolvedSchemas: MutableMap<RecordNaming, Schema>,
+    configuration: AvroInternalConfiguration,
+    resolvedSchemas: MutableMap<RecordName, Schema>,
 ): SchemaFor {
     val schemaFor: SchemaFor =
-        schemaForLogicalTypes(descriptor, annos) ?: when (descriptor.unwrapValueClass.kind) {
-            PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
-            PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
-            PrimitiveKind.INT -> SchemaFor.IntSchemaFor
-            PrimitiveKind.SHORT -> SchemaFor.ShortSchemaFor
-            PrimitiveKind.BYTE -> SchemaFor.ByteSchemaFor
-            PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
-            PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
-            PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
-            SerialKind.ENUM -> EnumSchemaFor(descriptor)
-            SerialKind.CONTEXTUAL ->
-                schemaFor(
-                    serializersModule,
-                    requireNotNull(
-                        serializersModule.getContextualDescriptor(descriptor.unwrapValueClass)
-                            ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
-                    ) {
-                        "Contextual or default serializer not found for $descriptor "
-                    },
-                    annos,
-                    configuration,
-                    resolvedSchemas
-                )
+        schemaForLogicalTypes(descriptor, annos, configuration)?.let(SchemaFor::const)
+            ?: when (descriptor.unwrapValueClass.kind) {
+                PrimitiveKind.STRING -> SchemaFor.StringSchemaFor
+                PrimitiveKind.LONG -> SchemaFor.LongSchemaFor
+                PrimitiveKind.INT -> SchemaFor.IntSchemaFor
+                PrimitiveKind.SHORT -> SchemaFor.ShortSchemaFor
+                PrimitiveKind.BYTE -> SchemaFor.ByteSchemaFor
+                PrimitiveKind.DOUBLE -> SchemaFor.DoubleSchemaFor
+                PrimitiveKind.FLOAT -> SchemaFor.FloatSchemaFor
+                PrimitiveKind.BOOLEAN -> SchemaFor.BooleanSchemaFor
+                SerialKind.ENUM -> EnumSchemaFor(descriptor, configuration)
+                SerialKind.CONTEXTUAL ->
+                    schemaFor(
+                        serializersModule,
+                        requireNotNull(
+                            serializersModule.getContextualDescriptor(descriptor.unwrapValueClass)
+                                ?: descriptor.capturedKClass?.serializerOrNull()?.descriptor
+                        ) {
+                            "Contextual or default serializer not found for $descriptor "
+                        },
+                        annos,
+                        configuration,
+                        resolvedSchemas
+                    )
 
-            StructureKind.CLASS, StructureKind.OBJECT -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
-            StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
-            StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
-            is PolymorphicKind -> UnionSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
-            else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
-        }
+                StructureKind.CLASS, StructureKind.OBJECT -> ClassSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
+                StructureKind.LIST -> ListSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
+                StructureKind.MAP -> MapSchemaFor(descriptor, serializersModule, configuration, resolvedSchemas)
+                is PolymorphicKind -> UnionSchemaFor(descriptor, configuration, serializersModule, resolvedSchemas)
+                else -> throw SerializationException("Unsupported type ${descriptor.serialName} of ${descriptor.kind}")
+            }
 
     return if (descriptor.isNullable) NullableSchemaFor(schemaFor, annos) else schemaFor
 }
@@ -200,7 +202,8 @@ fun schemaFor(
 private fun schemaForLogicalTypes(
     descriptor: SerialDescriptor,
     annos: List<Annotation>,
-): SchemaFor? {
+    configuration: AvroInternalConfiguration,
+): Schema? {
     val annotations =
         annos + descriptor.annotations + (if (descriptor.isInline) descriptor.unwrapValueClass.annotations else emptyList())
 
@@ -211,24 +214,38 @@ private fun schemaForLogicalTypes(
             when (decimalLogicalType.schema) {
                 LogicalDecimalTypeEnum.BYTES -> SchemaBuilder.builder().bytesType()
                 LogicalDecimalTypeEnum.STRING -> SchemaBuilder.builder().stringType()
-                LogicalDecimalTypeEnum.FIXED -> TODO()
+                LogicalDecimalTypeEnum.FIXED -> {
+                    val fixedSize =
+                        annotations.filterIsInstance<AvroFixed>().firstOrNull()?.size
+                            ?: throw UnsupportedOperationException("Fixed size must be specified for FIXED decimal type with @AvroFixed annotation")
+                    createFixedSchema(descriptor, fixedSize, configuration)
+                }
             }
-        return object : SchemaFor {
-            override fun schema() = LogicalTypes.decimal(scaleAndPrecision.precision, scaleAndPrecision.scale).addToSchema(schema)
-        }
+        return LogicalTypes.decimal(scaleAndPrecision.precision, scaleAndPrecision.scale).addToSchema(schema)
     }
     if (annotations.any { it is AvroUuidLogicalType }) {
-        return object : SchemaFor {
-            override fun schema() = LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType())
-        }
+        return LogicalTypes.uuid().addToSchema(SchemaBuilder.builder().stringType())
     }
     if (annotations.any { it is AvroTimeLogicalType }) {
         val timeLogicalType = annotations.filterIsInstance<AvroTimeLogicalType>().first()
-        return object : SchemaFor {
-            override fun schema() = timeLogicalType.type.schemaFor()
-        }
+        return timeLogicalType.type.schemaFor()
+    }
+    if (annotations.any { it is AvroFixed }) {
+        val fixedSize = annotations.filterIsInstance<AvroFixed>().first().size
+        return createFixedSchema(descriptor, fixedSize, configuration)
     }
     return null
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+private fun createFixedSchema(
+    descriptor: SerialDescriptor,
+    fixedSize: Int,
+    configuration: AvroInternalConfiguration,
+): Schema {
+    return configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName).let {
+        SchemaBuilder.fixed(it.name).namespace(it.namespace).size(fixedSize)
+    }
 }
 
 // copy-paste from kotlinx serialization because it internal

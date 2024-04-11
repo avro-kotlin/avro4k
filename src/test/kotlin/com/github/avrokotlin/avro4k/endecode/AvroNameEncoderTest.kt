@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.endecode
 
-import com.github.avrokotlin.avro4k.AvroName
 import com.github.avrokotlin.avro4k.record
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.stringSpec
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class AvroNameEncoderTest : FunSpec({
@@ -16,7 +16,7 @@ fun avroNameEncodingTests(endecoder: EnDecoder): TestFactory {
         "take into account @AvroName on fields" {
             @Serializable
             data class Foo(
-                @AvroName("bar") val foo: String,
+                @SerialName("bar") val foo: String,
             )
             endecoder.testEncodeDecode(Foo("hello"), record("hello"))
         }

@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -16,7 +16,7 @@ import org.apache.avro.generic.GenericRecord
 class RootRecordDecoder(
     private val record: GenericRecord,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
 ) : AbstractDecoder() {
     var decoded = false
 

@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroName
-import com.github.avrokotlin.avro4k.AvroNamespace
+import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class AvroNamespaceSchemaTest : FunSpec({
@@ -36,6 +36,12 @@ class AvroNamespaceSchemaTest : FunSpec({
         schema.toString(true) shouldBe expected.toString(true)
     }
 
+    test("favour namespace annotations on the topest value class field over record") {
+        val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/namespace_nested.json"))
+        val schema = Avro.default.schema(NestedValueClasses.serializer())
+        schema.toString(true) shouldBe expected.toString(true)
+    }
+
     test("empty namespace") {
 
         val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/namespace_empty.json"))
@@ -43,45 +49,63 @@ class AvroNamespaceSchemaTest : FunSpec({
         schema.toString(true) shouldBe expected.toString(true)
     }
 }) {
-    @AvroNamespace("com.yuval")
+    @SerialName("com.yuval.AnnotatedNamespace")
     @Serializable
     data class AnnotatedNamespace(val s: String)
 
-    @AvroNamespace("com.yuval.internal")
+    @SerialName("com.yuval.internal.InternalAnnotated")
     @Serializable
     data class InternalAnnotated(val i: Int)
 
-    @AvroName("AnnotatedNamespace")
-    @AvroNamespace("com.yuval")
+    @SerialName("com.yuval.AnnotatedNamespace")
     @Serializable
     data class NestedAnnotatedNamespace(val s: String, val internal: InternalAnnotated)
 
     @Serializable
-    @AvroName("InternalAnnotated")
+    @SerialName("InternalAnnotated")
     data class Internal(val i: Int)
 
     @Serializable
-    @AvroName("AnnotatedNamespace")
-    @AvroNamespace("com.yuval")
+    @SerialName("com.yuval.AnnotatedNamespace")
     data class InternalAnnotatedNamespace(
         val s: String,
-        @AvroNamespace("com.yuval.internal") val internal: Internal,
+        @AvroNamespaceOverride("com.yuval.internal") val internal: Internal,
     )
 
     @Serializable
-    @AvroName("InternalAnnotated")
-    @AvroNamespace("ignore")
+    @SerialName("shouldbeignored.InternalAnnotated")
     data class InternalIgnoreAnnotated(val i: Int)
 
     @Serializable
-    @AvroName("AnnotatedNamespace")
-    @AvroNamespace("com.yuval")
+    @SerialName("com.yuval.AnnotatedNamespace")
     data class FieldAnnotatedNamespace(
         val s: String,
-        @AvroNamespace("com.yuval.internal") val internal: InternalIgnoreAnnotated,
+        @AvroNamespaceOverride("com.yuval.internal") val internal: InternalIgnoreAnnotated,
     )
 
-    @AvroNamespace("")
+    @SerialName("Foo")
     @Serializable
     data class Foo(val s: String)
+
+    @SerialName("toto.NestedValueClasses")
+    @Serializable
+    data class NestedValueClasses(val nested: Nested1)
+
+    @JvmInline
+    @SerialName("shouldbeignored.Nested1")
+    @Serializable
+    value class Nested1(
+        @AvroNamespaceOverride("primaryspace") val s: Nested2,
+    )
+
+    @JvmInline
+    @SerialName("shouldbeignored.Nested2")
+    @Serializable
+    value class Nested2(
+        @AvroNamespaceOverride("shouldalsobeignored") val s: Nested3,
+    )
+
+    @SerialName("shouldbeignored.Nested3")
+    @Serializable
+    data class Nested3(val s: String)
 }

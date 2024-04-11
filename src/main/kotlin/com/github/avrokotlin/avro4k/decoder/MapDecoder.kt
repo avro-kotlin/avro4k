@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -17,11 +17,10 @@ import java.nio.ByteBuffer
 
 @ExperimentalSerializationApi
 class MapDecoder(
-    private val desc: SerialDescriptor,
     private val schema: Schema,
     map: Map<*, *>,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroConfiguration,
+    private val configuration: AvroInternalConfiguration,
 ) : AbstractDecoder(), CompositeDecoder {
     init {
         require(schema.type == Schema.Type.MAP)
@@ -146,7 +145,7 @@ class MapDecoder(
                     PrimitiveKind.BYTE -> ByteArrayDecoder((value() as ByteBuffer).array(), serializersModule)
                     else -> ListDecoder(schema.valueType, value() as GenericArray<*>, serializersModule, configuration)
                 }
-            StructureKind.MAP -> MapDecoder(descriptor, schema.valueType, value() as Map<String, *>, serializersModule, configuration)
+            StructureKind.MAP -> MapDecoder(schema.valueType, value() as Map<String, *>, serializersModule, configuration)
             PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor, value() as GenericRecord, serializersModule, configuration)
             else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
         }

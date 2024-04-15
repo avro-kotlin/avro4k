@@ -24,7 +24,7 @@ import java.nio.file.Path
 
 class AvroSerializationAssertThat<T>(private val valueToEncode: T, private val serializer: KSerializer<T>) {
     private var serializersModule: SerializersModule = Avro.default.serializersModule
-    private var config: AvroInternalConfiguration = Avro.default.configuration
+    private var config: AvroConfiguration = Avro.default.configuration
     private var readerSchema: Schema = avro.schema(serializer)
     private lateinit var writerSchema: Schema
     private val avro: Avro
@@ -36,7 +36,7 @@ class AvroSerializationAssertThat<T>(private val valueToEncode: T, private val s
     }
 
     fun withConfig(config: AvroConfiguration): AvroSerializationAssertThat<T> {
-        this.config = AvroInternalConfiguration(config)
+        this.config = config
         return this
     }
 

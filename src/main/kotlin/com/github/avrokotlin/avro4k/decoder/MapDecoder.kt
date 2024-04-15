@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -20,7 +20,7 @@ class MapDecoder(
     private val schema: Schema,
     map: Map<*, *>,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroInternalConfiguration,
+    private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), CompositeDecoder {
     init {
         require(schema.type == Schema.Type.MAP)

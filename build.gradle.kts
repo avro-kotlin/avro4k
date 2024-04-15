@@ -45,9 +45,9 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.apiVersion = "1.8"
-    kotlinOptions.languageVersion = "1.8"
-    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-Xcontext-receivers")
+    kotlinOptions.apiVersion = "1.6"
+    kotlinOptions.languageVersion = "1.6"
+    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

@@ -158,15 +158,10 @@ class AvroOutputStreamBuilder<T>(
 }
 
 class Avro internal constructor(
-    internal val configuration: AvroInternalConfiguration,
-    override val serializersModule: SerializersModule,
+    override val serializersModule: SerializersModule = defaultModule,
+    internal val configuration: AvroConfiguration = AvroConfiguration(),
 ) : SerialFormat, BinaryFormat {
     internal val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
-
-    constructor(
-        serializersModule: SerializersModule = defaultModule,
-        configuration: AvroConfiguration = AvroConfiguration(),
-    ) : this(AvroInternalConfiguration(configuration), serializersModule)
 
     constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
 

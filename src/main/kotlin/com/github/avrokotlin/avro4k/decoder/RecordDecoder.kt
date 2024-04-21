@@ -187,6 +187,16 @@ class RecordDecoder(
         }
     }
 
+    override fun decodeChar(): Char {
+        return when (val v = fieldValue()) {
+            is Int -> v.toChar()
+            is Char -> v
+            is CharSequence -> v.single()
+            null -> throw SerializationException("Cannot decode <null> as a Char")
+            else -> throw SerializationException("Unsupported type for Char ${v::class.qualifiedName}")
+        }
+    }
+
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         currentIndex++
         return if (currentIndex < descriptor.elementsCount) currentIndex else CompositeDecoder.DECODE_DONE

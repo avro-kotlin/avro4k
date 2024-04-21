@@ -17,6 +17,7 @@ plugins {
     id("maven-publish")
     signing
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
     alias(libs.plugins.kotest)
     alias(libs.plugins.github.versions)
     alias(libs.plugins.nexus.publish)

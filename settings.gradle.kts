@@ -13,7 +13,6 @@ dependencyResolutionManagement {
             version("kotlin", "1.9.22")
             version("jvm", "18")
 
-            library("xerial-snappy", "org.xerial.snappy", "snappy-java").version("1.1.10.1")
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
 
             val kotlinxSerialization = "1.6.2"

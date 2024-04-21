@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.AvroTypeException
 import java.math.BigDecimal
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class AvroDefaultSchemaTest : FunSpec() {
     init {
         test("schema for data class with @AvroDefault should include default value as a string") {

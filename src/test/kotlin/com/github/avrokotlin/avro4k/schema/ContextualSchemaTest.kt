@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.apache.avro.Schema
-import java.lang.IllegalArgumentException
 import java.time.Instant
 
 class ContextualSchemaTest : StringSpec({
@@ -22,7 +21,7 @@ class ContextualSchemaTest : StringSpec({
             Avro(
                 serializersModule =
                     SerializersModule {
-                        contextual(InstantSerializer())
+                        contextual(InstantSerializer)
                     }
             )
 
@@ -30,7 +29,7 @@ class ContextualSchemaTest : StringSpec({
             Avro(
                 serializersModule =
                     SerializersModule {
-                        contextual(InstantToMicroSerializer())
+                        contextual(InstantToMicroSerializer)
                     }
             )
 

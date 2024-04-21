@@ -36,6 +36,7 @@ dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
+    implementation(kotlin("reflect"))
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.json)
@@ -44,9 +45,9 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.apiVersion = "1.6"
-    kotlinOptions.languageVersion = "1.6"
-    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    kotlinOptions.apiVersion = "1.8"
+    kotlinOptions.languageVersion = "1.8"
+    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-Xcontext-receivers")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

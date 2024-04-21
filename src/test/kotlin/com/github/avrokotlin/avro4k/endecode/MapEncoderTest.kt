@@ -6,7 +6,6 @@ import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.spec.style.stringSpec
 import kotlinx.serialization.Contextual
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -138,7 +137,6 @@ private enum class MyEnum {
 
 data class NonSerializableKey(val value: String)
 
-@OptIn(ExperimentalSerializationApi::class)
 class NonSerializableKeyKSerializer : KSerializer<NonSerializableKey> {
     @OptIn(InternalSerializationApi::class)
     override val descriptor = buildSerialDescriptor("NonSerializableKey", PrimitiveKind.STRING)

@@ -3,7 +3,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroDecimalLogicalType
+import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -37,7 +37,7 @@ class BigDecimalSchemaTest : FunSpec({
 
     @Serializable
     data class BigDecimalPrecisionTest(
-        @AvroDecimalLogicalType(1, 4) val decimal: BigDecimal,
+        @AvroDecimal(1, 4) val decimal: BigDecimal,
     )
 
     @Serializable

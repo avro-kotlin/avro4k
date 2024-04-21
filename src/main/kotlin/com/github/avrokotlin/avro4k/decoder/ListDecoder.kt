@@ -72,7 +72,7 @@ class ListDecoder(
     override fun fieldSchema(): Schema = schema.elementType
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = EnumFromAvroValue.fromValue(array[index]!!)
+        val symbol = array[index]!!.toString()
         return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
     }
 

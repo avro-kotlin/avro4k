@@ -9,6 +9,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
+import org.apache.avro.SchemaParseException
 
 class EnumSchemaTest : WordSpec({
 
@@ -57,7 +58,7 @@ class EnumSchemaTest : WordSpec({
             schemaWithNewNameSpace.toString(true) shouldBe expected.toString(true)
         }
         "fail with unknown values" {
-            shouldThrow<IllegalStateException> {
+            shouldThrow<SchemaParseException> {
                 Avro.default.schema(EnumWithUnknownDefaultTest.serializer())
             }
         }

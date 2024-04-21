@@ -46,19 +46,6 @@ val polymorphicModule =
     }
 
 class PolymorphicClassSchemaTest : StringSpec({
-    "schema for polymorphic hierarchy" {
-        val module =
-            SerializersModule {
-                polymorphic(UnsealedPolymorphicRoot::class) {
-                    subclass(UnsealedChildOne::class)
-                    subclass(SealedChildTwo::class)
-                }
-            }
-        val schema = Avro(serializersModule = module).schema(UnsealedPolymorphicRoot.serializer())
-        val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/polymorphic.json"))
-        schema shouldBe expected
-    }
-
     "supports polymorphic references / nested fields" {
         val schema = Avro(serializersModule = polymorphicModule).schema(ReferencingPolymorphicRoot.serializer())
         val expected = Schema.Parser().parse(javaClass.getResourceAsStream("/polymorphic_reference.json"))

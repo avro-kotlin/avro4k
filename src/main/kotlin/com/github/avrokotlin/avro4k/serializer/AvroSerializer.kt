@@ -15,23 +15,26 @@ abstract class AvroSerializer<T> : KSerializer<T> {
         encoder: Encoder,
         value: T,
     ) {
-        val schema = (encoder as FieldEncoder).fieldSchema()
-        // we may be encoding a nullable schema
-        val subschema =
-            when (schema.type) {
-                Schema.Type.UNION -> schema.extractNonNull()
-                else -> schema
+        val schema =
+            (encoder as FieldEncoder).fieldSchema().let {
+                if (!this.descriptor.isNullable && it.isNullable) {
+                    it.extractNonNull()
+                } else {
+                    it
+                }
             }
-        encodeAvroValue(subschema, encoder, value)
+        encodeAvroValue(schema, encoder, value)
     }
 
     final override fun deserialize(decoder: Decoder): T {
-        val schema = (decoder as FieldDecoder).fieldSchema()
-//      // we may be coming from a nullable schema aka a union
-//      val subschema = when (schema.type) {
-//         Schema.Type.UNION -> schema.extractNonNull()
-//         else -> schema
-//      }
+        val schema =
+            (decoder as FieldDecoder).fieldSchema().let {
+                if (!this.descriptor.isNullable && it.isNullable) {
+                    it.extractNonNull()
+                } else {
+                    it
+                }
+            }
         return decodeAvroValue(schema, decoder)
     }
 

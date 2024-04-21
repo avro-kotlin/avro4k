@@ -4,7 +4,6 @@ import com.github.avrokotlin.avro4k.AvroInternalConfiguration
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.Record
 import com.github.avrokotlin.avro4k.schema.extractNonNull
-import com.github.avrokotlin.avro4k.schema.unwrapValueClass
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -37,6 +36,10 @@ interface StructureEncoder : FieldEncoder {
         }
     }
 }
+
+@ExperimentalSerializationApi
+internal val SerialDescriptor.unwrapValueClass: SerialDescriptor
+    get() = if (isInline) getElementDescriptor(0) else this
 
 @ExperimentalSerializationApi
 class RecordEncoder(

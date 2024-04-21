@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.io
 
 import com.github.avrokotlin.avro4k.Avro
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericDatumWriter
@@ -36,7 +35,6 @@ abstract class DefaultAvroOutputStream<T>(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 class AvroBinaryOutputStream<T>(
     output: OutputStream,
     converter: (T) -> GenericRecord,
@@ -52,7 +50,6 @@ class AvroBinaryOutputStream<T>(
     override val encoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(output, null)
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 class AvroJsonOutputStream<T>(
     output: OutputStream,
     converter: (T) -> GenericRecord,

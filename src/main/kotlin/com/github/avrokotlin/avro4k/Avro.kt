@@ -9,11 +9,13 @@ import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
 import com.github.avrokotlin.avro4k.io.AvroFormat
 import com.github.avrokotlin.avro4k.io.AvroInputStream
 import com.github.avrokotlin.avro4k.io.AvroOutputStream
-import com.github.avrokotlin.avro4k.schema.schemaFor
+import com.github.avrokotlin.avro4k.schema.ValueVisitor
+import com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer
+import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
+import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -31,6 +33,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
 
 open class AvroInputStreamBuilder<T>(
     private val converter: (Any) -> T,
@@ -60,10 +63,12 @@ open class AvroInputStreamBuilder<T>(
                     val wschema = writerSchema ?: error("Writer schema needs to be supplied for Json format")
                     AvroDecodeFormat.Json(wschema, readerSchema ?: wschema)
                 }
+
                 is AvroFormat.BinaryFormat -> {
                     val wschema = writerSchema ?: error("Writer schema needs to be supplied for Binary format")
                     AvroDecodeFormat.Binary(wschema, readerSchema ?: wschema)
                 }
+
                 is AvroFormat.DataFormat -> AvroDecodeFormat.Data(writerSchema, readerSchema)
             }
         }
@@ -152,11 +157,12 @@ class AvroOutputStreamBuilder<T>(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 class Avro internal constructor(
     internal val configuration: AvroInternalConfiguration,
     override val serializersModule: SerializersModule,
 ) : SerialFormat, BinaryFormat {
+    internal val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
+
     constructor(
         serializersModule: SerializersModule = defaultModule,
         configuration: AvroConfiguration = AvroConfiguration(),
@@ -167,14 +173,17 @@ class Avro internal constructor(
     companion object {
         val defaultModule =
             SerializersModule {
-                contextual(UUIDSerializer())
+                contextual(UUIDSerializer)
+                contextual(BigDecimalAsStringSerializer)
+                contextual(BigIntegerSerializer)
+                contextual(URLSerializer)
             }
         val default = Avro(defaultModule)
 
         /**
          * Use this constant if you want to explicitly set a default value of a field to avro null
          */
-        const val NULL = "com.github.avrokotlin.avro4k.Avro.AVRO_NULL_DEFAULT"
+        const val NULL = "null"
     }
 
     /**
@@ -303,14 +312,13 @@ class Avro internal constructor(
         )
     }
 
-    fun schema(descriptor: SerialDescriptor): Schema =
-        schemaFor(
-            serializersModule,
-            descriptor,
-            descriptor.annotations,
-            configuration,
-            mutableMapOf()
-        ).schema()
+    fun schema(descriptor: SerialDescriptor): Schema {
+        return schemaCache.getOrPut(descriptor) {
+            lateinit var output: Schema
+            ValueVisitor(this) { output = it }.visitValue(descriptor)
+            return output
+        }
+    }
 
     fun <T> schema(serializer: SerializationStrategy<T>): Schema {
         return schema(serializer.descriptor)

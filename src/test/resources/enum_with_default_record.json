@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "RecordWithGenericField",
+  "fields": [
+    {
+      "name": "value",
+      "type": {
+        "type": "enum",
+        "name": "Suit",
+        "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
+        "doc": "documentation",
+        "symbols": ["SPADES", "HEARTS", "DIAMONDS", "CLUBS"],
+        "default": "DIAMONDS",
+        "aliases": ["MySuit"]
+      }
+    }
+  ]
+}

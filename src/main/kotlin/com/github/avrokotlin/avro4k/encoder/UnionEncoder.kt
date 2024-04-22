@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.Record
-import com.github.avrokotlin.avro4k.schema.RecordName
+import com.github.avrokotlin.avro4k.schema.TypeName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -29,8 +29,8 @@ class UnionEncoder(
                 // Hand in the concrete schema for the specified SerialDescriptor so that fields can be correctly decoded.
                 val leafSchema =
                     unionSchema.types.first {
-                        val schemaName = RecordName(name = it.name, namespace = it.namespace)
-                        val serialName = configuration.recordNamingStrategy.resolve(descriptor, descriptor.serialName)
+                        val schemaName = TypeName(name = it.name, namespace = it.namespace)
+                        val serialName = configuration.typeNamingStrategy.resolve(descriptor, descriptor.serialName)
                         serialName == schemaName
                     }
                 RecordEncoder(leafSchema, serializersModule, configuration, callback)

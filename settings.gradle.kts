@@ -11,7 +11,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             version("kotlin", "1.9.22")
-            version("jvm", "18")
+            version("jvm", "21")
 
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
 

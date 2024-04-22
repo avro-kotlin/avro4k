@@ -1,14 +1,4 @@
 {
-  "type": "record",
-  "name": "InstantTest",
-  "namespace": "com.github.avrokotlin.avro4k.schema.DateSchemaTest",
-  "fields": [
-    {
-      "name": "instant",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      }
-    }
-  ]
+  "type": "long",
+  "logicalType": "timestamp-millis"
 }

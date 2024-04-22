@@ -25,8 +25,7 @@ plugins {
 }
 
 tasks {
-    javadoc {
-    }
+    javadoc
 }
 
 group = "com.github.avro-kotlin.avro4k"

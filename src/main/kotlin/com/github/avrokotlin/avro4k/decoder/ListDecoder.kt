@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -28,20 +29,20 @@ class ListDecoder(
     private var index = -1
 
     override fun decodeBoolean(): Boolean {
-        return array[index] as Boolean
+        return decodeAnyNotNull() as Boolean
     }
 
     override fun decodeLong(): Long {
-        return array[index] as Long
+        return decodeAnyNotNull() as Long
     }
 
     override fun decodeString(): String {
-        val raw = array[index]
+        val raw = decodeAnyNotNull()
         return StringFromAvroValue.fromValue(raw)
     }
 
     override fun decodeDouble(): Double {
-        return array[index] as Double
+        return decodeAnyNotNull() as Double
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -50,29 +51,33 @@ class ListDecoder(
     }
 
     override fun decodeFloat(): Float {
-        return array[index] as Float
+        return decodeAnyNotNull() as Float
     }
 
     override fun decodeByte(): Byte {
-        return array[index] as Byte
+        return decodeAnyNotNull() as Byte
     }
 
     override fun decodeInt(): Int {
-        return array[index] as Int
+        return decodeAnyNotNull() as Int
     }
 
     override fun decodeChar(): Char {
-        return array[index] as Char
+        return decodeAnyNotNull() as Char
     }
 
     override fun decodeAny(): Any? {
         return array[index]
     }
 
+    private fun decodeAnyNotNull(): Any {
+        return array[index] ?: throw SerializationException("Item at index $index must not be null")
+    }
+
     override fun fieldSchema(): Schema = schema.elementType
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = array[index]!!.toString()
+        val symbol = decodeAnyNotNull().toString()
         return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
     }
 
@@ -83,10 +88,10 @@ class ListDecoder(
     @Suppress("UNCHECKED_CAST")
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         return when (descriptor.kind) {
-            StructureKind.CLASS -> RecordDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
-            StructureKind.LIST -> ListDecoder(schema.elementType, array[index] as GenericArray<*>, serializersModule, configuration)
-            StructureKind.MAP -> MapDecoder(schema.elementType, array[index] as Map<String, *>, serializersModule, configuration)
-            PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor, array[index] as GenericRecord, serializersModule, configuration)
+            StructureKind.CLASS -> RecordDecoder(descriptor, decodeAnyNotNull() as GenericRecord, serializersModule, configuration)
+            StructureKind.LIST -> ListDecoder(schema.elementType, decodeAnyNotNull() as GenericArray<*>, serializersModule, configuration)
+            StructureKind.MAP -> MapDecoder(schema.elementType, decodeAnyNotNull() as Map<String, *>, serializersModule, configuration)
+            PolymorphicKind.SEALED, PolymorphicKind.OPEN -> UnionDecoder(descriptor, decodeAnyNotNull() as GenericRecord, serializersModule, configuration)
             else -> throw UnsupportedOperationException("Kind ${descriptor.kind} is currently not supported.")
         }
     }

@@ -1,8 +1,9 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AnnotationExtractor
 import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.AvroEnumDefault
 import com.github.avrokotlin.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.schema.findAnnotation
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -37,7 +38,7 @@ class RecordDecoder(
 
     @Suppress("UNCHECKED_CAST")
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val value = fieldValue()
+        val value = fieldValueNonNull()
         return when (descriptor.kind) {
             StructureKind.CLASS -> RecordDecoder(descriptor, value as GenericRecord, serializersModule, configuration)
             StructureKind.MAP ->
@@ -86,13 +87,17 @@ class RecordDecoder(
             return record.get(resolvedFieldName())
         }
 
-        AnnotationExtractor(desc.getElementAnnotations(currentIndex)).aliases().forEach {
-            if (record.hasField(it)) {
-                return record.get(it)
-            }
+        return null
+    }
+
+    private fun fieldValueNonNull(): Any {
+        val resolvedFieldName = resolvedFieldName()
+        if (record.hasField(resolvedFieldName)) {
+            return record.get(resolvedFieldName)
+                ?: throw SerializationException("Field $resolvedFieldName must not be null")
         }
 
-        return null
+        throw SerializationException("Missing field $resolvedFieldName in record ${record.schema}")
     }
 
     private fun resolvedFieldName(): String = configuration.fieldNamingStrategy.resolve(desc, currentIndex, desc.getElementName(currentIndex))
@@ -109,12 +114,11 @@ class RecordDecoder(
         }
     }
 
-    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValue())
+    override fun decodeString(): String = StringFromAvroValue.fromValue(fieldValueNonNull())
 
     override fun decodeBoolean(): Boolean {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Boolean -> v
-            null -> throw SerializationException("Cannot decode <null> as a Boolean")
             else -> throw SerializationException("Unsupported type for Boolean ${v::class.qualifiedName}")
         }
     }
@@ -122,10 +126,9 @@ class RecordDecoder(
     override fun decodeAny(): Any? = fieldValue()
 
     override fun decodeByte(): Byte {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Byte -> v
             is Int -> if (v < 255) v.toByte() else throw SerializationException("Out of bound integer cannot be converted to byte [$v]")
-            null -> throw SerializationException("Cannot decode <null> as a Byte")
             else -> throw SerializationException("Unsupported type for Byte ${v::class.qualifiedName}")
         }
     }
@@ -135,55 +138,61 @@ class RecordDecoder(
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = fieldValue()!!.toString()
-        val enumValueByEnumName =
-            (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
+        val symbol = fieldValueNonNull().toString()
+        val enumIndex = enumDescriptor.getElementIndex(symbol)
 
-        return enumValueByEnumName[symbol] ?: AnnotationExtractor(enumDescriptor.annotations).enumDefault()?.let {
-            enumValueByEnumName[it]
-        } ?: -1
+        if (enumIndex != CompositeDecoder.UNKNOWN_NAME) {
+            return enumIndex
+        }
+
+        return enumDescriptor.findAnnotation<AvroEnumDefault>()?.value
+            ?.let { enumDescriptor.getElementIndex(it) } ?: -1
     }
 
     override fun decodeFloat(): Float {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Float -> v
-            null -> throw SerializationException("Cannot decode <null> as a Float")
             else -> throw SerializationException("Unsupported type for Float ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeInt(): Int {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Int -> v
-            null -> throw SerializationException("Cannot decode <null> as a Int")
             else -> throw SerializationException("Unsupported type for Int ${v::class.qualifiedName}")
         }
     }
 
     override fun decodeShort(): Short {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Short -> v
             is Int -> v.toShort()
-            null -> throw SerializationException("Cannot decode <null> as a Short")
             else -> throw SerializationException("Unsupported type for Short ${v.javaClass}")
         }
     }
 
     override fun decodeLong(): Long {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Long -> v
             is Int -> v.toLong()
-            null -> throw SerializationException("Cannot decode <null> as a Long")
             else -> throw SerializationException("Unsupported type for Long [is ${v::class.qualifiedName}]")
         }
     }
 
     override fun decodeDouble(): Double {
-        return when (val v = fieldValue()) {
+        return when (val v = fieldValueNonNull()) {
             is Double -> v
             is Float -> v.toDouble()
-            null -> throw SerializationException("Cannot decode <null> as a Double")
             else -> throw SerializationException("Unsupported type for Double ${v::class.qualifiedName}")
+        }
+    }
+
+    override fun decodeChar(): Char {
+        return when (val v = fieldValueNonNull()) {
+            is Int -> v.toChar()
+            is Char -> v
+            is CharSequence -> v.single()
+            else -> throw SerializationException("Unsupported type for Char ${v::class.qualifiedName}")
         }
     }
 

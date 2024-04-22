@@ -53,7 +53,7 @@ class MapEncoder(
         if (key == null) {
             key = value.toString()
         } else {
-            finalizeMapEntry(value)
+            finalizeMapEntry(value.code)
         }
     }
 

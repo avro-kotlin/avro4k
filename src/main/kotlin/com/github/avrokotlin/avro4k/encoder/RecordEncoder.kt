@@ -69,6 +69,15 @@ class RecordEncoder(
         builder.add(StringToAvroValue.toValue(fieldSchema(), value))
     }
 
+    override fun encodeChar(value: Char) {
+        val schema = fieldSchema()
+        when (schema.type) {
+            Schema.Type.STRING -> builder.add(value.toString())
+            Schema.Type.INT -> builder.add(value.code)
+            else -> throw SerializationException("Unsupported type for Char: $schema")
+        }
+    }
+
     override fun encodeValue(value: Any) {
         builder.add(value)
     }

@@ -36,7 +36,7 @@ To generate an Avro Schema, we need to use the `Avro` object, invoking `schema` 
 In other words:
 
 ```kotlin
-val schema = Avro.default.schema(Pizza.serializer())
+val schema = Avro.schema<Pizza>()
 println(schema.toString(true))
 ```
 
@@ -94,7 +94,7 @@ You can see that the schema generator handles nested data classes, lists, primit
 ### Overriding class name and namespace
 
 Avro schemas for complex types (RECORDs) contain a name and a namespace. 
-By default, these are the name of the class and the enclosing package name, but it is possible to customize these using the annotations `@AvroName` and `@AvroNamespace`.
+By default, these are the name of the class and the enclosing package name, but it is possible to customize these using the annotations `@SerialName`.
 
 For example, the following class:
 
@@ -153,7 +153,7 @@ We can also just override the namespace while keeping the class name as record n
 ```kotlin
 package com.github.avrokotlin.avro4k.example
 
-@AvroNamespaceOverride("com.other")
+@SerialName("com.other.Foo")
 data class Foo(val a: String)
 ```
 
@@ -289,12 +289,12 @@ If you wish to have alternatives then you should use `@AvroAlias`.
 To change the naming strategy for records, enums and fixed types, create your own instance of `Avro` with the wanted naming strategies.
 
 - `fieldNamingStrategy` is used for field names.
-- `recordNamingStrategy` is used for record, enum and fixed names.
+- `typeNamingStrategy` is used for record, enum and fixed names.
 
 ```kotlin
 Avro(AvroConfiguration(
     fieldNamingStrategy = /* ... */,
-    recordNamingStrategy = /* ... */,
+    typeNamingStrategy = /* ... */,
 ))
 ```
 
@@ -386,15 +386,15 @@ Would generate this schema:
 ### Decimal scale and precision
 
 In order to customize the scale and precision used by BigDecimal schema generators, 
-you can add the `@ScalePrecision` annotation to instances of BigDecimal.
+you can add the `@AvroDecimal` annotation to instances of BigDecimal.
 
 For example, this code:
 
 ```kotlin
 @Serializable
-data class Test(@ScalePrecision(1, 4) val decimal: BigDecimal)
+data class Test(@AvroDecimal(1, 4) val decimal: BigDecimal)
 
-val schema = Avro.default.schema(Test.serializer())
+val schema = Avro.schema(Test.serializer())
 ```
 
 Would generate the following schema:
@@ -430,7 +430,7 @@ package com.github.avrokotlin.avro4k.example
 
 data class Foo(@AvroFixed(7) val mystring: String)
 
-val schema = Avro.default.schema(Foo.serializer())
+val schema = Avro.schema(Foo.serializer())
 ```
 
 Will generate the following schema:
@@ -453,42 +453,6 @@ Will generate the following schema:
 }
 ```
 
-If you have a type that you always want to be represented as fixed, then rather than annotate every single location
- it is used, you can annotate the type itself.
-
-```kotlin
-package com.github.avrokotlin.avro4k.example
-
-@AvroFixed(4)
-@Serializable
-data class FixedA(val bytes: ByteArray)
-
-@Serializable
-data class Foo(val a: FixedA)
-
-val schema = Avro.default.schema(Foo.serializer())
-```
-
-And this would generate:
-
-```json
-{
-  "type": "record",
-  "name": "Foo",
-  "namespace": "com.github.avrokotlin.avro4k.example",
-  "fields": [
-    {
-      "name": "a",
-      "type": {
-        "type": "fixed",
-        "name": "FixedA",
-        "size": 4
-      }
-    }
-  ]
-}
-```
-
 ### Transient Fields
 
 The kotlinx.serialization framework does not support the standard @transient anotation to mark a field as ignored, but instead supports its own `@kotlinx.serialization.Transient` annotation to do the same job.
@@ -499,7 +463,7 @@ For example, the following code:
 ```kotlin
 package com.github.avrokotlin.avro4k.example
 
-data class Foo(val a: String, @AvroTransient val b: String)
+data class Foo(val a: String, @Transient val b: String = "default value")
 ```
 
 Would result in the following schema:
@@ -578,7 +542,7 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | BigDecimal                   	 | STRING         	 | Decimal<8,2>     	 | String                   |
 | T? (nullable type)           	 | UNION<null,T> 	  | 	                  | null, T                  |
 | ByteArray                  	   | BYTES         	  | 	                  | ByteBuffer               |
-| ByteAray                  	    | FIXED         	  | 	                  | GenericFixed             |
+| ByteArray                  	   | FIXED         	  | 	                  | GenericFixed             |
 | ByteBuffer                   	 | BYTES         	  | 	                  | ByteBuffer               |
 | List[Byte]                   	 | BYTES         	  | 	                  | ByteBuffer               |
 | Array<T>                     	 | ARRAY<T>      	  | 	                  | Array[T]                 |
@@ -588,17 +552,16 @@ If a type can be mapped in multiple ways, it is listed more than once.
 | data class T                 	 | RECORD        	  | 	                  | GenericRecord            |
 | enum class             	       | ENUM          	  | 	                  | GenericEnumSymbol        |
 
-In order to use logical types, annotate the value with an appropriate Serializer:
+In order to use logical types, annotate the value with an appropriate Serializer, or `@Contextual` as it is handled by default:
 
 ```kotlin
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.serializer.InstantSerializer
-import kotlinx.serialization.Serializable
-import java.time.Instant
-
 @Serializable
 data class WithInstant(
-   @Serializable(with=InstantSerializer::class) val inst: Instant
+    @Serializable(with=InstantSerializer::class) val inst: Instant
+)
+@Serializable
+data class WithInstantContextual(
+    @Contextual val inst: Instant
 )
 ```
 
@@ -614,7 +577,6 @@ Avro supports four different encoding types [serializing records](https://avro.a
 These are binary with schema, binary without schema, json and single object encoding.
 
 In avro4k these are represented by an `AvroFormat` enum with three values - `AvroFormat.Binary` (binary no schema), `AvroFormat.Data` (binary with schema), and `AvroFormat.Json`.
-The single object encoding is currently not supported. 
 
 Binary encoding without the schema does not include field names, self-contained information about the types of individual bytes, nor field or record separators.
 Therefore readers are wholly reliant on the schema used when the data was encoded but the format is by far the most compact. Binary encodings are [fast](https://www.slideshare.net/oom65/orc-files?next_slideshow=1).
@@ -624,84 +586,10 @@ Binary encoding with the schema is still quick to deserialize, but is obviously 
 Json encoding is the largest and slowest, but the easist to work with outside of Avro, and of course is easy to view on the wire (if that is a concern).
 
 
-### Serializing
-
-Avro4k allows us to easily serialize data classes using an instance of `AvroOutputStream` which we write to, and close, just like you would any regular output stream. It is created by calling `openOutputStream` on an `Avro` instance.
-
-When creating an output stream we specify the target, such as a File, Path, or another output stream. 
-If nothing more is specified, the default encode format `AvroEncodeFormat.Data` is used and the schema will be deducted
-from the passed `SerializationStrategy`.
-
-For example, to serialize instances of the `Pizza` class:
-
-```kotlin
-@Serializable
-data class Ingredient(val name: String, val sugar: Double, val fat: Double)
-
-@Serializable
-data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
-
-val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
-val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
-
-val pizzaSchema = Avro.default.schema(Pizza.serializer())
-val os = Avro.default.openOutputStream(Pizza.serializer()) {
- encodeFormat = AvroEncodeFormat.Binary
- schema = pizzaSchema
-}.to(File("pizzas.avro"))
-os.write(listOf(veg, hawaiian))
-os.flush()
-```
-
-### Deserializing
-
-We can easily deserialize a file back into data classes using instances of `AvroInputStream` which work in a similar way to the output stream version.
-Given the `pizzas.avro` file we generated in the previous section on serialization, we will read the records back in as instances of the `Pizza` class. 
-First create an instance of the input stream by calling `openInputStream` on an `Avro` object specifying the types we will read back.
-Optionally, we can also specify a decoding format. 
-Depending on the chosen format, the source and the writer schema also needs to be configured.
-
-`AvroInputStream` has functions to get the next single value, or to return all values as an iterator.
-
-For example, the following code:
-
-```kotlin
-@Serializable
-data class Ingredient(val name: String, val sugar: Double, val fat: Double)
-
-@Serializable
-data class Pizza(val name: String, val ingredients: List<Ingredient>, val vegetarian: Boolean, val kcals: Int)
-
-val veg = Pizza("veg", listOf(Ingredient("peppers", 0.1, 0.3), Ingredient("onion", 1.0, 0.4)), true, 265)
-val hawaiian = Pizza("hawaiian", listOf(Ingredient("ham", 1.5, 5.6), Ingredient("pineapple", 5.2, 0.2)), false, 391)
-
-val pizzaSchema = Avro.default.schema(Pizza.serializer())
-
-val output = Avro.default.openOutputStream(Pizza.serializer()) {
- encodeFormat = AvroEncodeFormat.Binary
- schema = pizzaSchema
-}.to(File("pizzas.avro"))
-output.write(listOf(veg, hawaiian))
-output.close()
-
-val input = Avro.default.openInputStream(Pizza.serializer()) {
- decodeFormat = AvroDecodeFormat.Binary(/* writerSchema */ pizzaSchema, /* readerSchema */pizzaSchema)
-}.from(File("pizzas.avro"))
-input.iterator().forEach { println(it) }
-input.close()
-```
-
-Will print out the following:
-
-```text
-Pizza(name=veg, ingredients=[Ingredient(name=peppers, sugar=0.1, fat=0.3), Ingredient(name=onion, sugar=1.0, fat=0.4)], vegetarian=true, kcals=265)
-Pizza(name=hawaiian, ingredients=[Ingredient(name=ham, sugar=1.5, fat=5.6), Ingredient(name=pineapple, sugar=5.2, fat=0.2)], vegetarian=false, kcals=391)
-```
-
 ### Using avro4k in your project
 
 Gradle
-```compile 'com.github.avro-kotlin.avro4k:avro4k-core:xxx'```
+```implementation 'com.github.avro-kotlin.avro4k:avro4k-core:xxx'```
 
 Maven
 ```xml
@@ -726,4 +614,4 @@ Contributions to avro4k are always welcome. Good ways to contribute include:
 - Raising bugs and feature requests
 - Fixing bugs and enhancing the DSL
 - Improving the performance of avro4k
-= Adding to the documentation
+- Adding to the documentation

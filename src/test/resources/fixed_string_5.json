@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "Fixed",
+  "fields": [
+    {
+      "name": "mystring",
+      "type": {
+        "type": "fixed",
+        "name": "mystring",
+        "size": 5
+      }
+    }
+  ]
+}

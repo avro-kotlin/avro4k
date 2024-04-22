@@ -1,34 +1,21 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroAssertions
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.io.path.Path
 
 class AvroNameSchemaTest : FunSpec({
 
-    test("generate field names using @AvroName") {
-
-        val schema = Avro.default.schema(FieldNamesFoo.serializer())
-        val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_name_field.json"))
-        schema.toString(true) shouldBe expected.toString(true)
-    }
-
-    test("generate class names using @AvroName") {
-
-        val schema = Avro.default.schema(ClassNameFoo.serializer())
-        val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/avro_name_class.json"))
-        schema.toString(true) shouldBe expected.toString(true)
+    test("Change field and class name") {
+        AvroAssertions.assertThat<FieldNamesFoo>()
+            .generatesSchema(Path("/avro_name_field.json"))
     }
 }) {
     @Serializable
-    data class FieldNamesFoo(
+    @SerialName("anotherRecordName")
+    private data class FieldNamesFoo(
         @SerialName("foo") val wibble: String,
-        val wobble: String,
     )
-
-    @SerialName("com.github.avrokotlin.avro4k.schema.AvroNameSchemaTest.wibble")
-    @Serializable
-    data class ClassNameFoo(val a: String, val b: String)
 }

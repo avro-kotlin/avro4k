@@ -5,14 +5,12 @@
   "fields": [
     {
       "name": "ts",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      }
+      "type": "boolean"
     },
     {
       "name": "withFallback",
-      "type": ["null", "int"]
+      "type": ["null", "int"],
+      "default": null
     }
   ]
 }

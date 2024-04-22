@@ -1,7 +1,6 @@
 {
   "type": "record",
-  "name": "FixedStringField",
-  "namespace": "com.github.avrokotlin.avro4k.schema.AvroFixedSchemaTest",
+  "name": "Fixed",
   "fields": [
     {
       "name": "mystring",

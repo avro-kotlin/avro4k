@@ -2,21 +2,14 @@ package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
 import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import org.apache.avro.Schema
-import org.apache.avro.util.Utf8
 import java.net.URL
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = URL::class)
-class URLSerializer : AvroSerializer<URL>() {
-    @OptIn(InternalSerializationApi::class)
-    override val descriptor = buildSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
+object URLSerializer : AvroSerializer<URL>() {
+    override val descriptor = PrimitiveSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
 
     override fun encodeAvroValue(
         schema: Schema,
@@ -31,8 +24,7 @@ class URLSerializer : AvroSerializer<URL>() {
         decoder: ExtendedDecoder,
     ): URL {
         return when (val v = decoder.decodeAny()) {
-            is Utf8 -> URL(v.toString())
-            is String -> URL(v)
+            is CharSequence -> URL(v.toString())
             null -> throw SerializationException("Cannot decode <null> as URL")
             else -> throw SerializationException("Unsupported URL type [$v : ${v::class.qualifiedName}]")
         }

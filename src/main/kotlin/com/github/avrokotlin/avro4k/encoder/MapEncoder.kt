@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -16,7 +16,7 @@ import java.nio.ByteBuffer
 class MapEncoder(
     schema: Schema,
     override val serializersModule: SerializersModule,
-    override val configuration: AvroInternalConfiguration,
+    override val configuration: AvroConfiguration,
     private val callback: (Map<Utf8, *>) -> Unit,
 ) : AbstractEncoder(),
     CompositeEncoder,

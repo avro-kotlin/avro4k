@@ -5,24 +5,40 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.descriptors.PrimitiveKind
-import org.apache.avro.LogicalTypes
+import kotlinx.serialization.descriptors.SerialDescriptor
+import org.apache.avro.LogicalType
 import org.apache.avro.Schema
-import org.apache.avro.SchemaBuilder
 import org.intellij.lang.annotations.Language
+import kotlin.reflect.KClass
 
 /**
- * When annotated on a property, overrides the namespace for the nested record.
+ * When annotated on a property, deeply overrides the namespace for all the nested named types (records, enums and fixed).
+ *
+ * Works with standard classes and inline classes.
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroNamespaceOverride(val value: String)
+annotation class AvroNamespaceOverride(
+    val value: String,
+)
 
+/**
+ * Adds a property to the Avro schema or field.
+ *
+ * Ignored in inline classes.
+ */
 @SerialInfo
+@Repeatable
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroProp(val key: String, val value: String)
 
+/**
+ * Adds a json property to the Avro schema or field.
+ *
+ * Ignored in inline classes.
+ */
 @SerialInfo
+@Repeatable
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroJsonProp(
     val key: String,
@@ -31,67 +47,33 @@ annotation class AvroJsonProp(
 
 /**
  * To be used with [BigDecimalSerializer] to specify the scale, precision, type and rounding mode of the decimal value.
+ *
+ * Can be used with [AvroFixed] to serialize value as a fixed type.
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroDecimalLogicalType(
+annotation class AvroDecimal(
     val scale: Int = 2,
     val precision: Int = 8,
-    val schema: LogicalDecimalTypeEnum = LogicalDecimalTypeEnum.BYTES,
 )
 
-enum class LogicalDecimalTypeEnum {
-    BYTES,
-    STRING,
-
-    /**
-     * Fixed requires the field annotated with [AvroFixed]
-     */
-    FIXED,
-}
-
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY)
-annotation class AvroUuidLogicalType
-
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY)
-annotation class AvroTimeLogicalType(val type: LogicalTimeTypeEnum)
-
-enum class LogicalTimeTypeEnum(val kind: PrimitiveKind, val schemaFor: () -> Schema) {
-    DATE(PrimitiveKind.INT, { LogicalTypes.date().addToSchema(SchemaBuilder.builder().intType()) }),
-    TIME_MILLIS(
-        PrimitiveKind.INT,
-        { LogicalTypes.timeMillis().addToSchema(SchemaBuilder.builder().intType()) }
-    ),
-    TIME_MICROS(
-        PrimitiveKind.LONG,
-        { LogicalTypes.timeMicros().addToSchema(SchemaBuilder.builder().longType()) }
-    ),
-    TIMESTAMP_MILLIS(
-        PrimitiveKind.LONG,
-        { LogicalTypes.timestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
-    ),
-    TIMESTAMP_MICROS(
-        PrimitiveKind.LONG,
-        { LogicalTypes.timestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
-    ),
-    LOCAL_TIMESTAMP_MILLIS(
-        PrimitiveKind.LONG,
-        { LogicalTypes.localTimestampMillis().addToSchema(SchemaBuilder.builder().longType()) }
-    ),
-    LOCAL_TIMESTAMP_MICROS(
-        PrimitiveKind.LONG,
-        { LogicalTypes.localTimestampMicros().addToSchema(SchemaBuilder.builder().longType()) }
-    ),
-}
-
+/**
+ * Adds documentation to:
+ * - a record's field
+ * - a record
+ * - an enum
+ *
+ * Ignored in inline classes.
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 annotation class AvroDoc(val value: String)
 
 /**
  * Adds aliases to a field of a record. It helps to allow having different names for the same field for better compatibility when changing a schema.
+ *
+ * Ignored in inline classes.
+ *
  * @param value The aliases for the annotated property. Note that the given aliases won't be changed by the configured [AvroConfiguration.fieldNamingStrategy].
  */
 @SerialInfo
@@ -106,12 +88,49 @@ annotation class AvroAlias(vararg val value: String)
 @Target(AnnotationTarget.PROPERTY)
 annotation class AvroFixed(val size: Int)
 
+/**
+ * Sets the default avro value for a record's field.
+ *
+ * Ignored in inline classes.
+ */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class AvroDefault(
     @Language("JSON") val value: String,
 )
 
+/**
+ * This annotation indicates that the annotated enum class should be serialized as an Avro enum with the given default value.
+ *
+ * It must be annotated on an enum class. Otherwise, it will be ignored.
+ */
 @SerialInfo
 @Target(AnnotationTarget.CLASS)
 annotation class AvroEnumDefault(val value: String)
+
+/**
+ * Allows to specify the schema of a property.
+ */
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroSchema(val value: KClass<out AvroSchemaSupplier>)
+
+interface AvroSchemaSupplier {
+    fun getSchema(stack: List<AnnotatedLocation>): Schema
+}
+
+/**
+ * Allows to specify the logical type applied on the generated schema of a property.
+ */
+@SerialInfo
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
+
+interface AvroLogicalTypeSupplier {
+    fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
+}
+
+interface AnnotatedLocation {
+    val descriptor: SerialDescriptor
+    val elementIndex: Int?
+}

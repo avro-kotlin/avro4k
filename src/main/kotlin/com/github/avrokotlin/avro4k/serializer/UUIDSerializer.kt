@@ -1,26 +1,28 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.AvroUuidLogicalType
+import com.github.avrokotlin.avro4k.AnnotatedLocation
+import com.github.avrokotlin.avro4k.AvroLogicalType
+import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
 import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
+import org.apache.avro.LogicalType
+import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import java.util.UUID
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = UUID::class)
-class UUIDSerializer : AvroSerializer<UUID>() {
-    private val avroUuidLogicalTypeAnnotation = AvroUuidLogicalType()
-
+object UUIDSerializer : AvroSerializer<UUID>(), AvroLogicalTypeSupplier {
     @OptIn(InternalSerializationApi::class)
     override val descriptor =
         buildSerialDescriptor("uuid", PrimitiveKind.STRING) {
-            annotations = listOf(avroUuidLogicalTypeAnnotation)
+            annotations = listOf(AvroLogicalType(UUIDSerializer::class))
         }
+
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.uuid()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,

@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.Record
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -16,7 +16,7 @@ import org.apache.avro.Schema
 class RootRecordEncoder(
     private val schema: Schema,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroInternalConfiguration,
+    private val configuration: AvroConfiguration,
     private val callback: (Record) -> Unit,
 ) : AbstractEncoder() {
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {

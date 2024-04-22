@@ -1,12 +1,10 @@
-@file:UseContextualSerialization(forClasses = [UUID::class])
-
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseContextualSerialization
 import java.util.UUID
 
 class ValueClassSchemaTest : StringSpec({
@@ -24,7 +22,7 @@ class ValueClassSchemaTest : StringSpec({
 
     @Serializable
     @JvmInline
-    value class UuidWrapper(val uuid: UUID)
+    value class UuidWrapper(val uuid: @Contextual UUID)
 
     @Serializable
     data class ContainsInlineTest(val id: StringWrapper, val uuid: UuidWrapper)

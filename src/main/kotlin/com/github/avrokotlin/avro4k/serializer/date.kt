@@ -1,16 +1,16 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.AvroTimeLogicalType
-import com.github.avrokotlin.avro4k.LogicalTimeTypeEnum
+import com.github.avrokotlin.avro4k.AnnotatedLocation
+import com.github.avrokotlin.avro4k.AvroLogicalType
+import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
 import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
 import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
+import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import java.sql.Timestamp
@@ -22,17 +22,10 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import kotlin.reflect.KClass
 
-@OptIn(InternalSerializationApi::class)
-private fun buildTimeSerialDescriptor(
-    clazz: KClass<*>,
-    type: LogicalTimeTypeEnum,
-) = buildSerialDescriptor(clazz.qualifiedName!!, type.kind) {
-    annotations = listOf(AvroTimeLogicalType(type))
-}
-
-@Serializer(forClass = LocalDate::class)
-class LocalDateSerializer : AvroSerializer<LocalDate>() {
-    override val descriptor = buildTimeSerialDescriptor(LocalDate::class, LogicalTimeTypeEnum.DATE)
+object LocalDateSerializer : AvroTimeSerializer<LocalDate>(LocalDate::class, PrimitiveKind.INT) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.date()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
@@ -43,12 +36,13 @@ class LocalDateSerializer : AvroSerializer<LocalDate>() {
     override fun decodeAvroValue(
         schema: Schema,
         decoder: ExtendedDecoder,
-    ): LocalDate = LocalDate.ofEpochDay(decoder.decodeLong())
+    ): LocalDate = LocalDate.ofEpochDay(decoder.decodeInt().toLong())
 }
 
-@Serializer(forClass = LocalTime::class)
-class LocalTimeSerializer : AvroSerializer<LocalTime>() {
-    override val descriptor = buildTimeSerialDescriptor(LocalTime::class, LogicalTimeTypeEnum.TIME_MILLIS)
+object LocalTimeSerializer : AvroTimeSerializer<LocalTime>(LocalTime::class, PrimitiveKind.INT) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.timeMillis()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
@@ -69,15 +63,16 @@ class LocalTimeSerializer : AvroSerializer<LocalTime>() {
     }
 }
 
-@Serializer(forClass = LocalDateTime::class)
-class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
-    override val descriptor = buildTimeSerialDescriptor(LocalDateTime::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
+object LocalDateTimeSerializer : AvroTimeSerializer<LocalDateTime>(LocalDateTime::class, PrimitiveKind.LONG) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.timestampMillis()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
         encoder: ExtendedEncoder,
         obj: LocalDateTime,
-    ) = InstantSerializer().encodeAvroValue(schema, encoder, obj.toInstant(ZoneOffset.UTC))
+    ) = InstantSerializer.encodeAvroValue(schema, encoder, obj.toInstant(ZoneOffset.UTC))
 
     override fun decodeAvroValue(
         schema: Schema,
@@ -85,15 +80,16 @@ class LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
     ): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC)
 }
 
-@Serializer(forClass = Timestamp::class)
-class TimestampSerializer : AvroSerializer<Timestamp>() {
-    override val descriptor = buildTimeSerialDescriptor(Timestamp::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
+object TimestampSerializer : AvroTimeSerializer<Timestamp>(Timestamp::class, PrimitiveKind.LONG) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.timestampMillis()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
         encoder: ExtendedEncoder,
         obj: Timestamp,
-    ) = InstantSerializer().encodeAvroValue(schema, encoder, obj.toInstant())
+    ) = InstantSerializer.encodeAvroValue(schema, encoder, obj.toInstant())
 
     override fun decodeAvroValue(
         schema: Schema,
@@ -101,9 +97,10 @@ class TimestampSerializer : AvroSerializer<Timestamp>() {
     ): Timestamp = Timestamp(decoder.decodeLong())
 }
 
-@Serializer(forClass = Instant::class)
-class InstantSerializer : AvroSerializer<Instant>() {
-    override val descriptor = buildTimeSerialDescriptor(Instant::class, LogicalTimeTypeEnum.TIMESTAMP_MILLIS)
+object InstantSerializer : AvroTimeSerializer<Instant>(Instant::class, PrimitiveKind.LONG) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.timestampMillis()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
@@ -117,9 +114,10 @@ class InstantSerializer : AvroSerializer<Instant>() {
     ): Instant = Instant.ofEpochMilli(decoder.decodeLong())
 }
 
-@Serializer(forClass = Instant::class)
-class InstantToMicroSerializer : AvroSerializer<Instant>() {
-    override val descriptor = buildTimeSerialDescriptor(Instant::class, LogicalTimeTypeEnum.TIMESTAMP_MICROS)
+object InstantToMicroSerializer : AvroTimeSerializer<Instant>(Instant::class, PrimitiveKind.LONG) {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return LogicalTypes.timestampMicros()
+    }
 
     override fun encodeAvroValue(
         schema: Schema,
@@ -131,4 +129,15 @@ class InstantToMicroSerializer : AvroSerializer<Instant>() {
         schema: Schema,
         decoder: ExtendedDecoder,
     ): Instant = Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS)
+}
+
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+abstract class AvroTimeSerializer<T : Any>(
+    klass: KClass<T>,
+    kind: PrimitiveKind,
+) : AvroSerializer<T>(), AvroLogicalTypeSupplier {
+    override val descriptor =
+        buildSerialDescriptor(klass.qualifiedName!!, kind) {
+            annotations = listOf(AvroLogicalType(this@AvroTimeSerializer::class))
+        }
 }

@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.possibleSerializationSubclasses
 import com.github.avrokotlin.avro4k.schema.RecordName
 import kotlinx.serialization.DeserializationStrategy
@@ -18,7 +18,7 @@ class UnionDecoder(
     descriptor: SerialDescriptor,
     private val value: GenericRecord,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroInternalConfiguration,
+    private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
     private enum class DecoderState(val index: Int) {
         BEFORE(0),

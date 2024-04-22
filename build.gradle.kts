@@ -17,6 +17,7 @@ plugins {
     id("maven-publish")
     signing
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
     alias(libs.plugins.kotest)
     alias(libs.plugins.github.versions)
     alias(libs.plugins.nexus.publish)
@@ -35,7 +36,7 @@ dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.xerial.snappy)
+    implementation(kotlin("reflect"))
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.json)
@@ -46,7 +47,7 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.apiVersion = "1.6"
     kotlinOptions.languageVersion = "1.6"
-    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

@@ -13,7 +13,6 @@ dependencyResolutionManagement {
             version("kotlin", "1.9.22")
             version("jvm", "18")
 
-            library("xerial-snappy", "org.xerial.snappy", "snappy-java").version("1.1.10.1")
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
 
             val kotlinxSerialization = "1.6.2"
@@ -31,6 +30,7 @@ dependencyResolutionManagement {
             plugin("github-versions", "com.github.ben-manes.versions").version("0.46.0")
             plugin("nexus-publish", "io.github.gradle-nexus.publish-plugin").version("1.3.0")
             plugin("spotless", "com.diffplug.spotless").version("6.25.0")
+            plugin("kover", "org.jetbrains.kotlinx.kover").version("0.7.6")
         }
     }
     @Suppress("UnstableApiUsage")

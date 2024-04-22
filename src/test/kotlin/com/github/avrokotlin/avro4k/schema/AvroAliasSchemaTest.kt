@@ -47,7 +47,13 @@ class AvroAliasSchemaTest : WordSpec({
     data class FieldAnnotated(
         @AvroAlias("cold") val str: String,
         @AvroAlias("kate") val long: Long,
-        val int: Int,
+        val int: IntValue,
+    )
+
+    @Serializable
+    @JvmInline
+    value class IntValue(
+        @AvroAlias("ignoredAlias") val value: Int,
     )
 
     @Serializable

@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.AnnotationExtractor
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.schema.extractNonNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -31,7 +31,7 @@ class RecordDecoder(
     private val desc: SerialDescriptor,
     private val record: GenericRecord,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroInternalConfiguration,
+    private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
     private var currentIndex = -1
 
@@ -135,7 +135,7 @@ class RecordDecoder(
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = EnumFromAvroValue.fromValue(fieldValue()!!)
+        val symbol = fieldValue()!!.toString()
         val enumValueByEnumName =
             (0 until enumDescriptor.elementsCount).associateBy { enumDescriptor.getElementName(it) }
 

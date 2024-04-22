@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import com.github.avrokotlin.avro4k.AvroInternalConfiguration
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -19,7 +19,7 @@ class ListDecoder(
     private val schema: Schema,
     private val array: List<Any?>,
     override val serializersModule: SerializersModule,
-    private val configuration: AvroInternalConfiguration,
+    private val configuration: AvroConfiguration,
 ) : AbstractDecoder(), FieldDecoder {
     init {
         require(schema.type == Schema.Type.ARRAY)
@@ -72,7 +72,7 @@ class ListDecoder(
     override fun fieldSchema(): Schema = schema.elementType
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val symbol = EnumFromAvroValue.fromValue(array[index]!!)
+        val symbol = array[index]!!.toString()
         return (0 until enumDescriptor.elementsCount).find { enumDescriptor.getElementName(it) == symbol } ?: -1
     }
 

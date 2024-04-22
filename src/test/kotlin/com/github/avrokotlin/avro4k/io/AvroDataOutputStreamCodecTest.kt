@@ -22,17 +22,6 @@ class AvroDataOutputStreamCodecTest : StringSpec({
         String(baos.toByteArray()) should contain("compositions")
     }
 
-    "include snappy coded in metadata when serialized with snappy" {
-
-        val baos = ByteArrayOutputStream()
-        Avro.default.openOutputStream(Composer.serializer()) {
-            encodeFormat = AvroEncodeFormat.Data(CodecFactory.snappyCodec())
-        }.to(baos).write(ennio).close()
-        String(baos.toByteArray()) should contain("snappy")
-        String(baos.toByteArray()) shouldNot contain("bzip2")
-        String(baos.toByteArray()) shouldNot contain("deflate")
-    }
-
     "include deflate coded in metadata when serialized with deflate" {
         val baos = ByteArrayOutputStream()
         Avro.default.openOutputStream(Composer.serializer()) {

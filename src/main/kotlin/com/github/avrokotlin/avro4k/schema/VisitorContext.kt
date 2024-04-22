@@ -34,7 +34,7 @@ import org.apache.avro.Schema
 
 internal data class VisitorContext(
     val avro: Avro,
-    val resolvedSchemas: MutableMap<RecordName, Schema>,
+    val resolvedSchemas: MutableMap<TypeName, Schema>,
     val json: Json,
     val inlinedAnnotations: ValueAnnotations? = null,
 )
@@ -238,7 +238,7 @@ private fun JsonElement.toJacksonNode(): JsonNode =
  * Get the record/enum name using the configured record naming strategy.
  */
 context(AvroVisitorContextAware)
-internal fun SerialDescriptor.getAvroName() = context.avro.configuration.recordNamingStrategy.resolve(this, serialName)
+internal fun SerialDescriptor.getAvroName() = context.avro.configuration.typeNamingStrategy.resolve(this, serialName)
 
 /**
  * Get the field name using the configured field naming strategy.

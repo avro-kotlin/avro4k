@@ -3,7 +3,7 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
 import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
-import com.github.avrokotlin.avro4k.schema.RecordNamingStrategy
+import com.github.avrokotlin.avro4k.schema.TypeNamingStrategy
 import com.github.avrokotlin.avro4k.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
@@ -155,7 +155,7 @@ fun Avro(
 }
 
 class AvroBuilder internal constructor(avro: Avro) {
-    var recordNamingStrategy: RecordNamingStrategy = avro.configuration.recordNamingStrategy
+    var typeNamingStrategy: TypeNamingStrategy = avro.configuration.typeNamingStrategy
     var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
     var implicitNulls: Boolean = avro.configuration.implicitNulls
     var encodedAs: EncodedAs = avro.configuration.encodedAs
@@ -163,7 +163,7 @@ class AvroBuilder internal constructor(avro: Avro) {
 
     fun build() =
         AvroConfiguration(
-            recordNamingStrategy = this.recordNamingStrategy,
+            typeNamingStrategy = this.typeNamingStrategy,
             fieldNamingStrategy = this.fieldNamingStrategy,
             implicitNulls = this.implicitNulls,
             encodedAs = this.encodedAs

@@ -2,11 +2,11 @@ package com.github.avrokotlin.avro4k.schema
 
 import kotlinx.serialization.descriptors.SerialDescriptor
 
-interface RecordNamingStrategy {
+interface TypeNamingStrategy {
     fun resolve(
         descriptor: SerialDescriptor,
         serialName: String,
-    ): RecordName
+    ): TypeName
 
     companion object Builtins {
         /**
@@ -14,14 +14,14 @@ interface RecordNamingStrategy {
          *
          * If there is no dot, then the namespace is null.
          */
-        object FullyQualified : RecordNamingStrategy {
+        object FullyQualified : TypeNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,
                 serialName: String,
-            ): RecordName {
+            ): TypeName {
                 val lastDot = serialName.lastIndexOf('.').takeIf { it >= 0 && it + 1 < serialName.length }
                 val lastIndex = if (serialName.endsWith('?')) serialName.length - 1 else serialName.length
-                return RecordName(
+                return TypeName(
                     name = lastDot?.let { serialName.substring(lastDot + 1, lastIndex) } ?: serialName.substring(0, lastIndex),
                     namespace = lastDot?.let { serialName.substring(0, lastDot) }?.takeIf { it.isNotEmpty() }
                 )
@@ -30,4 +30,4 @@ interface RecordNamingStrategy {
     }
 }
 
-data class RecordName(val name: String, val namespace: String?)
+data class TypeName(val name: String, val namespace: String?)

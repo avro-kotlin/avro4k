@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "RecursiveClass",
-  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "namespace": "com.github.avrokotlin.avro4k.schema.RecursiveSchemaTest",
   "fields": [
     {
       "name": "payload",
@@ -9,7 +9,8 @@
     },
     {
       "name": "klass",
-      "type": ["null", "RecursiveClass"]
+      "type": ["null", "RecursiveClass"],
+      "default": null
     }
   ]
 }

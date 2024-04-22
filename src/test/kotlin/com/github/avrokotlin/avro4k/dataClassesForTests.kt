@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,6 +9,10 @@ enum class SomeEnum {
     B,
     C,
 }
+
+@Serializable
+@SerialName("RecordWithGenericField")
+data class RecordWithGenericField<T : Any>(val value: T)
 
 @Serializable
 @JvmInline

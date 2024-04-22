@@ -2,7 +2,7 @@
   {
     "type": "record",
     "name": "Add",
-    "namespace": "com.github.avrokotlin.avro4k.schema.Operation.Binary",
+    "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Binary",
     "fields": [
       {
         "name": "left",
@@ -17,7 +17,7 @@
   {
     "type": "record",
     "name": "Substract",
-    "namespace": "com.github.avrokotlin.avro4k.schema.Operation.Binary",
+    "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Binary",
     "fields": [
       {
         "name": "left",
@@ -32,13 +32,13 @@
   {
     "type": "record",
     "name": "Nullary",
-    "namespace": "com.github.avrokotlin.avro4k.schema.Operation",
+    "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation",
     "fields": []
   },
   {
     "type": "record",
     "name": "Negate",
-    "namespace": "com.github.avrokotlin.avro4k.schema.Operation.Unary",
+    "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Unary",
     "fields": [
       {
         "name": "value",

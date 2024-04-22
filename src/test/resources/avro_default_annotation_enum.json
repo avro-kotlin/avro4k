@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "BarEnum",
-  "namespace": "com.github.avrokotlin.avro4k.schema",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
   "fields": [
     {
       "name": "a",

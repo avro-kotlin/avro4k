@@ -1,17 +1,59 @@
 {
   "type": "record",
-  "name": "Test",
-  "namespace": "com.github.avrokotlin.avro4k.schema.NullableWithDefaultsSchemaTest",
+  "name": "ImplicitNulls",
   "fields": [
     {
-      "name": "nullableString",
+      "name": "string",
       "type": ["null", "string"],
       "default": null
     },
     {
-      "name": "nullableBoolean",
+      "name": "boolean",
       "type": ["null", "boolean"],
       "default": null
+    },
+    {
+      "name": "booleanWrapped1",
+      "type": ["null", "boolean"],
+      "default": null
+    },
+    {
+      "name": "booleanWrapped2",
+      "type": ["null", "int"],
+      "default": null
+    },
+    {
+      "name": "booleanWrapped3",
+      "type": ["null", "double"],
+      "default": null
+    },
+    {
+      "name": "nested",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Nested",
+          "fields": [
+            {
+              "name": "string",
+              "type": ["null", "string"],
+              "default": null
+            },
+            {
+              "name": "boolean",
+              "type": ["null", "boolean"],
+              "default": null
+            }
+          ]
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "stringWithAvroDefault",
+      "type": ["string", "null"],
+      "default": "implicit nulls bypassed"
     }
   ]
 }

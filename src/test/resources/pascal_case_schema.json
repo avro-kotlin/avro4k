@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Interface",
-  "namespace": "com.github.avrokotlin.avro4k.schema.NamingStrategySchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.FieldNamingStrategySchemaTest",
   "fields": [
     {
       "name": "Name",
@@ -20,29 +20,8 @@
       "type": {
         "type": "enum",
         "name": "InternetProtocol",
-        "namespace": "com.github.avrokotlin.avro4k.schema",
         "symbols": ["IPv4", "IPv6"]
       }
-    },
-    {
-      "name": "SubInterface",
-      "type": [
-        "null",
-        {
-          "type": "record",
-          "name": "SubInterface",
-          "fields": [
-            {
-              "name": "Name",
-              "type": "string"
-            },
-            {
-              "name": "Ipv4Address",
-              "type": "string"
-            }
-          ]
-        }
-      ]
     }
   ]
 }

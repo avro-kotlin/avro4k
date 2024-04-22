@@ -1,14 +1,9 @@
 {
   "type": "record",
-  "name": "FieldNamesFoo",
-  "namespace": "com.github.avrokotlin.avro4k.schema.AvroNameSchemaTest",
+  "name": "anotherRecordName",
   "fields": [
     {
       "name": "foo",
-      "type": "string"
-    },
-    {
-      "name": "wobble",
       "type": "string"
     }
   ]

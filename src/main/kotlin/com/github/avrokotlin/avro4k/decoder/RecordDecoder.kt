@@ -86,12 +86,6 @@ class RecordDecoder(
             return record.get(resolvedFieldName())
         }
 
-        AnnotationExtractor(desc.getElementAnnotations(currentIndex)).aliases().forEach {
-            if (record.hasField(it)) {
-                return record.get(it)
-            }
-        }
-
         return null
     }
 

@@ -13,6 +13,23 @@
           {
             "name": "s",
             "type": "string"
+          },
+          {
+            "name": "enum",
+            "type": {
+              "type": "enum",
+              "name": "NestedEnum",
+              "symbols": ["A", "B"],
+              "default": "B"
+            }
+          },
+          {
+            "name": "fixed",
+            "type": {
+              "type": "fixed",
+              "name": "fixed",
+              "size": 42
+            }
           }
         ]
       }

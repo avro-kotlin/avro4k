@@ -32,6 +32,10 @@ class ListEncoder(private val schema: Schema,
       list.add(value)
    }
 
+   override fun encodeNull() {
+      list.add(null)
+   }
+
    override fun encodeString(value: String) {
       list.add(StringToAvroValue.toValue(schema, value))
    }

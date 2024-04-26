@@ -71,6 +71,7 @@ class ListDecoder(
       return array[index]
    }
 
+   override fun decodeNotNullMark() = array[index] != null
    override fun fieldSchema(): Schema = schema.elementType
 
    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {

@@ -19,7 +19,7 @@ class MapEncoder(schema: Schema,
    CompositeEncoder,
    StructureEncoder {
 
-   private val map = mutableMapOf<Utf8, Any>()
+   private val map = mutableMapOf<Utf8, Any?>()
    private var key: Utf8? = null
    private val valueSchema = schema.valueType
 
@@ -35,6 +35,14 @@ class MapEncoder(schema: Schema,
       val k = key
       if (k == null) throw SerializationException("Expected key but received value $value") else {
          map[k] = value
+         key = null
+      }
+   }
+
+   override fun encodeNull() {
+      val k = key
+      if (k == null) throw SerializationException("Expected key but received null value") else {
+         map[k] = null
          key = null
       }
    }

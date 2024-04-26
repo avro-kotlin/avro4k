@@ -42,6 +42,14 @@ class MapDecoder(
 
    private fun value(): Any? = entries[index / 2].second
 
+   override fun decodeNotNullMark() : Boolean {
+      val entry = entries[index / 2]
+      return when {
+         index % 2 == 0 -> entry.first
+         else -> entry.second
+      } != null
+   }
+
    override fun decodeFloat(): Float {
       return when (val v = value()) {
          is Float -> v

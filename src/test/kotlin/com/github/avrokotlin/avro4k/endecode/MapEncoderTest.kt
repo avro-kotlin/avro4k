@@ -23,6 +23,15 @@ fun mapEncoderTests(enDecoder: EnDecoder): TestFactory {
             )
         }
 
+        "encode/decode a Map<String, Boolean?>" {
+            @Serializable
+            data class StringBooleanTest(val a: Map<String, Boolean?>)
+            enDecoder.testEncodeDecode(
+                StringBooleanTest(mapOf("a" to true, "b" to null, "c" to false)),
+                record(mapOf("a" to true, "b" to null, "c" to false))
+            )
+        }
+
         "encode/decode a Map<String, String>" {
 
             @Serializable

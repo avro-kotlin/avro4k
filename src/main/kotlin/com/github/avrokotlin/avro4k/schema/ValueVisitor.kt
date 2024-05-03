@@ -48,8 +48,7 @@ internal class ValueVisitor internal constructor(
                 .symbols(*descriptor.elementNamesArray)
 
         annotations.aliases?.value?.forEach { schema.addAlias(it) }
-        annotations.props.forEach { schema.addProp(it.key, it.value) }
-        annotations.jsonProps.forEach { schema.addProp(it.key, it.jsonNode) }
+        annotations.props.forEach { schema.addProp(it.key, it.jsonNode) }
 
         setSchema(schema)
     }

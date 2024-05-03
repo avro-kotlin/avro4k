@@ -33,8 +33,7 @@ internal class ClassVisitor(
                         false
                     )
                 annotations.aliases?.value?.forEach { schema.addAlias(it) }
-                annotations.props.forEach { schema.addProp(it.key, it.value) }
-                annotations.jsonProps.forEach { schema.addProp(it.key, it.jsonNode) }
+                annotations.props.forEach { schema.addProp(it.key, it.jsonNode) }
                 schema
             }
         this.schemaAlreadyResolved = schemaAlreadyResolved
@@ -105,8 +104,7 @@ internal class ClassVisitor(
                 fieldDefault
             )
         annotations.aliases.flatMap { it.value.asSequence() }.forEach { field.addAlias(it) }
-        annotations.props.forEach { field.addProp(it.key, it.value) }
-        annotations.jsonProps.forEach { field.addProp(it.key, it.jsonNode) }
+        annotations.props.forEach { field.addProp(it.key, it.jsonNode) }
         return field
     }
 

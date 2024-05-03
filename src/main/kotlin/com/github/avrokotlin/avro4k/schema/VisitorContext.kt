@@ -10,7 +10,6 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroEnumDefault
 import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
@@ -57,7 +56,6 @@ internal data class InlineClassFieldAnnotations(
  */
 internal data class FieldAnnotations(
     val props: Sequence<AvroProp>,
-    val jsonProps: Sequence<AvroJsonProp>,
     val aliases: Sequence<AvroAlias>,
     val doc: AvroDoc?,
     val default: AvroDefault?,
@@ -65,7 +63,6 @@ internal data class FieldAnnotations(
 ) {
     constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
         descriptor.findElementAnnotations<AvroProp>(elementIndex).asSequence(),
-        descriptor.findElementAnnotations<AvroJsonProp>(elementIndex).asSequence(),
         descriptor.findElementAnnotations<AvroAlias>(elementIndex).asSequence(),
         descriptor.findElementAnnotation<AvroDoc>(elementIndex),
         descriptor.findElementAnnotation<AvroDefault>(elementIndex),
@@ -127,14 +124,12 @@ internal data class SimpleAnnotatedLocation(
  */
 internal data class TypeAnnotations(
     val props: Sequence<AvroProp>,
-    val jsonProps: Sequence<AvroJsonProp>,
     val aliases: AvroAlias?,
     val doc: AvroDoc?,
     val enumDefault: AvroEnumDefault?,
 ) {
     constructor(descriptor: SerialDescriptor) : this(
         descriptor.findAnnotations<AvroProp>().asSequence(),
-        descriptor.findAnnotations<AvroJsonProp>().asSequence(),
         descriptor.findAnnotation<AvroAlias>(),
         descriptor.findAnnotation<AvroDoc>(),
         descriptor.findAnnotation<AvroEnumDefault>()
@@ -163,12 +158,12 @@ internal fun ValueAnnotations?.appendAnnotations(other: ValueAnnotations) =
 
 private val objectMapper = ObjectMapper()
 
-internal val AvroJsonProp.jsonNode: JsonNode
+internal val AvroProp.jsonNode: JsonNode
     get() {
-        if (jsonValue.isStartingAsJson()) {
-            return objectMapper.readTree(jsonValue)
+        if (value.isStartingAsJson()) {
+            return objectMapper.readTree(value)
         }
-        return TextNode.valueOf(jsonValue)
+        return TextNode.valueOf(value)
     }
 
 internal val AvroDefault.jsonValue: Any

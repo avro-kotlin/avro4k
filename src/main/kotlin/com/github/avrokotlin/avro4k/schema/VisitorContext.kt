@@ -1,10 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.NullNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AnnotatedLocation
 import com.github.avrokotlin.avro4k.Avro
@@ -34,16 +31,11 @@ import org.apache.avro.Schema
 
 internal data class VisitorContext(
     val avro: Avro,
-    val resolvedSchemas: MutableMap<TypeName, Schema>,
-    val json: Json,
+    val resolvedSchemas: MutableMap<String, Schema>,
     val inlinedAnnotations: ValueAnnotations? = null,
 )
 
 internal fun VisitorContext.resetNesting() = copy(inlinedAnnotations = null)
-
-internal interface AvroVisitorContextAware {
-    val context: VisitorContext
-}
 
 /**
  * Contains all the annotations for a field of a class (kind == CLASS && isInline == true).
@@ -169,20 +161,20 @@ internal fun ValueAnnotations?.appendAnnotations(other: ValueAnnotations) =
         stack = (this?.stack ?: emptyList()) + other.stack
     )
 
-context(AvroVisitorContextAware)
+private val objectMapper = ObjectMapper()
+
 internal val AvroJsonProp.jsonNode: JsonNode
     get() {
         if (jsonValue.isStartingAsJson()) {
-            return context.json.parseToJsonElement(jsonValue).toJacksonNode()
+            return objectMapper.readTree(jsonValue)
         }
         return TextNode.valueOf(jsonValue)
     }
 
-context(AvroVisitorContextAware)
 internal val AvroDefault.jsonValue: Any
     get() {
         if (value.isStartingAsJson()) {
-            return context.json.parseToJsonElement(value).toAvroObject()
+            return Json.parseToJsonElement(value).toAvroObject()
         }
         return value
     }
@@ -212,36 +204,12 @@ private fun JsonElement.toAvroObject(): Any =
                 this.booleanOrNull != null -> this.boolean
                 else -> {
                     this.content.toBigDecimal().stripTrailingZeros().let {
-                        if (it.scale() <= 0) it.toBigInteger() else it
+                        if (it.scale() <= 0) {
+                            it.toBigInteger()
+                        } else {
+                            it
+                        }
                     }
                 }
             }
     }
-
-private fun JsonElement.toJacksonNode(): JsonNode =
-    when (this) {
-        is JsonNull -> NullNode.instance
-        is JsonObject -> ObjectNode(JsonNodeFactory.instance, this.entries.associate { it.key to it.value.toJacksonNode() })
-        is JsonArray -> ArrayNode(JsonNodeFactory.instance, this.map { it.toJacksonNode() })
-        is JsonPrimitive ->
-            when {
-                this.isString -> JsonNodeFactory.instance.textNode(this.content)
-                this.booleanOrNull != null -> JsonNodeFactory.instance.booleanNode(this.boolean)
-                else ->
-                    this.content.toBigDecimal().let {
-                        if (it.scale() <= 0) JsonNodeFactory.instance.numberNode(it.toBigInteger()) else JsonNodeFactory.instance.numberNode(it)
-                    }
-            }
-    }
-
-/**
- * Get the record/enum name using the configured record naming strategy.
- */
-context(AvroVisitorContextAware)
-internal fun SerialDescriptor.getAvroName() = context.avro.configuration.typeNamingStrategy.resolve(this, serialName)
-
-/**
- * Get the field name using the configured field naming strategy.
- */
-context(AvroVisitorContextAware)
-internal fun SerialDescriptor.getElementAvroName(elementIndex: Int) = context.avro.configuration.fieldNamingStrategy.resolve(this, elementIndex, getElementName(elementIndex))

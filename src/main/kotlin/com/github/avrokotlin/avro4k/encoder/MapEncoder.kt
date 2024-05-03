@@ -1,156 +1,62 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
-import kotlinx.serialization.ExperimentalSerializationApi
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractEncoder
-import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericFixed
-import org.apache.avro.util.Utf8
-import java.nio.ByteBuffer
 
-@ExperimentalSerializationApi
-class MapEncoder(
-    schema: Schema,
-    override val serializersModule: SerializersModule,
-    override val configuration: AvroConfiguration,
-    private val callback: (Map<Utf8, *>) -> Unit,
-) : AbstractEncoder(),
-    CompositeEncoder,
-    StructureEncoder {
-    private val map = mutableMapOf<Utf8, Any?>()
-    private var key: String? = null
-    private val valueSchema = schema.valueType
+private val STRING_SCHEMA = Schema.create(Schema.Type.STRING)
 
-    override fun encodeString(value: String) {
-        if (key == null) {
-            key = value
-        } else {
-            finalizeMapEntry(StringToAvroValue.toValue(valueSchema, value))
-        }
+internal class MapEncoder(
+    override val avro: Avro,
+    mapSize: Int,
+    private val schema: Schema,
+    private val onEncoded: (Map<String, Any?>) -> Unit,
+) : AvroTaggedEncoder<MapEncoder.MapTag>() {
+    init {
+        schema.ensureTypeOf(Schema.Type.MAP)
     }
 
-    override fun encodeBoolean(value: Boolean) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
-        }
+    private val entries: MutableList<Pair<String, Any?>> = ArrayList(mapSize)
+    private lateinit var currentKey: String
+
+    override fun endEncode(descriptor: SerialDescriptor) {
+        onEncoded(entries.associate { it.first to it.second })
     }
 
-    override fun encodeByte(value: Byte) {
-        if (key == null) {
-            key = value.toString()
+    override fun SerialDescriptor.getTag(index: Int) =
+        if (index % 2 == 0) {
+            MapTag.key()
         } else {
-            finalizeMapEntry(value)
+            MapTag.value(schema.valueType)
         }
-    }
 
-    override fun encodeChar(value: Char) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value.code)
-        }
-    }
+    override val MapTag.writerSchema: Schema
+        get() = schema
 
-    override fun encodeDouble(value: Double) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
-        }
-    }
-
-    override fun encodeEnum(
-        enumDescriptor: SerialDescriptor,
-        index: Int,
+    override fun encodeTaggedValue(
+        tag: MapTag,
+        value: Any,
     ) {
-        val value = enumDescriptor.getElementName(index)
-        if (key == null) {
-            key = value
+        if (tag.isKey) {
+            currentKey = value.toString()
         } else {
-            finalizeMapEntry(value)
+            entries.add(currentKey to value)
         }
     }
 
-    override fun encodeInt(value: Int) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
+    override fun encodeTaggedNull(tag: MapTag) {
+        if (tag.isKey) {
+            throw SerializationException("Map key cannot be null")
+        }
+        entries.add(currentKey to null)
+    }
+
+    data class MapTag(val isKey: Boolean, val schema: Schema) {
+        companion object {
+            fun key() = MapTag(true, STRING_SCHEMA)
+
+            fun value(schema: Schema) = MapTag(false, schema)
         }
     }
-
-    override fun encodeLong(value: Long) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
-        }
-    }
-
-    override fun encodeFloat(value: Float) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
-        }
-    }
-
-    override fun encodeShort(value: Short) {
-        if (key == null) {
-            key = value.toString()
-        } else {
-            finalizeMapEntry(value)
-        }
-    }
-
-    override fun encodeValue(value: Any) {
-        val k = key
-        if (k == null) {
-            throw SerializationException("Expected key but received value $value")
-        } else {
-            finalizeMapEntry(value)
-        }
-    }
-
-    override fun encodeNull() {
-        val k = key
-        if (k == null) {
-            throw SerializationException("Expected key but received <null>")
-        } else {
-            finalizeMapEntry(null)
-        }
-    }
-
-    private fun finalizeMapEntry(value: Any?) {
-        map[Utf8(key)] = value
-        key = null
-    }
-
-    override fun endStructure(descriptor: SerialDescriptor) {
-        callback(map.toMap())
-    }
-
-    override fun encodeByteArray(buffer: ByteBuffer) {
-        encodeValue(buffer)
-    }
-
-    override fun encodeFixed(fixed: GenericFixed) {
-        encodeValue(fixed)
-    }
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        return super<StructureEncoder>.beginStructure(descriptor)
-    }
-
-    override fun addValue(value: Any) {
-        encodeValue(value)
-    }
-
-    override fun fieldSchema(): Schema = valueSchema
 }

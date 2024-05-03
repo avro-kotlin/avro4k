@@ -7,29 +7,28 @@ import org.apache.avro.Schema
 
 internal class ClassVisitor(
     descriptor: SerialDescriptor,
-    override val context: VisitorContext,
+    private val context: VisitorContext,
     private val onSchemaBuilt: (Schema) -> Unit,
-) : SerialDescriptorClassVisitor, AvroVisitorContextAware {
+) : SerialDescriptorClassVisitor {
     private val fields = mutableListOf<Schema.Field>()
     private val schemaAlreadyResolved: Boolean
     private val schema: Schema
 
     init {
-        val recordName = descriptor.getAvroName()
         var schemaAlreadyResolved = true
         schema =
-            context.resolvedSchemas.getOrPut(recordName) {
+            context.resolvedSchemas.getOrPut(descriptor.nonNullSerialName) {
                 schemaAlreadyResolved = false
 
                 val annotations = TypeAnnotations(descriptor)
                 val schema =
                     Schema.createRecord(
                         // name =
-                        recordName.name,
+                        descriptor.nonNullSerialName,
                         // doc =
                         annotations.doc?.value,
                         // namespace =
-                        recordName.namespace,
+                        null,
                         // isError =
                         false
                     )
@@ -55,7 +54,7 @@ internal class ClassVisitor(
         ) {
             fields.add(
                 createField(
-                    descriptor.getElementAvroName(elementIndex),
+                    context.avro.configuration.fieldNamingStrategy.resolve(descriptor, elementIndex),
                     FieldAnnotations(descriptor, elementIndex),
                     it
                 )

@@ -1,12 +1,13 @@
 package com.github.avrokotlin.avro4k.schema
 
+import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 
 internal class MapVisitor(
-    override val context: VisitorContext,
+    private val context: VisitorContext,
     private val onSchemaBuilt: (Schema) -> Unit,
-) : SerialDescriptorMapVisitor, AvroVisitorContextAware {
+) : SerialDescriptorMapVisitor {
     private lateinit var valueSchema: Schema
 
     override fun visitMapKey(
@@ -51,8 +52,10 @@ private fun Schema.isStringable(): Boolean =
         -> true
 
         Schema.Type.NULL,
-        Schema.Type.BYTES, // bytes could be stringified, but it's not a good idea as it can produce unreadable strings.
-        Schema.Type.FIXED, // same, just bytes. Btw, if the user wants to stringify it, he can use @Contextual or custom @Serializable serializer.
+        // bytes could be stringified, but it's not a good idea as it can produce unreadable strings.
+        Schema.Type.BYTES,
+        // same, just bytes. Btw, if the user wants to stringify it, he can use @Contextual or custom @Serializable serializer.
+        Schema.Type.FIXED,
         Schema.Type.ARRAY,
         Schema.Type.MAP,
         Schema.Type.RECORD,

@@ -4,11 +4,12 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
@@ -16,9 +17,9 @@ import org.apache.avro.SchemaBuilder
 import kotlin.reflect.KClass
 
 internal class ValueVisitor internal constructor(
-    override val context: VisitorContext,
+    private val context: VisitorContext,
     private val onSchemaBuilt: (Schema) -> Unit,
-) : SerialDescriptorValueVisitor, AvroVisitorContextAware {
+) : SerialDescriptorValueVisitor {
     private var isNullable: Boolean = false
     private var logicalType: LogicalType? = null
 
@@ -28,8 +29,7 @@ internal class ValueVisitor internal constructor(
     constructor(avro: Avro, onSchemaBuilt: (Schema) -> Unit) : this(
         VisitorContext(
             avro,
-            mutableMapOf(),
-            Json { serializersModule = avro.serializersModule }
+            mutableMapOf()
         ),
         onSchemaBuilt = onSchemaBuilt
     )
@@ -40,12 +40,9 @@ internal class ValueVisitor internal constructor(
     ) = setSchema(Schema.create(kind.toAvroType()))
 
     override fun visitEnum(descriptor: SerialDescriptor) {
-        val enumName = descriptor.getAvroName()
-
         val annotations = TypeAnnotations(descriptor)
         val schema =
-            SchemaBuilder.enumeration(enumName.name)
-                .namespace(enumName.namespace)
+            SchemaBuilder.enumeration(descriptor.nonNullSerialName)
                 .doc(annotations.doc?.value)
                 .defaultSymbol(annotations.enumDefault?.value)
                 .symbols(*descriptor.elementNamesArray)
@@ -95,7 +92,7 @@ internal class ValueVisitor internal constructor(
         val parentFieldName =
             fixed.elementIndex?.let { fixed.descriptor.getElementName(it) }
                 ?: throw AvroSchemaGenerationException("@AvroFixed must be used on a field")
-        val parentNamespace = fixed.descriptor.getAvroName().namespace
+        val parentNamespace = fixed.descriptor.serialName.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
 
         setSchema(
             SchemaBuilder.fixed(parentFieldName)
@@ -145,3 +142,18 @@ private fun Schema.toNullableSchema(): Schema {
         Schema.createUnion(Schema.create(Schema.Type.NULL), this)
     }
 }
+
+private fun PrimitiveKind.toAvroType() =
+    when (this) {
+        PrimitiveKind.BOOLEAN -> Schema.Type.BOOLEAN
+        PrimitiveKind.CHAR -> Schema.Type.INT
+        PrimitiveKind.BYTE -> Schema.Type.INT
+        PrimitiveKind.SHORT -> Schema.Type.INT
+        PrimitiveKind.INT -> Schema.Type.INT
+        PrimitiveKind.LONG -> Schema.Type.LONG
+        PrimitiveKind.FLOAT -> Schema.Type.FLOAT
+        PrimitiveKind.DOUBLE -> Schema.Type.DOUBLE
+        PrimitiveKind.STRING -> Schema.Type.STRING
+    }
+
+private fun SerialDescriptor.isByteArray(): Boolean = kind == StructureKind.LIST && getElementDescriptor(0).let { !it.isNullable && it.kind == PrimitiveKind.BYTE }

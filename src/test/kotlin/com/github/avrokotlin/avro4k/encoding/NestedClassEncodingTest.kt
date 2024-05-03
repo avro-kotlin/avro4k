@@ -6,23 +6,6 @@ import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 
-@Serializable
-private data class County(val name: String, val towns: List<Town>, val ceremonial: Boolean, val lat: Double, val long: Double)
-
-@Serializable
-private data class Town(val name: String, val population: Int)
-
-@Serializable
-private data class Birthplace(val person: String, val town: Town)
-
-@Serializable
-private data class PersonV2(
-    val name: String,
-    val hasChickenPoxVaccine: Boolean,
-    @AvroDefault("null")
-    val hasCovidVaccine: Boolean? = null,
-)
-
 class NestedClassEncodingTest : StringSpec({
     "decode nested class" {
         AvroAssertions.assertThat(Birthplace(person = "Sammy Sam", town = Town(name = "Hardwick", population = 123)))
@@ -64,4 +47,27 @@ class NestedClassEncodingTest : StringSpec({
             record("Ryan", true, null)
         )
     }
-})
+}) {
+    @Serializable
+    private data class County(
+        val name: String,
+        val towns: List<Town>,
+        val ceremonial: Boolean,
+        val lat: Double,
+        val long: Double,
+    )
+
+    @Serializable
+    private data class Town(val name: String, val population: Int)
+
+    @Serializable
+    private data class Birthplace(val person: String, val town: Town)
+
+    @Serializable
+    private data class PersonV2(
+        val name: String,
+        val hasChickenPoxVaccine: Boolean,
+        @AvroDefault("null")
+        val hasCovidVaccine: Boolean? = null,
+    )
+}

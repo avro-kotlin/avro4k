@@ -134,7 +134,7 @@ private class KotlinxSerializationDatumWriter<T>(
     }
 }
 
-internal class KotlinxSerializationDatumReader<T>(
+private class KotlinxSerializationDatumReader<T>(
     private val deserializer: DeserializationStrategy<T>,
     private val avro: Avro,
 ) : DatumReader<T> {

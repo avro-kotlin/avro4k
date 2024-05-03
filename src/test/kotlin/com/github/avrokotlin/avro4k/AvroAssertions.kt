@@ -31,11 +31,10 @@ class AvroEncodingAssertions<T>(
     fun isEncodedAs(
         expectedEncodedGenericValue: Any?,
         expectedDecodedValue: T = valueToEncode,
+        writerSchema: Schema = avro.schema(serializer),
     ): AvroEncodingAssertions<T> {
-        val writerSchema: Schema = avro.schema(serializer)
-        val apacheEncodedBytes = avroApacheEncode(expectedEncodedGenericValue, writerSchema)
-
         val actualEncodedBytes = avro4kEncode(valueToEncode, writerSchema)
+        val apacheEncodedBytes = avroApacheEncode(expectedEncodedGenericValue, writerSchema)
         withClue("Encoded bytes are not the same as apache avro library.") {
             if (!actualEncodedBytes.contentEquals(apacheEncodedBytes)) {
                 val expectedAvroJson = bytesToAvroJson(apacheEncodedBytes, writerSchema)
@@ -57,7 +56,7 @@ class AvroEncodingAssertions<T>(
         return this
     }
 
-    inline fun <reified R> isDecodedAs(expected: R) = isDecodedAs(expected, serializer<R>())
+    inline fun <reified R> isDecodedAs(expected: R) = isDecodedAs(expected, Avro.serializersModule.serializer<R>())
 
     fun <R> isDecodedAs(
         expected: R,
@@ -161,7 +160,7 @@ open class AvroSchemaAssertions<T>(
 
 object AvroAssertions {
     inline fun <reified T> assertThat(): AvroSchemaAssertions<T> {
-        return AvroSchemaAssertions(serializer<T>())
+        return AvroSchemaAssertions(Avro.serializersModule.serializer<T>())
     }
 
     fun <T> assertThat(serializer: KSerializer<T>): AvroSchemaAssertions<T> {
@@ -169,7 +168,7 @@ object AvroAssertions {
     }
 
     inline fun <reified T> assertThat(value: T): AvroEncodingAssertions<T> {
-        return AvroEncodingAssertions(value, serializer<T>())
+        return AvroEncodingAssertions(value, Avro.serializersModule.serializer<T>())
     }
 
     @Suppress("UNCHECKED_CAST")

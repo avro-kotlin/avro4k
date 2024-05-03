@@ -1,15 +1,9 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
-import com.github.avrokotlin.avro4k.schema.TypeNamingStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 
 data class AvroConfiguration(
-    /**
-     * The naming strategy to use for complex types (record, enum and fixed types).
-     *
-     * Default: [TypeNamingStrategy.Builtins.FullyQualified]
-     */
-    val typeNamingStrategy: TypeNamingStrategy = TypeNamingStrategy.Builtins.FullyQualified,
     /**
      * The naming strategy to use for records' fields name.
      *
@@ -26,9 +20,11 @@ data class AvroConfiguration(
      *
      * @see EncodedAs
      */
+    @ExperimentalSerializationApi
     val encodedAs: EncodedAs = EncodedAs.BINARY,
 )
 
+@ExperimentalSerializationApi
 enum class EncodedAs {
     BINARY,
     JSON_COMPACT,

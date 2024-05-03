@@ -1,6 +1,6 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.schema.nonNull
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
@@ -27,7 +27,7 @@ fun convertToAvroGenericValue(
     value: Any?,
     schema: Schema,
 ): Any? {
-    val schema = if (schema.isNullable) schema.extractNonNull() else schema
+    val schema = schema.nonNull
     return when (value) {
         is RecordBuilderForTest -> value.createRecord(schema)
         is Map<*, *> -> createMap(schema, value)
@@ -52,13 +52,14 @@ fun normalizeGenericData(value: Any?): Any? {
         is ByteArray -> value.toList()
         is ByteBuffer -> value.array().toList()
         is GenericFixed -> value.bytes().toList()
-        is GenericEnumSymbol<*> -> value.toString()
         is CharSequence -> value.toString()
 
         is RecordBuilderForTest -> RecordBuilderForTest(value.fields.map { normalizeGenericData(it) })
         is Byte -> value.toInt()
         is Short -> value.toInt()
-        is Boolean, is Char, is Number, null -> value
+        is GenericEnumSymbol<*>,
+        is Boolean, is Char, is Number, null,
+        -> value
 
         else -> TODO("Not implemented for ${value.javaClass}")
     }

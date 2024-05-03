@@ -14,7 +14,7 @@ import kotlinx.serialization.builtins.nullable
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 
-class DateSchemaTest : FunSpec({
+internal class DateSchemaTest : FunSpec({
     listOf(
         LocalDateSerializer to LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT)),
         LocalTimeSerializer to LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT)),

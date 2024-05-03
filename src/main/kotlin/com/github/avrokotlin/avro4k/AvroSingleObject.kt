@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k
 
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
@@ -22,13 +23,15 @@ import java.nio.ByteOrder
  *
  * @param findSchemaByFingerprint a function to find a schema by its fingerprint, and returns null when not found
  */
-class AvroSingleObject(
+@ExperimentalSerializationApi
+public class AvroSingleObject(
     private val findSchemaByFingerprint: (Long) -> Schema?,
-    val avro: Avro = Avro,
+    @PublishedApi
+    internal val avro: Avro = Avro,
 ) {
     private fun Schema.crc64avro(): ByteArray = SchemaNormalization.parsingFingerprint("CRC-64-AVRO", this)
 
-    fun <T> encodeToStream(
+    public fun <T> encodeToStream(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
@@ -40,7 +43,7 @@ class AvroSingleObject(
         avro.encodeToStream(writerSchema, serializer, value, outputStream)
     }
 
-    fun <T> decodeFromStream(
+    public fun <T> decodeFromStream(
         deserializer: DeserializationStrategy<T>,
         inputStream: InputStream,
     ): T {
@@ -57,7 +60,7 @@ class AvroSingleObject(
 private const val MAGIC_BYTE: Int = 0xC3
 private const val FORMAT_VERSION: Int = 1
 
-fun <T> AvroSingleObject.encodeToByteArray(
+public fun <T> AvroSingleObject.encodeToByteArray(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
     value: T,
@@ -66,17 +69,17 @@ fun <T> AvroSingleObject.encodeToByteArray(
         encodeToStream(writerSchema, serializer, value, this)
     }.toByteArray()
 
-inline fun <reified T> AvroSingleObject.encodeToByteArray(
+public inline fun <reified T> AvroSingleObject.encodeToByteArray(
     writerSchema: Schema,
     value: T,
 ): ByteArray = encodeToByteArray(writerSchema, avro.serializersModule.serializer<T>(), value)
 
-inline fun <reified T> AvroSingleObject.encodeToByteArray(value: T): ByteArray {
+public inline fun <reified T> AvroSingleObject.encodeToByteArray(value: T): ByteArray {
     val serializer = avro.serializersModule.serializer<T>()
     return encodeToByteArray(avro.schema(serializer), serializer, value)
 }
 
-fun <T> AvroSingleObject.decodeFromByteArray(
+public fun <T> AvroSingleObject.decodeFromByteArray(
     deserializer: DeserializationStrategy<T>,
     bytes: ByteArray,
 ): T =
@@ -84,4 +87,4 @@ fun <T> AvroSingleObject.decodeFromByteArray(
         decodeFromStream(deserializer, it)
     }
 
-inline fun <reified T> AvroSingleObject.decodeFromByteArray(bytes: ByteArray): T = decodeFromByteArray(avro.serializersModule.serializer<T>(), bytes)
+public inline fun <reified T> AvroSingleObject.decodeFromByteArray(bytes: ByteArray): T = decodeFromByteArray(avro.serializersModule.serializer<T>(), bytes)

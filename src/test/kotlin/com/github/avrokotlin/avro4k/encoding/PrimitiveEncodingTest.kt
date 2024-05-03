@@ -15,7 +15,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import java.nio.ByteBuffer
 
-class PrimitiveEncodingTest : StringSpec({
+internal class PrimitiveEncodingTest : StringSpec({
     "read write out booleans" {
         AvroAssertions.assertThat(BooleanTest(true))
             .isEncodedAs(record(true))

@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class FieldNamingStrategySchemaTest : StringSpec({
+internal class FieldNamingStrategySchemaTest : StringSpec({
     "should convert schema with snake_case to camelCase" {
         AvroAssertions.assertThat<Interface>()
             .withConfig { fieldNamingStrategy = FieldNamingStrategy.Builtins.SnakeCase }

@@ -9,7 +9,7 @@ import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import java.util.UUID
 
-class UUIDSchemaTest : FunSpec({
+internal class UUIDSchemaTest : FunSpec({
     test("support UUID logical types") {
         AvroAssertions.assertThat<UUIDTest>()
             .generatesSchema(LogicalTypes.uuid().addToSchema(Schema.create(Schema.Type.STRING)))

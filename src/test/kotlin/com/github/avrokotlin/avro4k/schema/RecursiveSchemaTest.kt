@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class RecursiveSchemaTest : FunSpec({
+internal class RecursiveSchemaTest : FunSpec({
 
     test("accept direct recursive classes") {
         AvroAssertions.assertThat<RecursiveClass>()

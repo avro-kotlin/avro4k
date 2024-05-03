@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import org.apache.avro.SchemaBuilder
 
-class RecordEncodingTest : StringSpec({
+internal class RecordEncodingTest : StringSpec({
     "encoding basic data class" {
         val input =
             Foo(

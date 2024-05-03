@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.schema.ensureTypeOf
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray

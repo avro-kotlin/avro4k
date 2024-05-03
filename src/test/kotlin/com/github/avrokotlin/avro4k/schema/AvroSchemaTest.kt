@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
-class AvroSchemaTest : StringSpec({
+internal class AvroSchemaTest : StringSpec({
     "@AvroLogicalType annotation should be supported" {
         AvroAssertions.assertThat<Something>()
             .generatesSchema(SchemaBuilder.fixed("myCustomSchema").doc("a doc").size(42))
@@ -22,7 +22,7 @@ class AvroSchemaTest : StringSpec({
     )
 }
 
-object CustomSchemaSupplier : AvroSchemaSupplier {
+internal object CustomSchemaSupplier : AvroSchemaSupplier {
     override fun getSchema(stack: List<AnnotatedLocation>): Schema {
         return Schema.createFixed("myCustomSchema", "a doc", null, 42)
     }

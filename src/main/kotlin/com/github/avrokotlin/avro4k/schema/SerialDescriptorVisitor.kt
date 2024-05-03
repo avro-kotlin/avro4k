@@ -1,21 +1,13 @@
 package com.github.avrokotlin.avro4k.schema
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.descriptors.capturedKClass
-import kotlinx.serialization.descriptors.elementDescriptors
-import kotlinx.serialization.descriptors.getContextualDescriptor
-import kotlinx.serialization.descriptors.getPolymorphicDescriptors
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.serializerOrNull
 
-@ExperimentalSerializationApi
-interface SerialDescriptorValueVisitor {
+internal interface SerialDescriptorValueVisitor {
     val serializersModule: SerializersModule
 
     /**
@@ -111,8 +103,7 @@ interface SerialDescriptorValueVisitor {
     }
 }
 
-@ExperimentalSerializationApi
-interface SerialDescriptorMapVisitor {
+internal interface SerialDescriptorMapVisitor {
     /**
      * @return null if we don't want to visit the map key
      */
@@ -132,8 +123,7 @@ interface SerialDescriptorMapVisitor {
     fun endMapVisit(descriptor: SerialDescriptor)
 }
 
-@ExperimentalSerializationApi
-interface SerialDescriptorListVisitor {
+internal interface SerialDescriptorListVisitor {
     /**
      * @return null if we don't want to visit the list item
      */
@@ -145,8 +135,7 @@ interface SerialDescriptorListVisitor {
     fun endListVisit(descriptor: SerialDescriptor)
 }
 
-@ExperimentalSerializationApi
-interface SerialDescriptorPolymorphicVisitor {
+internal interface SerialDescriptorPolymorphicVisitor {
     /**
      * @return null if we don't want to visit the found polymorphic descriptor
      */
@@ -155,8 +144,7 @@ interface SerialDescriptorPolymorphicVisitor {
     fun endPolymorphicVisit(descriptor: SerialDescriptor)
 }
 
-@ExperimentalSerializationApi
-interface SerialDescriptorClassVisitor {
+internal interface SerialDescriptorClassVisitor {
     /**
      * @return null if we don't want to visit the class element
      */
@@ -168,8 +156,7 @@ interface SerialDescriptorClassVisitor {
     fun endClassVisit(descriptor: SerialDescriptor)
 }
 
-@ExperimentalSerializationApi
-interface SerialDescriptorInlineClassVisitor {
+internal interface SerialDescriptorInlineClassVisitor {
     /**
      * @return null if we don't want to visit the inline class element
      */
@@ -177,30 +164,4 @@ interface SerialDescriptorInlineClassVisitor {
         inlineClassDescriptor: SerialDescriptor,
         inlineElementIndex: Int,
     ): SerialDescriptorValueVisitor?
-}
-
-@ExperimentalSerializationApi
-@OptIn(InternalSerializationApi::class)
-private fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: SerializersModule) =
-    requireNotNull(serializersModule.getContextualDescriptor(this) ?: this.capturedKClass?.serializerOrNull()?.descriptor) {
-        "No descriptor found in serialization context for $this"
-    }
-
-@ExperimentalSerializationApi
-internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): Sequence<SerialDescriptor> {
-    return when (this.kind) {
-        PolymorphicKind.SEALED ->
-            elementDescriptors.asSequence()
-                .filter { it.kind == SerialKind.CONTEXTUAL }
-                .flatMap { it.elementDescriptors }
-                .flatMap { it.possibleSerializationSubclasses(serializersModule) }
-
-        PolymorphicKind.OPEN ->
-            serializersModule.getPolymorphicDescriptors(this@possibleSerializationSubclasses).asSequence()
-                .flatMap { it.possibleSerializationSubclasses(serializersModule) }
-
-        SerialKind.CONTEXTUAL -> sequenceOf(getNonNullContextualDescriptor(serializersModule))
-
-        else -> sequenceOf(this)
-    }
 }

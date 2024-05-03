@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
 
-class AvroLogicalTypeTest : StringSpec({
+internal class AvroLogicalTypeTest : StringSpec({
     "@AvroLogicalType annotation should be supported" {
         AvroAssertions.assertThat<Something>()
             .generatesSchema(CustomLogicalType.addToSchema(Schema.create(Schema.Type.STRING)))

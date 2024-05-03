@@ -8,7 +8,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.encoding.Decoder
 import kotlin.reflect.KClass
 
-class AvroSchemaGenerationException(message: String) : SerializationException(message)
+internal class AvroSchemaGenerationException(message: String) : SerializationException(message)
 
 context(Decoder)
 internal fun DecodedNullError() = SerializationException("Unexpected null value, Decoder.decodeTaggedNotNullMark should be called first")

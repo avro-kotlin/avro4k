@@ -12,7 +12,7 @@ import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import java.math.BigDecimal
 
-class BigDecimalSchemaTest : FunSpec({
+internal class BigDecimalSchemaTest : FunSpec({
     test("support BigDecimal logical types") {
         AvroAssertions.assertThat<BigDecimalTest>()
             .generatesSchema(LogicalTypes.decimal(8, 2).addToSchema(Schema.create(Schema.Type.BYTES)))

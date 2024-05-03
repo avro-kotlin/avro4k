@@ -1,28 +1,29 @@
 package com.github.avrokotlin.avro4k.schema
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 
-interface FieldNamingStrategy {
-    fun resolve(
+public interface FieldNamingStrategy {
+    public fun resolve(
         descriptor: SerialDescriptor,
         elementIndex: Int,
     ): String
 
-    companion object Builtins {
+    public companion object Builtins {
         /**
          * Returns the field name as is.
          */
-        object NoOp : FieldNamingStrategy {
+        public object NoOp : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,
                 elementIndex: Int,
-            ) = descriptor.getElementName(elementIndex)
+            ): String = descriptor.getElementName(elementIndex)
         }
 
         /**
          * Convert the field name to snake_case by adding an underscore before each capital letter, and lowercase those capital letters.
          */
-        object SnakeCase : FieldNamingStrategy {
+        public object SnakeCase : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,
                 elementIndex: Int,
@@ -65,7 +66,8 @@ interface FieldNamingStrategy {
         /**
          * Enforce camelCase naming strategy by upper-casing the first field name letter.
          */
-        object PascalCase : FieldNamingStrategy {
+        @ExperimentalSerializationApi
+        public object PascalCase : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,
                 elementIndex: Int,

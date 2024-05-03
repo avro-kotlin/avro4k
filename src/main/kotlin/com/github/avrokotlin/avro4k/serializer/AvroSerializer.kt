@@ -6,7 +6,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-abstract class AvroSerializer<T> : KSerializer<T> {
+public abstract class AvroSerializer<T> : KSerializer<T> {
     final override fun serialize(
         encoder: Encoder,
         value: T,
@@ -24,14 +24,14 @@ abstract class AvroSerializer<T> : KSerializer<T> {
      *
      * Implement it to provide a generic serialization logic with the standard [Encoder].
      */
-    open fun serializeGeneric(
+    public open fun serializeGeneric(
         encoder: Encoder,
         value: T,
     ) {
         throw UnsupportedOperationException("The serializer ${this::class.qualifiedName} is not usable outside of Avro serialization.")
     }
 
-    abstract fun serializeAvro(
+    public abstract fun serializeAvro(
         encoder: AvroEncoder,
         value: T,
     )
@@ -43,9 +43,9 @@ abstract class AvroSerializer<T> : KSerializer<T> {
         return deserializeAvro(decoder)
     }
 
-    open fun deserializeGeneric(decoder: Decoder): T {
+    public open fun deserializeGeneric(decoder: Decoder): T {
         throw UnsupportedOperationException("The serializer ${this::class.qualifiedName} is not usable outside of Avro serialization.")
     }
 
-    abstract fun deserializeAvro(decoder: AvroDecoder): T
+    public abstract fun deserializeAvro(decoder: AvroDecoder): T
 }

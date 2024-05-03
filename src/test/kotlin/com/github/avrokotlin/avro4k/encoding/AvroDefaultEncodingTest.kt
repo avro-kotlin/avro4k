@@ -10,7 +10,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 
-class AvroDefaultEncodingTest : StringSpec({
+internal class AvroDefaultEncodingTest : StringSpec({
     "test default values correctly decoded" {
         AvroAssertions.assertThat(ContainerWithoutDefaultFields("abc"))
             .isEncodedAs(record("abc"))

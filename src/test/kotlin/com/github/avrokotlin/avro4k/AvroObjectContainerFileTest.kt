@@ -13,7 +13,7 @@ import org.apache.avro.generic.GenericRecord
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
-class AvroObjectContainerFileTest : StringSpec({
+internal class AvroObjectContainerFileTest : StringSpec({
     val firstProfile =
         UserProfile(
             id = UserId(UUID.randomUUID()),

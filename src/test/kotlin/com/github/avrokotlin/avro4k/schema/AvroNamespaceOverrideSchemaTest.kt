@@ -14,7 +14,7 @@ import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import kotlin.io.path.Path
 
-class AvroNamespaceOverrideSchemaTest : FunSpec({
+internal class AvroNamespaceOverrideSchemaTest : FunSpec({
 
     test("support namespace annotations on records") {
         val schema = Avro.schema<AnnotatedNamespace>()

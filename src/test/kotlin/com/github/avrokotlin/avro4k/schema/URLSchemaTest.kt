@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import java.net.URL
 
-class URLSchemaTest : FunSpec({
+internal class URLSchemaTest : FunSpec({
     test("accept URL as String") {
         AvroAssertions.assertThat<URLTest>()
             .generatesSchema(Schema.create(Schema.Type.STRING))

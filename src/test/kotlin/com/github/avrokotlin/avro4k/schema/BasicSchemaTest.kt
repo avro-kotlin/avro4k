@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class BasicSchemaTest : FunSpec({
+internal class BasicSchemaTest : FunSpec({
 
     test("schema for basic types") {
         AvroAssertions.assertThat<Foo>()

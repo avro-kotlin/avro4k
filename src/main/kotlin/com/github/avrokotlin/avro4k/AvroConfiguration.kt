@@ -3,7 +3,7 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 
-data class AvroConfiguration(
+public data class AvroConfiguration(
     /**
      * The naming strategy to use for records' fields name.
      *
@@ -25,7 +25,7 @@ data class AvroConfiguration(
 )
 
 @ExperimentalSerializationApi
-enum class EncodedAs {
+public enum class EncodedAs {
     BINARY,
     JSON_COMPACT,
     JSON_PRETTY,

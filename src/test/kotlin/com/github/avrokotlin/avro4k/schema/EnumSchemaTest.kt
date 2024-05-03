@@ -13,7 +13,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class EnumSchemaTest : StringSpec({
+internal class EnumSchemaTest : StringSpec({
     "should generate schema with alias, enum default and doc" {
         AvroAssertions.assertThat<Suit>()
             .generatesSchema(Path("/enum_with_default.json"))

@@ -10,7 +10,7 @@ import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 
 @OptIn(InternalSerializationApi::class)
-class BytesSchemaTest : FunSpec({
+internal class BytesSchemaTest : FunSpec({
 
     listOf(
         WrappedByteArray::class,

@@ -14,7 +14,7 @@ import kotlinx.serialization.SerializationException
 import org.apache.avro.generic.GenericData
 import kotlin.io.path.Path
 
-class AvroFixedEncodingTest : StringSpec({
+internal class AvroFixedEncodingTest : StringSpec({
     "support fixed on data class fields" {
         AvroAssertions.assertThat<FixedStringField>()
             .generatesSchema(Path("/fixed_string.json"))

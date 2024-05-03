@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class AvroDocSchemaTest : WordSpec({
+internal class AvroDocSchemaTest : WordSpec({
 
     "@AvroDoc" should {
         "support doc annotation on class" {

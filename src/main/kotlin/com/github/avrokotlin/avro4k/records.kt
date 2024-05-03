@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.specific.SpecificRecord
@@ -8,13 +9,15 @@ import org.apache.avro.specific.SpecificRecord
  * An implementation of [org.apache.avro.generic.GenericContainer] that implements
  * both [GenericRecord] and [SpecificRecord].
  */
-interface Record : GenericRecord, SpecificRecord
+@ExperimentalSerializationApi
+public interface Record : GenericRecord, SpecificRecord
 
-data class ListRecord(
+@ExperimentalSerializationApi
+public data class ListRecord(
     private val s: Schema,
     private val values: List<Any?>,
 ) : Record {
-    constructor(s: Schema, vararg values: Any?) : this(s, values.toList())
+    public constructor(s: Schema, vararg values: Any?) : this(s, values.toList())
 
     init {
         require(schema.type == Schema.Type.RECORD) { "Cannot create a Record with a schema that is not of type Schema.Type.RECORD [was $s]" }

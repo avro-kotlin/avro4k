@@ -6,7 +6,7 @@ import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 
-class NestedClassEncodingTest : StringSpec({
+internal class NestedClassEncodingTest : StringSpec({
     "decode nested class" {
         AvroAssertions.assertThat(Birthplace(person = "Sammy Sam", town = Town(name = "Hardwick", population = 123)))
             .isEncodedAs(

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import java.math.BigInteger
 
-class BigIntegerSchemaTest : FunSpec({
+internal class BigIntegerSchemaTest : FunSpec({
     test("support BigInteger as string") {
         AvroAssertions.assertThat<BigIntegerTest>()
             .generatesSchema(Schema.create(Schema.Type.STRING))

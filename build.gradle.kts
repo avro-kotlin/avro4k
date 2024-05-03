@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
@@ -22,6 +23,7 @@ plugins {
     alias(libs.plugins.github.versions)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.spotless)
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
 }
 
 tasks {
@@ -42,11 +44,25 @@ dependencies {
     testImplementation(libs.kotest.property)
 }
 
+kotlin {
+    explicitApi = ExplicitApiMode.Strict
+}
+
+apiValidation {
+    nonPublicMarkers.add("kotlinx.serialization.ExperimentalSerializationApi")
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.apiVersion = "1.6"
     kotlinOptions.languageVersion = "1.6"
-    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
+    kotlinOptions.freeCompilerArgs +=
+        listOf(
+            "-Xexplicit-api=strict",
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-opt-in=kotlin.RequiresOptIn",
+            "-Xcontext-receivers"
+        )
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

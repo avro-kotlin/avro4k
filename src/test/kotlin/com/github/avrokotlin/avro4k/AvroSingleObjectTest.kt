@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.SchemaNormalization
 import java.time.Instant
 
-class AvroSingleObjectTest : StringSpec({
+internal class AvroSingleObjectTest : StringSpec({
     val orderEvent =
         OrderEvent(
             OrderId("123"),

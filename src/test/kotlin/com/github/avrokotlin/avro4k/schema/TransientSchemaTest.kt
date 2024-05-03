@@ -8,7 +8,7 @@ import kotlinx.serialization.Transient
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
-class TransientSchemaTest : FunSpec({
+internal class TransientSchemaTest : FunSpec({
     test("ignore fields with @Transient") {
         AvroAssertions.assertThat<TransientTest>()
             .generatesSchema(

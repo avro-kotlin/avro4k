@@ -40,16 +40,16 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
  */
-sealed class Avro(
-    val configuration: AvroConfiguration,
-    val serializersModule: SerializersModule,
+public sealed class Avro(
+    public val configuration: AvroConfiguration,
+    public val serializersModule: SerializersModule,
 ) {
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
     internal val recordResolver = RecordResolver(this)
     internal val unionResolver = UnionResolver()
     internal val enumResolver = EnumResolver()
 
-    companion object Default : Avro(
+    public companion object Default : Avro(
         AvroConfiguration(),
         SerializersModule {
             contextual(UUIDSerializer)
@@ -64,7 +64,7 @@ sealed class Avro(
         }
     )
 
-    fun schema(descriptor: SerialDescriptor): Schema {
+    public fun schema(descriptor: SerialDescriptor): Schema {
         return schemaCache.getOrPut(descriptor) {
             lateinit var output: Schema
             ValueVisitor(this) { output = it }.visitValue(descriptor)
@@ -72,7 +72,7 @@ sealed class Avro(
         }
     }
 
-    fun <T> encodeToStream(
+    public fun <T> encodeToStream(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
@@ -89,7 +89,7 @@ sealed class Avro(
         avroEncoder.flush()
     }
 
-    fun <T> encodeToByteArray(
+    public fun <T> encodeToByteArray(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
@@ -99,7 +99,7 @@ sealed class Avro(
         return outputStream.toByteArray()
     }
 
-    fun <T> encodeToGenericData(
+    public fun <T> encodeToGenericData(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
@@ -111,7 +111,7 @@ sealed class Avro(
         return result
     }
 
-    fun <T> decodeFromStream(
+    public fun <T> decodeFromStream(
         writerSchema: Schema,
         deserializer: DeserializationStrategy<T>,
         inputStream: InputStream,
@@ -125,7 +125,7 @@ sealed class Avro(
         return decodeFromGenericData(writerSchema, deserializer, genericData)
     }
 
-    fun <T> decodeFromByteArray(
+    public fun <T> decodeFromByteArray(
         writerSchema: Schema,
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
@@ -133,7 +133,7 @@ sealed class Avro(
         return decodeFromStream(writerSchema, deserializer, ByteArrayInputStream(bytes))
     }
 
-    fun <T> decodeFromGenericData(
+    public fun <T> decodeFromGenericData(
         writerSchema: Schema,
         deserializer: DeserializationStrategy<T>,
         value: Any?,
@@ -143,7 +143,7 @@ sealed class Avro(
     }
 }
 
-fun Avro(
+public fun Avro(
     from: Avro = Avro,
     builderAction: AvroBuilder.() -> Unit,
 ): Avro {
@@ -152,13 +152,13 @@ fun Avro(
     return AvroImpl(builder.build(), from.serializersModule.overwriteWith(builder.serializersModule))
 }
 
-class AvroBuilder internal constructor(avro: Avro) {
-    var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
-    var implicitNulls: Boolean = avro.configuration.implicitNulls
-    var encodedAs: EncodedAs = avro.configuration.encodedAs
-    var serializersModule: SerializersModule = EmptySerializersModule()
+public class AvroBuilder internal constructor(avro: Avro) {
+    public var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
+    public var implicitNulls: Boolean = avro.configuration.implicitNulls
+    public var encodedAs: EncodedAs = avro.configuration.encodedAs
+    public var serializersModule: SerializersModule = EmptySerializersModule()
 
-    fun build() =
+    public fun build(): AvroConfiguration =
         AvroConfiguration(
             fieldNamingStrategy = fieldNamingStrategy,
             implicitNulls = implicitNulls,
@@ -171,23 +171,23 @@ private class AvroImpl(configuration: AvroConfiguration, serializersModule: Seri
 
 // schema gen extensions
 
-inline fun <reified T> Avro.schema(): Schema {
+public inline fun <reified T> Avro.schema(): Schema {
     val serializer = serializersModule.serializer<T>()
     return schema(serializer.descriptor)
 }
 
-fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
+public fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
     return schema(serializer.descriptor)
 }
 
 // encoding extensions
 
-inline fun <reified T> Avro.encodeToByteArray(value: T): ByteArray {
+public inline fun <reified T> Avro.encodeToByteArray(value: T): ByteArray {
     val serializer = serializersModule.serializer<T>()
     return encodeToByteArray(schema(serializer), serializer, value)
 }
 
-inline fun <reified T> Avro.encodeToByteArray(
+public inline fun <reified T> Avro.encodeToByteArray(
     writerSchema: Schema,
     value: T,
 ): ByteArray {
@@ -195,12 +195,12 @@ inline fun <reified T> Avro.encodeToByteArray(
     return encodeToByteArray(writerSchema, serializer, value)
 }
 
-inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
+public inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
     val serializer = serializersModule.serializer<T>()
     return encodeToGenericData(schema(serializer), serializer, value)
 }
 
-inline fun <reified T> Avro.encodeToGenericData(
+public inline fun <reified T> Avro.encodeToGenericData(
     writerSchema: Schema,
     value: T,
 ): Any? {
@@ -208,7 +208,7 @@ inline fun <reified T> Avro.encodeToGenericData(
     return encodeToGenericData(writerSchema, serializer, value)
 }
 
-inline fun <reified T> Avro.encodeToStream(
+public inline fun <reified T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
@@ -216,7 +216,7 @@ inline fun <reified T> Avro.encodeToStream(
     encodeToStream(schema(serializer), serializer, value, outputStream)
 }
 
-inline fun <reified T> Avro.encodeToStream(
+public inline fun <reified T> Avro.encodeToStream(
     writerSchema: Schema,
     value: T,
     outputStream: OutputStream,
@@ -227,12 +227,12 @@ inline fun <reified T> Avro.encodeToStream(
 
 // decoding extensions
 
-inline fun <reified T> Avro.decodeFromStream(inputStream: InputStream): T {
+public inline fun <reified T> Avro.decodeFromStream(inputStream: InputStream): T {
     val serializer = serializersModule.serializer<T>()
     return decodeFromStream(schema(serializer.descriptor), serializer, inputStream)
 }
 
-inline fun <reified T> Avro.decodeFromStream(
+public inline fun <reified T> Avro.decodeFromStream(
     writerSchema: Schema,
     inputStream: InputStream,
 ): T {
@@ -240,12 +240,12 @@ inline fun <reified T> Avro.decodeFromStream(
     return decodeFromStream(writerSchema, serializer, inputStream)
 }
 
-inline fun <reified T> Avro.decodeFromByteArray(bytes: ByteArray): T {
+public inline fun <reified T> Avro.decodeFromByteArray(bytes: ByteArray): T {
     val serializer = serializersModule.serializer<T>()
     return decodeFromByteArray(schema(serializer.descriptor), serializer, bytes)
 }
 
-inline fun <reified T> Avro.decodeFromByteArray(
+public inline fun <reified T> Avro.decodeFromByteArray(
     writerSchema: Schema,
     bytes: ByteArray,
 ): T {
@@ -253,7 +253,7 @@ inline fun <reified T> Avro.decodeFromByteArray(
     return decodeFromByteArray(writerSchema, serializer, bytes)
 }
 
-inline fun <reified T> Avro.decodeFromGenericData(
+public inline fun <reified T> Avro.decodeFromGenericData(
     writerSchema: Schema,
     value: Any?,
 ): T {
@@ -261,7 +261,7 @@ inline fun <reified T> Avro.decodeFromGenericData(
     return decodeFromGenericData(writerSchema, deserializer, value)
 }
 
-inline fun <reified T> Avro.decodeFromGenericData(value: GenericContainer?): T? {
+public inline fun <reified T> Avro.decodeFromGenericData(value: GenericContainer?): T? {
     if (value == null) return null
     val deserializer = serializersModule.serializer<T>()
     return decodeFromGenericData(value.schema, deserializer, value)

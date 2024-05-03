@@ -1,15 +1,19 @@
 package com.github.avrokotlin.avro4k.decoder
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 
-interface AvroDecoder : Decoder {
-    val currentWriterSchema: Schema
+public interface AvroDecoder : Decoder {
+    @ExperimentalSerializationApi
+    public val currentWriterSchema: Schema
 
-    fun decodeBytes(): ByteArray
+    @ExperimentalSerializationApi
+    public fun decodeBytes(): ByteArray
 
-    fun decodeFixed(): GenericFixed
+    @ExperimentalSerializationApi
+    public fun decodeFixed(): GenericFixed
 
-    fun decodeValue(): Any
+    public fun decodeValue(): Any
 }

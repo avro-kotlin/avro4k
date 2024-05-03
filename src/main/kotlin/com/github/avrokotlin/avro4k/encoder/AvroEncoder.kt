@@ -1,21 +1,26 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import kotlinx.serialization.SerializationException
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer
 
-interface AvroEncoder : Encoder {
-    val currentWriterSchema: Schema
+public interface AvroEncoder : Encoder {
+    @ExperimentalSerializationApi
+    public val currentWriterSchema: Schema
 
-    fun encodeBytes(value: ByteBuffer)
+    @ExperimentalSerializationApi
+    public fun encodeBytes(value: ByteBuffer)
 
-    fun encodeBytes(value: ByteArray)
+    @ExperimentalSerializationApi
+    public fun encodeBytes(value: ByteArray)
 
-    fun encodeFixed(value: ByteArray)
+    @ExperimentalSerializationApi
+    public fun encodeFixed(value: ByteArray)
 
-    fun encodeFixed(value: GenericFixed)
+    @ExperimentalSerializationApi
+    public fun encodeFixed(value: GenericFixed)
 
     /**
      * Helps to encode a value in different ways depending on the type of the writer schema.
@@ -23,59 +28,54 @@ interface AvroEncoder : Encoder {
      *
      * @param kotlinTypeName represents the kotlin type name of the encoded value for debugging purposes as it's used in exceptions. This is not the written avro type name.
      */
-    fun encodeValueResolved(
+    @ExperimentalSerializationApi
+    public fun encodeValueResolved(
         vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>,
         kotlinTypeName: String,
     )
 }
 
-inline fun <reified T : Any> AvroEncoder.encodeValueResolved(vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>) {
+@ExperimentalSerializationApi
+public inline fun <reified T : Any> AvroEncoder.encodeValueResolved(vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>) {
     encodeValueResolved(*encoders, kotlinTypeName = T::class.qualifiedName!!)
 }
 
-sealed class SchemaTypeMatcher {
-    sealed class Scalar : SchemaTypeMatcher() {
-        object BOOLEAN : Scalar()
+public sealed class SchemaTypeMatcher {
+    public sealed class Scalar : SchemaTypeMatcher() {
+        public object BOOLEAN : Scalar()
 
-        object INT : Scalar()
+        public object INT : Scalar()
 
-        object LONG : Scalar()
+        public object LONG : Scalar()
 
-        object FLOAT : Scalar()
+        public object FLOAT : Scalar()
 
-        object DOUBLE : Scalar()
+        public object DOUBLE : Scalar()
 
-        object STRING : Scalar()
+        public object STRING : Scalar()
 
-        object BYTES : Scalar()
+        public object BYTES : Scalar()
 
-        object NULL : Scalar()
+        public object NULL : Scalar()
     }
 
-    object FirstArray : SchemaTypeMatcher()
+    public object FirstArray : SchemaTypeMatcher()
 
-    object FirstMap : SchemaTypeMatcher()
+    public object FirstMap : SchemaTypeMatcher()
 
-    sealed class Named : SchemaTypeMatcher() {
-        object FirstFixed : Named()
+    public sealed class Named : SchemaTypeMatcher() {
+        public object FirstFixed : Named()
 
-        object FirstEnum : Named()
+        public object FirstEnum : Named()
 
-        data class Fixed(val fullName: String) : Named()
+        public data class Fixed(val fullName: String) : Named()
 
-        data class Enum(val fullName: String) : Named()
+        public data class Enum(val fullName: String) : Named()
 
-        data class Record(val fullName: String) : Named()
+        public data class Record(val fullName: String) : Named()
     }
 
     override fun toString(): String {
         return this::class.simpleName!!
-    }
-}
-
-context(Encoder)
-internal fun Schema.ensureTypeOf(type: Schema.Type) {
-    if (this.type != type) {
-        throw SerializationException("Schema $this must be of type $type to be used with ${this@ensureTypeOf::class}")
     }
 }

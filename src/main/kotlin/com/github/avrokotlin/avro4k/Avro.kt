@@ -1,9 +1,10 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
-import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
+import com.github.avrokotlin.avro4k.decoder.AvroValueDecoder
+import com.github.avrokotlin.avro4k.encoder.AvroValueEncoder
+import com.github.avrokotlin.avro4k.internal.RecordResolver
+import com.github.avrokotlin.avro4k.internal.UnionResolver
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
-import com.github.avrokotlin.avro4k.schema.TypeNamingStrategy
 import com.github.avrokotlin.avro4k.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
@@ -16,7 +17,6 @@ import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.EmptySerializersModule
@@ -27,7 +27,6 @@ import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericContainer
 import org.apache.avro.generic.GenericDatumReader
-import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.reflect.ReflectDatumWriter
@@ -45,6 +44,8 @@ sealed class Avro(
     val serializersModule: SerializersModule,
 ) {
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
+    internal val recordResolver = RecordResolver(this)
+    internal val unionResolver = UnionResolver()
 
     companion object Default : Avro(
         AvroConfiguration(),
@@ -102,7 +103,7 @@ sealed class Avro(
         value: T,
     ): Any? {
         var result: Any? = null
-        RootRecordEncoder(writerSchema, serializersModule, configuration) {
+        AvroValueEncoder(this, writerSchema) {
             result = it
         }.encodeSerializableValue(serializer, value)
         return result
@@ -118,8 +119,7 @@ sealed class Avro(
                 EncodedAs.BINARY -> DecoderFactory.get().binaryDecoder(inputStream, null)
                 EncodedAs.JSON_COMPACT, EncodedAs.JSON_PRETTY -> DecoderFactory.get().jsonDecoder(writerSchema, inputStream)
             }
-        val readerSchema = schema(deserializer.descriptor)
-        val genericData = GenericDatumReader<Any?>(writerSchema, readerSchema).read(null, avroDecoder)
+        val genericData = GenericDatumReader<Any?>(writerSchema).read(null, avroDecoder)
         return decodeFromGenericData(writerSchema, deserializer, genericData)
     }
 
@@ -136,11 +136,7 @@ sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         value: Any?,
     ): T {
-        return RootRecordDecoder(
-            (value as? GenericRecord?) ?: throw SerializationException("Expected a GenericRecord, actual: ${value?.let { it::class.qualifiedName }}"),
-            serializersModule,
-            configuration
-        )
+        return AvroValueDecoder(this, value, writerSchema)
             .decodeSerializableValue(deserializer)
     }
 }
@@ -155,7 +151,6 @@ fun Avro(
 }
 
 class AvroBuilder internal constructor(avro: Avro) {
-    var typeNamingStrategy: TypeNamingStrategy = avro.configuration.typeNamingStrategy
     var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
     var implicitNulls: Boolean = avro.configuration.implicitNulls
     var encodedAs: EncodedAs = avro.configuration.encodedAs
@@ -163,10 +158,9 @@ class AvroBuilder internal constructor(avro: Avro) {
 
     fun build() =
         AvroConfiguration(
-            typeNamingStrategy = this.typeNamingStrategy,
-            fieldNamingStrategy = this.fieldNamingStrategy,
-            implicitNulls = this.implicitNulls,
-            encodedAs = this.encodedAs
+            fieldNamingStrategy = fieldNamingStrategy,
+            implicitNulls = implicitNulls,
+            encodedAs = encodedAs
         )
 }
 

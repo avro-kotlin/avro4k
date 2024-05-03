@@ -4,12 +4,19 @@ import com.github.avrokotlin.avro4k.AnnotatedLocation
 import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
-import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
-import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
+import com.github.avrokotlin.avro4k.decoder.AvroDecoder
+import com.github.avrokotlin.avro4k.encoder.AvroEncoder
+import com.github.avrokotlin.avro4k.encoder.SchemaTypeMatcher
+import com.github.avrokotlin.avro4k.encoder.encodeValueResolved
 import com.github.avrokotlin.avro4k.schema.findElementAnnotation
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
@@ -28,22 +35,28 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSuppl
         } ?: defaultAnnotation.logicalType
     }
 
+    @OptIn(InternalSerializationApi::class)
     override val descriptor =
-        buildByteArraySerialDescriptor(
-            BigDecimal::class.qualifiedName!!,
-            AvroLogicalType(BigDecimalSerializer::class)
-        )
+        buildSerialDescriptor(BigDecimal::class.qualifiedName!!, StructureKind.LIST) {
+            element("item", buildSerialDescriptor("item", PrimitiveKind.BYTE))
+            this.annotations = listOf(AvroLogicalType(BigDecimalSerializer::class))
+        }
 
-    override fun encodeAvroValue(
-        schema: Schema,
-        encoder: ExtendedEncoder,
-        obj: BigDecimal,
-    ) = encodeBigDecimal(schema, encoder, obj)
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: BigDecimal,
+    ) = encodeBigDecimal(encoder, value)
 
-    override fun decodeAvroValue(
-        schema: Schema,
-        decoder: ExtendedDecoder,
-    ) = decodeBigDecimal(decoder, schema)
+    override fun serializeGeneric(
+        encoder: Encoder,
+        value: BigDecimal,
+    ) = encoder.encodeString(value.toString())
+
+    override fun deserializeAvro(decoder: AvroDecoder) = decodeBigDecimal(decoder)
+
+    override fun deserializeGeneric(decoder: Decoder): BigDecimal {
+        return decoder.decodeString().toBigDecimal()
+    }
 
     private val AvroDecimal.logicalType: LogicalType
         get() {
@@ -54,58 +67,49 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSuppl
 object BigDecimalAsStringSerializer : AvroSerializer<BigDecimal>() {
     override val descriptor = PrimitiveSerialDescriptor(BigDecimal::class.qualifiedName!!, PrimitiveKind.STRING)
 
-    override fun encodeAvroValue(
-        schema: Schema,
-        encoder: ExtendedEncoder,
-        obj: BigDecimal,
-    ) = encodeBigDecimal(schema, encoder, obj)
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: BigDecimal,
+    ) = encodeBigDecimal(encoder, value)
 
-    override fun decodeAvroValue(
-        schema: Schema,
-        decoder: ExtendedDecoder,
-    ) = decodeBigDecimal(decoder, schema)
-}
+    override fun serializeGeneric(
+        encoder: Encoder,
+        value: BigDecimal,
+    ) = encoder.encodeString(value.toString())
 
-private fun encodeBigDecimal(
-    schema: Schema,
-    encoder: ExtendedEncoder,
-    value: BigDecimal,
-) {
-    when (schema.type) {
-        Schema.Type.STRING -> encoder.encodeString(value.toString())
-        Schema.Type.BYTES -> {
-            encoder.encodeByteArray(converter.toBytes(value, schema, schema.getDecimalLogicalType()))
-        }
+    override fun deserializeAvro(decoder: AvroDecoder) = decodeBigDecimal(decoder)
 
-        Schema.Type.FIXED -> {
-            encoder.encodeFixed(converter.toFixed(value, schema, schema.getDecimalLogicalType()))
-        }
-
-        Schema.Type.INT -> encoder.encodeInt(value.intValueExact())
-        Schema.Type.LONG -> encoder.encodeLong(value.longValueExact())
-        Schema.Type.FLOAT -> encoder.encodeFloat(value.toFloat())
-        Schema.Type.DOUBLE -> encoder.encodeDouble(value.toDouble())
-
-        else -> throw SerializationException("Cannot encode BigDecimal as ${schema.type}")
+    override fun deserializeGeneric(decoder: Decoder): BigDecimal {
+        return decoder.decodeString().toBigDecimal()
     }
 }
 
-private fun decodeBigDecimal(
-    decoder: ExtendedDecoder,
-    schema: Schema,
-): BigDecimal =
-    // TODO we should use the schema instead of this generic decodeAny()
-    when (val v = decoder.decodeAny()) {
+private fun encodeBigDecimal(
+    encoder: AvroEncoder,
+    value: BigDecimal,
+) {
+    encoder.encodeValueResolved<BigDecimal>(
+        SchemaTypeMatcher.Scalar.BYTES to { converter.toBytes(value, it, it.getDecimalLogicalType()) },
+        SchemaTypeMatcher.Named.FirstFixed to { converter.toFixed(value, it, it.getDecimalLogicalType()) },
+        SchemaTypeMatcher.Scalar.STRING to { value.toString() },
+        SchemaTypeMatcher.Scalar.INT to { value.intValueExact() },
+        SchemaTypeMatcher.Scalar.LONG to { value.longValueExact() },
+        SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() },
+        SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() }
+    )
+}
+
+private fun decodeBigDecimal(decoder: AvroDecoder): BigDecimal =
+    when (val v = decoder.decodeValue()) {
         is CharSequence -> BigDecimal(v.toString())
-        is ByteArray -> converter.fromBytes(ByteBuffer.wrap(v), schema, schema.getDecimalLogicalType())
-        is ByteBuffer -> converter.fromBytes(v, schema, schema.getDecimalLogicalType())
-        is GenericFixed -> converter.fromFixed(v, schema, schema.getDecimalLogicalType())
+        is ByteArray -> converter.fromBytes(ByteBuffer.wrap(v), decoder.currentWriterSchema, decoder.currentWriterSchema.getDecimalLogicalType())
+        is ByteBuffer -> converter.fromBytes(v, decoder.currentWriterSchema, decoder.currentWriterSchema.getDecimalLogicalType())
+        is GenericFixed -> converter.fromFixed(v, decoder.currentWriterSchema, decoder.currentWriterSchema.getDecimalLogicalType())
         else -> throw SerializationException("Unsupported BigDecimal type [$v]")
     }
 
 private fun Schema.getDecimalLogicalType(): LogicalTypes.Decimal {
-    val l = logicalType
-    return when (l) {
+    return when (val l = logicalType) {
         is LogicalTypes.Decimal -> l
         else -> throw SerializationException("Expected to find a decimal logical type for BigDecimal but found $l")
     }

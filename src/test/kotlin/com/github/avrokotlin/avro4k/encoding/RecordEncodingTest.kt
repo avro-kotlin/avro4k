@@ -3,9 +3,11 @@ package com.github.avrokotlin.avro4k.encoding
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.record
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import org.apache.avro.SchemaBuilder
 
 class RecordEncodingTest : StringSpec({
@@ -121,7 +123,25 @@ class RecordEncodingTest : StringSpec({
         AvroAssertions.assertThat(ByteFoo(123))
             .isEncodedAs(record(123))
     }
+    "should not encode records with a different name" {
+        @Serializable
+        data class TheRecord(val v: Int)
+        shouldThrow<SerializationException> {
+            val wrongRecordSchema = SchemaBuilder.record("AnotherRecord").fields().name("v").type().intType().noDefault().endRecord()
+            AvroAssertions.assertThat(TheRecord(1))
+                .isEncodedAs(record(1), writerSchema = wrongRecordSchema)
+        }
+    }
+    "support objects" {
+        AvroAssertions.assertThat(ObjectClass)
+            .isEncodedAs(record())
+    }
 }) {
+    @Serializable
+    object ObjectClass {
+        val field1 = "ignored"
+    }
+
     @Serializable
     private data class StringFoo(val s: String)
 

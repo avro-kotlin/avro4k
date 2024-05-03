@@ -1,127 +1,75 @@
 package com.github.avrokotlin.avro4k.encoder
 
-import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.Record
-import com.github.avrokotlin.avro4k.schema.extractNonNull
-import kotlinx.serialization.ExperimentalSerializationApi
+import com.github.avrokotlin.avro4k.internal.ElementDescriptor
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractEncoder
-import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericFixed
-import java.nio.ByteBuffer
+import org.apache.avro.generic.GenericRecord
 
-@ExperimentalSerializationApi
-interface StructureEncoder : FieldEncoder {
-    val configuration: AvroConfiguration
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        return when (descriptor.kind) {
-            StructureKind.LIST -> {
-                when (descriptor.getElementDescriptor(0).unwrapValueClass.kind) {
-                    PrimitiveKind.BYTE -> ByteArrayEncoder(fieldSchema(), serializersModule) { addValue(it) }
-                    else -> ListEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
-                }
-            }
-            StructureKind.CLASS -> RecordEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
-            StructureKind.MAP -> MapEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
-            is PolymorphicKind -> UnionEncoder(fieldSchema(), serializersModule, configuration) { addValue(it) }
-            else -> throw SerializationException(".beginStructure was called on a non-structure type [$descriptor]")
-        }
-    }
-}
-
-@ExperimentalSerializationApi
-internal val SerialDescriptor.unwrapValueClass: SerialDescriptor
-    get() = if (isInline) getElementDescriptor(0) else this
-
-@ExperimentalSerializationApi
-class RecordEncoder(
+internal class RecordEncoder(
+    override val avro: Avro,
+    descriptor: SerialDescriptor,
     private val schema: Schema,
-    override val serializersModule: SerializersModule,
-    override val configuration: AvroConfiguration,
-    val callback: (Record) -> Unit,
-) : AbstractEncoder(), StructureEncoder {
-    private val builder = RecordBuilder(schema)
-    private var currentIndex = -1
-
-    override fun fieldSchema(): Schema {
-        // if the element is nullable, then we should have a union schema which we can extract the non-null schema from
-        val currentFieldSchema = schema.fields[currentIndex].schema()
-        return if (currentFieldSchema.isNullable) {
-            currentFieldSchema.extractNonNull()
-        } else {
-            currentFieldSchema
-        }
+    private val onEncoded: (GenericRecord) -> Unit,
+) : AvroTaggedEncoder<ElementDescriptor>() {
+    init {
+        schema.ensureTypeOf(Schema.Type.RECORD)
     }
 
-    override fun addValue(value: Any) {
-        builder.add(value)
-    }
+    private val fieldValues: Array<Any?> = Array(schema.fields.size) { null }
 
-    override fun encodeString(value: String) {
-        builder.add(StringToAvroValue.toValue(fieldSchema(), value))
-    }
+    // from descriptor element index to schema field
+    private val fields = avro.recordResolver.resolveFields(schema, descriptor)
 
-    override fun encodeChar(value: Char) {
-        val schema = fieldSchema()
-        when (schema.type) {
-            Schema.Type.STRING -> builder.add(value.toString())
-            Schema.Type.INT -> builder.add(value.code)
-            else -> throw SerializationException("Unsupported type for Char: $schema")
-        }
-    }
-
-    override fun encodeValue(value: Any) {
-        builder.add(value)
-    }
-
-    override fun encodeElement(
+    override fun <T : Any> encodeNullableSerializableElement(
         descriptor: SerialDescriptor,
         index: Int,
-    ): Boolean {
-        currentIndex = index
-        return true
-    }
-
-    override fun encodeByteArray(buffer: ByteBuffer) {
-        builder.add(buffer)
-    }
-
-    override fun encodeFixed(fixed: GenericFixed) {
-        builder.add(fixed)
-    }
-
-    override fun encodeEnum(
-        enumDescriptor: SerialDescriptor,
-        index: Int,
+        serializer: SerializationStrategy<T>,
+        value: T?,
     ) {
-        builder.add(ValueToEnum.toValue(fieldSchema(), enumDescriptor, index))
+        // Skip data class fields that are not present in the schema
+        if (fields[index]?.writerFieldIndex != null) {
+            super.encodeNullableSerializableElement(descriptor, index, serializer, value)
+        }
     }
 
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        return super<StructureEncoder>.beginStructure(descriptor)
+    override fun <T> encodeSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ) {
+        // Skip data class fields that are not present in the schema
+        if (fields[index]?.writerFieldIndex != null) {
+            super.encodeSerializableElement(descriptor, index, serializer, value)
+        }
     }
 
-    override fun endStructure(descriptor: SerialDescriptor) {
-        callback(builder.record())
+    override fun endEncode(descriptor: SerialDescriptor) {
+        onEncoded(ListRecord(schema, fieldValues.asList()))
     }
 
-    override fun encodeNull() {
-        builder.add(null)
+    override fun SerialDescriptor.getTag(index: Int) =
+        fields[index] ?: throw SerializationException("An optional kotlin field without corresponding writer field should not be encoded")
+
+    override val ElementDescriptor.writerSchema: Schema
+        get() = writerFieldSchema
+
+    override fun encodeTaggedValue(
+        tag: ElementDescriptor,
+        value: Any,
+    ) {
+        if (tag.writerFieldIndex != null) {
+            fieldValues[tag.writerFieldIndex] = value
+        }
     }
-}
 
-class RecordBuilder(private val schema: Schema) {
-    private val values = ArrayList<Any?>(schema.fields.size)
-
-    fun add(value: Any?) = values.add(value)
-
-    fun record(): Record = ListRecord(schema, values)
+    override fun encodeTaggedNull(tag: ElementDescriptor) {
+        if (tag.writerFieldIndex != null) {
+            fieldValues[tag.writerFieldIndex] = null
+        }
+    }
 }

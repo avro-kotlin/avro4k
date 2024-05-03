@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "ListTest",
-  "namespace": "com.github.avrokotlin.avro4k.schema.MapSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.encoding.MapSchemaTest",
   "fields": [
     {
       "name": "list",

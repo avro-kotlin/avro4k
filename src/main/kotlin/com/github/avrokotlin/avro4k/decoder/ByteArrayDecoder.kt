@@ -1,23 +1,29 @@
 package com.github.avrokotlin.avro4k.decoder
 
-import kotlinx.serialization.ExperimentalSerializationApi
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
-import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.modules.SerializersModule
 
-@ExperimentalSerializationApi
-class ByteArrayDecoder(val data: ByteArray, override val serializersModule: SerializersModule) : AbstractDecoder() {
-    private var index = -1
+internal class ByteArrayDecoder(
+    private val avro: Avro,
+    private val bytes: ByteArray,
+) : AbstractDecoder() {
+    override val serializersModule: SerializersModule
+        get() = avro.serializersModule
 
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = data.size
+    private val iterator = bytes.iterator()
 
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        index++
-        return if (index < data.size) index else DECODE_DONE
+    override fun decodeByte() = iterator.nextByte()
+
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
+        return bytes.size
     }
 
-    override fun decodeByte(): Byte {
-        return data[index]
+    override fun decodeSequentially() = true
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        throw IllegalIndexedAccessError()
     }
 }

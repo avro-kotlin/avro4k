@@ -187,7 +187,7 @@ private fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: S
     }
 
 @ExperimentalSerializationApi
-private fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): Sequence<SerialDescriptor> {
+internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): Sequence<SerialDescriptor> {
     return when (this.kind) {
         PolymorphicKind.SEALED ->
             elementDescriptors.asSequence()

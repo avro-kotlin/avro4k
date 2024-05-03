@@ -1,4 +1,4 @@
-package com.github.avrokotlin.avro4k.schema
+package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
@@ -13,6 +13,7 @@ import com.github.avrokotlin.avro4k.WrappedInt
 import com.github.avrokotlin.avro4k.WrappedLong
 import com.github.avrokotlin.avro4k.WrappedShort
 import com.github.avrokotlin.avro4k.WrappedString
+import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow

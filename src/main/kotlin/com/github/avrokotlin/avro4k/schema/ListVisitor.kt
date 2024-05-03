@@ -4,9 +4,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 
 internal class ListVisitor(
-    override val context: VisitorContext,
+    private val context: VisitorContext,
     private val onSchemaBuilt: (Schema) -> Unit,
-) : SerialDescriptorListVisitor, AvroVisitorContextAware {
+) : SerialDescriptorListVisitor {
     private lateinit var itemSchema: Schema
 
     override fun visitListItem(

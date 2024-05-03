@@ -68,5 +68,6 @@ class AvroDefaultEncodingTest : StringSpec({
         @AvroDecimal(0, 10)
         @Serializable(BigDecimalSerializer::class)
         val bigDecimal: BigDecimal,
+        val kotlinDefault: Int = 42,
     )
 }

@@ -1,8 +1,10 @@
 package com.github.avrokotlin.avro4k.encoding
 
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.record
+import com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
 import io.kotest.core.spec.style.StringSpec
@@ -21,6 +23,19 @@ import java.time.LocalTime
 import java.util.UUID
 
 class LogicalTypesEncodingTest : StringSpec({
+    "support logical types at root level" {
+        val schema = Avro.schema<LogicalTypes>().fields[0].schema()
+        AvroAssertions.assertThat(BigDecimal("123.45"))
+            .isEncodedAs(
+                Conversions.DecimalConversion().toBytes(
+                    BigDecimal("123.45"),
+                    null,
+                    org.apache.avro.LogicalTypes.decimal(8, 2)
+                ),
+                writerSchema = schema
+            )
+    }
+
     "should encode and decode logical types" {
         val logicalTypes =
             LogicalTypes(

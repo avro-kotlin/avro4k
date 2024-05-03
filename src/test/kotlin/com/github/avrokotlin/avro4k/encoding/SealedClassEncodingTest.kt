@@ -12,12 +12,19 @@ class SealedClassEncodingTest : StringSpec({
     "encode/decode sealed classes" {
         AvroAssertions.assertThat(ReferencingSealedClass(Operation.Binary.Add(1, 2)))
             .isEncodedAs(record(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2)))
+        AvroAssertions.assertThat<Operation>(Operation.Binary.Add(1, 2))
+            .isEncodedAs(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2))
     }
     "encode/decode nullable sealed classes" {
         AvroAssertions.assertThat(ReferencingNullableSealedClass(Operation.Binary.Add(1, 2)))
             .isEncodedAs(record(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2)))
         AvroAssertions.assertThat(ReferencingNullableSealedClass(null))
             .isEncodedAs(record(null))
+
+        AvroAssertions.assertThat<Operation?>(Operation.Binary.Add(1, 2))
+            .isEncodedAs(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2))
+        AvroAssertions.assertThat<Operation?>(null)
+            .isEncodedAs(null)
     }
 }) {
     @Serializable

@@ -6,6 +6,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.file.DataFileWriter
+import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
@@ -26,7 +27,7 @@ class AvroObjectContainerFileTest : StringSpec({
             firstProfile.id.value.toString(),
             "John Doe",
             30,
-            "Male",
+            GenericData.EnumSymbol(Avro.schema<GenderEnum>(), "Male"),
             null
         )
     val secondProfile =
@@ -42,7 +43,7 @@ class AvroObjectContainerFileTest : StringSpec({
             secondProfile.id.value.toString(),
             "Jane Doe",
             25,
-            "Female",
+            GenericData.EnumSymbol(Avro.schema<GenderEnum>(), "Female"),
             record(
                 "New York",
                 "USA"
@@ -61,15 +62,16 @@ class AvroObjectContainerFileTest : StringSpec({
                 it.toByteArray()
             }
         // read with apache avro lib
-        bytes.inputStream().use {
-            val dataFile = DataFileStream<GenericRecord>(it, GenericDatumReader(Avro.schema<UserProfile>()))
-            dataFile.getMetaString("meta-string") shouldBe "awesome string"
-            dataFile.getMetaLong("meta-long") shouldBe 42
-            dataFile.getMeta("bytes") shouldBe byteArrayOf(1, 3, 2, 42)
-            normalizeGenericData(dataFile.next()) shouldBe firstProfileGenericData
-            normalizeGenericData(dataFile.next()) shouldBe secondProfileGenericData
-            dataFile.hasNext() shouldBe false
-        }
+        val dataFile =
+            bytes.inputStream().use {
+                DataFileStream<GenericRecord>(it, GenericDatumReader(Avro.schema<UserProfile>()))
+            }
+        dataFile.getMetaString("meta-string") shouldBe "awesome string"
+        dataFile.getMetaLong("meta-long") shouldBe 42
+        dataFile.getMeta("bytes") shouldBe byteArrayOf(1, 3, 2, 42)
+        normalizeGenericData(dataFile.next()) shouldBe firstProfileGenericData
+        normalizeGenericData(dataFile.next()) shouldBe secondProfileGenericData
+        dataFile.hasNext() shouldBe false
     }
     "support reading avro object container file with metadata" {
         // write with apache avro lib
@@ -86,17 +88,17 @@ class AvroObjectContainerFileTest : StringSpec({
                 it.toByteArray()
             }
         // read with avro4k
-        bytes.inputStream().use {
-            val profiles =
+        val profiles =
+            bytes.inputStream().use {
                 AvroObjectContainerFile().decodeFromStream<UserProfile>(it) {
                     metadata("meta-string")?.asString() shouldBe "awesome string"
                     metadata("meta-long")?.asLong() shouldBe 42
                     metadata("bytes")?.asBytes() shouldBe byteArrayOf(1, 3, 2, 42)
                 }.toList()
-            profiles.size shouldBe 2
-            profiles[0] shouldBe firstProfile
-            profiles[1] shouldBe secondProfile
-        }
+            }
+        profiles.size shouldBe 2
+        profiles[0] shouldBe firstProfile
+        profiles[1] shouldBe secondProfile
     }
 }) {
     @Serializable

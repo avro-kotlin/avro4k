@@ -5,6 +5,7 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec

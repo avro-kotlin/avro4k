@@ -4,9 +4,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 
 internal class InlineClassVisitor(
-    override val context: VisitorContext,
+    private val context: VisitorContext,
     private val onSchemaBuilt: (Schema) -> Unit,
-) : SerialDescriptorInlineClassVisitor, AvroVisitorContextAware {
+) : SerialDescriptorInlineClassVisitor {
     override fun visitInlineClassElement(
         inlineClassDescriptor: SerialDescriptor,
         inlineElementIndex: Int,

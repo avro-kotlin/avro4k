@@ -1,51 +1,51 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.ExtendedDecoder
-import com.github.avrokotlin.avro4k.decoder.FieldDecoder
-import com.github.avrokotlin.avro4k.encoder.ExtendedEncoder
-import com.github.avrokotlin.avro4k.encoder.FieldEncoder
-import com.github.avrokotlin.avro4k.schema.extractNonNull
+import com.github.avrokotlin.avro4k.decoder.AvroDecoder
+import com.github.avrokotlin.avro4k.encoder.AvroEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.apache.avro.Schema
 
 abstract class AvroSerializer<T> : KSerializer<T> {
     final override fun serialize(
         encoder: Encoder,
         value: T,
     ) {
-        val schema =
-            (encoder as FieldEncoder).fieldSchema().let {
-                if (!this.descriptor.isNullable && it.isNullable) {
-                    it.extractNonNull()
-                } else {
-                    it
-                }
-            }
-        encodeAvroValue(schema, encoder, value)
+        if (encoder is AvroEncoder) {
+            serializeAvro(encoder, value)
+            return
+        }
+        serializeGeneric(encoder, value)
     }
 
-    final override fun deserialize(decoder: Decoder): T {
-        val schema =
-            (decoder as FieldDecoder).fieldSchema().let {
-                if (!this.descriptor.isNullable && it.isNullable) {
-                    it.extractNonNull()
-                } else {
-                    it
-                }
-            }
-        return decodeAvroValue(schema, decoder)
+    /**
+     * This method is called when the serializer is used outside Avro serialization.
+     * By default, it throws an exception.
+     *
+     * Implement it to provide a generic serialization logic with the standard [Encoder].
+     */
+    open fun serializeGeneric(
+        encoder: Encoder,
+        value: T,
+    ) {
+        throw UnsupportedOperationException("The serializer ${this::class.qualifiedName} is not usable outside of Avro serialization.")
     }
 
-    abstract fun encodeAvroValue(
-        schema: Schema,
-        encoder: ExtendedEncoder,
-        obj: T,
+    abstract fun serializeAvro(
+        encoder: AvroEncoder,
+        value: T,
     )
 
-    abstract fun decodeAvroValue(
-        schema: Schema,
-        decoder: ExtendedDecoder,
-    ): T
+    final override fun deserialize(decoder: Decoder): T {
+        if (decoder !is AvroDecoder) {
+            return deserializeGeneric(decoder)
+        }
+        return deserializeAvro(decoder)
+    }
+
+    open fun deserializeGeneric(decoder: Decoder): T {
+        throw UnsupportedOperationException("The serializer ${this::class.qualifiedName} is not usable outside of Avro serialization.")
+    }
+
+    abstract fun deserializeAvro(decoder: AvroDecoder): T
 }

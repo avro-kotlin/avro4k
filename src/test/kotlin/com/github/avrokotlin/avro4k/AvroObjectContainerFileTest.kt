@@ -111,8 +111,8 @@ class AvroObjectContainerFileTest : StringSpec({
     )
 
     @Serializable
-    @AvroEnumDefault("Unknown")
     private enum class GenderEnum {
+        @AvroEnumDefault
         Unknown,
         Female,
         Male,

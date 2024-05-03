@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.decoder.AvroValueDecoder
 import com.github.avrokotlin.avro4k.encoder.AvroValueEncoder
+import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
 import com.github.avrokotlin.avro4k.internal.UnionResolver
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
@@ -46,6 +47,7 @@ sealed class Avro(
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
     internal val recordResolver = RecordResolver(this)
     internal val unionResolver = UnionResolver()
+    internal val enumResolver = EnumResolver()
 
     companion object Default : Avro(
         AvroConfiguration(),

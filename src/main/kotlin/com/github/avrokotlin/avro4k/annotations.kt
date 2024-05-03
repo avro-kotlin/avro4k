@@ -100,13 +100,13 @@ annotation class AvroDefault(
 )
 
 /**
- * This annotation indicates that the annotated enum class should be serialized as an Avro enum with the given default value.
+ * Sets the enum default value when decoded an unknown enum value.
  *
- * It must be annotated on an enum class. Otherwise, it will be ignored.
+ * It must be annotated on an enum value. Otherwise, it will be ignored.
  */
 @SerialInfo
-@Target(AnnotationTarget.CLASS)
-annotation class AvroEnumDefault(val value: String)
+@Target(AnnotationTarget.PROPERTY)
+annotation class AvroEnumDefault
 
 /**
  * Allows to specify the schema of a property.

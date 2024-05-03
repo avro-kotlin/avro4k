@@ -2,7 +2,6 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroEnumDefault
-import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroProp
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
@@ -16,11 +15,12 @@ class AvroPropsSchemaTest : StringSpec({
 }) {
     @Serializable
     @AvroProp("hey", "there")
-    @AvroJsonProp("counting", """["one", "two"]""")
+    @AvroProp("counting", """["one", "two"]""")
     private data class TypeAnnotated(
-        @AvroJsonProp(
+        @AvroProp("cold", "play")
+        @AvroProp(
             key = "complexObject",
-            jsonValue = """{
+            value = """{
            "a": "foo",
            "b": 200,
            "c": true,
@@ -29,13 +29,12 @@ class AvroPropsSchemaTest : StringSpec({
            "f": ["bar", 404, false, null, {}]
          }"""
         )
-        @AvroProp("cold", "play")
         val field: EnumAnnotated,
     )
 
     @Serializable
     @AvroProp("enums", "power")
-    @AvroJsonProp("countingAgain", """["three", "four"]""")
+    @AvroProp("countingAgain", """["three", "four"]""")
     private enum class EnumAnnotated {
         Red,
 

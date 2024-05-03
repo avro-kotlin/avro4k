@@ -23,26 +23,16 @@ annotation class AvroNamespaceOverride(
 )
 
 /**
- * Adds a property to the Avro schema or field.
+ * Adds a property to the Avro schema or field. Its value could be any valid JSON or just a string.
  *
  * Ignored in inline classes.
  */
 @SerialInfo
 @Repeatable
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroProp(val key: String, val value: String)
-
-/**
- * Adds a json property to the Avro schema or field.
- *
- * Ignored in inline classes.
- */
-@SerialInfo
-@Repeatable
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroJsonProp(
+annotation class AvroProp(
     val key: String,
-    @Language("JSON") val jsonValue: String,
+    @Language("JSON") val value: String,
 )
 
 /**

@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class ArraySchemaTest : WordSpec({
+internal class ArraySchemaTest : WordSpec({
 
     "SchemaEncoder" should {
         "generate array type for an Array of primitives" {

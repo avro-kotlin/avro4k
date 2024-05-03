@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 
-class BytesEncodingTest : StringSpec({
+internal class BytesEncodingTest : StringSpec({
     "encode/decode ByteArray" {
         AvroAssertions.assertThat(ByteArrayTest(byteArrayOf(1, 4, 9)))
             .isEncodedAs(record(byteArrayOf(1, 4, 9)))
@@ -38,7 +38,7 @@ class BytesEncodingTest : StringSpec({
     }
 }) {
     @Serializable
-    data class ByteArrayTest(val z: ByteArray) {
+    private data class ByteArrayTest(val z: ByteArray) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -54,7 +54,7 @@ class BytesEncodingTest : StringSpec({
     }
 
     @Serializable
-    data class ArrayByteTest(val z: Array<Byte>) {
+    private data class ArrayByteTest(val z: Array<Byte>) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -70,5 +70,5 @@ class BytesEncodingTest : StringSpec({
     }
 
     @Serializable
-    data class ListByteTest(val z: List<Byte>)
+    private data class ListByteTest(val z: List<Byte>)
 }

@@ -12,7 +12,7 @@ import org.apache.avro.AvroTypeException
 import java.math.BigDecimal
 import kotlin.io.path.Path
 
-class AvroDefaultSchemaTest : FunSpec() {
+internal class AvroDefaultSchemaTest : FunSpec() {
     init {
         test("schema for data class with @AvroDefault should include default value as a string") {
             AvroAssertions.assertThat<BarString>()

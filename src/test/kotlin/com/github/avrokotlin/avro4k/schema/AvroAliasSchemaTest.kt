@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.WordSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class AvroAliasSchemaTest : WordSpec({
+internal class AvroAliasSchemaTest : WordSpec({
 
     "SchemaEncoder" should {
         "support alias annotations on types" {

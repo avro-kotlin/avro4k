@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.apache.avro.generic.GenericData
 
-class EnumEncodingTest : StringSpec({
+internal class EnumEncodingTest : StringSpec({
 
     "read / write enums" {
         AvroAssertions.assertThat(EnumTest(Cream.Bruce, BBM.Moore))

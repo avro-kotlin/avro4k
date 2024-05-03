@@ -18,7 +18,7 @@ import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 
 @OptIn(InternalSerializationApi::class)
-class PrimitiveSchemaTest : StringSpec({
+internal class PrimitiveSchemaTest : StringSpec({
     listOf(
         WrappedBoolean::class to Schema.Type.BOOLEAN,
         WrappedByte::class to Schema.Type.INT,

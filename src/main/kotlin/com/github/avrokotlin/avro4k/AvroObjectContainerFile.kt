@@ -21,10 +21,11 @@ import java.io.OutputStream
  * [spec](https://avro.apache.org/docs/1.11.1/specification/#object-container-files)
  */
 @ExperimentalSerializationApi
-class AvroObjectContainerFile(
-    val avro: Avro = Avro,
+public class AvroObjectContainerFile(
+    @PublishedApi
+    internal val avro: Avro = Avro,
 ) {
-    fun <T> encodeToStream(
+    public fun <T> encodeToStream(
         schema: Schema,
         serializer: SerializationStrategy<T>,
         values: Sequence<T>,
@@ -43,7 +44,7 @@ class AvroObjectContainerFile(
         // don't close the stream, the caller should do it
     }
 
-    fun <T> decodeFromStream(
+    public fun <T> decodeFromStream(
         deserializer: DeserializationStrategy<T>,
         inputStream: InputStream,
         metadataDumper: AvroObjectContainerFileMetadataDumper.() -> Unit = {},
@@ -57,7 +58,7 @@ class AvroObjectContainerFile(
         }.constrainOnce()
 }
 
-inline fun <reified T> AvroObjectContainerFile.encodeToStream(
+public inline fun <reified T> AvroObjectContainerFile.encodeToStream(
     values: Sequence<T>,
     outputStream: OutputStream,
     noinline builder: AvroObjectContainerFileBuilder.() -> Unit = {},
@@ -66,7 +67,7 @@ inline fun <reified T> AvroObjectContainerFile.encodeToStream(
     encodeToStream(avro.schema(serializer), serializer, values, outputStream, builder)
 }
 
-inline fun <reified T> AvroObjectContainerFile.decodeFromStream(
+public inline fun <reified T> AvroObjectContainerFile.decodeFromStream(
     inputStream: InputStream,
     noinline metadataDumper: AvroObjectContainerFileMetadataDumper.() -> Unit = {},
 ): Sequence<T> {
@@ -74,44 +75,44 @@ inline fun <reified T> AvroObjectContainerFile.decodeFromStream(
     return decodeFromStream(serializer, inputStream, metadataDumper)
 }
 
-class AvroObjectContainerFileBuilder(private val fileWriter: DataFileWriter<*>) {
-    fun metadata(
+public class AvroObjectContainerFileBuilder(private val fileWriter: DataFileWriter<*>) {
+    public fun metadata(
         key: String,
         value: ByteArray,
     ) {
         fileWriter.setMeta(key, value)
     }
 
-    fun metadata(
+    public fun metadata(
         key: String,
         value: String,
     ) {
         fileWriter.setMeta(key, value)
     }
 
-    fun metadata(
+    public fun metadata(
         key: String,
         value: Long,
     ) {
         fileWriter.setMeta(key, value)
     }
 
-    fun codec(codec: CodecFactory) {
+    public fun codec(codec: CodecFactory) {
         fileWriter.setCodec(codec)
     }
 }
 
-class AvroObjectContainerFileMetadataDumper(private val fileStream: DataFileStream<*>) {
-    fun metadata(key: String): MetadataAccessor? {
+public class AvroObjectContainerFileMetadataDumper(private val fileStream: DataFileStream<*>) {
+    public fun metadata(key: String): MetadataAccessor? {
         return fileStream.getMeta(key)?.let { MetadataAccessor(it) }
     }
 
-    inner class MetadataAccessor(private val value: ByteArray) {
-        fun asBytes(): ByteArray = value
+    public inner class MetadataAccessor(private val value: ByteArray) {
+        public fun asBytes(): ByteArray = value
 
-        fun asString(): String = value.decodeToString()
+        public fun asString(): String = value.decodeToString()
 
-        fun asLong(): Long = asString().toLong()
+        public fun asLong(): Long = asString().toLong()
     }
 }
 

@@ -12,7 +12,7 @@ import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
 
-class AvroAliasEncodingTest : StringSpec({
+internal class AvroAliasEncodingTest : StringSpec({
     "support alias on field" {
         AvroAssertions.assertThat(EncodedField("hello"))
             .isEncodedAs(record("hello"))

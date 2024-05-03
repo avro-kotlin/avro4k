@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -13,9 +14,9 @@ import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
 import java.util.UUID
 
-object UUIDSerializer : KSerializer<UUID>, AvroLogicalTypeSupplier {
+public object UUIDSerializer : KSerializer<UUID>, AvroLogicalTypeSupplier {
     @OptIn(InternalSerializationApi::class)
-    override val descriptor =
+    override val descriptor: SerialDescriptor =
         buildSerialDescriptor("uuid", PrimitiveKind.STRING) {
             annotations = listOf(AvroLogicalType(UUIDSerializer::class))
         }
@@ -27,7 +28,9 @@ object UUIDSerializer : KSerializer<UUID>, AvroLogicalTypeSupplier {
     override fun serialize(
         encoder: Encoder,
         value: UUID,
-    ) = encoder.encodeString(value.toString())
+    ) {
+        encoder.encodeString(value.toString())
+    }
 
     override fun deserialize(decoder: Decoder): UUID = UUID.fromString(decoder.decodeString())
 }

@@ -15,7 +15,7 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlin.io.path.Path
 
-class SealedClassSchemaTest : StringSpec({
+internal class SealedClassSchemaTest : StringSpec({
     "should throw error when no implementation for an abstract class" {
         shouldThrow<AvroSchemaGenerationException> {
             Avro.schema(Operation.Binary.serializer())

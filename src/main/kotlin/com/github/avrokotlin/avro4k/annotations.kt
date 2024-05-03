@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroNamespaceOverride(
+public annotation class AvroNamespaceOverride(
     val value: String,
 )
 
@@ -30,7 +30,7 @@ annotation class AvroNamespaceOverride(
 @SerialInfo
 @Repeatable
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroProp(
+public annotation class AvroProp(
     val key: String,
     @Language("JSON") val value: String,
 )
@@ -42,7 +42,7 @@ annotation class AvroProp(
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroDecimal(
+public annotation class AvroDecimal(
     val scale: Int = 2,
     val precision: Int = 8,
 )
@@ -57,7 +57,7 @@ annotation class AvroDecimal(
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroDoc(val value: String)
+public annotation class AvroDoc(val value: String)
 
 /**
  * Adds aliases to a field of a record. It helps to allow having different names for the same field for better compatibility when changing a schema.
@@ -68,7 +68,7 @@ annotation class AvroDoc(val value: String)
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class AvroAlias(vararg val value: String)
+public annotation class AvroAlias(vararg val value: String)
 
 /**
  * Indicates that the annotated property should be encoded as an Avro fixed type.
@@ -76,7 +76,7 @@ annotation class AvroAlias(vararg val value: String)
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroFixed(val size: Int)
+public annotation class AvroFixed(val size: Int)
 
 /**
  * Sets the default avro value for a record's field.
@@ -85,7 +85,7 @@ annotation class AvroFixed(val size: Int)
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroDefault(
+public annotation class AvroDefault(
     @Language("JSON") val value: String,
 )
 
@@ -96,31 +96,36 @@ annotation class AvroDefault(
  */
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroEnumDefault
+public annotation class AvroEnumDefault
 
 /**
  * Allows to specify the schema of a property.
  */
 @SerialInfo
+@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroSchema(val value: KClass<out AvroSchemaSupplier>)
+public annotation class AvroSchema(val value: KClass<out AvroSchemaSupplier>)
 
-interface AvroSchemaSupplier {
-    fun getSchema(stack: List<AnnotatedLocation>): Schema
+@ExperimentalSerializationApi
+public interface AvroSchemaSupplier {
+    public fun getSchema(stack: List<AnnotatedLocation>): Schema
 }
 
 /**
  * Allows to specify the logical type applied on the generated schema of a property.
  */
 @SerialInfo
+@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
-annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
+public annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
 
-interface AvroLogicalTypeSupplier {
-    fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
+@ExperimentalSerializationApi
+public interface AvroLogicalTypeSupplier {
+    public fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
 }
 
-interface AnnotatedLocation {
-    val descriptor: SerialDescriptor
-    val elementIndex: Int?
+@ExperimentalSerializationApi
+public interface AnnotatedLocation {
+    public val descriptor: SerialDescriptor
+    public val elementIndex: Int?
 }

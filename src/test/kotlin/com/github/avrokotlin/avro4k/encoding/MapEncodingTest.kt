@@ -38,7 +38,7 @@ import org.apache.avro.SchemaBuilder
 import kotlin.io.path.Path
 
 @OptIn(InternalSerializationApi::class)
-class MapSchemaTest : FunSpec({
+internal class MapEncodingTest : FunSpec({
     test("generate map type for a Map of ints") {
         val map = mapOf("a" to 1, "b" to 20, "c" to 5)
         AvroAssertions.assertThat(StringIntTest(map))

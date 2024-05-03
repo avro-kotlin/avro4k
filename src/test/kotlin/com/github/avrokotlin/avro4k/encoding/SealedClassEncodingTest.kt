@@ -8,7 +8,7 @@ import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 
-class SealedClassEncodingTest : StringSpec({
+internal class SealedClassEncodingTest : StringSpec({
     "encode/decode sealed classes" {
         AvroAssertions.assertThat(ReferencingSealedClass(Operation.Binary.Add(1, 2)))
             .isEncodedAs(record(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2)))

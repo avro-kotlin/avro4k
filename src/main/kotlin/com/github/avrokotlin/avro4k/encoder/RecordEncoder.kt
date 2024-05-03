@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.encoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
 import com.github.avrokotlin.avro4k.internal.ElementDescriptor
+import com.github.avrokotlin.avro4k.schema.ensureTypeOf
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor

@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.file.Path
 
-class AvroEncodingAssertions<T>(
+internal class AvroEncodingAssertions<T>(
     private val valueToEncode: T,
     private val serializer: KSerializer<T>,
 ) {
@@ -134,7 +134,7 @@ class AvroEncodingAssertions<T>(
     }
 }
 
-open class AvroSchemaAssertions<T>(
+internal open class AvroSchemaAssertions<T>(
     private val serializer: KSerializer<T>,
     private var avro: Avro = Avro {},
 ) {
@@ -158,7 +158,7 @@ open class AvroSchemaAssertions<T>(
     }
 }
 
-object AvroAssertions {
+internal object AvroAssertions {
     inline fun <reified T> assertThat(): AvroSchemaAssertions<T> {
         return AvroSchemaAssertions(Avro.serializersModule.serializer<T>())
     }
@@ -180,5 +180,5 @@ object AvroAssertions {
     }
 }
 
-val Schema.nullable: Schema
+internal val Schema.nullable: Schema
     get() = Schema.createUnion(listOf(Schema.create(Schema.Type.NULL), this))

@@ -13,6 +13,7 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -28,7 +29,7 @@ import java.nio.ByteBuffer
 private val converter = Conversions.DecimalConversion()
 private val defaultAnnotation = AvroDecimal()
 
-object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSupplier {
+public object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSupplier {
     override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
         return inlinedStack.firstNotNullOfOrNull {
             it.descriptor.findElementAnnotation<AvroDecimal>(it.elementIndex ?: return@firstNotNullOfOrNull null)?.logicalType
@@ -36,7 +37,7 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSuppl
     }
 
     @OptIn(InternalSerializationApi::class)
-    override val descriptor =
+    override val descriptor: SerialDescriptor =
         buildSerialDescriptor(BigDecimal::class.qualifiedName!!, StructureKind.LIST) {
             element("item", buildSerialDescriptor("item", PrimitiveKind.BYTE))
             this.annotations = listOf(AvroLogicalType(BigDecimalSerializer::class))
@@ -45,14 +46,20 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSuppl
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: BigDecimal,
-    ) = encodeBigDecimal(encoder, value)
+    ) {
+        encodeBigDecimal(encoder, value)
+    }
 
     override fun serializeGeneric(
         encoder: Encoder,
         value: BigDecimal,
-    ) = encoder.encodeString(value.toString())
+    ) {
+        encoder.encodeString(value.toString())
+    }
 
-    override fun deserializeAvro(decoder: AvroDecoder) = decodeBigDecimal(decoder)
+    override fun deserializeAvro(decoder: AvroDecoder): BigDecimal {
+        return decodeBigDecimal(decoder)
+    }
 
     override fun deserializeGeneric(decoder: Decoder): BigDecimal {
         return decoder.decodeString().toBigDecimal()
@@ -64,20 +71,26 @@ object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSuppl
         }
 }
 
-object BigDecimalAsStringSerializer : AvroSerializer<BigDecimal>() {
-    override val descriptor = PrimitiveSerialDescriptor(BigDecimal::class.qualifiedName!!, PrimitiveKind.STRING)
+public object BigDecimalAsStringSerializer : AvroSerializer<BigDecimal>() {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(BigDecimal::class.qualifiedName!!, PrimitiveKind.STRING)
 
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: BigDecimal,
-    ) = encodeBigDecimal(encoder, value)
+    ) {
+        encodeBigDecimal(encoder, value)
+    }
 
     override fun serializeGeneric(
         encoder: Encoder,
         value: BigDecimal,
-    ) = encoder.encodeString(value.toString())
+    ) {
+        encoder.encodeString(value.toString())
+    }
 
-    override fun deserializeAvro(decoder: AvroDecoder) = decodeBigDecimal(decoder)
+    override fun deserializeAvro(decoder: AvroDecoder): BigDecimal {
+        return decodeBigDecimal(decoder)
+    }
 
     override fun deserializeGeneric(decoder: Decoder): BigDecimal {
         return decoder.decodeString().toBigDecimal()

@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "SetTest",
-  "namespace": "com.github.avrokotlin.avro4k.encoding.MapSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.encoding.MapEncodingTest",
   "fields": [
     {
       "name": "set",

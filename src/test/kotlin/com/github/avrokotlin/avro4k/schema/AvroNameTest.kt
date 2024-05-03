@@ -6,7 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class AvroNameSchemaTest : FunSpec({
+internal class AvroNameSchemaTest : FunSpec({
 
     test("Change field and class name") {
         AvroAssertions.assertThat<FieldNamesFoo>()

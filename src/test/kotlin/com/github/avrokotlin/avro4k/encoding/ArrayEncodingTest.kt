@@ -5,7 +5,7 @@ import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 
-class ArrayEncodingTest : StringSpec({
+internal class ArrayEncodingTest : StringSpec({
     "support array of booleans" {
         @Serializable
         data class TestArrayBooleans(val booleans: List<Boolean>)

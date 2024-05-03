@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class AvroPropsSchemaTest : StringSpec({
+internal class AvroPropsSchemaTest : StringSpec({
     "should support props annotation on class" {
         AvroAssertions.assertThat<TypeAnnotated>()
             .generatesSchema(Path("/props_json_annotation_class.json"))

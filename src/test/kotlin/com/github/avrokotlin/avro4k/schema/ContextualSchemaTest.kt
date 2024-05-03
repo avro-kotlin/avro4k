@@ -14,7 +14,7 @@ import kotlinx.serialization.modules.contextual
 import java.time.Instant
 import kotlin.io.path.Path
 
-class ContextualSchemaTest : StringSpec({
+internal class ContextualSchemaTest : StringSpec({
 
     "schema for contextual serializer" {
         AvroAssertions.assertThat<Test>()

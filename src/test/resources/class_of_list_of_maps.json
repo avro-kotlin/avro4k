@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "List2Test",
-  "namespace": "com.github.avrokotlin.avro4k.encoding.MapSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.encoding.MapEncodingTest",
   "fields": [
     {
       "name": "ship",

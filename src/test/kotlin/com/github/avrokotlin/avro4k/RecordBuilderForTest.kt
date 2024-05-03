@@ -9,7 +9,7 @@ import org.apache.avro.generic.GenericRecord
 import org.apache.avro.generic.IndexedRecord
 import java.nio.ByteBuffer
 
-data class RecordBuilderForTest(
+internal data class RecordBuilderForTest(
     val fields: List<Any?>,
     val explicitSchema: Schema? = null,
 ) {
@@ -23,7 +23,7 @@ data class RecordBuilderForTest(
     }
 }
 
-fun convertToAvroGenericValue(
+internal fun convertToAvroGenericValue(
     value: Any?,
     schema: Schema,
 ): Any? {
@@ -38,7 +38,7 @@ fun convertToAvroGenericValue(
     }
 }
 
-fun normalizeGenericData(value: Any?): Any? {
+internal fun normalizeGenericData(value: Any?): Any? {
     return when (value) {
         is IndexedRecord ->
             RecordBuilderForTest(
@@ -81,11 +81,11 @@ private fun <K, V> createMap(
     return value.mapValues { convertToAvroGenericValue(it.value, valueSchema) }
 }
 
-fun record(vararg fields: Any?): RecordBuilderForTest {
+internal fun record(vararg fields: Any?): RecordBuilderForTest {
     return RecordBuilderForTest(listOf(*fields))
 }
 
-fun recordWithSchema(
+internal fun recordWithSchema(
     schema: Schema,
     vararg fields: Any?,
 ): RecordBuilderForTest {

@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
-class LogicalTypesEncodingTest : StringSpec({
+internal class LogicalTypesEncodingTest : StringSpec({
     "support logical types at root level" {
         val schema = Avro.schema<LogicalTypes>().fields[0].schema()
         AvroAssertions.assertThat(BigDecimal("123.45"))

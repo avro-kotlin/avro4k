@@ -8,7 +8,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
-class ImplicitNullsSchemaTest : FunSpec({
+internal class ImplicitNullsSchemaTest : FunSpec({
     test("Should set default value to null for nullable fields when implicitNulls is true") {
         AvroAssertions.assertThat<ImplicitNulls>()
             .withConfig { implicitNulls = true }

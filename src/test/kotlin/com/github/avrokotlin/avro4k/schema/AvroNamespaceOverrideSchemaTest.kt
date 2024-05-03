@@ -173,9 +173,10 @@ class AvroNamespaceOverrideSchemaTest : FunSpec({
     )
 
     @Serializable
-    @AvroEnumDefault("B")
     enum class NestedEnum {
         A,
+
+        @AvroEnumDefault
         B,
     }
 }

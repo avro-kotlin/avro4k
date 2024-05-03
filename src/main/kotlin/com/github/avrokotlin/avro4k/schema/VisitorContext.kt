@@ -8,7 +8,6 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
-import com.github.avrokotlin.avro4k.AvroEnumDefault
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroJsonProp
 import com.github.avrokotlin.avro4k.AvroLogicalType
@@ -130,21 +129,15 @@ internal data class TypeAnnotations(
     val jsonProps: Sequence<AvroJsonProp>,
     val aliases: AvroAlias?,
     val doc: AvroDoc?,
-    val enumDefault: AvroEnumDefault?,
 ) {
     constructor(descriptor: SerialDescriptor) : this(
         descriptor.findAnnotations<AvroProp>().asSequence(),
         descriptor.findAnnotations<AvroJsonProp>().asSequence(),
         descriptor.findAnnotation<AvroAlias>(),
-        descriptor.findAnnotation<AvroDoc>(),
-        descriptor.findAnnotation<AvroEnumDefault>()
+        descriptor.findAnnotation<AvroDoc>()
     ) {
-        if (enumDefault != null) {
-            require(descriptor.kind == SerialKind.ENUM) { "@AvroEnumDefault can only be used on enums. Actual: $descriptor" }
-        } else {
-            require(descriptor.kind == StructureKind.CLASS || descriptor.kind == StructureKind.OBJECT || descriptor.kind == SerialKind.ENUM) {
-                "TypeAnnotations are only for classes, objects and enums. Actual: $descriptor"
-            }
+        require(descriptor.kind == StructureKind.CLASS || descriptor.kind == StructureKind.OBJECT || descriptor.kind == SerialKind.ENUM) {
+            "TypeAnnotations are only for classes, objects and enums. Actual: $descriptor"
         }
     }
 }

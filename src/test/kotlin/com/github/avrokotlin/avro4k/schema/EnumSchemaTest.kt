@@ -11,7 +11,6 @@ import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
-import org.apache.avro.SchemaParseException
 import kotlin.io.path.Path
 
 class EnumSchemaTest : StringSpec({
@@ -26,26 +25,32 @@ class EnumSchemaTest : StringSpec({
             .generatesSchema(Path("/enum_with_default.json")) { it.nullable }
     }
     "fail with unknown values" {
-        shouldThrow<SchemaParseException> {
+        shouldThrow<UnsupportedOperationException> {
             Avro.schema<InvalidEnumDefault>()
         }
-        shouldThrow<SchemaParseException> {
+        shouldThrow<UnsupportedOperationException> {
             Avro.schema<RecordWithGenericField<InvalidEnumDefault>>()
         }
     }
 }) {
     @Serializable
     @AvroAlias("MySuit")
-    @AvroEnumDefault("DIAMONDS")
     @AvroDoc("documentation")
     private enum class Suit {
         SPADES,
         HEARTS,
+
+        @AvroEnumDefault
         DIAMONDS,
         CLUBS,
     }
 
     @Serializable
-    @AvroEnumDefault("PINEAPPLE")
-    private enum class InvalidEnumDefault { VEGGIE, MEAT, }
+    private enum class InvalidEnumDefault {
+        @AvroEnumDefault
+        VEGGIE,
+
+        @AvroEnumDefault
+        MEAT,
+    }
 }

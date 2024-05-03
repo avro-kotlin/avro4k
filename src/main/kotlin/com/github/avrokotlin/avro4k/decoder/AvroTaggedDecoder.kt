@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.decoder
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroEnumDefault
 import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
 import com.github.avrokotlin.avro4k.internal.toByteExact
 import com.github.avrokotlin.avro4k.internal.toDoubleExact
@@ -9,7 +8,6 @@ import com.github.avrokotlin.avro4k.internal.toFloatExact
 import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.toLongExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
-import com.github.avrokotlin.avro4k.schema.findAnnotation
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -206,7 +204,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         return when (val value = decodeTaggedValue(tag)) {
             is GenericEnumSymbol<*>, is CharSequence -> {
                 enumDescriptor.getElementIndex(value.toString()).takeIf { it >= 0 }
-                    ?: enumDescriptor.findAnnotation<AvroEnumDefault>()?.value?.let { enumDescriptor.getElementIndex(it) }?.takeIf { it >= 0 }
+                    ?: avro.enumResolver.getDefaultValueIndex(enumDescriptor)
                     ?: throw SerializationException("Unknown enum symbol '$value' for Enum '${enumDescriptor.serialName}'")
             }
 

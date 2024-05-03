@@ -77,16 +77,16 @@ class EnumEncodingTest : StringSpec({
 
     @Serializable
     @SerialName("Enum")
-    @AvroEnumDefault("UNKNOWN")
     private enum class EnumV1 {
+        @AvroEnumDefault
         UNKNOWN,
         A,
     }
 
     @Serializable
     @SerialName("Enum")
-    @AvroEnumDefault("UNKNOWN")
     private enum class EnumV2 {
+        @AvroEnumDefault
         UNKNOWN,
         A,
         B,

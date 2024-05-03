@@ -34,11 +34,12 @@ class AvroPropsSchemaTest : StringSpec({
     )
 
     @Serializable
-    @AvroEnumDefault("Green")
     @AvroProp("enums", "power")
     @AvroJsonProp("countingAgain", """["three", "four"]""")
     private enum class EnumAnnotated {
         Red,
+
+        @AvroEnumDefault
         Green,
         Blue,
     }

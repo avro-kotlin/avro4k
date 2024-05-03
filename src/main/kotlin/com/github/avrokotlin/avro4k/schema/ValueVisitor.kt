@@ -41,10 +41,11 @@ internal class ValueVisitor internal constructor(
 
     override fun visitEnum(descriptor: SerialDescriptor) {
         val annotations = TypeAnnotations(descriptor)
+
         val schema =
             SchemaBuilder.enumeration(descriptor.nonNullSerialName)
                 .doc(annotations.doc?.value)
-                .defaultSymbol(annotations.enumDefault?.value)
+                .defaultSymbol(context.avro.enumResolver.getDefaultValueIndex(descriptor)?.let { descriptor.getElementName(it) })
                 .symbols(*descriptor.elementNamesArray)
 
         annotations.aliases?.value?.forEach { schema.addAlias(it) }

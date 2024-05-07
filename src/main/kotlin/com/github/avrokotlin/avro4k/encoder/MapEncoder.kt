@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.schema.ensureTypeOf
+import com.github.avrokotlin.avro4k.internal.ensureTypeOf
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema

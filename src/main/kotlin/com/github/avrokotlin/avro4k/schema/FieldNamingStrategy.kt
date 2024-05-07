@@ -13,6 +13,7 @@ public interface FieldNamingStrategy {
         /**
          * Returns the field name as is.
          */
+        @ExperimentalSerializationApi
         public object NoOp : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,

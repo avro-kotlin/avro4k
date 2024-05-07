@@ -26,11 +26,9 @@ public synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/
 
 public final class com/github/avrokotlin/avro4k/AvroBuilder {
 	public final fun build ()Lcom/github/avrokotlin/avro4k/AvroConfiguration;
-	public final fun getEncodedAs ()Lcom/github/avrokotlin/avro4k/EncodedAs;
 	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;
 	public final fun getImplicitNulls ()Z
 	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
-	public final fun setEncodedAs (Lcom/github/avrokotlin/avro4k/EncodedAs;)V
 	public final fun setFieldNamingStrategy (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;)V
 	public final fun setImplicitNulls (Z)V
 	public final fun setSerializersModule (Lkotlinx/serialization/modules/SerializersModule;)V
@@ -38,13 +36,12 @@ public final class com/github/avrokotlin/avro4k/AvroBuilder {
 
 public final class com/github/avrokotlin/avro4k/AvroConfiguration {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZLcom/github/avrokotlin/avro4k/EncodedAs;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZLcom/github/avrokotlin/avro4k/EncodedAs;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;Z)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;
 	public final fun component2 ()Z
-	public final fun component3 ()Lcom/github/avrokotlin/avro4k/EncodedAs;
-	public final fun copy (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZLcom/github/avrokotlin/avro4k/EncodedAs;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZLcom/github/avrokotlin/avro4k/EncodedAs;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;Z)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;ZILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy;
 	public final fun getImplicitNulls ()Z
@@ -181,108 +178,12 @@ public final class com/github/avrokotlin/avro4k/encoder/AvroEncoder$DefaultImpls
 	public static fun encodeSerializableValue (Lcom/github/avrokotlin/avro4k/encoder/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
 }
 
-public abstract class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher {
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$FirstArray : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$FirstArray;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$FirstMap : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$FirstMap;
-}
-
-public abstract class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher {
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Enum : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named {
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Enum;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Enum;Ljava/lang/String;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Enum;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFullName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$FirstEnum : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$FirstEnum;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$FirstFixed : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$FirstFixed;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Fixed : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named {
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Fixed;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Fixed;Ljava/lang/String;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Fixed;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFullName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Record : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named {
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Record;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Record;Ljava/lang/String;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Named$Record;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFullName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public abstract class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher {
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$BOOLEAN : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$BOOLEAN;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$BYTES : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$BYTES;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$DOUBLE : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$DOUBLE;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$FLOAT : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$FLOAT;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$INT : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$INT;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$LONG : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$LONG;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$NULL : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$NULL;
-}
-
-public final class com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$STRING : com/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/encoder/SchemaTypeMatcher$Scalar$STRING;
-}
-
 public abstract interface class com/github/avrokotlin/avro4k/schema/FieldNamingStrategy {
 	public static final field Builtins Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy$Builtins;
 	public abstract fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
 }
 
 public final class com/github/avrokotlin/avro4k/schema/FieldNamingStrategy$Builtins {
-}
-
-public final class com/github/avrokotlin/avro4k/schema/FieldNamingStrategy$Builtins$NoOp : com/github/avrokotlin/avro4k/schema/FieldNamingStrategy {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/schema/FieldNamingStrategy$Builtins$NoOp;
-	public fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
 }
 
 public final class com/github/avrokotlin/avro4k/schema/FieldNamingStrategy$Builtins$SnakeCase : com/github/avrokotlin/avro4k/schema/FieldNamingStrategy {

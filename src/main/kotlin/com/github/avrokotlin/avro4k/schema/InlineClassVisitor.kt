@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k.schema
 
+import com.github.avrokotlin.avro4k.internal.overrideNamespace
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 

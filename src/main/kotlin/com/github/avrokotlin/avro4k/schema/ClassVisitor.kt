@@ -1,7 +1,19 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.internal.isStartingAsJson
+import com.github.avrokotlin.avro4k.internal.jsonNode
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.internal.overrideNamespace
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 
@@ -144,3 +156,32 @@ internal class ClassVisitor(
         return defaultValue
     }
 }
+
+private val AvroDefault.jsonValue: Any
+    get() {
+        if (value.isStartingAsJson()) {
+            return Json.parseToJsonElement(value).toAvroObject()
+        }
+        return value
+    }
+
+private fun JsonElement.toAvroObject(): Any =
+    when (this) {
+        is JsonNull -> JsonProperties.NULL_VALUE
+        is JsonObject -> this.entries.associate { it.key to it.value.toAvroObject() }
+        is JsonArray -> this.map { it.toAvroObject() }
+        is JsonPrimitive ->
+            when {
+                this.isString -> this.content
+                this.booleanOrNull != null -> this.boolean
+                else -> {
+                    this.content.toBigDecimal().stripTrailingZeros().let {
+                        if (it.scale() <= 0) {
+                            it.toBigInteger()
+                        } else {
+                            it
+                        }
+                    }
+                }
+            }
+    }

@@ -1,8 +1,5 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AnnotatedLocation
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
@@ -13,18 +10,13 @@ import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.internal.findAnnotation
+import com.github.avrokotlin.avro4k.internal.findAnnotations
+import com.github.avrokotlin.avro4k.internal.findElementAnnotation
+import com.github.avrokotlin.avro4k.internal.findElementAnnotations
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.booleanOrNull
-import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 
 internal data class VisitorContext(
@@ -148,56 +140,3 @@ internal fun ValueAnnotations?.appendAnnotations(other: ValueAnnotations) =
         customSchema = this?.customSchema ?: other.customSchema,
         stack = (this?.stack ?: emptyList()) + other.stack
     )
-
-private val objectMapper = ObjectMapper()
-
-internal val AvroProp.jsonNode: JsonNode
-    get() {
-        if (value.isStartingAsJson()) {
-            return objectMapper.readTree(value)
-        }
-        return TextNode.valueOf(value)
-    }
-
-internal val AvroDefault.jsonValue: Any
-    get() {
-        if (value.isStartingAsJson()) {
-            return Json.parseToJsonElement(value).toAvroObject()
-        }
-        return value
-    }
-
-/**
- * Returns true if the given content is starting with `"`, {`, `[`, a digit or equals to `null`.
- * It doesn't check if the content is valid json.
- * It skips the whitespaces at the beginning of the content.
- */
-internal fun String.isStartingAsJson(): Boolean {
-    val i = this.indexOfFirst { !it.isWhitespace() }
-    if (i == -1) {
-        return false
-    }
-    val c = this[i]
-    return c == '{' || c == '"' || c.isDigit() || c == '[' || this == "null" || this == "true" || this == "false"
-}
-
-private fun JsonElement.toAvroObject(): Any =
-    when (this) {
-        is JsonNull -> JsonProperties.NULL_VALUE
-        is JsonObject -> this.entries.associate { it.key to it.value.toAvroObject() }
-        is JsonArray -> this.map { it.toAvroObject() }
-        is JsonPrimitive ->
-            when {
-                this.isString -> this.content
-                this.booleanOrNull != null -> this.boolean
-                else -> {
-                    this.content.toBigDecimal().stripTrailingZeros().let {
-                        if (it.scale() <= 0) {
-                            it.toBigInteger()
-                        } else {
-                            it
-                        }
-                    }
-                }
-            }
-    }

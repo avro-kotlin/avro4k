@@ -1,5 +1,9 @@
-package com.github.avrokotlin.avro4k.schema
+package com.github.avrokotlin.avro4k.internal
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.TextNode
+import com.github.avrokotlin.avro4k.AvroProp
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -31,13 +35,6 @@ private fun String.removeSuffix(suffix: Char): String {
     }
     return this
 }
-
-internal val Schema.nonNull: Schema
-    get() =
-        when {
-            type == Schema.Type.UNION && isNullable -> this.types.filter { it.type != Schema.Type.NULL }.let { if (it.size > 1) Schema.createUnion(it) else it[0] }
-            else -> this
-        }
 
 /**
  * Overrides the namespace of a [Schema] with the given namespace.
@@ -106,4 +103,28 @@ internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule:
 internal fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: SerializersModule) =
     requireNotNull(serializersModule.getContextualDescriptor(this) ?: this.capturedKClass?.serializerOrNull()?.descriptor) {
         "No descriptor found in serialization context for $this"
+    }
+
+/**
+ * Returns true if the given content is starting with `"`, {`, `[`, a digit or equals to `null`.
+ * It doesn't check if the content is valid json.
+ * It skips the whitespaces at the beginning of the content.
+ */
+internal fun String.isStartingAsJson(): Boolean {
+    val i = this.indexOfFirst { !it.isWhitespace() }
+    if (i == -1) {
+        return false
+    }
+    val c = this[i]
+    return c == '{' || c == '"' || c == '[' || c.isDigit() || this == "null" || this == "true" || this == "false"
+}
+
+private val objectMapper by lazy { ObjectMapper() }
+
+internal val AvroProp.jsonNode: JsonNode
+    get() {
+        if (value.isStartingAsJson()) {
+            return objectMapper.readTree(value)
+        }
+        return TextNode.valueOf(value)
     }

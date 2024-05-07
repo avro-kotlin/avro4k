@@ -3,8 +3,6 @@ package com.github.avrokotlin.avro4k.internal
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
-import com.github.avrokotlin.avro4k.schema.findElementAnnotation
-import com.github.avrokotlin.avro4k.schema.isStartingAsJson
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -18,7 +16,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import java.util.concurrent.ConcurrentHashMap
+import org.apache.avro.util.WeakIdentityHashMap
+import java.util.WeakHashMap
 
 internal class RecordResolver(
     private val avro: Avro,
@@ -28,7 +27,7 @@ internal class RecordResolver(
      *
      * Note: We use the descriptor in the key as we could have multiple descriptors for the same record schema, and multiple record schemas for the same descriptor.
      */
-    private val fieldCache: MutableMap<Pair<SerialDescriptor, Schema>, List<ElementDescriptor?>> = ConcurrentHashMap()
+    private val fieldCache: MutableMap<SerialDescriptor, MutableMap<Schema, List<ElementDescriptor?>>> = WeakIdentityHashMap()
 
     /**
      * @return a list of fields for the writer schema, in the same order as the class descriptor. If a field is not found in the schema, the array item is null.
@@ -40,7 +39,9 @@ internal class RecordResolver(
         if (classDescriptor.elementsCount == 0) {
             return emptyList()
         }
-        return fieldCache.getOrPut(classDescriptor to writerSchema) { loadCache(classDescriptor, writerSchema) }
+        return fieldCache.getOrPut(classDescriptor) { WeakHashMap() }.getOrPut(writerSchema) {
+            loadCache(classDescriptor, writerSchema)
+        }
     }
 
     /**
@@ -99,7 +100,7 @@ internal class RecordResolver(
             ?: fields.firstOrNull { avroFieldName in it.aliases() }
             ?: classDescriptor.findElementAnnotation<AvroAlias>(elementIndex)?.value?.let { aliases ->
                 fields.firstOrNull { schemaField ->
-                    schemaField.name() in aliases || schemaField.aliases().any { alias -> alias in aliases }
+                    schemaField.name() in aliases || schemaField.aliases().any { it in aliases }
                 }
             }
 }
@@ -114,17 +115,17 @@ internal data class ElementDescriptor(
 
 private fun AvroDefault.parseValue(schema: Schema): Any? {
     if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).convertObject(schema)
+        return Json.parseToJsonElement(value).convertDefaultToObject(schema)
     }
-    return JsonPrimitive(value).convertObject(schema)
+    return JsonPrimitive(value).convertDefaultToObject(schema)
 }
 
-private fun JsonElement.convertObject(schema: Schema): Any? {
+private fun JsonElement.convertDefaultToObject(schema: Schema): Any? {
     return when (this) {
         is JsonArray ->
             when (schema.type) {
-                Schema.Type.ARRAY -> this.map { it.convertObject(schema.elementType) }
-                Schema.Type.UNION -> this.convertObject(schema.resolveUnion(this, Schema.Type.ARRAY))
+                Schema.Type.ARRAY -> this.map { it.convertDefaultToObject(schema.elementType) }
+                Schema.Type.UNION -> this.convertDefaultToObject(schema.resolveUnion(this, Schema.Type.ARRAY))
                 else -> throw SerializationException("Not a valid array value for schema $schema: $this")
             }
 
@@ -135,13 +136,13 @@ private fun JsonElement.convertObject(schema: Schema): Any? {
                     GenericData.Record(schema).apply {
                         entries.forEach { (fieldName, value) ->
                             val schemaField = schema.getField(fieldName)
-                            put(schemaField.pos(), value.convertObject(schemaField.schema()))
+                            put(schemaField.pos(), value.convertDefaultToObject(schemaField.schema()))
                         }
                     }
                 }
 
-                Schema.Type.MAP -> entries.associate { (key, value) -> key to value.convertObject(schema.valueType) }
-                Schema.Type.UNION -> this.convertObject(schema.resolveUnion(this, Schema.Type.RECORD, Schema.Type.MAP))
+                Schema.Type.MAP -> entries.associate { (key, value) -> key to value.convertDefaultToObject(schema.valueType) }
+                Schema.Type.UNION -> this.convertDefaultToObject(schema.resolveUnion(this, Schema.Type.RECORD, Schema.Type.MAP))
                 else -> throw SerializationException("Not a valid record value for schema $schema: $this")
             }
 
@@ -159,7 +160,7 @@ private fun JsonElement.convertObject(schema: Schema): Any? {
                 -> this.content.toBigDecimal()
 
                 Schema.Type.UNION ->
-                    this.convertObject(
+                    this.convertDefaultToObject(
                         schema.resolveUnion(
                             this,
                             Schema.Type.BYTES,

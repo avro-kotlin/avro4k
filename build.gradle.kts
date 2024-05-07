@@ -118,7 +118,7 @@ publishing {
             pom {
                 val projectUrl = "https://github.com/avro-kotlin/avro4k"
                 name.set("avro4k-core")
-                description.set("Avro format support for kotlinx.serialization")
+                description.set("Avro binary format support for kotlin, built on top of kotlinx-serialization")
                 url.set(projectUrl)
 
                 scm {

@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 
 public data class AvroConfiguration(
     /**
@@ -15,18 +14,4 @@ public data class AvroConfiguration(
      * When set to `false`, during decoding, any missing value for a nullable field without default `null` value (e.g. `val field: Type?` without `= null`) is failing.
      */
     val implicitNulls: Boolean = true,
-    /**
-     * The encoding format to use when encoding and decoding avro data. Default is [EncodedAs.BINARY].
-     *
-     * @see EncodedAs
-     */
-    @ExperimentalSerializationApi
-    val encodedAs: EncodedAs = EncodedAs.BINARY,
 )
-
-@ExperimentalSerializationApi
-public enum class EncodedAs {
-    BINARY,
-    JSON_COMPACT,
-    JSON_PRETTY,
-}

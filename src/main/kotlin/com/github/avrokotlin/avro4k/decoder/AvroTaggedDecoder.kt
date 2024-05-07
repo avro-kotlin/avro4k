@@ -30,7 +30,7 @@ import java.nio.ByteBuffer
 
 @OptIn(InternalSerializationApi::class)
 internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecoder {
-    protected abstract val avro: Avro
+    internal abstract val avro: Avro
 
     protected abstract val Tag.writerSchema: Schema
 

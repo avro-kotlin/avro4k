@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.schema.nonNull
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericEnumSymbol
@@ -91,3 +90,10 @@ internal fun recordWithSchema(
 ): RecordBuilderForTest {
     return RecordBuilderForTest(listOf(*fields), schema)
 }
+
+private val Schema.nonNull: Schema
+    get() =
+        when {
+            type == Schema.Type.UNION && isNullable -> this.types.filter { it.type != Schema.Type.NULL }.let { if (it.size > 1) Schema.createUnion(it) else it[0] }
+            else -> this
+        }

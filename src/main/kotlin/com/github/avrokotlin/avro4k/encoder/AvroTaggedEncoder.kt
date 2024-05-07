@@ -1,11 +1,12 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.internal.toIntExact
-import com.github.avrokotlin.avro4k.schema.nonNull
-import com.github.avrokotlin.avro4k.schema.nonNullSerialName
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -30,19 +31,43 @@ internal abstract class AvroTaggedEncoder<Tag : Any?> : TaggedEncoder<Tag>(), Av
     override val currentWriterSchema: Schema
         get() = currentTag.writerSchema
 
+    override fun <T> encodeSerializableValue(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ) {
+        if (currentWriterSchema.type == Schema.Type.BYTES ||
+            currentWriterSchema.type == Schema.Type.UNION && currentWriterSchema.types.any { it.type == Schema.Type.BYTES }
+        ) {
+            when (value) {
+                is ByteArray -> encodeBytes(value)
+                is ByteBuffer -> encodeBytes(value)
+                else -> super<TaggedEncoder>.encodeSerializableValue(serializer, value)
+            }
+        } else {
+            super<TaggedEncoder>.encodeSerializableValue(serializer, value)
+        }
+    }
+
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        val schema = currentTag.writerSchema.nonNull
         return when (descriptor.kind) {
             StructureKind.CLASS,
             StructureKind.OBJECT,
             ->
-                avro.unionResolver.tryResolveUnion(schema, descriptor.nonNullSerialName)
-                    ?.takeIf { it.type == Schema.Type.RECORD }
-                    ?.let { RecordEncoder(avro, descriptor, it) { encodeTaggedValue(currentTag, it) } }
-                    ?: throwUnsupportedSchemaType(schema, descriptor)
+                encodeResolvingUnion(
+                    currentTag,
+                    { BadEncodedValueError(null, currentTag.writerSchema, Schema.Type.RECORD) }
+                ) { schema ->
+                    if (schema.type == Schema.Type.RECORD &&
+                        (schema.fullName == descriptor.nonNullSerialName || schema.aliases.any { it == descriptor.nonNullSerialName })
+                    ) {
+                        RecordEncoder(avro, descriptor, schema) { encodeTaggedValue(currentTag, it) }
+                    } else {
+                        null
+                    }
+                }
 
             is PolymorphicKind ->
-                PolymorphicEncoder(avro, schema) {
+                PolymorphicEncoder(avro, currentTag.writerSchema) {
                     encodeTaggedValue(currentTag, it)
                 }
 
@@ -54,184 +79,233 @@ internal abstract class AvroTaggedEncoder<Tag : Any?> : TaggedEncoder<Tag>(), Av
         descriptor: SerialDescriptor,
         collectionSize: Int,
     ): CompositeEncoder {
-        val schema = currentTag.writerSchema.nonNull
         return when (descriptor.kind) {
             StructureKind.LIST ->
-                when (schema.type) {
-                    Schema.Type.ARRAY -> ArrayEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
-                    Schema.Type.BYTES -> BytesEncoder(avro, collectionSize) { encodeTaggedValue(currentTag, it) }
-                    Schema.Type.FIXED -> FixedEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
-                    else -> throwUnsupportedSchemaType(schema, descriptor)
+                encodeResolvingUnion(
+                    currentTag,
+                    { BadEncodedValueError(null, currentTag.writerSchema, Schema.Type.ARRAY, Schema.Type.BYTES, Schema.Type.FIXED) }
+                ) { schema ->
+                    when (schema.type) {
+                        Schema.Type.ARRAY -> ArrayEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
+                        Schema.Type.BYTES -> BytesEncoder(avro, collectionSize) { encodeTaggedValue(currentTag, it) }
+                        Schema.Type.FIXED -> FixedEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
+                        else -> null
+                    }
                 }
 
             StructureKind.MAP ->
-                when (schema.type) {
-                    Schema.Type.MAP -> MapEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
-                    else -> throwUnsupportedSchemaType(schema, descriptor)
+                encodeResolvingUnion(
+                    currentTag,
+                    { BadEncodedValueError(null, currentTag.writerSchema, Schema.Type.MAP) }
+                ) { schema ->
+                    when (schema.type) {
+                        Schema.Type.MAP -> MapEncoder(avro, collectionSize, schema) { encodeTaggedValue(currentTag, it) }
+                        else -> null
+                    }
                 }
 
             else -> throw SerializationException("Unsupported collection kind: $descriptor")
         }
     }
 
-    private fun throwUnsupportedSchemaType(
-        schema: Schema,
-        descriptor: SerialDescriptor,
-    ): Nothing {
-        throw SerializationException("Unsupported schema $schema for ${descriptor.kind} $descriptor")
-    }
-
     override fun encodeBytes(value: ByteBuffer) {
-        encodeTaggedValueResolved<ByteBuffer>(
-            currentTag,
-            SchemaTypeMatcher.Scalar.BYTES to { value },
-            SchemaTypeMatcher.Named.FirstFixed to { value.array().toPaddedGenericFixed(it, endPadded = false) },
-            SchemaTypeMatcher.Scalar.STRING to { value.array().decodeToString() }
-        )
+        val tag = currentTag
+        encodeResolvingUnion(
+            tag,
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.BYTES -> encodeTaggedValue(tag, value)
+                Schema.Type.FIXED -> encodeTaggedValue(tag, value.array().toPaddedGenericFixed(schema, endPadded = false))
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.array().decodeToString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeBytes(value: ByteArray) {
-        encodeTaggedValueResolved<ByteArray>(
-            currentTag,
-            SchemaTypeMatcher.Scalar.BYTES to { ByteBuffer.wrap(value) },
-            SchemaTypeMatcher.Named.FirstFixed to { value.toPaddedGenericFixed(it, endPadded = false) },
-            SchemaTypeMatcher.Scalar.STRING to { value.decodeToString() }
-        )
+        val tag = currentTag
+        encodeResolvingUnion(
+            tag,
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.BYTES -> encodeTaggedValue(tag, ByteBuffer.wrap(value))
+                Schema.Type.FIXED -> encodeTaggedValue(tag, value.toPaddedGenericFixed(schema, endPadded = false))
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.decodeToString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeFixed(value: GenericFixed) {
-        encodeTaggedValueResolved<GenericFixed>(
-            currentTag,
-            SchemaTypeMatcher.Named.Fixed(value.schema.fullName) to { value },
-            SchemaTypeMatcher.Scalar.BYTES to { ByteBuffer.wrap(value.bytes()) },
-            SchemaTypeMatcher.Scalar.STRING to { value.bytes().decodeToString() }
-        )
+        val tag = currentTag
+        encodeResolvingUnion(
+            tag,
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.FIXED ->
+                    when (schema.fullName) {
+                        value.schema.fullName -> encodeTaggedValue(tag, value)
+                        else -> null
+                    }
+
+                Schema.Type.BYTES -> encodeTaggedValue(tag, ByteBuffer.wrap(value.bytes()))
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.bytes().decodeToString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeFixed(value: ByteArray) {
-        encodeTaggedValueResolved<ByteArray>(
-            currentTag,
-            SchemaTypeMatcher.Named.FirstFixed to { value.toPaddedGenericFixed(it, endPadded = false) },
-            SchemaTypeMatcher.Scalar.BYTES to { ByteBuffer.wrap(value) },
-            SchemaTypeMatcher.Scalar.STRING to { value.decodeToString() }
-        )
+        val tag = currentTag
+        encodeResolvingUnion(
+            tag,
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.FIXED -> encodeTaggedValue(tag, value.toPaddedGenericFixed(schema, endPadded = false))
+                Schema.Type.BYTES -> encodeTaggedValue(tag, ByteBuffer.wrap(value))
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.decodeToString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedBoolean(
         tag: Tag,
         value: Boolean,
     ) {
-        encodeTaggedValueResolved<Boolean>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.BOOLEAN to { value },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.BOOLEAN, Schema.Type.STRING) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.BOOLEAN -> encodeTaggedValue(tag, value)
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedByte(
         tag: Tag,
         value: Byte,
     ) {
-        encodeTaggedValueResolved<Byte>(
-            tag,
-            SchemaTypeMatcher.Scalar.INT to { value.toInt() },
-            SchemaTypeMatcher.Scalar.LONG to { value.toLong() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() }
-        )
+        encodeTaggedInt(tag, value.toInt())
     }
 
     override fun encodeTaggedShort(
         tag: Tag,
         value: Short,
     ) {
-        encodeTaggedValueResolved<Short>(
-            tag,
-            SchemaTypeMatcher.Scalar.INT to { value.toInt() },
-            SchemaTypeMatcher.Scalar.LONG to { value.toLong() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() }
-        )
+        encodeTaggedInt(tag, value.toInt())
     }
 
     override fun encodeTaggedInt(
         tag: Tag,
         value: Int,
     ) {
-        encodeTaggedValueResolved<Int>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.INT to { value },
-            SchemaTypeMatcher.Scalar.LONG to { value.toLong() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.LONG, Schema.Type.INT, Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.INT -> encodeTaggedValue(tag, value)
+                Schema.Type.LONG -> encodeTaggedValue(tag, value.toLong())
+                Schema.Type.FLOAT -> encodeTaggedValue(tag, value.toFloat())
+                Schema.Type.DOUBLE -> encodeTaggedValue(tag, value.toDouble())
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedLong(
         tag: Tag,
         value: Long,
     ) {
-        encodeTaggedValueResolved<Long>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.LONG to { value },
-            SchemaTypeMatcher.Scalar.INT to { value.toIntExact() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.LONG, Schema.Type.INT, Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.LONG -> encodeTaggedValue(tag, value)
+                Schema.Type.INT -> encodeTaggedValue(tag, value.toIntExact())
+                Schema.Type.FLOAT -> encodeTaggedValue(tag, value.toFloat())
+                Schema.Type.DOUBLE -> encodeTaggedValue(tag, value.toDouble())
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedFloat(
         tag: Tag,
         value: Float,
     ) {
-        encodeTaggedValueResolved<Float>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.FLOAT to { value },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.INT to { value.toInt() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.DOUBLE, Schema.Type.FLOAT) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.FLOAT -> encodeTaggedValue(tag, value)
+                Schema.Type.DOUBLE -> encodeTaggedValue(tag, value.toDouble())
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedDouble(
         tag: Tag,
         value: Double,
     ) {
-        encodeTaggedValueResolved<Double>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.DOUBLE to { value },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.INT to { value.toInt() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.DOUBLE) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.DOUBLE -> encodeTaggedValue(tag, value)
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedChar(
         tag: Tag,
         value: Char,
     ) {
-        encodeTaggedValueResolved<Char>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.INT to { value.code },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.INT, Schema.Type.STRING) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.INT -> encodeTaggedValue(tag, value.code)
+                Schema.Type.STRING -> encodeTaggedValue(tag, value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedString(
         tag: Tag,
         value: String,
     ) {
-        encodeTaggedValueResolved<String>(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Scalar.STRING to { value },
-            SchemaTypeMatcher.Scalar.BYTES to { value.encodeToByteArray() },
-            SchemaTypeMatcher.Named.FirstFixed to { value.encodeToByteArray().toPaddedGenericFixed(it, endPadded = true) },
-            SchemaTypeMatcher.Named.FirstEnum to { GenericData.EnumSymbol(it, value) }
-        )
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED, Schema.Type.ENUM) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.STRING -> encodeTaggedValue(tag, value)
+                Schema.Type.BYTES -> encodeTaggedValue(tag, value.encodeToByteArray())
+                Schema.Type.FIXED -> encodeTaggedValue(tag, value.encodeToByteArray().toPaddedGenericFixed(schema, endPadded = true))
+                Schema.Type.ENUM -> encodeTaggedValue(tag, GenericData.EnumSymbol(schema, value))
+                else -> null
+            }
+        }
     }
 
     override fun encodeTaggedEnum(
@@ -245,85 +319,39 @@ internal abstract class AvroTaggedEncoder<Tag : Any?> : TaggedEncoder<Tag>(), Av
          */
         val value = enumDescriptor.getElementName(ordinal)
 
-        encodeTaggedValueResolved(
+        encodeResolvingUnion(
             tag,
-            SchemaTypeMatcher.Named.Enum(enumDescriptor.nonNullSerialName) to { GenericData.EnumSymbol(it, value) },
-            SchemaTypeMatcher.Scalar.STRING to { value },
-            kotlinTypeName = enumDescriptor.serialName
-        )
-    }
+            { BadEncodedValueError(value, tag.writerSchema, Schema.Type.STRING, Schema.Type.ENUM) }
+        ) { schema ->
+            when (schema.type) {
+                Schema.Type.STRING -> encodeTaggedValue(tag, value)
+                Schema.Type.ENUM ->
+                    when (schema.fullName) {
+                        enumDescriptor.nonNullSerialName -> encodeTaggedValue(tag, GenericData.EnumSymbol(schema, value))
+                        else ->
+                            schema.aliases.firstOrNull { it == enumDescriptor.nonNullSerialName }?.let {
+                                encodeTaggedValue(tag, GenericData.EnumSymbol(schema, value))
+                            }
+                    }
 
-    private inline fun <reified T : Any> encodeTaggedValueResolved(
-        tag: Tag,
-        vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>,
-    ) = encodeTaggedValueResolved(tag, *encoders, kotlinTypeName = T::class.qualifiedName!!)
-
-    override fun encodeValueResolved(
-        vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>,
-        kotlinTypeName: String,
-    ) = encodeTaggedValueResolved(currentTag, *encoders, kotlinTypeName = kotlinTypeName)
-
-    private fun encodeTaggedValueResolved(
-        tag: Tag,
-        vararg encoders: Pair<SchemaTypeMatcher, (Schema) -> Any>,
-        kotlinTypeName: String,
-    ) {
-        // TODO cache the resolved type from the elementIndex
-        //  We have to retrieve the SerialDescriptor and the elementIndex from the tag
-        //  to cache the resolved schema given SerialDescriptor, elementIndex and the non-resolved writer schema.
-        val schema = tag.writerSchema
-        val encoder = hashMapOf(*encoders)
-
-        val valueEncoder =
-            schema.toTypeMatchers()
-                .firstNotNullOfOrNull { typeMatcher ->
-                    encoder[typeMatcher.first]?.let { typeMatcher.second to it }
-                }
-        if (valueEncoder == null) {
-            if (schema.type == Schema.Type.UNION) {
-                throw SerializationException(
-                    "Expected one of schema types ${encoder.keys} but no compatible schema type found " +
-                        "for encoded kotlin type $kotlinTypeName in union $schema"
-                )
-            } else {
-                throw SerializationException(
-                    "The kotlin type $kotlinTypeName expected to be encoded as ${encoder.keys} but was $schema"
-                )
+                else -> null
             }
         }
-        encodeTaggedValue(tag, valueEncoder.second(valueEncoder.first))
+    }
+
+    private inline fun <T : Any> encodeResolvingUnion(
+        tag: Tag,
+        error: () -> Throwable,
+        resolver: (Schema) -> T?,
+    ): T {
+        val schema = tag.writerSchema
+        return if (schema.type == Schema.Type.UNION) {
+            schema.types.firstNotNullOfOrNull(resolver)
+        } else {
+            resolver(schema)
+        } ?: throw error()
     }
 }
-
-@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-private fun Schema.toTypeMatchers(): Sequence<Pair<SchemaTypeMatcher, Schema>> =
-    when (type) {
-        Schema.Type.BOOLEAN -> sequenceOf(SchemaTypeMatcher.Scalar.BOOLEAN to this)
-        Schema.Type.INT -> sequenceOf(SchemaTypeMatcher.Scalar.INT to this)
-        Schema.Type.LONG -> sequenceOf(SchemaTypeMatcher.Scalar.LONG to this)
-        Schema.Type.FLOAT -> sequenceOf(SchemaTypeMatcher.Scalar.FLOAT to this)
-        Schema.Type.DOUBLE -> sequenceOf(SchemaTypeMatcher.Scalar.DOUBLE to this)
-        Schema.Type.STRING -> sequenceOf(SchemaTypeMatcher.Scalar.STRING to this)
-        Schema.Type.BYTES -> sequenceOf(SchemaTypeMatcher.Scalar.BYTES to this)
-        Schema.Type.NULL -> sequenceOf(SchemaTypeMatcher.Scalar.NULL to this)
-        Schema.Type.FIXED ->
-            sequenceOf(SchemaTypeMatcher.Named.Fixed(fullName) to this) +
-                aliases.map { SchemaTypeMatcher.Named.Fixed(it) to this } +
-                sequenceOf(SchemaTypeMatcher.Named.FirstFixed to this)
-
-        Schema.Type.ENUM ->
-            sequenceOf(SchemaTypeMatcher.Named.Enum(fullName) to this) +
-                aliases.map { SchemaTypeMatcher.Named.Enum(it) to this } +
-                sequenceOf(SchemaTypeMatcher.Named.FirstEnum to this)
-
-        Schema.Type.RECORD ->
-            sequenceOf(SchemaTypeMatcher.Named.Record(fullName) to this) +
-                aliases.map { SchemaTypeMatcher.Named.Record(it) to this }
-
-        Schema.Type.ARRAY -> sequenceOf(SchemaTypeMatcher.FirstArray to this)
-        Schema.Type.MAP -> sequenceOf(SchemaTypeMatcher.FirstMap to this)
-        Schema.Type.UNION -> types.asSequence().flatMap { it.toTypeMatchers() }
-    }
 
 private fun ByteArray.toPaddedGenericFixed(
     schema: Schema,

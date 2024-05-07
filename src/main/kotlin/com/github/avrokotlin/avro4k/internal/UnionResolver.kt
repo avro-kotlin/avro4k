@@ -1,13 +1,13 @@
 package com.github.avrokotlin.avro4k.internal
 
 import org.apache.avro.Schema
-import java.util.concurrent.ConcurrentHashMap
+import java.util.WeakHashMap
 
 internal class UnionResolver {
     /**
      * For a given union schema, we cache the possible schemas by fullName or alias.
      */
-    private val cache: MutableMap<Schema, Map<String, Schema>> = ConcurrentHashMap()
+    private val cache: MutableMap<Schema, Map<String, Schema>> = WeakHashMap()
 
     fun tryResolveUnion(
         schema: Schema,

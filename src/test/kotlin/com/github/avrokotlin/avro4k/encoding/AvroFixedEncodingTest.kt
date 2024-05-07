@@ -40,14 +40,15 @@ internal class AvroFixedEncodingTest : StringSpec({
         AvroAssertions.assertThat<FieldPriorToValueClass>()
             .generatesSchema(Path("/fixed_string_5.json"))
 
-        // Not 5 chars fixed
-        shouldThrow<SerializationException> {
-            Avro.encodeToByteArray(FieldPriorToValueClass(FixedStringValueClass("1234567")))
-        }
-
         val schema = Avro.schema<FieldPriorToValueClass>().fields[0].schema()
         AvroAssertions.assertThat(FieldPriorToValueClass(FixedStringValueClass("12345")))
             .isEncodedAs(record(GenericData.Fixed(schema, "12345".toByteArray())))
+
+        // Not 5 chars fixed
+        shouldThrow<SerializationException> {
+            Avro.schema<FieldPriorToValueClass>()
+            Avro.encodeToByteArray(FieldPriorToValueClass(FixedStringValueClass("1234567")))
+        }
     }
 
     "encode/decode ByteArray as FIXED when schema is Type.Fixed" {

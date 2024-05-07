@@ -2,8 +2,8 @@ package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.decoder.AvroDecoder
 import com.github.avrokotlin.avro4k.encoder.AvroEncoder
-import com.github.avrokotlin.avro4k.encoder.SchemaTypeMatcher
-import com.github.avrokotlin.avro4k.encoder.encodeValueResolved
+import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
+import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -19,13 +19,28 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
         encoder: AvroEncoder,
         value: BigInteger,
     ) {
-        encoder.encodeValueResolved<BigInteger>(
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() },
-            SchemaTypeMatcher.Scalar.INT to { value.intValueExact() },
-            SchemaTypeMatcher.Scalar.LONG to { value.longValueExact() },
-            SchemaTypeMatcher.Scalar.FLOAT to { value.toFloat() },
-            SchemaTypeMatcher.Scalar.DOUBLE to { value.toDouble() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(
+                    value,
+                    encoder.currentWriterSchema,
+                    Schema.Type.STRING,
+                    Schema.Type.INT,
+                    Schema.Type.LONG,
+                    Schema.Type.FLOAT,
+                    Schema.Type.DOUBLE
+                )
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.STRING -> encoder.encodeString(value.toString())
+                Schema.Type.INT -> encoder.encodeInt(value.intValueExact())
+                Schema.Type.LONG -> encoder.encodeLong(value.longValueExact())
+                Schema.Type.FLOAT -> encoder.encodeFloat(value.toFloat())
+                Schema.Type.DOUBLE -> encoder.encodeDouble(value.toDouble())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(

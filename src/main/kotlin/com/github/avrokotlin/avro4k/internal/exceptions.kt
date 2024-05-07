@@ -6,6 +6,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import org.apache.avro.Schema
 import kotlin.reflect.KClass
 
 internal class AvroSchemaGenerationException(message: String) : SerializationException(message)
@@ -57,6 +59,23 @@ internal fun BadDecodedValueError(
     } else {
         SerializationException(
             "Decoded value '$value' of type ${value::class.qualifiedName} for $expectedKind kind, expected one of [${allExpectedTypes.joinToString { it.qualifiedName!! }}]"
+        )
+    }
+}
+
+context(Encoder)
+internal fun BadEncodedValueError(
+    value: Any?,
+    writerSchema: Schema,
+    firstExpectedType: Schema.Type,
+    vararg expectedTypes: Schema.Type,
+): SerializationException {
+    val allExpectedTypes = listOf(firstExpectedType) + expectedTypes
+    return if (value == null) {
+        SerializationException("Encoded null value, expected one of $allExpectedTypes, actual writer schema $writerSchema")
+    } else {
+        SerializationException(
+            "Encoded value '$value' of type ${value::class.qualifiedName}, expected one of $allExpectedTypes, actual writer schema $writerSchema"
         )
     }
 }

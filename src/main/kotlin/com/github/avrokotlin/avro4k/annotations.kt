@@ -5,7 +5,6 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.LogicalType
 import org.intellij.lang.annotations.Language
@@ -99,16 +98,11 @@ public annotation class AvroDefault(
 public annotation class AvroEnumDefault
 
 /**
- * Allows to specify the logical type applied on the generated schema of a property.
- *
- * The given class **must** be an object and implement [AvroLogicalTypeSupplier], otherwise an [SerializationException] will be thrown.
- *
- * WARNING: This uses reflection to retrieve the object instance.
+ * Will be removed when we will be able to unwrap a nullable descriptor.
  */
 @SerialInfo
-@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
-public annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
+internal annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
 
 @ExperimentalSerializationApi
 public interface AvroLogicalTypeSupplier {

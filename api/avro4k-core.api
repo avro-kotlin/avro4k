@@ -101,11 +101,6 @@ public final class com/github/avrokotlin/avro4k/AvroKt {
 	public static final fun schema (Lcom/github/avrokotlin/avro4k/Avro;Lkotlinx/serialization/KSerializer;)Lorg/apache/avro/Schema;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroLogicalType$Impl : com/github/avrokotlin/avro4k/AvroLogicalType {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
 public abstract interface annotation class com/github/avrokotlin/avro4k/AvroNamespaceOverride : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/String;
 }

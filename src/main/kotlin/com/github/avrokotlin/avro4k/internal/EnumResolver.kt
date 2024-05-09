@@ -2,10 +2,10 @@ package com.github.avrokotlin.avro4k.internal
 
 import com.github.avrokotlin.avro4k.AvroEnumDefault
 import kotlinx.serialization.descriptors.SerialDescriptor
-import java.util.concurrent.ConcurrentHashMap
+import org.apache.avro.util.WeakIdentityHashMap
 
 internal class EnumResolver {
-    private val defaultIndexCache: MutableMap<SerialDescriptor, EnumDefault> = ConcurrentHashMap()
+    private val defaultIndexCache: MutableMap<SerialDescriptor, EnumDefault> = WeakIdentityHashMap()
 
     private data class EnumDefault(val index: Int?)
 

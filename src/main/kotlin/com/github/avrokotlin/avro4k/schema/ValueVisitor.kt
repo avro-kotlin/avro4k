@@ -5,6 +5,8 @@ import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroSchema
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
+import com.github.avrokotlin.avro4k.internal.jsonNode
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor

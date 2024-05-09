@@ -17,7 +17,7 @@ public data class ListRecord(
     private val s: Schema,
     private val values: List<Any?>,
 ) : Record {
-    public constructor(s: Schema, vararg values: Any?) : this(s, values.toList())
+    public constructor(s: Schema, vararg values: Any?) : this(s, values.asList())
 
     init {
         require(schema.type == Schema.Type.RECORD) { "Cannot create a Record with a schema that is not of type Schema.Type.RECORD [was $s]" }

@@ -31,11 +31,11 @@ import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.reflect.ReflectDatumWriter
+import org.apache.avro.util.WeakIdentityHashMap
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
@@ -44,7 +44,11 @@ public sealed class Avro(
     public val configuration: AvroConfiguration,
     public val serializersModule: SerializersModule,
 ) {
-    private val schemaCache: MutableMap<SerialDescriptor, Schema> = ConcurrentHashMap()
+    // We use the identity hash map because we could have multiple descriptors with the same name, especially
+    // when having 2 different version of the schema for the same name. kotlinx-serialization is instanciating the descriptors
+    // only once, so we are safe in the main use cases. Combined with weak references to avoid memory leaks.
+    private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
+
     internal val recordResolver = RecordResolver(this)
     internal val unionResolver = UnionResolver()
     internal val enumResolver = EnumResolver()
@@ -68,7 +72,7 @@ public sealed class Avro(
         return schemaCache.getOrPut(descriptor) {
             lateinit var output: Schema
             ValueVisitor(this) { output = it }.visitValue(descriptor)
-            return output
+            output
         }
     }
 
@@ -78,12 +82,7 @@ public sealed class Avro(
         value: T,
         outputStream: OutputStream,
     ) {
-        val avroEncoder =
-            when (configuration.encodedAs) {
-                EncodedAs.BINARY -> EncoderFactory.get().binaryEncoder(outputStream, null)
-                EncodedAs.JSON_COMPACT -> EncoderFactory.get().jsonEncoder(writerSchema, outputStream, false)
-                EncodedAs.JSON_PRETTY -> EncoderFactory.get().jsonEncoder(writerSchema, outputStream, true)
-            }
+        val avroEncoder = EncoderFactory.get().directBinaryEncoder(outputStream, null)
         val genericData = encodeToGenericData(writerSchema, serializer, value)
         ReflectDatumWriter<Any?>(writerSchema).write(genericData, avroEncoder)
         avroEncoder.flush()
@@ -116,11 +115,7 @@ public sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         inputStream: InputStream,
     ): T {
-        val avroDecoder =
-            when (configuration.encodedAs) {
-                EncodedAs.BINARY -> DecoderFactory.get().binaryDecoder(inputStream, null)
-                EncodedAs.JSON_COMPACT, EncodedAs.JSON_PRETTY -> DecoderFactory.get().jsonDecoder(writerSchema, inputStream)
-            }
+        val avroDecoder = DecoderFactory.get().directBinaryDecoder(inputStream, null)
         val genericData = GenericDatumReader<Any?>(writerSchema).read(null, avroDecoder)
         return decodeFromGenericData(writerSchema, deserializer, genericData)
     }
@@ -155,14 +150,12 @@ public fun Avro(
 public class AvroBuilder internal constructor(avro: Avro) {
     public var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
     public var implicitNulls: Boolean = avro.configuration.implicitNulls
-    public var encodedAs: EncodedAs = avro.configuration.encodedAs
     public var serializersModule: SerializersModule = EmptySerializersModule()
 
     public fun build(): AvroConfiguration =
         AvroConfiguration(
             fieldNamingStrategy = fieldNamingStrategy,
-            implicitNulls = implicitNulls,
-            encodedAs = encodedAs
+            implicitNulls = implicitNulls
         )
 }
 

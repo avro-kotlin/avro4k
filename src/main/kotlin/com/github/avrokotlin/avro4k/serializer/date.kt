@@ -5,8 +5,8 @@ import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
 import com.github.avrokotlin.avro4k.decoder.AvroDecoder
 import com.github.avrokotlin.avro4k.encoder.AvroEncoder
-import com.github.avrokotlin.avro4k.encoder.SchemaTypeMatcher
-import com.github.avrokotlin.avro4k.encoder.encodeValueResolved
+import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
+import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -17,6 +17,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
+import org.apache.avro.Schema
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
@@ -35,22 +36,29 @@ public object LocalDateSerializer : AvroTimeSerializer<LocalDate>(LocalDate::cla
         encoder: AvroEncoder,
         value: LocalDate,
     ) {
-        encoder.encodeValueResolved<LocalTime>(
-            SchemaTypeMatcher.Scalar.INT to {
-                when (it.logicalType) {
-                    is LogicalTypes.Date, null -> value.toEpochDay().toInt()
-                    else -> it.logicalType.throwUnsupportedWith<LocalDate>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    // Date is not compatible with LONG, so we require a null logical type to encode the timestamp
-                    null -> value.toEpochDay()
-                    else -> it.logicalType.throwUnsupportedWith<LocalDate>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.INT ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.Date, null -> encoder.encodeInt(value.toEpochDay().toInt())
+                        else -> null
+                    }
+
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        // Date is not compatible with LONG, so we require a null logical type to encode the timestamp
+                        null -> encoder.encodeLong(value.toEpochDay())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -78,23 +86,30 @@ public object LocalTimeSerializer : AvroTimeSerializer<LocalTime>(LocalTime::cla
         encoder: AvroEncoder,
         value: LocalTime,
     ) {
-        encoder.encodeValueResolved<LocalTime>(
-            SchemaTypeMatcher.Scalar.INT to {
-                when (it.logicalType) {
-                    is LogicalTypes.TimeMillis, null -> value.toMillisOfDay()
-                    else -> it.logicalType.throwUnsupportedWith<LocalTime>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    // TimeMillis is not compatible with LONG, so we require a null logical type to encode the timestamp
-                    null -> value.toMillisOfDay().toLong()
-                    is LogicalTypes.TimeMicros -> value.toMicroOfDay()
-                    else -> it.logicalType.throwUnsupportedWith<LocalTime>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.truncatedTo(ChronoUnit.MILLIS).toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.INT ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.TimeMillis, null -> encoder.encodeInt(value.toMillisOfDay())
+                        else -> null
+                    }
+
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        // TimeMillis is not compatible with LONG, so we require a null logical type to encode the timestamp
+                        null -> encoder.encodeLong(value.toMillisOfDay().toLong())
+                        is LogicalTypes.TimeMicros -> encoder.encodeLong(value.toMicroOfDay())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.truncatedTo(ChronoUnit.MILLIS).toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -131,16 +146,23 @@ public object LocalDateTimeSerializer : AvroTimeSerializer<LocalDateTime>(LocalD
         encoder: AvroEncoder,
         value: LocalDateTime,
     ) {
-        encoder.encodeValueResolved<LocalDateTime>(
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    is LogicalTypes.TimestampMillis, null -> value.toInstant(ZoneOffset.UTC).toEpochMilli()
-                    is LogicalTypes.TimestampMicros -> value.toInstant(ZoneOffset.UTC).toEpochMicros()
-                    else -> it.logicalType.throwUnsupportedWith<LocalDateTime>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.truncatedTo(ChronoUnit.MILLIS).toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.TimestampMillis, null -> encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli())
+                        is LogicalTypes.TimestampMicros -> encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMicros())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.truncatedTo(ChronoUnit.MILLIS).toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -166,16 +188,23 @@ public object TimestampSerializer : AvroTimeSerializer<Timestamp>(Timestamp::cla
         encoder: AvroEncoder,
         value: Timestamp,
     ) {
-        encoder.encodeValueResolved<Timestamp>(
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    is LogicalTypes.TimestampMillis, null -> value.toInstant().toEpochMilli()
-                    is LogicalTypes.TimestampMicros -> value.toInstant().toEpochMicros()
-                    else -> it.logicalType.throwUnsupportedWith<Timestamp>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.toInstant().toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.TimestampMillis, null -> encoder.encodeLong(value.toInstant().toEpochMilli())
+                        is LogicalTypes.TimestampMicros -> encoder.encodeLong(value.toInstant().toEpochMicros())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.toInstant().toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -201,16 +230,23 @@ public object InstantSerializer : AvroTimeSerializer<Instant>(Instant::class, Pr
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeValueResolved<Instant>(
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    is LogicalTypes.TimestampMillis, null -> value.toEpochMilli()
-                    is LogicalTypes.TimestampMicros -> value.toEpochMicros()
-                    else -> it.logicalType.throwUnsupportedWith<Instant>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.TimestampMillis, null -> encoder.encodeLong(value.toEpochMilli())
+                        is LogicalTypes.TimestampMicros -> encoder.encodeLong(value.toEpochMicros())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -236,16 +272,23 @@ public object InstantToMicroSerializer : AvroTimeSerializer<Instant>(Instant::cl
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeValueResolved<Instant>(
-            SchemaTypeMatcher.Scalar.LONG to {
-                when (it.logicalType) {
-                    is LogicalTypes.TimestampMicros, null -> value.toEpochMicros()
-                    is LogicalTypes.TimestampMillis -> value.toEpochMilli()
-                    else -> it.logicalType.throwUnsupportedWith<Instant>()
-                }
-            },
-            SchemaTypeMatcher.Scalar.STRING to { value.toString() }
-        )
+        encoder.encodeResolvingUnion({
+            with(encoder) {
+                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.LONG)
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.LONG ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.TimestampMicros, null -> encoder.encodeLong(value.toEpochMicros())
+                        is LogicalTypes.TimestampMillis -> encoder.encodeLong(value.toEpochMilli())
+                        else -> null
+                    }
+
+                Schema.Type.STRING -> encoder.encodeString(value.toString())
+                else -> null
+            }
+        }
     }
 
     override fun serializeGeneric(
@@ -271,10 +314,6 @@ public abstract class AvroTimeSerializer<T : Any>(
         buildSerialDescriptor(klass.qualifiedName!!, kind) {
             annotations = listOf(AvroLogicalType(this@AvroTimeSerializer::class))
         }
-}
-
-private inline fun <reified T> LogicalType?.throwUnsupportedWith(): Nothing {
-    throw SerializationException("Unsupported logical type $this for kotlin type ${T::class.qualifiedName}")
 }
 
 private fun Instant.toEpochMicros() = ChronoUnit.MICROS.between(Instant.EPOCH, this)

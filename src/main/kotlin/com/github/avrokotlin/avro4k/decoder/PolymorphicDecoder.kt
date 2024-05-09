@@ -3,9 +3,9 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
-import com.github.avrokotlin.avro4k.schema.findAnnotation
-import com.github.avrokotlin.avro4k.schema.nonNullSerialName
-import com.github.avrokotlin.avro4k.schema.possibleSerializationSubclasses
+import com.github.avrokotlin.avro4k.internal.findAnnotation
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.internal.possibleSerializationSubclasses
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor

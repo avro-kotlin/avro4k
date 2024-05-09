@@ -21,11 +21,11 @@ import java.nio.ByteOrder
  *
  * [spec](https://avro.apache.org/docs/1.11.1/specification/#single-object-encoding)
  *
- * @param findSchemaByFingerprint a function to find a schema by its fingerprint, and returns null when not found
+ * @param schemaRegistry a function to find a schema by its fingerprint, and returns null when not found. You should use [SchemaNormalization.parsingFingerprint64] to generate the fingerprint.
  */
 @ExperimentalSerializationApi
 public class AvroSingleObject(
-    private val findSchemaByFingerprint: (Long) -> Schema?,
+    private val schemaRegistry: (fingerprint: Long) -> Schema?,
     @PublishedApi
     internal val avro: Avro = Avro,
 ) {
@@ -51,7 +51,7 @@ public class AvroSingleObject(
         check(inputStream.read() == FORMAT_VERSION) { "Not a valid single-object avro format, bad version byte" }
         val fingerprint = ByteBuffer.wrap(ByteArray(8).apply { inputStream.read(this) }).order(ByteOrder.LITTLE_ENDIAN).getLong()
         val writerSchema =
-            findSchemaByFingerprint(fingerprint) ?: throw SerializationException("schema not found for the given object's schema fingerprint 0x${fingerprint.toString(16)}")
+            schemaRegistry(fingerprint) ?: throw SerializationException("schema not found for the given object's schema fingerprint 0x${fingerprint.toString(16)}")
 
         return avro.decodeFromStream(writerSchema, deserializer, inputStream)
     }

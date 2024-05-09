@@ -7,6 +7,8 @@ pluginManagement {
 
 rootProject.name = "avro4k-core"
 
+include("benchmark")
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {

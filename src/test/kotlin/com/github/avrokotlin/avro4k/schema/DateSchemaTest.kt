@@ -7,7 +7,6 @@ import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
-import com.github.avrokotlin.avro4k.serializer.TimestampSerializer
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.nullable
@@ -20,7 +19,6 @@ internal class DateSchemaTest : FunSpec({
         LocalTimeSerializer to LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT)),
         LocalDateTimeSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
         InstantSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
-        TimestampSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
         InstantToMicroSerializer to LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG))
     ).forEach { (serializer: KSerializer<*>, expected) ->
         test("generate date logical type for $serializer") {

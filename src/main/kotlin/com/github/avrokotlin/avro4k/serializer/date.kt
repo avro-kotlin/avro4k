@@ -18,7 +18,6 @@ import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
-import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -176,48 +175,6 @@ public object LocalDateTimeSerializer : AvroTimeSerializer<LocalDateTime>(LocalD
 
     override fun deserializeGeneric(decoder: Decoder): LocalDateTime {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC)
-    }
-}
-
-public object TimestampSerializer : AvroTimeSerializer<Timestamp>(Timestamp::class, PrimitiveKind.LONG) {
-    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
-        return LogicalTypes.timestampMillis()
-    }
-
-    override fun serializeAvro(
-        encoder: AvroEncoder,
-        value: Timestamp,
-    ) {
-        encoder.encodeResolvingUnion({
-            with(encoder) {
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.STRING, Schema.Type.LONG)
-            }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.LONG ->
-                    when (schema.logicalType) {
-                        is LogicalTypes.TimestampMillis, null -> encoder.encodeLong(value.toInstant().toEpochMilli())
-                        is LogicalTypes.TimestampMicros -> encoder.encodeLong(value.toInstant().toEpochMicros())
-                        else -> null
-                    }
-
-                Schema.Type.STRING -> encoder.encodeString(value.toInstant().toString())
-                else -> null
-            }
-        }
-    }
-
-    override fun serializeGeneric(
-        encoder: Encoder,
-        value: Timestamp,
-    ) {
-        encoder.encodeLong(value.toInstant().toEpochMilli())
-    }
-
-    override fun deserializeAvro(decoder: AvroDecoder): Timestamp = deserializeGeneric(decoder)
-
-    override fun deserializeGeneric(decoder: Decoder): Timestamp {
-        return Timestamp(decoder.decodeLong())
     }
 }
 

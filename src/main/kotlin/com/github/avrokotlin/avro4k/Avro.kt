@@ -13,7 +13,6 @@ import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
-import com.github.avrokotlin.avro4k.serializer.TimestampSerializer
 import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.DeserializationStrategy
@@ -64,7 +63,6 @@ public sealed class Avro(
             contextual(LocalDateSerializer)
             contextual(LocalTimeSerializer)
             contextual(LocalDateTimeSerializer)
-            contextual(TimestampSerializer)
         }
     )
 

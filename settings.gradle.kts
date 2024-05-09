@@ -12,12 +12,12 @@ include("benchmark")
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("kotlin", "1.9.22")
+            version("kotlin", "1.9.23")
             version("jvm", "21")
 
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
 
-            val kotlinxSerialization = "1.6.2"
+            val kotlinxSerialization = "1.6.3"
             library("kotlinx-serialization-core", "org.jetbrains.kotlinx", "kotlinx-serialization-core").version(kotlinxSerialization)
             library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version(kotlinxSerialization)
 

@@ -150,11 +150,6 @@ public synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/github/a
 	public final synthetic fun value ()Ljava/lang/String;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroSchema$Impl : com/github/avrokotlin/avro4k/AvroSchema {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
 public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
 	public static final fun decodeFromByteArray (Lcom/github/avrokotlin/avro4k/AvroSingleObject;Lkotlinx/serialization/DeserializationStrategy;[B)Ljava/lang/Object;
 	public static final fun encodeToByteArray (Lcom/github/avrokotlin/avro4k/AvroSingleObject;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B

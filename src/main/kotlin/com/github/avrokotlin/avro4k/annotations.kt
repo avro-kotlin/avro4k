@@ -8,7 +8,6 @@ import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.LogicalType
-import org.apache.avro.Schema
 import org.intellij.lang.annotations.Language
 import kotlin.reflect.KClass
 
@@ -98,19 +97,6 @@ public annotation class AvroDefault(
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 public annotation class AvroEnumDefault
-
-/**
- * Allows to specify the schema of a property.
- */
-@SerialInfo
-@ExperimentalSerializationApi
-@Target(AnnotationTarget.PROPERTY)
-public annotation class AvroSchema(val value: KClass<out AvroSchemaSupplier>)
-
-@ExperimentalSerializationApi
-public interface AvroSchemaSupplier {
-    public fun getSchema(stack: List<AnnotatedLocation>): Schema
-}
 
 /**
  * Allows to specify the logical type applied on the generated schema of a property.

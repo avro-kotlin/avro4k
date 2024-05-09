@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroLogicalType
-import com.github.avrokotlin.avro4k.AvroSchema
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
@@ -117,7 +116,6 @@ internal class ValueVisitor internal constructor(
             logicalType = annotations.logicalType.getLogicalType(annotations)
         }
         when {
-            annotations.customSchema != null -> setSchema(annotations.customSchema.getSchema(annotations))
             annotations.fixed != null -> visitFixed(annotations.fixed)
             descriptor.isByteArray() -> visitByteArray()
             else -> super.visitValue(descriptor)
@@ -126,10 +124,6 @@ internal class ValueVisitor internal constructor(
 
     private fun AnnotatedElementOrType<AvroLogicalType>.getLogicalType(valueAnnotations: ValueAnnotations): LogicalType {
         return this.annotation.value.newObjectInstance().getLogicalType(valueAnnotations.stack)
-    }
-
-    private fun AnnotatedElementOrType<AvroSchema>.getSchema(valueAnnotations: ValueAnnotations): Schema {
-        return this.annotation.value.newObjectInstance().getSchema(valueAnnotations.stack)
     }
 }
 

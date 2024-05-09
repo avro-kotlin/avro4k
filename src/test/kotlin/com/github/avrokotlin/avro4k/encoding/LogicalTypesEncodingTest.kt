@@ -15,7 +15,6 @@ import org.apache.avro.SchemaBuilder
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URL
-import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -44,14 +43,12 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 BigDecimal("123.45"),
                 LocalDate.ofEpochDay(18262),
                 LocalTime.ofSecondOfDay(45296),
-                Timestamp(1577889296000),
                 Instant.ofEpochSecond(1577889296),
                 Instant.ofEpochSecond(1577889296, 424000),
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
                 LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
-                null,
                 null,
                 null,
                 null,
@@ -82,13 +79,11 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     18262,
                     45296000,
                     1577889296000,
-                    1577889296000,
                     1577889296000424,
                     "123e4567-e89b-12d3-a456-426614174000",
                     "http://example.com",
                     "1234567890",
                     1577889296424,
-                    null,
                     null,
                     null,
                     null,
@@ -111,7 +106,6 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Serializable(BigDecimalAsStringSerializer::class) val decimalString: BigDecimal,
         @Contextual val date: LocalDate,
         @Contextual val time: LocalTime,
-        @Contextual val timestamp: Timestamp,
         @Contextual val instant: Instant,
         @Serializable(InstantToMicroSerializer::class) val instantMicros: Instant,
         @Contextual val uuid: UUID,
@@ -123,7 +117,6 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Serializable(BigDecimalAsStringSerializer::class) val decimalStringNullable: BigDecimal?,
         @Contextual val dateNullable: LocalDate?,
         @Contextual val timeNullable: LocalTime?,
-        @Contextual val timestampNullable: Timestamp?,
         @Contextual val instantNullable: Instant?,
         @Serializable(InstantToMicroSerializer::class) val instantMicrosNullable: Instant?,
         @Contextual val uuidNullable: UUID?,

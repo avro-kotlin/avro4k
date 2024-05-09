@@ -310,19 +310,6 @@ public final class com/github/avrokotlin/avro4k/serializer/LocalTimeSerializer :
 	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/LocalTime;)V
 }
 
-public final class com/github/avrokotlin/avro4k/serializer/TimestampSerializer : com/github/avrokotlin/avro4k/serializer/AvroTimeSerializer {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/TimestampSerializer;
-	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/decoder/AvroDecoder;)Ljava/lang/Object;
-	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/decoder/AvroDecoder;)Ljava/sql/Timestamp;
-	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/sql/Timestamp;
-	public fun getLogicalType (Ljava/util/List;)Lorg/apache/avro/LogicalType;
-	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/encoder/AvroEncoder;Ljava/lang/Object;)V
-	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/encoder/AvroEncoder;Ljava/sql/Timestamp;)V
-	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/sql/Timestamp;)V
-}
-
 public final class com/github/avrokotlin/avro4k/serializer/URLSerializer : kotlinx/serialization/KSerializer {
 	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/URLSerializer;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;

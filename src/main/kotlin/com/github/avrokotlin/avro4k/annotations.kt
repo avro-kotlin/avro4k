@@ -5,6 +5,7 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
@@ -113,6 +114,10 @@ public interface AvroSchemaSupplier {
 
 /**
  * Allows to specify the logical type applied on the generated schema of a property.
+ *
+ * The given class **must** be an object and implement [AvroLogicalTypeSupplier], otherwise an [SerializationException] will be thrown.
+ *
+ * WARNING: This uses reflection to retrieve the object instance.
  */
 @SerialInfo
 @ExperimentalSerializationApi

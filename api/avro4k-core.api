@@ -161,7 +161,6 @@ public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
 }
 
 public abstract interface class com/github/avrokotlin/avro4k/decoder/AvroDecoder : kotlinx/serialization/encoding/Decoder {
-	public abstract fun decodeValue ()Ljava/lang/Object;
 	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
 }
 

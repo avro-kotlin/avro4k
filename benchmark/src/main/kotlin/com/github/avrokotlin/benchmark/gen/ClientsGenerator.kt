@@ -1,9 +1,12 @@
 package com.github.avrokotlin.benchmark.gen
 
+import com.github.avrokotlin.benchmark.BadPartner
 import com.github.avrokotlin.benchmark.Client
 import com.github.avrokotlin.benchmark.Clients
 import com.github.avrokotlin.benchmark.EyeColor
+import com.github.avrokotlin.benchmark.GoodPartner
 import com.github.avrokotlin.benchmark.Partner
+import com.github.avrokotlin.benchmark.Stranger
 
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -87,7 +90,7 @@ internal object ClientsGenerator {
         }
         u.tags = tags
         val nPartners: Int = RandomUtils.nextInt(0, 30)
-        val partners = mutableListOf<Partner>()
+        val partners = mutableListOf<Partner?>()
         expectedSize += 13 // ,'partners':[]
         for (i in 0 until nPartners) {
             if (expectedSize > sizeAvailable) {
@@ -105,7 +108,15 @@ internal object ClientsGenerator {
                 RandomUtils.nextInt(1000000000),
                 ZoneOffset.UTC
             ).toInstant()
-            partners.add(Partner(id, name, at))
+            partners.add(
+                when (RandomUtils.nextInt(4)) {
+                    0 -> GoodPartner(id, name, at)
+                    1 -> BadPartner(id, name, at)
+                    2 -> if (RandomUtils.nextBoolean()) Stranger.KNOWN_STRANGER else Stranger.UNKNOWN_STRANGER
+                    3 -> null
+                    else -> throw IllegalStateException("Unexpected value")
+                }
+            )
             expectedSize += id.toString().length + name.length + 50 // {'id':'','name':'','since':''},
         }
         u.partners = partners

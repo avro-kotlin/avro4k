@@ -58,6 +58,10 @@ internal object RandomUtils {
         return RANDOM.nextLong()
     }
 
+    fun nextBoolean(): Boolean {
+        return RANDOM.nextBoolean()
+    }
+
     fun longArray(size: Int): LongArray {
         val arr = LongArray(size)
         for (i in 0..<size) {

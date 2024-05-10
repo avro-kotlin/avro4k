@@ -1,0 +1,8 @@
+public abstract interface class com/github/avrokotlin/benchmark/Partner {
+	public static final field Companion Lcom/github/avrokotlin/benchmark/Partner$Companion;
+}
+
+public final class com/github/avrokotlin/benchmark/Partner$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

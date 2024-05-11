@@ -130,21 +130,23 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTy
                     { decoder.decodeString().toBigDecimal() }
                 }
 
-                Schema.Type.BYTES -> when (schema.logicalType) {
-                    is LogicalTypes.Decimal -> {
-                        { converter.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
+                Schema.Type.BYTES ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.Decimal -> {
+                            { converter.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
+                        }
+
+                        else -> null
                     }
 
-                    else -> null
-                }
+                Schema.Type.FIXED ->
+                    when (schema.logicalType) {
+                        is LogicalTypes.Decimal -> {
+                            { converter.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
+                        }
 
-                Schema.Type.FIXED -> when (schema.logicalType) {
-                    is LogicalTypes.Decimal -> {
-                        { converter.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
+                        else -> null
                     }
-
-                    else -> null
-                }
 
                 else -> null
             }

@@ -10,27 +10,22 @@ internal class ArrayDecoder(
     private val collection: Collection<Any?>,
     private val writerSchema: Schema,
     override val avro: Avro,
-) : AvroTaggedDecoder<Schema>() {
+) : AbstractAvroDecoder() {
     private val iterator = collection.iterator()
-    private val elementType = if (writerSchema.type == Schema.Type.BYTES) writerSchema else writerSchema.elementType
 
     private var currentItem: Any? = null
     private var decodedNullMark = false
 
-    override val Schema.writerSchema: Schema
-        get() = this@ArrayDecoder.elementType
+    override val currentWriterSchema: Schema
+        get() = writerSchema.elementType
 
-    override fun SerialDescriptor.getTag(index: Int): Schema {
-        return elementType
-    }
-
-    override fun decodeTaggedNotNullMark(tag: Schema): Boolean {
+    override fun decodeNotNullMark(): Boolean {
         decodedNullMark = true
         currentItem = iterator.next()
         return currentItem != null
     }
 
-    override fun decodeTaggedValue(tag: Schema): Any {
+    override fun decodeValue(): Any {
         val value = if (decodedNullMark) currentItem else iterator.next()
         decodedNullMark = false
         return value ?: throw DecodedNullError()

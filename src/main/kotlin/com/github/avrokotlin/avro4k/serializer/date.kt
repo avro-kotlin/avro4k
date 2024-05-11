@@ -280,17 +280,18 @@ public object InstantSerializer : AvroTimeSerializer<Instant>(Instant::class, Pr
             }
         }) {
             when (it.type) {
-                Schema.Type.LONG -> when (it.logicalType) {
-                    is LogicalTypes.TimestampMillis, null -> {
-                        { Instant.ofEpochMilli(decoder.decodeLong()) }
-                    }
+                Schema.Type.LONG ->
+                    when (it.logicalType) {
+                        is LogicalTypes.TimestampMillis, null -> {
+                            { Instant.ofEpochMilli(decoder.decodeLong()) }
+                        }
 
-                    is LogicalTypes.TimestampMicros -> {
-                        { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
-                    }
+                        is LogicalTypes.TimestampMicros -> {
+                            { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
+                        }
 
-                    else -> null
-                }
+                        else -> null
+                    }
 
                 else -> null
             }
@@ -348,17 +349,18 @@ public object InstantToMicroSerializer : AvroTimeSerializer<Instant>(Instant::cl
             }
         }) {
             when (it.type) {
-                Schema.Type.LONG -> when (it.logicalType) {
-                    is LogicalTypes.TimestampMicros, null -> {
-                        { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
-                    }
+                Schema.Type.LONG ->
+                    when (it.logicalType) {
+                        is LogicalTypes.TimestampMicros, null -> {
+                            { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
+                        }
 
-                    is LogicalTypes.TimestampMillis -> {
-                        { Instant.ofEpochMilli(decoder.decodeLong()) }
-                    }
+                        is LogicalTypes.TimestampMillis -> {
+                            { Instant.ofEpochMilli(decoder.decodeLong()) }
+                        }
 
-                    else -> null
-                }
+                        else -> null
+                    }
 
                 else -> null
             }

@@ -35,8 +35,8 @@ internal class LogicalTypesEncodingTest : StringSpec({
             )
     }
 
-    "should encode and decode logical types" {
-        val logicalTypes =
+    "support non-nullable logical types" {
+        AvroAssertions.assertThat(
             LogicalTypes(
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
@@ -48,21 +48,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
-                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC)
             )
-
-        AvroAssertions.assertThat(logicalTypes)
+        )
             .isEncodedAs(
                 record(
                     Conversions.DecimalConversion().toBytes(
@@ -83,7 +71,29 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     "123e4567-e89b-12d3-a456-426614174000",
                     "http://example.com",
                     "1234567890",
-                    1577889296424,
+                    1577889296424
+                )
+            )
+    }
+
+    "support nullable logical types" {
+        AvroAssertions.assertThat(
+            NullableLogicalTypes(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            )
+        )
+            .isEncodedAs(
+                record(
                     null,
                     null,
                     null,
@@ -97,10 +107,48 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     null
                 )
             )
+        AvroAssertions.assertThat(
+            NullableLogicalTypes(
+                BigDecimal("123.45"),
+                BigDecimal("123.45"),
+                BigDecimal("123.45"),
+                LocalDate.ofEpochDay(18262),
+                LocalTime.ofSecondOfDay(45296),
+                Instant.ofEpochSecond(1577889296),
+                Instant.ofEpochSecond(1577889296, 424000),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                URL("http://example.com"),
+                BigInteger("1234567890"),
+                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC)
+            )
+        )
+            .isEncodedAs(
+                record(
+                    Conversions.DecimalConversion().toBytes(
+                        BigDecimal("123.45"),
+                        null,
+                        org.apache.avro.LogicalTypes.decimal(8, 2)
+                    ),
+                    Conversions.DecimalConversion().toFixed(
+                        BigDecimal("123.45"),
+                        SchemaBuilder.fixed("com.github.avrokotlin.avro4k.encoding.LogicalTypesEncodingTest.decimalFixedNullable").size(42),
+                        org.apache.avro.LogicalTypes.decimal(8, 2)
+                    ),
+                    "123.45",
+                    18262,
+                    45296000,
+                    1577889296000,
+                    1577889296000424,
+                    "123e4567-e89b-12d3-a456-426614174000",
+                    "http://example.com",
+                    "1234567890",
+                    1577889296424
+                )
+            )
     }
 }) {
     @Serializable
-    data class LogicalTypes(
+    private data class LogicalTypes(
         @Contextual val decimalBytes: BigDecimal,
         @Contextual @AvroFixed(42) val decimalFixed: BigDecimal,
         @Serializable(BigDecimalAsStringSerializer::class) val decimalString: BigDecimal,
@@ -112,6 +160,10 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val url: URL,
         @Contextual val bigInteger: BigInteger,
         @Contextual val dateTime: LocalDateTime,
+    )
+
+    @Serializable
+    private data class NullableLogicalTypes(
         @Contextual val decimalBytesNullable: BigDecimal?,
         @Contextual @AvroFixed(42) val decimalFixedNullable: BigDecimal?,
         @Serializable(BigDecimalAsStringSerializer::class) val decimalStringNullable: BigDecimal?,

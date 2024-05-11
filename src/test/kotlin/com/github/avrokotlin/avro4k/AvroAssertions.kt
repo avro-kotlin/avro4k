@@ -8,7 +8,9 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import org.apache.avro.Conversions
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.io.DecoderFactory
@@ -97,7 +99,14 @@ internal class AvroEncodingAssertions<T>(
         value: Any?,
         writerSchema: Schema,
     ): ByteArray {
-        val writer = GenericDatumWriter<Any>(writerSchema)
+        val writer =
+            GenericDatumWriter<Any>(
+                writerSchema,
+                GenericData().apply {
+                    addLogicalTypeConversion(Conversions.UUIDConversion())
+                    addLogicalTypeConversion(Conversions.DecimalConversion())
+                }
+            )
         val byteArrayOutputStream = ByteArrayOutputStream()
         val encoder = EncoderFactory.get().binaryEncoder(byteArrayOutputStream, null)
         writer.write(convertToAvroGenericValue(value, writerSchema), encoder)

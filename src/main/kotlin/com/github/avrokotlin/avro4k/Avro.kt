@@ -4,7 +4,6 @@ import com.github.avrokotlin.avro4k.decoder.AvroValueDecoder
 import com.github.avrokotlin.avro4k.encoder.AvroValueEncoder
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
-import com.github.avrokotlin.avro4k.internal.UnionResolver
 import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
 import com.github.avrokotlin.avro4k.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
@@ -49,7 +48,6 @@ public sealed class Avro(
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
 
     internal val recordResolver = RecordResolver(this)
-    internal val unionResolver = UnionResolver()
     internal val enumResolver = EnumResolver()
 
     public companion object Default : Avro(

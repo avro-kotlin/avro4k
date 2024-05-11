@@ -14,7 +14,6 @@ import kotlinx.serialization.descriptors.capturedKClass
 import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.descriptors.getPolymorphicDescriptors
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
@@ -73,13 +72,6 @@ internal fun Schema.overrideNamespace(namespaceOverride: String): Schema {
         .also { objectProps.forEach { prop -> it.addProp(prop.key, prop.value) } }
 }
 
-context(Encoder)
-internal fun Schema.ensureTypeOf(type: Schema.Type) {
-    if (this.type != type) {
-        throw SerializationException("Schema $this must be of type $type to be used with ${this@ensureTypeOf::class}")
-    }
-}
-
 @ExperimentalSerializationApi
 internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): Sequence<SerialDescriptor> {
     return when (this.kind) {
@@ -128,3 +120,22 @@ internal val AvroProp.jsonNode: JsonNode
         }
         return TextNode.valueOf(value)
     }
+
+internal fun ByteArray.zeroPadded(
+    schema: Schema,
+    endPadded: Boolean,
+): ByteArray {
+    if (size > schema.fixedSize) {
+        throw SerializationException("Actual byte array size $size is greater than schema fixed size $schema")
+    }
+    val padSize = schema.fixedSize - size
+    return if (padSize > 0) {
+        if (endPadded) {
+            this + ByteArray(padSize)
+        } else {
+            ByteArray(padSize) + this
+        }
+    } else {
+        this
+    }
+}

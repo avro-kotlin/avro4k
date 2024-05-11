@@ -37,10 +37,10 @@ public abstract class AvroSerializer<T> : KSerializer<T> {
     )
 
     final override fun deserialize(decoder: Decoder): T {
-        if (decoder !is AvroDecoder) {
-            return deserializeGeneric(decoder)
+        if (decoder is AvroDecoder) {
+            return deserializeAvro(decoder)
         }
-        return deserializeAvro(decoder)
+        return deserializeGeneric(decoder)
     }
 
     public open fun deserializeGeneric(decoder: Decoder): T {

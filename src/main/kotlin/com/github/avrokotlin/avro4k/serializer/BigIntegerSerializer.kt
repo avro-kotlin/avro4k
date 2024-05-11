@@ -1,8 +1,10 @@
 package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.decoder.AvroDecoder
+import com.github.avrokotlin.avro4k.decoder.decodeResolvingUnion
 import com.github.avrokotlin.avro4k.encoder.AvroEncoder
 import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
+import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -33,11 +35,21 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
             }
         }) { schema ->
             when (schema.type) {
-                Schema.Type.STRING -> encoder.encodeString(value.toString())
-                Schema.Type.INT -> encoder.encodeInt(value.intValueExact())
-                Schema.Type.LONG -> encoder.encodeLong(value.longValueExact())
-                Schema.Type.FLOAT -> encoder.encodeFloat(value.toFloat())
-                Schema.Type.DOUBLE -> encoder.encodeDouble(value.toDouble())
+                Schema.Type.STRING -> {
+                    { encoder.encodeString(value.toString()) }
+                }
+                Schema.Type.INT -> {
+                    { encoder.encodeInt(value.intValueExact()) }
+                }
+                Schema.Type.LONG -> {
+                    { encoder.encodeLong(value.longValueExact()) }
+                }
+                Schema.Type.FLOAT -> {
+                    { encoder.encodeFloat(value.toFloat()) }
+                }
+                Schema.Type.DOUBLE -> {
+                    { encoder.encodeDouble(value.toDouble()) }
+                }
                 else -> null
             }
         }
@@ -50,15 +62,40 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
         encoder.encodeString(value.toString())
     }
 
-    override fun deserializeAvro(decoder: AvroDecoder): BigInteger =
-        when (decoder.currentWriterSchema.type) {
-            Schema.Type.STRING -> BigInteger(decoder.decodeString())
-            Schema.Type.INT -> BigInteger.valueOf(decoder.decodeInt().toLong())
-            Schema.Type.LONG -> BigInteger.valueOf(decoder.decodeLong())
-            Schema.Type.FLOAT -> BigInteger.valueOf(decoder.decodeFloat().toLong())
-            Schema.Type.DOUBLE -> BigInteger.valueOf(decoder.decodeDouble().toLong())
-            else -> throw UnsupportedOperationException("Unsupported schema type for BigInteger: ${decoder.currentWriterSchema}")
+    override fun deserializeAvro(decoder: AvroDecoder): BigInteger {
+        return decoder.decodeResolvingUnion({
+            with(decoder) {
+                BadDecodedValueError(
+                    decoder.decodeValue(),
+                    decoder.currentWriterSchema,
+                    Schema.Type.STRING,
+                    Schema.Type.INT,
+                    Schema.Type.LONG,
+                    Schema.Type.FLOAT,
+                    Schema.Type.DOUBLE
+                )
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.STRING -> {
+                    { decoder.decodeString().toBigInteger() }
+                }
+                Schema.Type.INT -> {
+                    { decoder.decodeInt().toBigInteger() }
+                }
+                Schema.Type.LONG -> {
+                    { decoder.decodeLong().toBigInteger() }
+                }
+                Schema.Type.FLOAT -> {
+                    { decoder.decodeFloat().toBigDecimal().toBigIntegerExact() }
+                }
+                Schema.Type.DOUBLE -> {
+                    { decoder.decodeDouble().toBigDecimal().toBigIntegerExact() }
+                }
+                else -> null
+            }
         }
+    }
 
     override fun deserializeGeneric(decoder: Decoder): BigInteger {
         return decoder.decodeString().toBigInteger()

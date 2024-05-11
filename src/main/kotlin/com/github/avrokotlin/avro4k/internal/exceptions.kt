@@ -63,6 +63,23 @@ internal fun BadDecodedValueError(
     }
 }
 
+context(Decoder)
+internal fun BadDecodedValueError(
+    value: Any?,
+    writerSchema: Schema,
+    firstExpectedType: Schema.Type,
+    vararg expectedTypes: Schema.Type,
+): SerializationException {
+    val allExpectedTypes = listOf(firstExpectedType) + expectedTypes
+    return if (value == null) {
+        SerializationException("Decoded null value, expected one of $allExpectedTypes, actual writer schema $writerSchema")
+    } else {
+        SerializationException(
+            "Decoded value '$value' of type ${value::class.qualifiedName}, expected one of $allExpectedTypes, actual writer schema $writerSchema"
+        )
+    }
+}
+
 context(Encoder)
 internal fun BadEncodedValueError(
     value: Any?,

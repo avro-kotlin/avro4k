@@ -27,3 +27,39 @@ public interface AvroDecoder : Decoder {
     @ExperimentalSerializationApi
     public fun decodeValue(): Any
 }
+
+@ExperimentalSerializationApi
+public inline fun <T : Any> AvroDecoder.decodeResolvingUnion(
+    error: () -> Throwable,
+    resolver: (Schema) -> (() -> T)?,
+): T {
+    val schema = currentWriterSchema
+    return decodeResolvingUnion(schema, error, resolver)
+}
+
+@PublishedApi
+internal inline fun <T : Any> AvroDecoder.decodeResolvingUnion(
+    schema: Schema,
+    error: () -> Throwable,
+    resolver: (Schema) -> (() -> T)?,
+): T {
+    return if (schema.type == Schema.Type.UNION) {
+        resolveUnion(schema, resolver)
+    } else {
+        resolver(schema)?.invoke()
+    } ?: throw error()
+}
+
+@PublishedApi
+internal inline fun <T> AvroDecoder.resolveUnion(
+    schema: Schema,
+    resolver: (Schema) -> (() -> T)?,
+): T? {
+    for (index in schema.types.indices) {
+        val subSchema = schema.types[index]
+        resolver(subSchema)?.let {
+            return it.invoke()
+        }
+    }
+    return null
+}

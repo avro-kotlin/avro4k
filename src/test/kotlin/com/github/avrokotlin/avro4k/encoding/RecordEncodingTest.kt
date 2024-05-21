@@ -136,9 +136,44 @@ internal class RecordEncodingTest : StringSpec({
         AvroAssertions.assertThat(ObjectClass)
             .isEncodedAs(record())
     }
+    "support records with different field positions" {
+        val input =
+            Foo(
+                "string value",
+                2.2,
+                true,
+                S(setOf(1, 2, 3)),
+                ValueClass(ByteArray(3) { it.toByte() })
+            )
+
+        val differentWriterSchema =
+            SchemaBuilder.record("Foo").fields()
+                .name("b").type().doubleType().noDefault()
+                .name("a").type().stringType().noDefault()
+                .name("s").type(
+                    SchemaBuilder.record("S").fields()
+                        .name("t").type().array().items().intType().noDefault()
+                        .endRecord()
+                ).noDefault()
+                .name("c").type().booleanType().noDefault()
+                .name("vc").type().bytesType().noDefault()
+                .endRecord()
+
+        AvroAssertions.assertThat(input)
+            .isEncodedAs(
+                record(
+                    2.2,
+                    "string value",
+                    record(setOf(1, 2, 3)),
+                    true,
+                    ByteArray(3) { it.toByte() }
+                ),
+                writerSchema = differentWriterSchema
+            )
+    }
 }) {
     @Serializable
-    object ObjectClass {
+    private object ObjectClass {
         val field1 = "ignored"
     }
 

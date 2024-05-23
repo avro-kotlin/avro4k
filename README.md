@@ -137,6 +137,8 @@ fun main() {
 - **Avro4k** is highly based on apache avro library, that implies all the schema validation is done by it
 - All members annotated with `@ExperimentalSerializationApi` are **subject to changes** in future releases without any notice as they are experimental, so please
   check the release notes to check the needed migration
+- **Avro4k** also supports encoding and decoding generic data, mainly because of confluent schema registry compatibility as their serializers only handle generic data. When avro4k
+  will support their schema registry, the generic encoding will be removed to keep this library as simple as possible.
 
 # Setup
 
@@ -759,9 +761,11 @@ data class NestedRecord(val field: String)
 
 ## Set a custom logical type
 
-To create a custom logical type, you need to create a serializer that will handle the serialization and deserialization of the value, and provide a descriptor indicating the wanted logical type.
+To create a custom logical type, you need to create a serializer that will handle the serialization and deserialization of the value, and provide a descriptor indicating the wanted
+logical type.
 
-After following the [support additional non-serializable types](#support-additional-non-serializable-types) section to get detailed explanation about writing a serializer and registering it, you can easily provide the logical type through `SerialDescriptor.asAvroLogicalType` extension function.
+After following the [support additional non-serializable types](#support-additional-non-serializable-types) section to get detailed explanation about writing a serializer and
+registering it, you can easily provide the logical type through `SerialDescriptor.asAvroLogicalType` extension function.
 
 The following will provide a custom logical type `amount` as a `STRING` avro type:
 

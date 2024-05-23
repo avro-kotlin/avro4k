@@ -16,6 +16,7 @@ import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.descriptors.getPolymorphicDescriptors
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
+import org.apache.avro.LogicalType
 import org.apache.avro.Schema
 
 internal inline fun <reified T : Annotation> SerialDescriptor.findAnnotation() = annotations.firstNotNullOfOrNull { it as? T }
@@ -137,5 +138,27 @@ internal fun ByteArray.zeroPadded(
         }
     } else {
         this
+    }
+}
+
+internal interface AnnotatedLocation {
+    val descriptor: SerialDescriptor
+    val elementIndex: Int?
+}
+
+internal fun SerialDescriptor.asAvroLogicalType(logicalTypeSupplier: (inlinedStack: List<AnnotatedLocation>) -> LogicalType): SerialDescriptor {
+    return SerialDescriptorWithAvroLogicalTypeWrapper(this, logicalTypeSupplier)
+}
+
+internal interface AvroLogicalTypeSupplier {
+    fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
+}
+
+private class SerialDescriptorWithAvroLogicalTypeWrapper(
+    descriptor: SerialDescriptor,
+    private val logicalTypeSupplier: (inlinedStack: List<AnnotatedLocation>) -> LogicalType,
+) : SerialDescriptor by descriptor, AvroLogicalTypeSupplier {
+    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
+        return logicalTypeSupplier(inlinedStack)
     }
 }

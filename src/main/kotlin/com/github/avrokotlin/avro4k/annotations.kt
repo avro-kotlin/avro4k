@@ -2,13 +2,14 @@
 
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.asAvroLogicalType
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.LogicalType
 import org.intellij.lang.annotations.Language
-import kotlin.reflect.KClass
 
 /**
  * When annotated on a property, deeply overrides the namespace for all the nested named types (records, enums and fixed).
@@ -16,6 +17,7 @@ import kotlin.reflect.KClass
  * Works with standard classes and inline classes.
  */
 @SerialInfo
+@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
 public annotation class AvroNamespaceOverride(
     val value: String,
@@ -40,6 +42,7 @@ public annotation class AvroProp(
  * Can be used with [AvroFixed] to serialize value as a fixed type.
  */
 @SerialInfo
+@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
 public annotation class AvroDecimal(
     val scale: Int = 2,
@@ -94,23 +97,24 @@ public annotation class AvroDefault(
  * It must be annotated on an enum value. Otherwise, it will be ignored.
  */
 @SerialInfo
+@ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
 public annotation class AvroEnumDefault
 
 /**
- * Will be removed when we will be able to unwrap a nullable descriptor.
+ * Adds a logical type to the given serializer, where the logical type name is the descriptor's name.
+ *
+ * To use it:
+ * ```kotlin
+ * object YourCustomLogicalTypeSerializer : KSerializer<YourType> {
+ *   override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("YourType", PrimitiveKind.STRING)
+ *                                                   .asAvroLogicalType()
+ * }
+ * ```
+ *
+ * For more complex needs, please file an issue [here](https://github.com/avro-kotlin/avro4k/issues).
  */
-@SerialInfo
-@Target(AnnotationTarget.PROPERTY)
-internal annotation class AvroLogicalType(val value: KClass<out AvroLogicalTypeSupplier>)
-
 @ExperimentalSerializationApi
-public interface AvroLogicalTypeSupplier {
-    public fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
-}
-
-@ExperimentalSerializationApi
-public interface AnnotatedLocation {
-    public val descriptor: SerialDescriptor
-    public val elementIndex: Int?
+public fun SerialDescriptor.asAvroLogicalType(): SerialDescriptor {
+    return asAvroLogicalType { LogicalType(nonNullSerialName) }
 }

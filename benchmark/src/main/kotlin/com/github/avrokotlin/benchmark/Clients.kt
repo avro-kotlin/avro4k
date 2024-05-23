@@ -1,12 +1,15 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.github.avrokotlin.benchmark
 
 import com.github.avrokotlin.avro4k.AvroDecimal
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class Clients(

@@ -14,10 +14,8 @@ import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
-import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.io.OutputStream
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -33,6 +31,10 @@ import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.reflect.ReflectDatumWriter
 import org.apache.avro.util.WeakIdentityHashMap
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
@@ -147,7 +149,10 @@ public fun Avro(
 }
 
 public class AvroBuilder internal constructor(avro: Avro) {
+    @ExperimentalSerializationApi
     public var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
+
+    @ExperimentalSerializationApi
     public var implicitNulls: Boolean = avro.configuration.implicitNulls
     public var serializersModule: SerializersModule = EmptySerializersModule()
 

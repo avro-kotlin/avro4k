@@ -1,29 +1,22 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.AnnotatedLocation
-import com.github.avrokotlin.avro4k.AvroLogicalType
-import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
-import kotlinx.serialization.InternalSerializationApi
+import com.github.avrokotlin.avro4k.asAvroLogicalType
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.apache.avro.LogicalType
-import org.apache.avro.LogicalTypes
 import java.util.UUID
 
-public object UUIDSerializer : KSerializer<UUID>, AvroLogicalTypeSupplier {
-    @OptIn(InternalSerializationApi::class)
+/**
+ * Serializes an [UUID] as a string logical type of `uuid`.
+ *
+ * Note: it does not check if the schema logical type name is `uuid` as it does not make any conversion.
+ */
+public object UUIDSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
-        buildSerialDescriptor("uuid", PrimitiveKind.STRING) {
-            annotations = listOf(AvroLogicalType(UUIDSerializer::class))
-        }
-
-    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
-        return LogicalTypes.uuid()
-    }
+        PrimitiveSerialDescriptor("uuid", PrimitiveKind.STRING).asAvroLogicalType()
 
     override fun serialize(
         encoder: Encoder,

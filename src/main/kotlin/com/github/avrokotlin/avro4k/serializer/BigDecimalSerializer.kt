@@ -1,22 +1,18 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.AnnotatedLocation
 import com.github.avrokotlin.avro4k.AvroDecimal
-import com.github.avrokotlin.avro4k.AvroLogicalType
-import com.github.avrokotlin.avro4k.AvroLogicalTypeSupplier
 import com.github.avrokotlin.avro4k.decoder.AvroDecoder
 import com.github.avrokotlin.avro4k.decoder.decodeResolvingUnion
 import com.github.avrokotlin.avro4k.encoder.AvroEncoder
 import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
 import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.internal.asAvroLogicalType
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
-import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Conversions
@@ -29,19 +25,14 @@ import java.nio.ByteBuffer
 private val converter = Conversions.DecimalConversion()
 private val defaultAnnotation = AvroDecimal()
 
-public object BigDecimalSerializer : AvroSerializer<BigDecimal>(), AvroLogicalTypeSupplier {
-    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
-        return inlinedStack.firstNotNullOfOrNull {
-            it.descriptor.findElementAnnotation<AvroDecimal>(it.elementIndex ?: return@firstNotNullOfOrNull null)?.logicalType
-        } ?: defaultAnnotation.logicalType
-    }
-
-    @OptIn(InternalSerializationApi::class)
+public object BigDecimalSerializer : AvroSerializer<BigDecimal>() {
     override val descriptor: SerialDescriptor =
-        buildSerialDescriptor(BigDecimal::class.qualifiedName!!, StructureKind.LIST) {
-            element("item", buildSerialDescriptor("item", PrimitiveKind.BYTE))
-            this.annotations = listOf(AvroLogicalType(BigDecimalSerializer::class))
-        }
+        SerialDescriptor(BigDecimal::class.qualifiedName!!, ByteArraySerializer().descriptor)
+            .asAvroLogicalType { inlinedStack ->
+                inlinedStack.firstNotNullOfOrNull {
+                    it.descriptor.findElementAnnotation<AvroDecimal>(it.elementIndex ?: return@firstNotNullOfOrNull null)?.logicalType
+                } ?: defaultAnnotation.logicalType
+            }
 
     override fun serializeAvro(
         encoder: AvroEncoder,

@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 buildscript {
     repositories {
         mavenCentral()
@@ -37,7 +34,6 @@ dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(kotlin("reflect"))
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.json)
@@ -45,24 +41,15 @@ dependencies {
 }
 
 kotlin {
-    explicitApi = ExplicitApiMode.Strict
-}
+    explicitApi()
 
-apiValidation {
-    nonPublicMarkers.add("kotlinx.serialization.ExperimentalSerializationApi")
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.apiVersion = "1.6"
-    kotlinOptions.languageVersion = "1.6"
-    kotlinOptions.freeCompilerArgs +=
-        listOf(
-            "-Xexplicit-api=strict",
-            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
-            "-opt-in=kotlin.RequiresOptIn",
-            "-Xcontext-receivers"
-        )
+    compilerOptions {
+        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        freeCompilerArgs = listOf("-Xcontext-receivers")
+    }
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

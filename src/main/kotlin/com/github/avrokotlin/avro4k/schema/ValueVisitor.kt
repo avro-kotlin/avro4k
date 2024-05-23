@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.AvroLogicalType
+import com.github.avrokotlin.avro4k.internal.AvroLogicalTypeSupplier
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
@@ -11,11 +11,11 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.nonNullOriginal
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import kotlin.reflect.KClass
 
 internal class ValueVisitor internal constructor(
     private val context: VisitorContext,
@@ -112,8 +112,8 @@ internal class ValueVisitor internal constructor(
         }
         val annotations = context.inlinedAnnotations.appendAnnotations(ValueAnnotations(descriptor))
 
-        if (annotations.logicalType != null) {
-            logicalType = annotations.logicalType.getLogicalType(annotations)
+        (descriptor.nonNullOriginal as? AvroLogicalTypeSupplier)?.let {
+            logicalType = it.getLogicalType(annotations.stack)
         }
         when {
             annotations.fixed != null -> visitFixed(annotations.fixed)
@@ -121,14 +121,6 @@ internal class ValueVisitor internal constructor(
             else -> super.visitValue(descriptor)
         }
     }
-
-    private fun AnnotatedElementOrType<AvroLogicalType>.getLogicalType(valueAnnotations: ValueAnnotations): LogicalType {
-        return this.annotation.value.newObjectInstance().getLogicalType(valueAnnotations.stack)
-    }
-}
-
-private fun <T : Any> KClass<T>.newObjectInstance(): T {
-    return this.objectInstance ?: throw AvroSchemaGenerationException("${this.qualifiedName} must be an object")
 }
 
 private fun Schema.toNullableSchema(): Schema {

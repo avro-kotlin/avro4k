@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        google()
-        gradlePluginPortal()
-    }
-}
-
 plugins {
     java
     id("java-library")

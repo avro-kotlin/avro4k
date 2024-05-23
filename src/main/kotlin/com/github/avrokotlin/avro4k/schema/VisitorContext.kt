@@ -1,14 +1,13 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.AnnotatedLocation
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.AvroLogicalType
 import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.internal.AnnotatedLocation
 import com.github.avrokotlin.avro4k.internal.findAnnotation
 import com.github.avrokotlin.avro4k.internal.findAnnotations
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
@@ -71,18 +70,15 @@ internal data class FieldAnnotations(
 internal data class ValueAnnotations(
     val stack: List<AnnotatedLocation>,
     val fixed: AnnotatedElementOrType<AvroFixed>?,
-    val logicalType: AnnotatedElementOrType<AvroLogicalType>?,
 ) {
     constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
         listOf(SimpleAnnotatedLocation(descriptor, elementIndex)),
-        AnnotatedElementOrType<AvroFixed>(descriptor, elementIndex),
-        AnnotatedElementOrType<AvroLogicalType>(descriptor, elementIndex)
+        AnnotatedElementOrType<AvroFixed>(descriptor, elementIndex)
     )
 
     constructor(descriptor: SerialDescriptor) : this(
         listOf(SimpleAnnotatedLocation(descriptor)),
-        AnnotatedElementOrType<AvroFixed>(descriptor),
-        AnnotatedElementOrType<AvroLogicalType>(descriptor)
+        AnnotatedElementOrType<AvroFixed>(descriptor)
     )
 }
 
@@ -132,6 +128,5 @@ internal data class TypeAnnotations(
 internal fun ValueAnnotations?.appendAnnotations(other: ValueAnnotations) =
     ValueAnnotations(
         fixed = this?.fixed ?: other.fixed,
-        logicalType = this?.logicalType ?: other.logicalType,
         stack = (this?.stack ?: emptyList()) + other.stack
     )

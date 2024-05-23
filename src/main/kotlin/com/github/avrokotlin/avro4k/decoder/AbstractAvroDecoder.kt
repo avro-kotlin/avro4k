@@ -9,7 +9,6 @@ import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.toLongExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -17,10 +16,9 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.internal.TaggedDecoder
 import kotlinx.serialization.modules.SerializersModule
-import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
 import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericFixed
@@ -28,18 +26,12 @@ import org.apache.avro.generic.IndexedRecord
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 
-@OptIn(InternalSerializationApi::class)
-internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecoder {
+internal abstract class AbstractAvroDecoder : AbstractDecoder(), AvroDecoder {
     internal abstract val avro: Avro
 
-    protected abstract val Tag.writerSchema: Schema
+    abstract override fun decodeNotNullMark(): Boolean
 
-    abstract override fun decodeTaggedNotNullMark(tag: Tag): Boolean
-
-    abstract override fun decodeTaggedValue(tag: Tag): Any
-
-    override val currentWriterSchema: Schema
-        get() = currentTag.writerSchema
+    abstract override fun decodeValue(): Any
 
     override val serializersModule: SerializersModule
         get() = avro.serializersModule
@@ -50,7 +42,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
             @Suppress("UNCHECKED_CAST")
             return decodeBytes() as T
         }
-        return super<TaggedDecoder>.decodeSerializableValue(deserializer)
+        return super<AbstractDecoder>.decodeSerializableValue(deserializer)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -68,7 +60,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
                     is Collection<*> ->
                         ArrayDecoder(
                             collection = value,
-                            writerSchema = currentTag.writerSchema,
+                            writerSchema = currentWriterSchema,
                             avro = avro
                         )
 
@@ -84,7 +76,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
                     is Map<*, *> ->
                         MapDecoder(
                             value as Map<CharSequence, Any?>,
-                            currentTag.writerSchema,
+                            currentWriterSchema,
                             avro
                         )
 
@@ -107,10 +99,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeValue() = decodeTaggedValue(currentTag)
-
-    override fun decodeTaggedBoolean(tag: Tag): Boolean {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeBoolean(): Boolean {
+        return when (val value = decodeValue()) {
             is Boolean -> value
             1 -> true
             0 -> false
@@ -119,8 +109,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedByte(tag: Tag): Byte {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeByte(): Byte {
+        return when (val value = decodeValue()) {
             is Int -> value.toByteExact()
             is Long -> value.toByteExact()
             is BigDecimal -> value.toByteExact()
@@ -129,8 +119,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedShort(tag: Tag): Short {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeShort(): Short {
+        return when (val value = decodeValue()) {
             is Int -> value.toShortExact()
             is Long -> value.toShortExact()
             is BigDecimal -> value.toShortExact()
@@ -139,8 +129,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedInt(tag: Tag): Int {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeInt(): Int {
+        return when (val value = decodeValue()) {
             is Int -> value
             is Long -> value.toIntExact()
             is BigDecimal -> value.toIntExact()
@@ -149,8 +139,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedLong(tag: Tag): Long {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeLong(): Long {
+        return when (val value = decodeValue()) {
             is Long -> value
             is Int -> value.toLong()
             is BigDecimal -> value.toLongExact()
@@ -159,8 +149,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedFloat(tag: Tag): Float {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeFloat(): Float {
+        return when (val value = decodeValue()) {
             is Float -> value
             is Double -> value.toFloatExact()
             is BigDecimal -> value.toFloatExact()
@@ -169,8 +159,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedDouble(tag: Tag): Double {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeDouble(): Double {
+        return when (val value = decodeValue()) {
             is Double -> value
             is Float -> value.toDouble()
             is BigDecimal -> value.toDoubleExact()
@@ -179,8 +169,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedChar(tag: Tag): Char {
-        val value = decodeTaggedValue(tag)
+    override fun decodeChar(): Char {
+        val value = decodeValue()
         return when {
             value is Int -> value.toChar()
             value is CharSequence && value.length == 1 -> value[0]
@@ -188,8 +178,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedString(tag: Tag): String {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeString(): String {
+        return when (val value = decodeValue()) {
             is CharSequence -> value.toString()
             is ByteArray -> value.decodeToString()
             is GenericFixed -> value.bytes().decodeToString()
@@ -197,11 +187,8 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
         }
     }
 
-    override fun decodeTaggedEnum(
-        tag: Tag,
-        enumDescriptor: SerialDescriptor,
-    ): Int {
-        return when (val value = decodeTaggedValue(tag)) {
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        return when (val value = decodeValue()) {
             is GenericEnumSymbol<*>, is CharSequence -> {
                 enumDescriptor.getElementIndex(value.toString()).takeIf { it >= 0 }
                     ?: avro.enumResolver.getDefaultValueIndex(enumDescriptor)
@@ -213,7 +200,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
     }
 
     override fun decodeBytes(): ByteArray {
-        return when (val value = decodeTaggedValue(currentTag)) {
+        return when (val value = decodeValue()) {
             is ByteArray -> value
             is ByteBuffer -> value.array()
             is GenericFixed -> value.bytes()
@@ -223,7 +210,7 @@ internal abstract class AvroTaggedDecoder<Tag> : TaggedDecoder<Tag>(), AvroDecod
     }
 
     override fun decodeFixed(): GenericFixed {
-        return when (val value = decodeTaggedValue(currentTag)) {
+        return when (val value = decodeValue()) {
             is GenericFixed -> value
             else -> throw BadDecodedValueError<GenericFixed>(value, GenericFixed::class)
         }

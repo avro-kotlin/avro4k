@@ -81,7 +81,6 @@ internal class RecordResolver(
                 }
             } else {
                 ElementDescriptor(
-                    elementIndex = elementIndex,
                     writerFieldIndex = writerField?.pos(),
                     writerFieldSchema = writerFieldSchema,
                     readerDefaultValue = readerDefaultAnnotation?.parseValue(writerFieldSchema),
@@ -106,7 +105,6 @@ internal class RecordResolver(
 }
 
 internal data class ElementDescriptor(
-    val elementIndex: Int,
     val writerFieldIndex: Int?,
     val writerFieldSchema: Schema,
     val readerDefaultValue: Any?,

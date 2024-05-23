@@ -5,8 +5,9 @@ import com.github.avrokotlin.avro4k.decodeFromByteArray
 import com.github.avrokotlin.avro4k.encodeToByteArray
 import kotlinx.benchmark.Benchmark
 
-internal class Avro4kClientsStaticReadBenchmark {
-    fun main() {
+internal object Avro4kClientsStaticReadBenchmark {
+    @JvmStatic
+    fun main(vararg args: String) {
         Avro4kClientsBenchmark().apply {
             initTestData()
             for (i in 0 until 1000000) {
@@ -17,8 +18,9 @@ internal class Avro4kClientsStaticReadBenchmark {
     }
 }
 
-internal class Avro4kClientsStaticWriteBenchmark {
-    fun main() {
+internal object Avro4kClientsStaticWriteBenchmark {
+    @JvmStatic
+    fun main(vararg args: String) {
         Avro4kClientsBenchmark().apply {
             initTestData()
             for (i in 0 until 1000000) {

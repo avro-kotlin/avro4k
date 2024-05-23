@@ -1,12 +1,15 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.github.avrokotlin.benchmark
 
 import com.github.avrokotlin.avro4k.AvroDecimal
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class Clients(
@@ -37,7 +40,7 @@ internal data class Client(
     var latitude : Double = 0.0,
     var longitude: Double = 0.0,
     var tags: List<String> = emptyList(),
-    var partners: List<Partner> = emptyList(),
+    var partners: List<Partner?> = emptyList(),
 )
 
 @Serializable
@@ -46,10 +49,28 @@ internal enum class EyeColor {
     BLUE,
     GREEN;
 }
+
 @Serializable
-internal class Partner(
+sealed interface Partner
+
+@Serializable
+internal class GoodPartner(
     val id: Long = 0,
     val name: String? = null,
     @Contextual
     val since: Instant? = null
-)
+) : Partner
+
+@Serializable
+internal class BadPartner(
+    val id: Long = 0,
+    val name: String? = null,
+    @Contextual
+    val since: Instant? = null
+) : Partner
+
+@Serializable
+internal enum class Stranger : Partner {
+    KNOWN_STRANGER,
+    UNKNOWN_STRANGER
+}

@@ -23,15 +23,46 @@ public interface AvroEncoder : Encoder {
     public fun encodeFixed(value: GenericFixed)
 }
 
+@PublishedApi
+internal interface UnionEncoder : AvroEncoder {
+    fun selectUnionIndex(index: Int)
+
+    override var currentWriterSchema: Schema
+}
+
 @ExperimentalSerializationApi
 public inline fun <T : Any> AvroEncoder.encodeResolvingUnion(
     error: () -> Throwable,
-    resolver: (Schema) -> T?,
+    resolver: (Schema) -> (() -> T)?,
 ): T {
     val schema = currentWriterSchema
+    return encodeResolvingUnion(schema, error, resolver)
+}
+
+@PublishedApi
+internal inline fun <T : Any> AvroEncoder.encodeResolvingUnion(
+    schema: Schema,
+    error: () -> Throwable,
+    resolver: (Schema) -> (() -> T)?,
+): T {
     return if (schema.type == Schema.Type.UNION) {
-        schema.types.firstNotNullOfOrNull(resolver)
+        resolveUnion(schema, resolver)
     } else {
-        resolver(schema)
+        resolver(schema)?.invoke()
     } ?: throw error()
+}
+
+@PublishedApi
+internal inline fun <T> AvroEncoder.resolveUnion(
+    schema: Schema,
+    resolver: (Schema) -> (() -> T)?,
+): T? {
+    for (index in schema.types.indices) {
+        val subSchema = schema.types[index]
+        resolver(subSchema)?.let {
+            (this as UnionEncoder).selectUnionIndex(index)
+            return it.invoke()
+        }
+    }
+    return null
 }

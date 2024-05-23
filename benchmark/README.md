@@ -9,7 +9,7 @@ This project contains a benchmark that compares the serialization / deserializat
 ## Results
 
 <details>
-<summary>Macbook air M2</summary>
+<summary>Macbook air M2 - without direct encoding</summary>
 
 ```
 Benchmark                           Mode  Cnt       Score   Error  Units
@@ -20,6 +20,21 @@ JacksonAvroClientsBenchmark.write  thrpt    2  649982.820          ops/s
 ```
 
 For the moment, Jackson Avro is faster than Avro4k because Avro4k is still not doing direct encoding so there is an intermediate generic data step.
+
+</details>
+
+<br>
+
+<details>
+<summary>Macbook air M2 - with direct encoding but without direct decoding</summary>
+
+```
+Benchmark                           Mode  Cnt       Score   Error  Units
+Avro4kClientsBenchmark.read        thrpt    2  471489.689          ops/s
+Avro4kClientsBenchmark.write       thrpt    2  686791.337          ops/s
+JacksonAvroClientsBenchmark.read   thrpt    2  513425.052          ops/s
+JacksonAvroClientsBenchmark.write  thrpt    2  627412.940          ops/s
+```
 
 </details>
 

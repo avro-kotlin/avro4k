@@ -5,19 +5,33 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("com.gradle.enterprise") version ("3.16.2")
+}
+
 rootProject.name = "avro4k-core"
 
 include("benchmark")
 
+gradleEnterprise {
+    if (System.getenv("CI") != null) {
+        buildScan {
+            publishAlways()
+            termsOfServiceUrl = "https://gradle.com/terms-of-service"
+            termsOfServiceAgree = "yes"
+        }
+    }
+}
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("kotlin", "1.9.23")
+            version("kotlin", "2.0.0")
             version("jvm", "21")
 
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
 
-            val kotlinxSerialization = "1.6.3"
+            val kotlinxSerialization = "1.7.0-RC"
             library("kotlinx-serialization-core", "org.jetbrains.kotlinx", "kotlinx-serialization-core").version(kotlinxSerialization)
             library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version(kotlinxSerialization)
 

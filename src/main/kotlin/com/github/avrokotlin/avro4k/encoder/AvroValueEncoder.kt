@@ -1,34 +1,28 @@
 package com.github.avrokotlin.avro4k.encoder
 
 import com.github.avrokotlin.avro4k.Avro
-import kotlinx.serialization.descriptors.SerialDescriptor
+import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import org.apache.avro.Schema
 
 internal class AvroValueEncoder(
     override val avro: Avro,
-    schema: Schema,
+    override var currentWriterSchema: Schema,
     private val onEncoded: (Any?) -> Unit,
-) : AvroTaggedEncoder<Schema>() {
-    override val Schema.writerSchema: Schema
-        get() = this
-
-    init {
-        pushTag(schema)
-    }
-
-    override fun SerialDescriptor.getTag(index: Int): Schema {
-        throw UnsupportedOperationException("${this::class} does not support element encoding")
-    }
-
-    override fun encodeTaggedValue(
-        tag: Schema,
-        value: Any,
-    ) {
+) : AbstractAvroEncoder() {
+    override fun encodeValue(value: Any) {
         onEncoded(value)
     }
 
-    override fun encodeTaggedNull(tag: Schema) {
-        require(tag.writerSchema.isNullable)
-        onEncoded(null)
+    override fun encodeNull() {
+        encodeResolvingUnion(
+            { BadEncodedValueError(null, currentWriterSchema, Schema.Type.NULL) }
+        ) {
+            when (it.type) {
+                Schema.Type.NULL -> {
+                    { onEncoded(null) }
+                }
+                else -> null
+            }
+        }
     }
 }

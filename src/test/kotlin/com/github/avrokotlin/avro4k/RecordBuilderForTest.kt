@@ -26,13 +26,13 @@ internal fun convertToAvroGenericValue(
     value: Any?,
     schema: Schema,
 ): Any? {
-    val schema = schema.nonNull
+    val nonNullSchema = schema.nonNull
     return when (value) {
-        is RecordBuilderForTest -> value.createRecord(schema)
-        is Map<*, *> -> createMap(schema, value)
-        is Collection<*> -> createList(schema, value)
-        is ByteArray -> if (schema.type == Schema.Type.FIXED) GenericData.Fixed(schema, value) else ByteBuffer.wrap(value)
-        is String -> if (schema.type == Schema.Type.ENUM) GenericData.get().createEnum(value, schema) else value
+        is RecordBuilderForTest -> value.createRecord(nonNullSchema)
+        is Map<*, *> -> createMap(nonNullSchema, value)
+        is Collection<*> -> createList(nonNullSchema, value)
+        is ByteArray -> if (nonNullSchema.type == Schema.Type.FIXED) GenericData.Fixed(nonNullSchema, value) else ByteBuffer.wrap(value)
+        is String -> if (nonNullSchema.type == Schema.Type.ENUM) GenericData.get().createEnum(value, nonNullSchema) else value
         else -> value
     }
 }

@@ -1,6 +1,7 @@
 ![build-main](https://github.com/avro-kotlin/avro4k/workflows/build-main/badge.svg)
 [![Download](https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core)](https://search.maven.org/artifact/com.github.avro-kotlin.avro4k/avro4k-core)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.6-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlinx serialization](https://img.shields.io/badge/kotlinx--serialization-1.7.0--RC-blue?logo=kotlin)](https://github.com/Kotlin/kotlinx.serialization)
 [![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.1-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.1/specification/)
 
 # Introduction
@@ -24,7 +25,7 @@ Here are the main features:
 
 # Quick start
 
-## Basic
+## Basic encoding
 
 <details open>
 <summary>Example:</summary>
@@ -136,6 +137,8 @@ fun main() {
 - **Avro4k** is highly based on apache avro library, that implies all the schema validation is done by it
 - All members annotated with `@ExperimentalSerializationApi` are **subject to changes** in future releases without any notice as they are experimental, so please
   check the release notes to check the needed migration
+- **Avro4k** also supports encoding and decoding generic data, mainly because of confluent schema registry compatibility as their serializers only handle generic data. When avro4k
+  will support their schema registry, the generic encoding will be removed to keep this library as simple as possible.
 
 # Setup
 
@@ -227,6 +230,13 @@ Add the avro4k dependency:
 
 </details>
 
+## Versions matrix
+
+| Avro4k     | Kotlin   | Kotlin API/language | Kotlin serialization |
+|------------|----------|---------------------|----------------------|
+| `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7`             |
+| `< 2.0.0`  | `>= 1.6` | `>= 1.6`            | `>= 1.3`             |
+
 # How to generate schemas
 
 Writing schemas manually or using the Java based `SchemaBuilder` can be tedious.
@@ -317,31 +327,31 @@ yourAvroInstance.schema<Pizza>()
 
 ## Types matrix
 
-| Kotlin type                 | Avro reader type | Compatible avro writer type                | Avro logical type  | Note / Serializer class                                                                                                                                                            |
-|-----------------------------|------------------|--------------------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Boolean`                   | `boolean`        | `string`                                   |                    |                                                                                                                                                                                    |
-| `Byte`, `Short`, `Int`      | `int`            | `long`, `float`, `double`, `string`        |                    |                                                                                                                                                                                    |
-| `Long`                      | `long`           | `int`, `float`, `double`, `string`         |                    |                                                                                                                                                                                    |
-| `Float`                     | `float`          | `double`, `string`                         |                    |                                                                                                                                                                                    |
-| `Double`                    | `double`         | `float`, `string`                          |                    |                                                                                                                                                                                    |
-| `Char`                      | `int`            | `string`                                   |                    | The value serialized is the char code. When reading from a `string`, requires exactly 1 char                                                                                       |
-| `String`                    | `string`         | `bytes`, `fixed`                           |                    |                                                                                                                                                                                    |
-| `ByteArray`                 | `bytes`          | `string`, `fixed`                          |                    |                                                                                                                                                                                    |
-| `Map<*, *>`                 | `map`            |                                            |                    | The map key must be string-able. Mainly everything is string-able except null and composite types (collection, data classes)                                                       |
-| `out Collection<*>`         | `array`          |                                            |                    |                                                                                                                                                                                    |
-| `data class`                | `record`         |                                            |                    |                                                                                                                                                                                    |
-| `enum class`                | `enum`           |                                            |                    |                                                                                                                                                                                    |
-| Any field with `@AvroFixed` | `fixed`          | `bytes`, `string`                          |                    | You can only annotated fields that are compatible with `bytes`or `string`, otherwise it throws an error                                                                            |
-| `java.math.BigDecimal`      | `bytes`          | `int`, `long`, `float`, `double`, `string` | `decimal`          | By default, the scale is `2` and the precision `8`. To change it, annotate the field with `@AvroDecimal`                                                                           |
+| Kotlin type                 | Avro reader type | Compatible avro writer type                | Avro logical type  | Note / Serializer class                                                                                                                                                                         |
+|-----------------------------|------------------|--------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Boolean`                   | `boolean`        | `string`                                   |                    |                                                                                                                                                                                                 |
+| `Byte`, `Short`, `Int`      | `int`            | `long`, `float`, `double`, `string`        |                    |                                                                                                                                                                                                 |
+| `Long`                      | `long`           | `int`, `float`, `double`, `string`         |                    |                                                                                                                                                                                                 |
+| `Float`                     | `float`          | `double`, `string`                         |                    |                                                                                                                                                                                                 |
+| `Double`                    | `double`         | `float`, `string`                          |                    |                                                                                                                                                                                                 |
+| `Char`                      | `int`            | `string`                                   |                    | The value serialized is the char code. When reading from a `string`, requires exactly 1 char                                                                                                    |
+| `String`                    | `string`         | `bytes`, `fixed`                           |                    |                                                                                                                                                                                                 |
+| `ByteArray`                 | `bytes`          | `string`, `fixed`                          |                    |                                                                                                                                                                                                 |
+| `Map<*, *>`                 | `map`            |                                            |                    | The map key must be string-able. Mainly everything is string-able except null and composite types (collection, data classes)                                                                    |
+| `Collection<*>`             | `array`          |                                            |                    |                                                                                                                                                                                                 |
+| `data class`                | `record`         |                                            |                    |                                                                                                                                                                                                 |
+| `enum class`                | `enum`           |                                            |                    |                                                                                                                                                                                                 |
+| Any field with `@AvroFixed` | `fixed`          | `bytes`, `string`                          |                    | You can only annotated fields that are compatible with `bytes`or `string`, otherwise it throws an error                                                                                         |
+| `java.math.BigDecimal`      | `bytes`          | `int`, `long`, `float`, `double`, `string` | `decimal`          | By default, the scale is `2` and the precision `8`. To change it, annotate the field with `@AvroDecimal`                                                                                        |
 | `java.math.BigDecimal`      | `string`         |                                            |                    | To use it, [register the serializer](#support-additional-non-serializable-types) `com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer`. `@AvroDecimal` is ignored in that case |
-| `java.util.UUID`            | `string`         |                                            | `uuid`             | To use it, just annotate the field with `@Contextual`                                                                                                                              |
-| `java.net.URL`              | `string`         |                                            |                    | To use it, just annotate the field with `@Contextual`                                                                                                                              |
-| `java.math.BigInteger`      | `string`         | `int`, `long`, `float`, `double`           |                    | To use it, just annotate the field with `@Contextual`                                                                                                                              |
-| `java.time.LocalDate`       | `int`            | `long`, `string`                           | `date`             | To use it, just annotate the field with `@Contextual`                                                                                                                              |
-| `java.time.Instant`         | `long`           | `string`                                   | `timestamp-millis` | To use it, just annotate the field with `@Contextual`                                                                                                                              |
+| `java.util.UUID`            | `string`         |                                            | `uuid`             | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
+| `java.net.URL`              | `string`         |                                            |                    | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
+| `java.math.BigInteger`      | `string`         | `int`, `long`, `float`, `double`           |                    | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
+| `java.time.LocalDate`       | `int`            | `long`, `string`                           | `date`             | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
+| `java.time.Instant`         | `long`           | `string`                                   | `timestamp-millis` | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
 | `java.time.Instant`         | `long`           | `string`                                   | `timestamp-micros` | To use it, [register the serializer](#support-additional-non-serializable-types) `com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer`                                             |
-| `java.time.LocalDateTime`   | `long`           | `string`                                   | `timestamp-millis` | To use it, just annotate the field with `@Contextual`                                                                                                                              |
-| `java.time.LocalTime`       | `int`            | `long`, `string`                           | `time-millis`      | To use it, just annotate the field with `@Contextual`                                                                                                                              |
+| `java.time.LocalDateTime`   | `long`           | `string`                                   | `timestamp-millis` | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
+| `java.time.LocalTime`       | `int`            | `long`, `string`                           | `time-millis`      | To use it, just annotate the field with `@Contextual`                                                                                                                                           |
 
 > [!NOTE]
 > For more details, check the [built-in classes in kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/builtin-classes.md)
@@ -382,7 +392,8 @@ Also, your own types may not be serializable.
 To fix it, you need to create a custom **serializer** that will handle the serialization and deserialization of the value, and provide a descriptor.
 
 > [!NOTE]
-> This impacts the serialization and the deserialization. It can also impact the schema generation if the serializer is providing a custom logical type or a custom schema through the descriptor.
+> This impacts the serialization and the deserialization. It can also impact the schema generation if the serializer is providing a custom logical type or a custom schema through
+> the descriptor.
 
 ### Write your own serializer
 
@@ -750,14 +761,21 @@ data class NestedRecord(val field: String)
 
 ## Set a custom logical type
 
-To create a custom logical type, you need to create a serializer that will handle the serialization and deserialization of the value, and provide a descriptor that include
-the `@AvroLogicalType` annotation.
-Additionally, you need to [register your serializer](#support-additional-non-serializable-types).
+To create a custom logical type, you need to create a serializer that will handle the serialization and deserialization of the value, and provide a descriptor indicating the wanted
+logical type.
 
-> [!WARNING]
-> When [this issue](https://github.com/Kotlin/kotlinx.serialization/issues/2631) is released, this section will be updated as the implementation will change.
+After following the [support additional non-serializable types](#support-additional-non-serializable-types) section to get detailed explanation about writing a serializer and
+registering it, you can easily provide the logical type through `SerialDescriptor.asAvroLogicalType` extension function.
 
-TODO when kotlinx-serialization released the version to unwrap nullable descriptor
+The following will provide a custom logical type `amount` as a `STRING` avro type:
+
+```kotlin
+object AmountSerializer : AvroSerializer<Amount> {
+    override val descriptor: SerialDescriptor = PrimitiveSerializer("amount", PrimitiveKind.STRING).asAvroLogicalType()
+
+    // serializer and deserializer methods
+}
+```
 
 ## Skip a kotlin field
 

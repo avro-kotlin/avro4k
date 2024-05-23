@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.decoder
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.DecodedNullError
 import com.github.avrokotlin.avro4k.internal.ElementDescriptor
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import org.apache.avro.Schema
@@ -13,33 +12,34 @@ internal class RecordDecoder(
     private val record: IndexedRecord,
     private val descriptor: SerialDescriptor,
     override val avro: Avro,
-) : AvroTaggedDecoder<ElementDescriptor>() {
+) : AbstractAvroDecoder() {
     // from descriptor element index to schema field
     private val fields = avro.recordResolver.resolveFields(record.schema, descriptor)
-    private var currentIndex = 0
+    private lateinit var currentElement: ElementDescriptor
+    private var currentElementIndex = 0
 
-    override val ElementDescriptor.writerSchema: Schema
-        get() = writerFieldSchema
+    override val currentWriterSchema: Schema
+        get() = currentElement.writerFieldSchema
 
-    override fun decodeTaggedNotNullMark(tag: ElementDescriptor) = decodeTaggedNullableValue(tag) != null
+    override fun decodeNotNullMark() = decodeNullableValue() != null
 
-    override fun decodeTaggedValue(tag: ElementDescriptor): Any {
-        return decodeTaggedNullableValue(tag) ?: throw DecodedNullError(descriptor, tag.elementIndex)
+    override fun decodeValue(): Any {
+        return decodeNullableValue() ?: throw DecodedNullError(descriptor, currentElementIndex)
     }
 
-    private fun decodeTaggedNullableValue(tag: ElementDescriptor): Any? {
-        return tag.writerFieldIndex?.let { record.get(it) } ?: tag.readerDefaultValue
+    private fun decodeNullableValue(): Any? {
+        return currentElement.writerFieldIndex?.let { record.get(it) } ?: currentElement.readerDefaultValue
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        while (currentIndex < fields.size) {
-            val field = fields[currentIndex++]
+        while (currentElementIndex < fields.size) {
+            val field = fields[currentElementIndex]
             if (field != null) {
-                return field.elementIndex
+                currentElement = field
+                return currentElementIndex++
             }
+            currentElementIndex++
         }
         return CompositeDecoder.DECODE_DONE
     }
-
-    override fun SerialDescriptor.getTag(index: Int) = fields[index] ?: throw SerializationException("An optional field should not be decoded")
 }

@@ -1,13 +1,18 @@
 package com.github.avrokotlin.avro4k.encoding
 
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.encodeToByteArray
+import com.github.avrokotlin.avro4k.nullable
 import com.github.avrokotlin.avro4k.record
+import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 
 internal class RecordEncodingTest : StringSpec({
@@ -18,7 +23,7 @@ internal class RecordEncodingTest : StringSpec({
                 2.2,
                 true,
                 S(setOf(1, 2, 3)),
-                ValueClass(ByteArray(3) { it.toByte() })
+                vc = ValueClass(ByteArray(3) { it.toByte() })
             )
 
         AvroAssertions.assertThat<Foo>()
@@ -26,12 +31,13 @@ internal class RecordEncodingTest : StringSpec({
                 SchemaBuilder.record("Foo").fields()
                     .name("a").type().stringType().noDefault()
                     .name("b").type().doubleType().noDefault()
-                    .name("c").type().booleanType().noDefault()
+                    .name("c").type(Schema.create(Schema.Type.BOOLEAN).nullable).withDefault(null)
                     .name("s").type(
                         SchemaBuilder.record("S").fields()
                             .name("t").type().array().items().intType().noDefault()
                             .endRecord()
                     ).noDefault()
+                    .name("optionalField").type().intType().noDefault()
                     .name("vc").type().bytesType().noDefault()
                     .endRecord()
             )
@@ -42,6 +48,7 @@ internal class RecordEncodingTest : StringSpec({
                     2.2,
                     true,
                     record(setOf(1, 2, 3)),
+                    42,
                     ByteArray(3) { it.toByte() }
                 )
             )
@@ -143,19 +150,19 @@ internal class RecordEncodingTest : StringSpec({
                 2.2,
                 true,
                 S(setOf(1, 2, 3)),
-                ValueClass(ByteArray(3) { it.toByte() })
+                vc = ValueClass(ByteArray(3) { it.toByte() })
             )
 
         val differentWriterSchema =
             SchemaBuilder.record("Foo").fields()
                 .name("b").type().doubleType().noDefault()
                 .name("a").type().stringType().noDefault()
+                .name("c").type().nullable().booleanType().noDefault()
                 .name("s").type(
                     SchemaBuilder.record("S").fields()
                         .name("t").type().array().items().intType().noDefault()
                         .endRecord()
                 ).noDefault()
-                .name("c").type().booleanType().noDefault()
                 .name("vc").type().bytesType().noDefault()
                 .endRecord()
 
@@ -164,12 +171,49 @@ internal class RecordEncodingTest : StringSpec({
                 record(
                     2.2,
                     "string value",
-                    record(setOf(1, 2, 3)),
                     true,
+                    record(setOf(1, 2, 3)),
                     ByteArray(3) { it.toByte() }
                 ),
                 writerSchema = differentWriterSchema
             )
+    }
+    "support written records where some fields are missing from kotlin data class when decoding" {
+        @Serializable
+        @SerialName("Foo")
+        data class MissingFields(
+            val c: Boolean?,
+        )
+
+        val input =
+            Foo(
+                "string value",
+                2.2,
+                true,
+                S(setOf(1, 2, 3)),
+                vc = ValueClass(ByteArray(3) { it.toByte() })
+            )
+
+        AvroAssertions.assertThat(input)
+            .isDecodedAs(MissingFields(true))
+    }
+    "should fail when trying to write a data class but missing the last schema field" {
+        @Serializable
+        @SerialName("Base")
+        data class Base(
+            val c: Boolean?,
+            val a: String,
+        )
+
+        @Serializable
+        @SerialName("Base")
+        data class Incomplete(
+            val c: Boolean?,
+        )
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(Avro.schema<Base>(), Incomplete(true))
+        }
     }
 }) {
     @Serializable
@@ -182,7 +226,7 @@ internal class RecordEncodingTest : StringSpec({
 
     @Serializable
     @SerialName("Foo")
-    private data class Foo(val a: String, val b: Double, val c: Boolean, val s: S, val vc: ValueClass) {
+    private data class Foo(val a: String, val b: Double, val c: Boolean?, val s: S, val optionalField: Int = 42, val vc: ValueClass) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Foo) return false

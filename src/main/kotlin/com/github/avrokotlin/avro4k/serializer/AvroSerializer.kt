@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.AvroDecoder
-import com.github.avrokotlin.avro4k.encoder.AvroEncoder
+import com.github.avrokotlin.avro4k.AvroDecoder
+import com.github.avrokotlin.avro4k.AvroEncoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder

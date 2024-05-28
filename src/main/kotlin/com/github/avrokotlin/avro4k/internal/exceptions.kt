@@ -2,6 +2,7 @@
 
 package com.github.avrokotlin.avro4k.internal
 
+import com.github.avrokotlin.avro4k.AvroDecoder
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -63,21 +64,15 @@ internal fun BadDecodedValueError(
     }
 }
 
-context(Decoder)
-internal fun BadDecodedValueError(
-    value: Any?,
-    writerSchema: Schema,
+internal fun AvroDecoder.UnexpectedDecodeSchemaError(
+    actualType: String,
     firstExpectedType: Schema.Type,
     vararg expectedTypes: Schema.Type,
 ): SerializationException {
     val allExpectedTypes = listOf(firstExpectedType) + expectedTypes
-    return if (value == null) {
-        SerializationException("Decoded null value, expected one of $allExpectedTypes, actual writer schema $writerSchema")
-    } else {
-        SerializationException(
-            "Decoded value '$value' of type ${value::class.qualifiedName}, expected one of $allExpectedTypes, actual writer schema $writerSchema"
-        )
-    }
+    return SerializationException(
+        "For $actualType, expected type one of $allExpectedTypes, but had writer schema $currentWriterSchema"
+    )
 }
 
 context(Encoder)

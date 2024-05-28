@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.internal
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroProp
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -14,6 +15,7 @@ import kotlinx.serialization.descriptors.capturedKClass
 import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.descriptors.getPolymorphicDescriptors
+import kotlinx.serialization.descriptors.nonNullOriginal
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.LogicalType
@@ -27,7 +29,17 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotat
 
 internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotations(elementIndex: Int) = getElementAnnotations(elementIndex).filterIsInstance<T>()
 
-internal val SerialDescriptor.nonNullSerialName: String get() = serialName.removeSuffix('?')
+internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
+
+internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
+    return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.findAnnotation<AvroAlias>()?.value?.any { isFullNameMatch(it) } == true
+}
+
+internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
+    return fullName == fullNameToMatch ||
+        (type == Schema.Type.RECORD || type == Schema.Type.ENUM || type == Schema.Type.FIXED) &&
+        aliases.any { it == fullNameToMatch }
+}
 
 private fun String.removeSuffix(suffix: Char): String {
     if (lastOrNull() == suffix) {
@@ -121,6 +133,10 @@ internal val AvroProp.jsonNode: JsonNode
         }
         return TextNode.valueOf(value)
     }
+
+internal fun SerialDescriptor.getElementIndexNullable(name: String): Int? {
+    return getElementIndex(name).takeIf { it >= 0 }
+}
 
 internal fun ByteArray.zeroPadded(
     schema: Schema,

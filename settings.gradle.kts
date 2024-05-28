@@ -30,6 +30,7 @@ dependencyResolutionManagement {
             version("jvm", "21")
 
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
+            library("okio", "com.squareup.okio", "okio").version("3.9.0")
 
             val kotlinxSerialization = "1.7.0-RC"
             library("kotlinx-serialization-core", "org.jetbrains.kotlinx", "kotlinx-serialization-core").version(kotlinxSerialization)

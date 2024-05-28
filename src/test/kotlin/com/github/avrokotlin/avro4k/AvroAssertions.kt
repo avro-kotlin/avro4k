@@ -23,10 +23,13 @@ internal class AvroEncodingAssertions<T>(
     private val valueToEncode: T,
     private val serializer: KSerializer<T>,
 ) {
-    private var avro: Avro = Avro {}
+    private var avro: Avro =
+        Avro {
+            validateSerialization = true
+        }
 
     fun withConfig(builder: AvroBuilder.() -> Unit): AvroEncodingAssertions<T> {
-        this.avro = Avro(builderAction = builder)
+        this.avro = Avro(from = avro, builderAction = builder)
         return this
     }
 
@@ -58,13 +61,11 @@ internal class AvroEncodingAssertions<T>(
         return this
     }
 
-    inline fun <reified R> isDecodedAs(expected: R) = isDecodedAs(expected, Avro.serializersModule.serializer<R>())
-
-    fun <R> isDecodedAs(
+    inline fun <reified R> isDecodedAs(
         expected: R,
-        serializer: KSerializer<R>,
+        serializer: KSerializer<R> = avro.serializersModule.serializer<R>(),
+        writerSchema: Schema = avro.schema(this.serializer),
     ) {
-        val writerSchema = avro.schema(this.serializer)
         val encodedBytes = avro4kEncode(valueToEncode, writerSchema)
 
         val decodedValue = avro4kDecode(encodedBytes, writerSchema, serializer)

@@ -39,6 +39,19 @@ import kotlin.io.path.Path
 
 @OptIn(InternalSerializationApi::class)
 internal class MapEncodingTest : FunSpec({
+    test("should support map in the middle of other fields") {
+        @Serializable
+        data class MyRecord(val n: String, val map: Map<String, Int>, val z: String)
+
+        AvroAssertions.assertThat(MyRecord("a", mapOf("a" to 12, "z" to 42), "end"))
+            .isEncodedAs(
+                record(
+                    "a",
+                    mapOf("a" to 12, "z" to 42),
+                    "end"
+                )
+            )
+    }
     test("generate map type for a Map of ints") {
         val map = mapOf("a" to 1, "b" to 20, "c" to 5)
         AvroAssertions.assertThat(StringIntTest(map))

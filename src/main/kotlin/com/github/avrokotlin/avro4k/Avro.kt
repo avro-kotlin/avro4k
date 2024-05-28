@@ -1,11 +1,9 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.decoder.AvroValueDecoder
-import com.github.avrokotlin.avro4k.encoder.AvroValueEncoder
 import com.github.avrokotlin.avro4k.internal.EnumResolver
+import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
-import com.github.avrokotlin.avro4k.schema.FieldNamingStrategy
-import com.github.avrokotlin.avro4k.schema.ValueVisitor
+import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantSerializer
@@ -17,6 +15,7 @@ import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.EmptySerializersModule
@@ -24,17 +23,10 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.serializer
+import okio.Buffer
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericContainer
-import org.apache.avro.generic.GenericDatumReader
-import org.apache.avro.io.DecoderFactory
-import org.apache.avro.io.EncoderFactory
-import org.apache.avro.reflect.ReflectDatumWriter
 import org.apache.avro.util.WeakIdentityHashMap
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
@@ -49,6 +41,7 @@ public sealed class Avro(
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
 
     internal val recordResolver = RecordResolver(this)
+    internal val polymorphicResolver = PolymorphicResolver(this.serializersModule)
     internal val enumResolver = EnumResolver()
 
     public companion object Default : Avro(
@@ -73,51 +66,14 @@ public sealed class Avro(
         }
     }
 
-    @ExperimentalSerializationApi
-    public fun <T> encodeToStream(
-        writerSchema: Schema,
-        serializer: SerializationStrategy<T>,
-        value: T,
-        outputStream: OutputStream,
-    ) {
-        val avroEncoder = EncoderFactory.get().directBinaryEncoder(outputStream, null)
-        val genericData = encodeToGenericData(writerSchema, serializer, value)
-        ReflectDatumWriter<Any?>(writerSchema).write(genericData, avroEncoder)
-        avroEncoder.flush()
-    }
-
     public fun <T> encodeToByteArray(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
     ): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        encodeToStream(writerSchema, serializer, value, outputStream)
-        return outputStream.toByteArray()
-    }
-
-    @ExperimentalSerializationApi
-    public fun <T> encodeToGenericData(
-        writerSchema: Schema,
-        serializer: SerializationStrategy<T>,
-        value: T,
-    ): Any? {
-        var result: Any? = null
-        AvroValueEncoder(this, writerSchema) {
-            result = it
-        }.encodeSerializableValue(serializer, value)
-        return result
-    }
-
-    @ExperimentalSerializationApi
-    public fun <T> decodeFromStream(
-        writerSchema: Schema,
-        deserializer: DeserializationStrategy<T>,
-        inputStream: InputStream,
-    ): T {
-        val avroDecoder = DecoderFactory.get().directBinaryDecoder(inputStream, null)
-        val genericData = GenericDatumReader<Any?>(writerSchema).read(null, avroDecoder)
-        return decodeFromGenericData(writerSchema, deserializer, genericData)
+        val buffer = Buffer()
+        encodeToSink(writerSchema, serializer, value, buffer)
+        return buffer.readByteArray()
     }
 
     public fun <T> decodeFromByteArray(
@@ -125,17 +81,12 @@ public sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
     ): T {
-        return decodeFromStream(writerSchema, deserializer, ByteArrayInputStream(bytes))
-    }
-
-    @ExperimentalSerializationApi
-    public fun <T> decodeFromGenericData(
-        writerSchema: Schema,
-        deserializer: DeserializationStrategy<T>,
-        value: Any?,
-    ): T {
-        return AvroValueDecoder(this, value, writerSchema)
-            .decodeSerializableValue(deserializer)
+        val inputStream = ByteArrayInputStream(bytes)
+        val result = decodeFromStream(writerSchema, deserializer, inputStream)
+        if (inputStream.available() > 0) {
+            throw SerializationException("Not all bytes were consumed during deserialization")
+        }
+        return result
     }
 }
 
@@ -154,12 +105,16 @@ public class AvroBuilder internal constructor(avro: Avro) {
 
     @ExperimentalSerializationApi
     public var implicitNulls: Boolean = avro.configuration.implicitNulls
+
+    @ExperimentalSerializationApi
+    public var validateSerialization: Boolean = avro.configuration.validateSerialization
     public var serializersModule: SerializersModule = EmptySerializersModule()
 
     public fun build(): AvroConfiguration =
         AvroConfiguration(
             fieldNamingStrategy = fieldNamingStrategy,
-            implicitNulls = implicitNulls
+            implicitNulls = implicitNulls,
+            validateSerialization = validateSerialization
         )
 }
 
@@ -192,56 +147,7 @@ public inline fun <reified T> Avro.encodeToByteArray(
     return encodeToByteArray(writerSchema, serializer, value)
 }
 
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
-    val serializer = serializersModule.serializer<T>()
-    return encodeToGenericData(schema(serializer), serializer, value)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.encodeToGenericData(
-    writerSchema: Schema,
-    value: T,
-): Any? {
-    val serializer = serializersModule.serializer<T>()
-    return encodeToGenericData(writerSchema, serializer, value)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.encodeToStream(
-    value: T,
-    outputStream: OutputStream,
-) {
-    val serializer = serializersModule.serializer<T>()
-    encodeToStream(schema(serializer), serializer, value, outputStream)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.encodeToStream(
-    writerSchema: Schema,
-    value: T,
-    outputStream: OutputStream,
-) {
-    val serializer = serializersModule.serializer<T>()
-    encodeToStream(writerSchema, serializer, value, outputStream)
-}
-
 // decoding extensions
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.decodeFromStream(inputStream: InputStream): T {
-    val serializer = serializersModule.serializer<T>()
-    return decodeFromStream(schema(serializer.descriptor), serializer, inputStream)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.decodeFromStream(
-    writerSchema: Schema,
-    inputStream: InputStream,
-): T {
-    val serializer = serializersModule.serializer<T>()
-    return decodeFromStream(writerSchema, serializer, inputStream)
-}
 
 public inline fun <reified T> Avro.decodeFromByteArray(bytes: ByteArray): T {
     val serializer = serializersModule.serializer<T>()
@@ -254,20 +160,4 @@ public inline fun <reified T> Avro.decodeFromByteArray(
 ): T {
     val serializer = serializersModule.serializer<T>()
     return decodeFromByteArray(writerSchema, serializer, bytes)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.decodeFromGenericData(
-    writerSchema: Schema,
-    value: Any?,
-): T {
-    val deserializer = serializersModule.serializer<T>()
-    return decodeFromGenericData(writerSchema, deserializer, value)
-}
-
-@ExperimentalSerializationApi
-public inline fun <reified T> Avro.decodeFromGenericData(value: GenericContainer?): T? {
-    if (value == null) return null
-    val deserializer = serializersModule.serializer<T>()
-    return decodeFromGenericData(value.schema, deserializer, value)
 }

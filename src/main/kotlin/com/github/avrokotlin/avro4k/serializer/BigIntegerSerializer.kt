@@ -1,11 +1,12 @@
 package com.github.avrokotlin.avro4k.serializer
 
-import com.github.avrokotlin.avro4k.decoder.AvroDecoder
-import com.github.avrokotlin.avro4k.decoder.decodeResolvingUnion
-import com.github.avrokotlin.avro4k.encoder.AvroEncoder
-import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
-import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
+import com.github.avrokotlin.avro4k.AnyValueDecoder
+import com.github.avrokotlin.avro4k.AvroDecoder
+import com.github.avrokotlin.avro4k.AvroEncoder
+import com.github.avrokotlin.avro4k.decodeResolvingAny
+import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -21,7 +22,7 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
         encoder: AvroEncoder,
         value: BigInteger,
     ) {
-        encoder.encodeResolvingUnion({
+        encoder.encodeResolving({
             with(encoder) {
                 BadEncodedValueError(
                     value,
@@ -38,18 +39,23 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
                 Schema.Type.STRING -> {
                     { encoder.encodeString(value.toString()) }
                 }
+
                 Schema.Type.INT -> {
                     { encoder.encodeInt(value.intValueExact()) }
                 }
+
                 Schema.Type.LONG -> {
                     { encoder.encodeLong(value.longValueExact()) }
                 }
+
                 Schema.Type.FLOAT -> {
                     { encoder.encodeFloat(value.toFloat()) }
                 }
+
                 Schema.Type.DOUBLE -> {
                     { encoder.encodeDouble(value.toDouble()) }
                 }
+
                 else -> null
             }
         }
@@ -63,36 +69,40 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>() {
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): BigInteger {
-        return decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(
-                    decoder.decodeValue(),
-                    decoder.currentWriterSchema,
+        with(decoder) {
+            return decodeResolvingAny({
+                UnexpectedDecodeSchemaError(
+                    "BigInteger",
                     Schema.Type.STRING,
                     Schema.Type.INT,
                     Schema.Type.LONG,
                     Schema.Type.FLOAT,
                     Schema.Type.DOUBLE
                 )
-            }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.STRING -> {
-                    { decoder.decodeString().toBigInteger() }
+            }) { schema ->
+                when (schema.type) {
+                    Schema.Type.STRING -> {
+                        AnyValueDecoder { decoder.decodeString().toBigInteger() }
+                    }
+
+                    Schema.Type.INT -> {
+                        AnyValueDecoder { decoder.decodeInt().toBigInteger() }
+                    }
+
+                    Schema.Type.LONG -> {
+                        AnyValueDecoder { decoder.decodeLong().toBigInteger() }
+                    }
+
+                    Schema.Type.FLOAT -> {
+                        AnyValueDecoder { decoder.decodeFloat().toBigDecimal().toBigIntegerExact() }
+                    }
+
+                    Schema.Type.DOUBLE -> {
+                        AnyValueDecoder { decoder.decodeDouble().toBigDecimal().toBigIntegerExact() }
+                    }
+
+                    else -> null
                 }
-                Schema.Type.INT -> {
-                    { decoder.decodeInt().toBigInteger() }
-                }
-                Schema.Type.LONG -> {
-                    { decoder.decodeLong().toBigInteger() }
-                }
-                Schema.Type.FLOAT -> {
-                    { decoder.decodeFloat().toBigDecimal().toBigIntegerExact() }
-                }
-                Schema.Type.DOUBLE -> {
-                    { decoder.decodeDouble().toBigDecimal().toBigIntegerExact() }
-                }
-                else -> null
             }
         }
     }

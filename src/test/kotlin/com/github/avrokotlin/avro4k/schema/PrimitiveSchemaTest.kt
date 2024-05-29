@@ -15,58 +15,59 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.serializer
+import org.apache.avro.LogicalType
 import org.apache.avro.Schema
 
 @OptIn(InternalSerializationApi::class)
 internal class PrimitiveSchemaTest : StringSpec({
     listOf(
-        WrappedBoolean::class to Schema.Type.BOOLEAN,
-        WrappedByte::class to Schema.Type.INT,
-        WrappedShort::class to Schema.Type.INT,
-        WrappedInt::class to Schema.Type.INT,
-        WrappedLong::class to Schema.Type.LONG,
-        WrappedFloat::class to Schema.Type.FLOAT,
-        WrappedDouble::class to Schema.Type.DOUBLE,
-        WrappedChar::class to Schema.Type.INT,
-        WrappedString::class to Schema.Type.STRING
-    ).forEach { (type, expectedType) ->
-        "value class ${type.simpleName} should be primitive schema $expectedType" {
+        WrappedBoolean::class to Schema.create(Schema.Type.BOOLEAN),
+        WrappedByte::class to Schema.create(Schema.Type.INT),
+        WrappedShort::class to Schema.create(Schema.Type.INT),
+        WrappedInt::class to Schema.create(Schema.Type.INT),
+        WrappedLong::class to Schema.create(Schema.Type.LONG),
+        WrappedFloat::class to Schema.create(Schema.Type.FLOAT),
+        WrappedDouble::class to Schema.create(Schema.Type.DOUBLE),
+        WrappedString::class to Schema.create(Schema.Type.STRING),
+        WrappedChar::class to Schema.create(Schema.Type.INT).also { LogicalType("char").addToSchema(it) }
+    ).forEach { (type, expectedSchema) ->
+        "value class ${type.simpleName} should be primitive schema $expectedSchema" {
             AvroAssertions.assertThat(type.serializer())
-                .generatesSchema(Schema.create(expectedType))
+                .generatesSchema(expectedSchema)
         }
     }
 
     listOf(
-        Boolean::class to Schema.Type.BOOLEAN,
-        Byte::class to Schema.Type.INT,
-        Short::class to Schema.Type.INT,
-        Int::class to Schema.Type.INT,
-        Long::class to Schema.Type.LONG,
-        Float::class to Schema.Type.FLOAT,
-        Double::class to Schema.Type.DOUBLE,
-        Char::class to Schema.Type.INT,
-        String::class to Schema.Type.STRING
-    ).forEach { (type, expectedType) ->
-        "type ${type.simpleName} should be primitive schema $expectedType" {
+        Boolean::class to Schema.create(Schema.Type.BOOLEAN),
+        Byte::class to Schema.create(Schema.Type.INT),
+        Short::class to Schema.create(Schema.Type.INT),
+        Int::class to Schema.create(Schema.Type.INT),
+        Long::class to Schema.create(Schema.Type.LONG),
+        Float::class to Schema.create(Schema.Type.FLOAT),
+        Double::class to Schema.create(Schema.Type.DOUBLE),
+        String::class to Schema.create(Schema.Type.STRING),
+        Char::class to Schema.create(Schema.Type.INT).also { LogicalType("char").addToSchema(it) }
+    ).forEach { (type, expectedSchema) ->
+        "type ${type.simpleName} should be primitive schema $expectedSchema" {
             AvroAssertions.assertThat(type.serializer())
-                .generatesSchema(Schema.create(expectedType))
+                .generatesSchema(expectedSchema)
         }
     }
 
     listOf(
-        Boolean::class to Schema.Type.BOOLEAN,
-        Byte::class to Schema.Type.INT,
-        Short::class to Schema.Type.INT,
-        Int::class to Schema.Type.INT,
-        Long::class to Schema.Type.LONG,
-        Float::class to Schema.Type.FLOAT,
-        Double::class to Schema.Type.DOUBLE,
-        Char::class to Schema.Type.INT,
-        String::class to Schema.Type.STRING
-    ).forEach { (type, expectedType) ->
-        "type ${type.simpleName}? should be nullable primitive schema $expectedType" {
+        Boolean::class to Schema.create(Schema.Type.BOOLEAN),
+        Byte::class to Schema.create(Schema.Type.INT),
+        Short::class to Schema.create(Schema.Type.INT),
+        Int::class to Schema.create(Schema.Type.INT),
+        Long::class to Schema.create(Schema.Type.LONG),
+        Float::class to Schema.create(Schema.Type.FLOAT),
+        Double::class to Schema.create(Schema.Type.DOUBLE),
+        String::class to Schema.create(Schema.Type.STRING),
+        Char::class to Schema.create(Schema.Type.INT).also { LogicalType("char").addToSchema(it) }
+    ).forEach { (type, expectedSchema) ->
+        "type ${type.simpleName}? should be nullable primitive schema $expectedSchema" {
             AvroAssertions.assertThat(type.serializer().nullable)
-                .generatesSchema(Schema.create(expectedType).nullable)
+                .generatesSchema(expectedSchema.nullable)
         }
     }
 })

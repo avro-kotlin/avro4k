@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.decodeWithBinaryDecoder
+import com.github.avrokotlin.avro4k.internal.encodeWithBinaryEncoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -8,10 +10,8 @@ import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.file.DataFileWriter
-import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
-import org.apache.avro.reflect.ReflectDatumWriter
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -41,7 +41,6 @@ public class AvroObjectContainerFile(
             dataFileWriter.append(it)
         }
         dataFileWriter.flush()
-        // don't close the stream, the caller should do it
     }
 
     public fun <T> decodeFromStream(
@@ -58,6 +57,7 @@ public class AvroObjectContainerFile(
         }.constrainOnce()
 }
 
+@ExperimentalSerializationApi
 public inline fun <reified T> AvroObjectContainerFile.encodeToStream(
     values: Sequence<T>,
     outputStream: OutputStream,
@@ -67,6 +67,7 @@ public inline fun <reified T> AvroObjectContainerFile.encodeToStream(
     encodeToStream(avro.schema(serializer), serializer, values, outputStream, builder)
 }
 
+@ExperimentalSerializationApi
 public inline fun <reified T> AvroObjectContainerFile.decodeFromStream(
     inputStream: InputStream,
     noinline metadataDumper: AvroObjectContainerFileMetadataDumper.() -> Unit = {},
@@ -130,8 +131,7 @@ private class KotlinxSerializationDatumWriter<T>(
         datum: T,
         encoder: org.apache.avro.io.Encoder,
     ) {
-        val genericData = avro.encodeToGenericData(writerSchema, serializer, datum)
-        ReflectDatumWriter<Any?>(writerSchema).write(genericData, encoder)
+        avro.encodeWithBinaryEncoder(writerSchema, serializer, datum, encoder)
     }
 }
 
@@ -149,7 +149,6 @@ private class KotlinxSerializationDatumReader<T>(
         reuse: T?,
         decoder: org.apache.avro.io.Decoder,
     ): T {
-        val genericData = GenericDatumReader<Any?>(writerSchema).read(reuse, decoder)
-        return avro.decodeFromGenericData(writerSchema, deserializer, genericData)
+        return avro.decodeWithBinaryDecoder(writerSchema, deserializer, decoder)
     }
 }

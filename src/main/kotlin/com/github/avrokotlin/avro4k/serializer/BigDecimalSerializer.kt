@@ -1,12 +1,13 @@
 package com.github.avrokotlin.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecimal
-import com.github.avrokotlin.avro4k.decoder.AvroDecoder
-import com.github.avrokotlin.avro4k.decoder.decodeResolvingUnion
-import com.github.avrokotlin.avro4k.encoder.AvroEncoder
-import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
-import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
+import com.github.avrokotlin.avro4k.AvroDecoder
+import com.github.avrokotlin.avro4k.AvroEncoder
+import com.github.avrokotlin.avro4k.decodeResolvingAny
+import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.asAvroLogicalType
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -38,7 +39,7 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>() {
         encoder: AvroEncoder,
         value: BigDecimal,
     ) {
-        encoder.encodeResolvingUnion({
+        encoder.encodeResolving({
             with(encoder) {
                 BadEncodedValueError(
                     value,
@@ -105,41 +106,40 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>() {
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): BigDecimal {
-        return decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(
-                    decoder.decodeValue(),
-                    decoder.currentWriterSchema,
+        with(decoder) {
+            return decodeResolvingAny({
+                UnexpectedDecodeSchemaError(
+                    "BigDecimal",
                     Schema.Type.STRING,
                     Schema.Type.BYTES,
                     Schema.Type.FIXED
                 )
-            }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.STRING -> {
-                    { decoder.decodeString().toBigDecimal() }
+            }) { schema ->
+                when (schema.type) {
+                    Schema.Type.STRING -> {
+                        AnyValueDecoder { decoder.decodeString().toBigDecimal() }
+                    }
+
+                    Schema.Type.BYTES ->
+                        when (schema.logicalType) {
+                            is LogicalTypes.Decimal -> {
+                                AnyValueDecoder { converter.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
+                            }
+
+                            else -> null
+                        }
+
+                    Schema.Type.FIXED ->
+                        when (schema.logicalType) {
+                            is LogicalTypes.Decimal -> {
+                                AnyValueDecoder { converter.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
+                            }
+
+                            else -> null
+                        }
+
+                    else -> null
                 }
-
-                Schema.Type.BYTES ->
-                    when (schema.logicalType) {
-                        is LogicalTypes.Decimal -> {
-                            { converter.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
-                        }
-
-                        else -> null
-                    }
-
-                Schema.Type.FIXED ->
-                    when (schema.logicalType) {
-                        is LogicalTypes.Decimal -> {
-                            { converter.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
-                        }
-
-                        else -> null
-                    }
-
-                else -> null
             }
         }
     }

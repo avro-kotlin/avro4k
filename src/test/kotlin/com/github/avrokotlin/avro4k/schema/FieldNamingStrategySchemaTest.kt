@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.FieldNamingStrategy
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import kotlin.io.path.Path

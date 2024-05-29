@@ -9,12 +9,27 @@ import kotlinx.serialization.Serializable
 import kotlin.io.path.Path
 
 internal class ImplicitNullsSchemaTest : FunSpec({
-    test("Should set default value to null for nullable fields when implicitNulls is true") {
+    test("Should set default value to null for nullable fields when implicitNulls is true (default)") {
         AvroAssertions.assertThat<ImplicitNulls>()
-            .withConfig { implicitNulls = true }
             .generatesSchema(Path("/nullables-with-defaults.json"))
+        AvroAssertions.assertThat(EmptyType)
+            .isDecodedAs(
+                ImplicitNulls(
+                    string = null,
+                    boolean = null,
+                    booleanWrapped1 = NullableBooleanWrapper(null),
+                    booleanWrapped2 = null,
+                    booleanWrapped3 = null,
+                    nested = null,
+                    stringWithAvroDefault = "implicit nulls bypassed"
+                )
+            )
     }
 }) {
+    @Serializable
+    @SerialName("ImplicitNulls")
+    private data object EmptyType
+
     @Serializable
     @SerialName("ImplicitNulls")
     private data class ImplicitNulls(

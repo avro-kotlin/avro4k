@@ -1,12 +1,13 @@
 package com.github.avrokotlin.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.AnyValueDecoder
+import com.github.avrokotlin.avro4k.AvroDecoder
+import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.asAvroLogicalType
-import com.github.avrokotlin.avro4k.decoder.AvroDecoder
-import com.github.avrokotlin.avro4k.decoder.decodeResolvingUnion
-import com.github.avrokotlin.avro4k.encoder.AvroEncoder
-import com.github.avrokotlin.avro4k.encoder.encodeResolvingUnion
-import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
+import com.github.avrokotlin.avro4k.decodeResolvingAny
+import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -28,7 +29,7 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>() {
         encoder: AvroEncoder,
         value: LocalDate,
     ) {
-        encoder.encodeResolvingUnion({
+        encoder.encodeResolving({
             with(encoder) {
                 BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG)
             }
@@ -66,33 +67,33 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>() {
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): LocalDate {
-        return decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(decoder.decodeValue(), decoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG)
-            }
-        }) {
-            when (it.type) {
-                Schema.Type.INT -> {
-                    when (it.logicalType?.name) {
-                        "date", null -> {
-                            { LocalDate.ofEpochDay(decoder.decodeInt().toLong()) }
+        with(decoder) {
+            return decoder.decodeResolvingAny({
+                UnexpectedDecodeSchemaError("LocalDate", Schema.Type.INT, Schema.Type.LONG)
+            }) {
+                when (it.type) {
+                    Schema.Type.INT -> {
+                        when (it.logicalType?.name) {
+                            "date", null -> {
+                                AnyValueDecoder { LocalDate.ofEpochDay(decoder.decodeInt().toLong()) }
+                            }
+
+                            else -> null
                         }
-
-                        else -> null
                     }
-                }
 
-                Schema.Type.LONG -> {
-                    when (it.logicalType?.name) {
-                        null -> {
-                            { LocalDate.ofEpochDay(decoder.decodeLong()) }
+                    Schema.Type.LONG -> {
+                        when (it.logicalType?.name) {
+                            null -> {
+                                AnyValueDecoder { LocalDate.ofEpochDay(decoder.decodeLong()) }
+                            }
+
+                            else -> null
                         }
-
-                        else -> null
                     }
-                }
 
-                else -> null
+                    else -> null
+                }
             }
         }
     }
@@ -110,36 +111,36 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
         encoder: AvroEncoder,
         value: LocalTime,
     ) {
-        encoder.encodeResolvingUnion({
-            with(encoder) {
+        with(encoder) {
+            encodeResolving({
                 BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG)
-            }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.INT ->
-                    when (schema.logicalType?.name) {
-                        "time-millis", null -> {
-                            { encoder.encodeInt(value.toMillisOfDay()) }
+            }) { schema ->
+                when (schema.type) {
+                    Schema.Type.INT ->
+                        when (schema.logicalType?.name) {
+                            "time-millis", null -> {
+                                { encoder.encodeInt(value.toMillisOfDay()) }
+                            }
+
+                            else -> null
                         }
 
-                        else -> null
-                    }
+                    Schema.Type.LONG ->
+                        when (schema.logicalType?.name) {
+                            // TimeMillis is not compatible with LONG, so we require a null logical type to encode the timestamp
+                            null -> {
+                                { encoder.encodeLong(value.toMillisOfDay().toLong()) }
+                            }
 
-                Schema.Type.LONG ->
-                    when (schema.logicalType?.name) {
-                        // TimeMillis is not compatible with LONG, so we require a null logical type to encode the timestamp
-                        null -> {
-                            { encoder.encodeLong(value.toMillisOfDay().toLong()) }
+                            "time-micros" -> {
+                                { encoder.encodeLong(value.toMicroOfDay()) }
+                            }
+
+                            else -> null
                         }
 
-                        "time-micros" -> {
-                            { encoder.encodeLong(value.toMicroOfDay()) }
-                        }
-
-                        else -> null
-                    }
-
-                else -> null
+                    else -> null
+                }
             }
         }
     }
@@ -156,37 +157,41 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
     private fun LocalTime.toMicroOfDay() = toNanoOfDay() / 1000
 
     override fun deserializeAvro(decoder: AvroDecoder): LocalTime {
-        return decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(decoder.decodeValue(), decoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG)
-            }
-        }) {
-            when (it.type) {
-                Schema.Type.INT -> {
-                    when (it.logicalType?.name) {
-                        "time-millis", null -> {
-                            { LocalTime.ofNanoOfDay(decoder.decodeInt() * 1_000_000L) }
-                        }
+        with(decoder) {
+            return decodeResolvingAny({
+                UnexpectedDecodeSchemaError(
+                    "LocalTime",
+                    Schema.Type.INT,
+                    Schema.Type.LONG
+                )
+            }) {
+                when (it.type) {
+                    Schema.Type.INT -> {
+                        when (it.logicalType?.name) {
+                            "time-millis", null -> {
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeInt() * 1_000_000L) }
+                            }
 
-                        else -> null
+                            else -> null
+                        }
                     }
-                }
 
-                Schema.Type.LONG -> {
-                    when (it.logicalType?.name) {
-                        null -> {
-                            { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000_000) }
+                    Schema.Type.LONG -> {
+                        when (it.logicalType?.name) {
+                            null -> {
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000_000) }
+                            }
+
+                            "time-micros" -> {
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000) }
+                            }
+
+                            else -> null
                         }
-
-                        "time-micros" -> {
-                            { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000) }
-                        }
-
-                        else -> null
                     }
-                }
 
-                else -> null
+                    else -> null
+                }
             }
         }
     }
@@ -231,7 +236,7 @@ public object InstantSerializer : AvroSerializer<Instant>() {
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeResolvingUnion({
+        encoder.encodeResolving({
             with(encoder) {
                 BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.LONG)
             }
@@ -263,26 +268,24 @@ public object InstantSerializer : AvroSerializer<Instant>() {
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): Instant =
-        decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(decoder.decodeValue(), decoder.currentWriterSchema, Schema.Type.LONG)
-            }
-        }) {
-            when (it.type) {
-                Schema.Type.LONG ->
-                    when (it.logicalType?.name) {
-                        "timestamp-millis", null -> {
-                            { Instant.ofEpochMilli(decoder.decodeLong()) }
+        with(decoder) {
+            decodeResolvingAny({ UnexpectedDecodeSchemaError("Instant", Schema.Type.LONG) }) {
+                when (it.type) {
+                    Schema.Type.LONG ->
+                        when (it.logicalType?.name) {
+                            "timestamp-millis", null -> {
+                                AnyValueDecoder { Instant.ofEpochMilli(decoder.decodeLong()) }
+                            }
+
+                            "timestamp-micros" -> {
+                                AnyValueDecoder { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
+                            }
+
+                            else -> null
                         }
 
-                        "timestamp-micros" -> {
-                            { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
-                        }
-
-                        else -> null
-                    }
-
-                else -> null
+                    else -> null
+                }
             }
         }
 
@@ -299,7 +302,7 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>() {
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeResolvingUnion({
+        encoder.encodeResolving({
             with(encoder) {
                 BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.LONG)
             }
@@ -331,26 +334,24 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>() {
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): Instant {
-        return decoder.decodeResolvingUnion({
-            with(decoder) {
-                BadDecodedValueError(decoder.decodeValue(), decoder.currentWriterSchema, Schema.Type.LONG)
-            }
-        }) {
-            when (it.type) {
-                Schema.Type.LONG ->
-                    when (it.logicalType?.name) {
-                        "timestamp-micros", null -> {
-                            { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
+        with(decoder) {
+            return decodeResolvingAny({ UnexpectedDecodeSchemaError("Instant", Schema.Type.LONG) }) {
+                when (it.type) {
+                    Schema.Type.LONG ->
+                        when (it.logicalType?.name) {
+                            "timestamp-micros", null -> {
+                                AnyValueDecoder { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
+                            }
+
+                            "timestamp-millis" -> {
+                                AnyValueDecoder { Instant.ofEpochMilli(decoder.decodeLong()) }
+                            }
+
+                            else -> null
                         }
 
-                        "timestamp-millis" -> {
-                            { Instant.ofEpochMilli(decoder.decodeLong()) }
-                        }
-
-                        else -> null
-                    }
-
-                else -> null
+                    else -> null
+                }
             }
         }
     }

@@ -11,6 +11,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/main-v2'
+        run: |
+          echo "This workflow should only be triggered on main and main-v2 branch.
+          exit 1
       - name: Checkout the repo
         uses: actions/checkout@v4
       - name: Setup Gradle
@@ -25,7 +30,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
       - name: create release
-        run: gh release create "v${RELEASE_VERSION}" --generate-notes
+        run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
           GH_TOKEN: ${{ github.token }}

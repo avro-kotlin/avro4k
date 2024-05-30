@@ -26,7 +26,7 @@ public annotation class AvroNamespaceOverride(
 /**
  * Adds a property to the Avro schema or field. Its value could be any valid JSON or just a string.
  *
- * Ignored in inline classes.
+ * When annotated on a value class or its underlying field, the props are applied to the underlying type.
  */
 @SerialInfo
 @Repeatable

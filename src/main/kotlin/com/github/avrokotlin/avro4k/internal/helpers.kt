@@ -53,36 +53,84 @@ private fun String.removeSuffix(suffix: Char): String {
  */
 internal fun Schema.overrideNamespace(namespaceOverride: String): Schema {
     return when (type) {
-        Schema.Type.RECORD -> {
-            val fields =
-                fields.map { field ->
-                    Schema.Field(
-                        field.name(),
-                        field.schema().overrideNamespace(namespaceOverride),
-                        field.doc(),
-                        field.defaultVal(),
-                        field.order()
-                    )
-                }
-            val copy = Schema.createRecord(name, doc, namespaceOverride, isError, fields)
-            aliases.forEach { copy.addAlias(it) }
-            copy
-        }
+        Schema.Type.RECORD ->
+            copy(
+                namespace = namespaceOverride,
+                fields =
+                    fields.map {
+                        it.copy(schema = it.schema().overrideNamespace(namespaceOverride))
+                    }
+            )
 
-        Schema.Type.UNION -> Schema.createUnion(types.map { it.overrideNamespace(namespaceOverride) })
-        Schema.Type.ENUM ->
-            Schema.createEnum(name, doc, namespaceOverride, enumSymbols, enumDefault)
-                .also { aliases.forEach { alias -> it.addAlias(alias) } }
-
-        Schema.Type.FIXED ->
-            Schema.createFixed(name, doc, namespaceOverride, fixedSize)
-                .also { aliases.forEach { alias -> it.addAlias(alias) } }
-
-        Schema.Type.MAP -> Schema.createMap(valueType.overrideNamespace(namespaceOverride))
-        Schema.Type.ARRAY -> Schema.createArray(elementType.overrideNamespace(namespaceOverride))
-        else -> this
+        Schema.Type.UNION -> copy(types = types.map { it.overrideNamespace(namespaceOverride) })
+        Schema.Type.MAP -> copy(valueType = valueType.overrideNamespace(namespaceOverride))
+        Schema.Type.ARRAY -> copy(elementType = elementType.overrideNamespace(namespaceOverride))
+        else -> copy(namespace = namespaceOverride)
     }
-        .also { objectProps.forEach { prop -> it.addProp(prop.key, prop.value) } }
+}
+
+private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
+
+internal fun Schema.copy(
+    name: String = this.name,
+    doc: String? = this.doc,
+    namespace: String? = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.namespace else null,
+    aliases: Set<String> = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.aliases else emptySet(),
+    isError: Boolean = if (this.type == Schema.Type.RECORD) this.isError else false,
+    types: List<Schema> = if (this.type == Schema.Type.UNION) this.types.toList() else emptyList(),
+    enumSymbols: List<String> = if (this.type == Schema.Type.ENUM) this.enumSymbols.toList() else emptyList(),
+    fields: List<Schema.Field>? = if (this.type == Schema.Type.RECORD && this.hasFields()) this.fields.map { it.copy() } else null,
+    enumDefault: String? = if (this.type == Schema.Type.ENUM) this.enumDefault else null,
+    fixedSize: Int = if (this.type == Schema.Type.FIXED) this.fixedSize else -1,
+    valueType: Schema = if (this.type == Schema.Type.MAP) this.valueType else SCHEMA_PLACEHOLDER,
+    elementType: Schema = if (this.type == Schema.Type.ARRAY) this.elementType else SCHEMA_PLACEHOLDER,
+    objectProps: Map<String, Any> = this.objectProps,
+    additionalProps: Map<String, Any> = emptyMap(),
+    logicalType: LogicalType? = this.logicalType,
+): Schema {
+    @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
+    return when (type) {
+        Schema.Type.RECORD -> if (hasFields()) Schema.createRecord(name, doc, namespace, isError, fields) else Schema.createRecord(name, doc, namespace, isError)
+        Schema.Type.ENUM -> Schema.createEnum(name, doc, namespace, enumSymbols, enumDefault)
+        Schema.Type.FIXED -> Schema.createFixed(name, doc, namespace, fixedSize)
+
+        Schema.Type.UNION -> Schema.createUnion(types)
+        Schema.Type.MAP -> Schema.createMap(valueType)
+        Schema.Type.ARRAY -> Schema.createArray(elementType)
+        Schema.Type.BYTES,
+        Schema.Type.STRING,
+        Schema.Type.INT,
+        Schema.Type.LONG,
+        Schema.Type.FLOAT,
+        Schema.Type.DOUBLE,
+        Schema.Type.BOOLEAN,
+        Schema.Type.NULL,
+        -> Schema.create(type)
+    }
+        .also { newSchema ->
+            objectProps.forEach { (key, value) -> newSchema.addProp(key, value) }
+            additionalProps.forEach { (key, value) -> newSchema.addProp(key, value) }
+            logicalType?.addToSchema(newSchema)
+            aliases.forEach { newSchema.addAlias(it) }
+        }
+}
+
+internal fun Schema.Field.copy(
+    name: String = this.name(),
+    schema: Schema = this.schema(),
+    doc: String? = this.doc(),
+    defaultVal: Any? = this.defaultVal(),
+    order: Schema.Field.Order = this.order(),
+    aliases: Set<String> = this.aliases(),
+    objectProps: Map<String, Any> = this.objectProps,
+    additionalProps: Map<String, Any> = emptyMap(),
+): Schema.Field {
+    return Schema.Field(name, schema, doc, defaultVal, order)
+        .also { newSchema ->
+            objectProps.forEach { (key, value) -> newSchema.addProp(key, value) }
+            additionalProps.forEach { (key, value) -> newSchema.addProp(key, value) }
+            aliases.forEach { newSchema.addAlias(it) }
+        }
 }
 
 @ExperimentalSerializationApi

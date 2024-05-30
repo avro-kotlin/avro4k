@@ -629,6 +629,14 @@ data class MyData(
 )
 ```
 
+To add metadata to a type not owned by you, you can use a value class. Here an example with a `BigQuery` type that needs the property `sqlType = JSON` on `string` type:
+```kotlin
+@Serializable
+value class BigQueryJson(@AvroProp("sqlType", "JSON") val value: String)
+
+println(Avro.schema<BigQueryJson>().toString(true)) // {"type":"string","sqlType":"JSON"}
+```
+
 > [!NOTE]
 > This impacts only the schema generation. For more details, check the [avro specification](https://avro.apache.org/docs/1.11.1/specification/#schema_props).
 

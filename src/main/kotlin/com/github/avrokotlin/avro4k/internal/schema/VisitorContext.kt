@@ -30,12 +30,17 @@ internal fun VisitorContext.resetNesting() = copy(inlinedAnnotations = null)
  */
 internal data class InlineClassFieldAnnotations(
     val namespaceOverride: AvroNamespaceOverride?,
+    val props: Sequence<AvroProp>,
 ) {
-    constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
-        descriptor.findElementAnnotation<AvroNamespaceOverride>(elementIndex)
+    constructor(inlineClassDescriptor: SerialDescriptor) : this(
+        inlineClassDescriptor.findElementAnnotation<AvroNamespaceOverride>(0),
+        sequence {
+            yieldAll(inlineClassDescriptor.findAnnotations<AvroProp>())
+            yieldAll(inlineClassDescriptor.findElementAnnotations<AvroProp>(0))
+        }
     ) {
-        require(descriptor.isInline) {
-            "${InlineClassFieldAnnotations::class.qualifiedName} is only for inline classes, but trying at element index $elementIndex with non-inline class descriptor $descriptor"
+        require(inlineClassDescriptor.isInline) {
+            "${InlineClassFieldAnnotations::class.qualifiedName} is only for inline classes, but trying to use it with non-inline class descriptor $inlineClassDescriptor"
         }
     }
 }

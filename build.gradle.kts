@@ -69,30 +69,9 @@ tasks.named<Jar>("javadocJar") {
     from(tasks.named("dokkaJavadoc"))
 }
 
-// Configuration for publication on maven central
-val signingKey: String? by project
-val signingPassword: String? by project
-
-val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications
-
-signing {
-    useGpgCmd()
-    if (signingKey != null && signingPassword != null) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-    }
-    if (Ci.isRelease) {
-        sign(publications)
-    }
-}
-
-nexusPublishing {
-    this.repositories {
-        sonatype()
-    }
-}
 publishing {
     publications {
-        register("mavenJava", MavenPublication::class) {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
             pom {
                 val projectUrl = "https://github.com/avro-kotlin/avro4k"
@@ -130,9 +109,25 @@ publishing {
     }
 }
 
-fun Project.publishing(action: PublishingExtension.() -> Unit) = configure(action)
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
 
-fun Project.signing(configure: SigningExtension.() -> Unit): Unit = configure(configure)
+signing {
+    if (Ci.isRelease) {
+        val signingKey: String? by project
+        val signingPassword: String? by project
+
+        if (signingKey != null && signingPassword != null) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        } else {
+            throw IllegalStateException("No signing key or password found")
+        }
+        sign(publishing.publications)
+    }
+}
 
 object Ci {
     // this is the version used for building snapshots

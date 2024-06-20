@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.github.versions)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.spotless)
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 tasks {

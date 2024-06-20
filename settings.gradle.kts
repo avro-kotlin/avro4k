@@ -32,7 +32,7 @@ dependencyResolutionManagement {
             library("apache-avro", "org.apache.avro", "avro").version("1.11.3")
             library("okio", "com.squareup.okio", "okio").version("3.9.0")
 
-            val kotlinxSerialization = "1.7.0-RC"
+            val kotlinxSerialization = "1.7.0"
             library("kotlinx-serialization-core", "org.jetbrains.kotlinx", "kotlinx-serialization-core").version(kotlinxSerialization)
             library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version(kotlinxSerialization)
 
@@ -48,6 +48,7 @@ dependencyResolutionManagement {
             plugin("nexus-publish", "io.github.gradle-nexus.publish-plugin").version("1.3.0")
             plugin("spotless", "com.diffplug.spotless").version("6.25.0")
             plugin("kover", "org.jetbrains.kotlinx.kover").version("0.7.6")
+            plugin("binary-compatibility-validator", "org.jetbrains.kotlinx.binary-compatibility-validator").version("0.14.0")
         }
     }
     @Suppress("UnstableApiUsage")

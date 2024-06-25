@@ -37,15 +37,18 @@ internal class RecordDirectDecoder(
                 is DecodingStep.IgnoreOptionalElement -> {
                     // loop again to ignore the optional element
                 }
+
                 is DecodingStep.SkipWriterField -> binaryDecoder.skip(field.schema)
                 is DecodingStep.MissingElementValueFailure -> {
                     throw SerializationException("No writer schema field matching element index ${field.elementIndex} in descriptor $descriptor")
                 }
+
                 is DecodingStep.DeserializeWriterField -> {
                     currentDecodingStep = field
                     currentWriterSchema = field.schema
                     return field.elementIndex
                 }
+
                 is DecodingStep.GetDefaultValue -> {
                     currentDecodingStep = field
                     currentWriterSchema = field.schema
@@ -55,16 +58,12 @@ internal class RecordDirectDecoder(
         }
     }
 
-    private inline fun <T> decodeDefaultIfMissing(
+    private fun <T> decodeDefault(
+        element: DecodingStep.GetDefaultValue,
         deserializer: DeserializationStrategy<T>,
-        block: () -> T,
     ): T {
-        return when (val element = currentDecodingStep) {
-            is DecodingStep.DeserializeWriterField -> block()
-            is DecodingStep.GetDefaultValue ->
-                AvroValueGenericDecoder(avro, element.defaultValue, currentWriterSchema)
-                    .decodeSerializableValue(deserializer)
-        }
+        return AvroValueGenericDecoder(avro, element.defaultValue, currentWriterSchema)
+            .decodeSerializableValue(deserializer)
     }
 
     override fun decodeNotNullMark(): Boolean {
@@ -95,62 +94,72 @@ internal class RecordDirectDecoder(
     }
 
     override fun decodeInt(): Int {
-        return decodeDefaultIfMissing(Int.serializer()) {
-            super.decodeInt()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeInt()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Int.serializer())
         }
     }
 
     override fun decodeLong(): Long {
-        return decodeDefaultIfMissing(Long.serializer()) {
-            super.decodeLong()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeLong()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Long.serializer())
         }
     }
 
     override fun decodeBoolean(): Boolean {
-        return decodeDefaultIfMissing(Boolean.serializer()) {
-            super.decodeBoolean()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeBoolean()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Boolean.serializer())
         }
     }
 
     override fun decodeChar(): Char {
-        return decodeDefaultIfMissing(Char.serializer()) {
-            super.decodeChar()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeChar()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Char.serializer())
         }
     }
 
     override fun decodeString(): String {
-        return decodeDefaultIfMissing(String.serializer()) {
-            super.decodeString()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeString()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, String.serializer())
         }
     }
 
     override fun decodeDouble(): Double {
-        return decodeDefaultIfMissing(Double.serializer()) {
-            super.decodeDouble()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeDouble()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Double.serializer())
         }
     }
 
     override fun decodeFloat(): Float {
-        return decodeDefaultIfMissing(Float.serializer()) {
-            super.decodeFloat()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeFloat()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Float.serializer())
         }
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return decodeDefaultIfMissing(deserializer) {
-            super.decodeSerializableValue(deserializer)
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeSerializableValue(deserializer)
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, deserializer)
         }
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        return decodeDefaultIfMissing(Int.serializer()) {
-            super.decodeEnum(enumDescriptor)
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeEnum(enumDescriptor)
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, Int.serializer())
         }
     }
 
     override fun decodeBytes(): ByteArray {
-        return decodeDefaultIfMissing(ByteArraySerializer()) {
-            super.decodeBytes()
+        return when (val element = currentDecodingStep) {
+            is DecodingStep.DeserializeWriterField -> super.decodeBytes()
+            is DecodingStep.GetDefaultValue -> decodeDefault(element, ByteArraySerializer())
         }
     }
 }

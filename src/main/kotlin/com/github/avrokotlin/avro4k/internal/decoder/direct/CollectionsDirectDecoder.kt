@@ -39,8 +39,6 @@ internal class ArrayBlockDirectDecoder(
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
     override lateinit var currentWriterSchema: Schema
 
-    override fun decodeSequentially() = true
-
     override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
         return if (decodeFirstBlock) {
             binaryDecoder.readArrayStart().toInt()
@@ -57,6 +55,8 @@ internal class ArrayBlockDirectDecoder(
         currentWriterSchema = arraySchema.elementType
     }
 
+    override fun decodeSequentially() = true
+
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         throw IllegalIndexedAccessError()
     }
@@ -69,8 +69,6 @@ internal class MapBlockDirectDecoder(
     binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
     override lateinit var currentWriterSchema: Schema
-
-    override fun decodeSequentially() = true
 
     override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
         return if (decodeFirstBlock) {
@@ -87,6 +85,8 @@ internal class MapBlockDirectDecoder(
         // reset the current writer schema in of the element is a union (as a union is resolved)
         currentWriterSchema = if (index % 2 == 0) KEY_SCHEMA else mapSchema.valueType
     }
+
+    override fun decodeSequentially() = true
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         throw IllegalIndexedAccessError()

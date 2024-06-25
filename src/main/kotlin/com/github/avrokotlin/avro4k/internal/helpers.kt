@@ -31,6 +31,10 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotat
 
 internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
 
+internal fun Schema.isNamedSchema(): Boolean {
+    return this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED
+}
+
 internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
     return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.findAnnotation<AvroAlias>()?.value?.any { isFullNameMatch(it) } == true
 }
@@ -77,7 +81,7 @@ internal fun Schema.copy(
     namespace: String? = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.namespace else null,
     aliases: Set<String> = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.aliases else emptySet(),
     isError: Boolean = if (this.type == Schema.Type.RECORD) this.isError else false,
-    types: List<Schema> = if (this.type == Schema.Type.UNION) this.types.toList() else emptyList(),
+    types: List<Schema> = if (this.isUnion) this.types.toList() else emptyList(),
     enumSymbols: List<String> = if (this.type == Schema.Type.ENUM) this.enumSymbols.toList() else emptyList(),
     fields: List<Schema.Field>? = if (this.type == Schema.Type.RECORD && this.hasFields()) this.fields.map { it.copy() } else null,
     enumDefault: String? = if (this.type == Schema.Type.ENUM) this.enumDefault else null,

@@ -1,25 +1,15 @@
-package com.github.avrokotlin.benchmark.gen
+package com.github.avrokotlin.benchmark.internal
 
 import org.apache.commons.lang3.RandomStringUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
+import java.util.UUID
 import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.random.asJavaRandom
 
 internal object RandomUtils {
-    private val RANDOM: Random
-
-    init {
-        val seedStr = System.getenv("SEED")
-        val seed =
-            try {
-                seedStr?.toLong()
-            } catch (e: NumberFormatException) { null }?: System.nanoTime()
-        println("Using SEED=$seed as seed for Random")
-        RANDOM = Random(seed)
-    }
+    private val RANDOM: Random = Random(139793881379292435L)
 
     fun randomAlphabetic(count: Int): String {
         return random(count, true, false)
@@ -99,5 +89,13 @@ internal object RandomUtils {
         return if (startInclusive == endInclusive) {
             startInclusive
         } else startInclusive + (endInclusive - startInclusive) * RANDOM.nextDouble()
+    }
+
+    fun nextFloat(startInclusive: Float, endInclusive: Float): Float {
+        assert(endInclusive >= startInclusive)
+        assert(startInclusive >= 0)
+        return if (startInclusive == endInclusive) {
+            startInclusive
+        } else startInclusive + (endInclusive - startInclusive) * RANDOM.nextFloat()
     }
 }

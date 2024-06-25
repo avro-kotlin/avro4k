@@ -44,7 +44,7 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         if (selectedUnionIndex > -1) {
             throw SerializationException("Already selected union index: $selectedUnionIndex, got $index, for selected schema $currentWriterSchema")
         }
-        if (currentWriterSchema.type == Schema.Type.UNION) {
+        if (currentWriterSchema.isUnion) {
             selectedUnionIndex = index
             currentWriterSchema = currentWriterSchema.types[index]
         } else {
@@ -60,7 +60,7 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         value: T,
     ) {
         if (currentWriterSchema.type == Schema.Type.BYTES ||
-            currentWriterSchema.type == Schema.Type.UNION && currentWriterSchema.types.any { it.type == Schema.Type.BYTES }
+            currentWriterSchema.isUnion && currentWriterSchema.types.any { it.type == Schema.Type.BYTES }
         ) {
             when (value) {
                 is ByteArray -> encodeBytes(value)

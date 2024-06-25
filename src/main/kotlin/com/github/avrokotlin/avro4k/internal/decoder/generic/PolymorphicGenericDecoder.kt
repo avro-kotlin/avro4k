@@ -1,42 +1,25 @@
 package com.github.avrokotlin.avro4k.internal.decoder.generic
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
+import com.github.avrokotlin.avro4k.internal.decoder.AbstractPolymorphicDecoder
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractDecoder
-import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
-import org.apache.avro.generic.IndexedRecord
 
 internal class PolymorphicGenericDecoder(
-    private val avro: Avro,
-    private val descriptor: SerialDescriptor,
-    private val value: IndexedRecord,
-) : AbstractDecoder() {
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    override fun decodeString(): String {
-        return tryFindSerialName(value.schema)
-            ?: throw SerializationException("Unknown schema name ${value.schema.fullName} for polymorphic type ${descriptor.serialName}")
+    avro: Avro,
+    descriptor: SerialDescriptor,
+    schema: Schema,
+    private val value: Any?,
+) : AbstractPolymorphicDecoder(avro, descriptor, schema) {
+    override fun tryFindSerialNameForUnion(
+        namesAndAliasesToSerialName: Map<String, String>,
+        schema: Schema,
+    ): Pair<String, Schema>? {
+        return schema.types.firstNotNullOfOrNull { tryFindSerialName(namesAndAliasesToSerialName, it) }
     }
 
-    private fun tryFindSerialName(schema: Schema): String? {
-        val namesAndAliasesToSerialName = avro.polymorphicResolver.getFullNamesAndAliasesToSerialName(descriptor)
-        return namesAndAliasesToSerialName[schema.fullName]
-            ?: schema.aliases.firstNotNullOfOrNull { namesAndAliasesToSerialName[it] }
-    }
-
-    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return AvroValueGenericDecoder(avro, value, value.schema)
-            .decodeSerializableValue(deserializer)
-    }
-
-    override fun decodeSequentially() = true
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        throw IllegalIndexedAccessError()
+    override fun newDecoder(chosenSchema: Schema): Decoder {
+        return AvroValueGenericDecoder(avro, value, chosenSchema)
     }
 }

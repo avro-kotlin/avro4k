@@ -1,0 +1,245 @@
+{
+  "type": "record",
+  "name": "Clients",
+  "namespace": "com.github.avrokotlin.benchmark.internal",
+  "fields": [
+    {
+      "name": "clients",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Client",
+          "fields": [
+            {
+              "name": "id",
+              "type": "long"
+            },
+            {
+              "name": "index",
+              "type": "int"
+            },
+            {
+              "name": "guid",
+              "type": [
+                "null",
+                {
+                  "type": "string",
+                  "logicalType": "uuid"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "isActive",
+              "type": "boolean"
+            },
+            {
+              "name": "balance",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "picture",
+              "type": [
+                "null",
+                "bytes"
+              ],
+              "default": null
+            },
+            {
+              "name": "age",
+              "type": "int"
+            },
+            {
+              "name": "eyeColor",
+              "type": [
+                "null",
+                {
+                  "type": "enum",
+                  "name": "EyeColor",
+                  "symbols": [
+                    "BROWN",
+                    "BLUE",
+                    "GREEN"
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "name",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "gender",
+              "type": [
+                "null",
+                {
+                  "type": "int",
+                  "logicalType": "char"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "company",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "emails",
+              "type": {
+                "type": "array",
+                "items": "string"
+              }
+            },
+            {
+              "name": "phones",
+              "type": {
+                "type": "array",
+                "items": "long"
+              }
+            },
+            {
+              "name": "address",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "about",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "registered",
+              "type": [
+                "null",
+                {
+                  "type": "int",
+                  "logicalType": "date"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "latitude",
+              "type": "double"
+            },
+            {
+              "name": "longitude",
+              "type": "float"
+            },
+            {
+              "name": "tags",
+              "type": {
+                "type": "array",
+                "items": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            {
+              "name": "partners",
+              "type": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "record",
+                    "name": "BadPartner",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": "long"
+                      },
+                      {
+                        "name": "name",
+                        "type": [
+                          "null",
+                          "string"
+                        ],
+                        "default": null
+                      },
+                      {
+                        "name": "since",
+                        "type": [
+                          "null",
+                          {
+                            "type": "long",
+                            "logicalType": "timestamp-millis"
+                          }
+                        ],
+                        "default": null
+                      }
+                    ]
+                  },
+                  {
+                    "type": "record",
+                    "name": "GoodPartner",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": "long"
+                      },
+                      {
+                        "name": "name",
+                        "type": [
+                          "null",
+                          "string"
+                        ],
+                        "default": null
+                      },
+                      {
+                        "name": "since",
+                        "type": [
+                          "null",
+                          {
+                            "type": "long",
+                            "logicalType": "timestamp-millis"
+                          }
+                        ],
+                        "default": null
+                      }
+                    ]
+                  },
+                  {
+                    "type": "enum",
+                    "name": "Stranger",
+                    "symbols": [
+                      "KNOWN_STRANGER",
+                      "UNKNOWN_STRANGER"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "map",
+              "type": {
+                "type": "map",
+                "values": "string"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

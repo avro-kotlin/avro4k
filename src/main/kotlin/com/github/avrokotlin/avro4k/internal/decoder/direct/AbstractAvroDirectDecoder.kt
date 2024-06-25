@@ -16,8 +16,8 @@ import com.github.avrokotlin.avro4k.decodeResolvingDouble
 import com.github.avrokotlin.avro4k.decodeResolvingFloat
 import com.github.avrokotlin.avro4k.decodeResolvingInt
 import com.github.avrokotlin.avro4k.decodeResolvingLong
-import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
+import com.github.avrokotlin.avro4k.internal.decoder.AbstractPolymorphicDecoder
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder.SizeGetter
 import com.github.avrokotlin.avro4k.internal.getElementIndexNullable
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
@@ -33,8 +33,8 @@ import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.internal.AbstractCollectionSerializer
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
@@ -523,42 +523,19 @@ internal abstract class AbstractAvroDirectDecoder(
 }
 
 private class PolymorphicDecoder(
-    private val avro: Avro,
-    private val descriptor: SerialDescriptor,
-    private val schema: Schema,
+    avro: Avro,
+    descriptor: SerialDescriptor,
+    schema: Schema,
     private val binaryDecoder: org.apache.avro.io.Decoder,
-) : AbstractDecoder() {
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    private lateinit var chosenSchema: Schema
-
-    override fun decodeString(): String {
-        chosenSchema =
-            if (schema.isUnion) {
-                schema.types[binaryDecoder.readIndex()]
-            } else {
-                schema
-            }
-
-        return tryFindSerialName(chosenSchema)
-            ?: throw SerializationException("Unknown schema name ${schema.fullName} for polymorphic type ${descriptor.nonNullSerialName}")
+) : AbstractPolymorphicDecoder(avro, descriptor, schema) {
+    override fun tryFindSerialNameForUnion(
+        namesAndAliasesToSerialName: Map<String, String>,
+        schema: Schema,
+    ): Pair<String, Schema>? {
+        return tryFindSerialName(namesAndAliasesToSerialName, schema.types[binaryDecoder.readIndex()])
     }
 
-    private fun tryFindSerialName(schema: Schema): String? {
-        val namesAndAliasesToSerialName = avro.polymorphicResolver.getFullNamesAndAliasesToSerialName(descriptor)
-        return namesAndAliasesToSerialName[schema.fullName]
-            ?: schema.aliases.firstNotNullOfOrNull { namesAndAliasesToSerialName[it] }
-    }
-
-    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
+    override fun newDecoder(chosenSchema: Schema): Decoder {
         return AvroValueDirectDecoder(chosenSchema, avro, binaryDecoder)
-            .decodeSerializableValue(deserializer)
-    }
-
-    override fun decodeSequentially() = true
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        throw IllegalIndexedAccessError()
     }
 }

@@ -306,7 +306,7 @@ internal inline fun <T : Any> AvroDecoder.findValueDecoder(
     val schema = currentWriterSchema
 
     val foundResolver =
-        if (schema.type == Schema.Type.UNION) {
+        if (schema.isUnion) {
             if (this is UnionDecoder) {
                 decodeAndResolveUnion()
                 resolver(currentWriterSchema)

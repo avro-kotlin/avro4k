@@ -52,7 +52,7 @@ internal sealed class AbstractAvroDirectEncoder(
 
     private fun Schema.isTypeOfBytes() =
         type == Schema.Type.BYTES ||
-            type == Schema.Type.UNION && types.any { it.type == Schema.Type.BYTES }
+            isUnion && types.any { it.type == Schema.Type.BYTES }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.kind) {
@@ -124,7 +124,7 @@ internal sealed class AbstractAvroDirectEncoder(
         if (selectedUnionIndex > -1) {
             throw SerializationException("Already selected union index: $selectedUnionIndex, got $index, for selected schema $currentWriterSchema")
         }
-        if (currentWriterSchema.type == Schema.Type.UNION) {
+        if (currentWriterSchema.isUnion) {
             binaryEncoder.writeIndex(index)
             selectedUnionIndex = index
             currentWriterSchema = currentWriterSchema.types[index]

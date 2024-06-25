@@ -25,14 +25,14 @@ Computer: Macbook air M2
 
 ```
 Benchmark                                    Mode  Cnt      Score      Error  Units  Relative Difference (%)
-ApacheAvroReflectBenchmark.read             thrpt    5  20073.322 ±  878.268  ops/s   +1.70%
-Avro4kBenchmark.read                        thrpt    5  19738.061 ±  930.026  ops/s    0.00%
-Avro4kGenericWithApacheAvroBenchmark.read   thrpt    5   7538.287 ±  112.690  ops/s  -61.78%
+Avro4kBenchmark.read                        thrpt    5  20537.185 ±  135.318  ops/s    0.00%
+ApacheAvroReflectBenchmark.read             thrpt    5  20059.982 ±  241.854  ops/s   -2.32%
+Avro4kGenericWithApacheAvroBenchmark.read   thrpt    5   7591.527 ±  172.173  ops/s  -63.03%
 
-Avro4kBenchmark.write                       thrpt    5  40780.118 ± 4136.921  ops/s    0.00%
-ApacheAvroReflectBenchmark.write            thrpt    5  37632.786 ±  117.940  ops/s   -7.72%
-JacksonAvroBenchmark.write                  thrpt    5  30544.663 ± 1004.357  ops/s  -25.08%
-Avro4kGenericWithApacheAvroBenchmark.write  thrpt    5  21088.555 ± 1280.548  ops/s  -48.31%
+Avro4kBenchmark.write                       thrpt    5  41215.703 ± 1274.692  ops/s    0.00%
+ApacheAvroReflectBenchmark.write            thrpt    5  37188.260 ±  115.447  ops/s   -9.74%
+JacksonAvroBenchmark.write                  thrpt    5  30757.363 ± 1557.034  ops/s  -25.39%
+Avro4kGenericWithApacheAvroBenchmark.write  thrpt    5  21305.149 ±  830.640  ops/s  -48.33%
 ```
 
 > [!WARNING]

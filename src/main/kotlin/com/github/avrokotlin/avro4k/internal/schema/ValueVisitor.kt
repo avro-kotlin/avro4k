@@ -124,7 +124,7 @@ internal class ValueVisitor internal constructor(
 }
 
 private fun Schema.toNullableSchema(): Schema {
-    return if (this.type == Schema.Type.UNION) {
+    return if (this.isUnion) {
         Schema.createUnion(listOf(Schema.create(Schema.Type.NULL)) + this.types)
     } else {
         Schema.createUnion(Schema.create(Schema.Type.NULL), this)

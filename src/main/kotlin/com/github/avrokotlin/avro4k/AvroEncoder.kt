@@ -83,7 +83,7 @@ public inline fun <T : Any> AvroEncoder.encodeResolving(
     resolver: (Schema) -> (() -> T)?,
 ): T {
     val schema = currentWriterSchema
-    return if (schema.type == Schema.Type.UNION) {
+    return if (schema.isUnion) {
         resolveUnion(schema, error, resolver)
     } else {
         resolver(schema)?.invoke() ?: throw error()

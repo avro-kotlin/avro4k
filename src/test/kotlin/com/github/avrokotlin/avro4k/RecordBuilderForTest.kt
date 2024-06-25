@@ -94,6 +94,6 @@ internal fun recordWithSchema(
 private val Schema.nonNull: Schema
     get() =
         when {
-            type == Schema.Type.UNION && isNullable -> this.types.filter { it.type != Schema.Type.NULL }.let { if (it.size > 1) Schema.createUnion(it) else it[0] }
+            isUnion && isNullable -> this.types.filter { it.type != Schema.Type.NULL }.let { if (it.size > 1) Schema.createUnion(it) else it[0] }
             else -> this
         }

@@ -45,9 +45,19 @@ public interface AvroDecoder : Decoder {
     @ExperimentalSerializationApi
     public val currentWriterSchema: Schema
 
+    /**
+     * Decode a [Schema.Type.BYTES] value.
+     *
+     * A bytes value is a sequence of bytes prefixed with an int corresponding to its length.
+     */
     @ExperimentalSerializationApi
     public fun decodeBytes(): ByteArray
 
+    /**
+     * Decode a [Schema.Type.FIXED] value.
+     *
+     * A fixed value is a fixed-size sequence of bytes, where the length is not materialized in the binary output as it is known by the [currentWriterSchema].
+     */
     @ExperimentalSerializationApi
     public fun decodeFixed(): GenericFixed
 

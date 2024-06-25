@@ -1,9 +1,9 @@
 package com.github.avrokotlin.benchmark
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.decodeFromByteArray
-import com.github.avrokotlin.avro4k.encodeToByteArray
 import kotlinx.benchmark.Benchmark
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 
 internal object Avro4kClientsStaticReadBenchmark {
     @JvmStatic

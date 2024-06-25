@@ -1,9 +1,11 @@
 package com.github.avrokotlin.avro4k
 
+import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.SchemaNormalization
@@ -28,7 +30,10 @@ public class AvroSingleObject(
     private val schemaRegistry: (fingerprint: Long) -> Schema?,
     @PublishedApi
     internal val avro: Avro = Avro,
-) {
+) : BinaryFormat {
+    override val serializersModule: SerializersModule
+        get() = avro.serializersModule
+
     private fun Schema.crc64avro(): ByteArray = SchemaNormalization.parsingFingerprint("CRC-64-AVRO", this)
 
     public fun <T> encodeToStream(
@@ -55,6 +60,22 @@ public class AvroSingleObject(
 
         return avro.decodeFromStream(writerSchema, deserializer, inputStream)
     }
+
+    public override fun <T> decodeFromByteArray(
+        deserializer: DeserializationStrategy<T>,
+        bytes: ByteArray,
+    ): T {
+        return bytes.inputStream().use {
+            decodeFromStream(deserializer, it)
+        }
+    }
+
+    override fun <T> encodeToByteArray(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): ByteArray {
+        return encodeToByteArray(avro.schema(serializer.descriptor), serializer, value)
+    }
 }
 
 private const val MAGIC_BYTE: Int = 0xC3
@@ -78,13 +99,5 @@ public inline fun <reified T> AvroSingleObject.encodeToByteArray(value: T): Byte
     val serializer = avro.serializersModule.serializer<T>()
     return encodeToByteArray(avro.schema(serializer), serializer, value)
 }
-
-public fun <T> AvroSingleObject.decodeFromByteArray(
-    deserializer: DeserializationStrategy<T>,
-    bytes: ByteArray,
-): T =
-    bytes.inputStream().use {
-        decodeFromStream(deserializer, it)
-    }
 
 public inline fun <reified T> AvroSingleObject.decodeFromByteArray(bytes: ByteArray): T = decodeFromByteArray(avro.serializersModule.serializer<T>(), bytes)

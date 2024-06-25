@@ -1,8 +1,21 @@
-public abstract interface class com/github/avrokotlin/benchmark/Partner {
-	public static final field Companion Lcom/github/avrokotlin/benchmark/Partner$Companion;
+public final class com/github/avrokotlin/benchmark/internal/CharJacksonDeserializer : com/fasterxml/jackson/databind/deser/std/StdDeserializer {
+	public fun <init> ()V
+	public fun deserialize (Lcom/fasterxml/jackson/core/JsonParser;Lcom/fasterxml/jackson/databind/DeserializationContext;)Ljava/lang/Character;
+	public synthetic fun deserialize (Lcom/fasterxml/jackson/core/JsonParser;Lcom/fasterxml/jackson/databind/DeserializationContext;)Ljava/lang/Object;
 }
 
-public final class com/github/avrokotlin/benchmark/Partner$Companion {
+public final class com/github/avrokotlin/benchmark/internal/CharJacksonSerializer : com/fasterxml/jackson/databind/ser/std/StdSerializer {
+	public fun <init> ()V
+	public fun acceptJsonFormatVisitor (Lcom/fasterxml/jackson/databind/jsonFormatVisitors/JsonFormatVisitorWrapper;Lcom/fasterxml/jackson/databind/JavaType;)V
+	public fun serialize (Ljava/lang/Character;Lcom/fasterxml/jackson/core/JsonGenerator;Lcom/fasterxml/jackson/databind/SerializerProvider;)V
+	public synthetic fun serialize (Ljava/lang/Object;Lcom/fasterxml/jackson/core/JsonGenerator;Lcom/fasterxml/jackson/databind/SerializerProvider;)V
+}
+
+public abstract interface class com/github/avrokotlin/benchmark/internal/Partner {
+	public static final field Companion Lcom/github/avrokotlin/benchmark/internal/Partner$Companion;
+}
+
+public final class com/github/avrokotlin/benchmark/internal/Partner$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

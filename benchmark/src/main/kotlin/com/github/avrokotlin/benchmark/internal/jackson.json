@@ -1,0 +1,260 @@
+{
+  "type": "record",
+  "name": "Clients",
+  "namespace": "com.github.avrokotlin.benchmark.internal",
+  "fields": [
+    {
+      "name": "clients",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Client",
+          "fields": [
+            {
+              "name": "about",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "address",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "age",
+              "type": {
+                "type": "int",
+                "java-class": "java.lang.Integer"
+              }
+            },
+            {
+              "name": "balance",
+              "type": [
+                "null",
+                {
+                  "type": "string",
+                  "java-class": "java.math.BigDecimal"
+                }
+              ]
+            },
+            {
+              "name": "company",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "emails",
+              "type": {
+                "type": "array",
+                "items": "string",
+                "java-class": "[Ljava.lang.String;"
+              }
+            },
+            {
+              "name": "eyeColor",
+              "type": [
+                "null",
+                {
+                  "type": "enum",
+                  "name": "EyeColor",
+                  "symbols": [
+                    "BROWN",
+                    "BLUE",
+                    "GREEN"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "gender",
+              "type": [
+                "null",
+                {
+                  "type": "int",
+                  "java-class": "java.lang.Character"
+                }
+              ]
+            },
+            {
+              "name": "guid",
+              "type": [
+                "null",
+                {
+                  "type": "fixed",
+                  "name": "UUID",
+                  "namespace": "java.util",
+                  "doc": "",
+                  "size": 16
+                }
+              ]
+            },
+            {
+              "name": "id",
+              "type": {
+                "type": "long",
+                "java-class": "java.lang.Long"
+              }
+            },
+            {
+              "name": "index",
+              "type": {
+                "type": "int",
+                "java-class": "java.lang.Integer"
+              }
+            },
+            {
+              "name": "isActive",
+              "type": "boolean"
+            },
+            {
+              "name": "latitude",
+              "type": {
+                "type": "double",
+                "java-class": "java.lang.Double"
+              }
+            },
+            {
+              "name": "longitude",
+              "type": {
+                "type": "float",
+                "java-class": "java.lang.Float"
+              }
+            },
+            {
+              "name": "map",
+              "type": {
+                "type": "map",
+                "values": "string"
+              }
+            },
+            {
+              "name": "name",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "partners",
+              "type": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "record",
+                    "name": "BadPartner",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "type": "long",
+                          "java-class": "java.lang.Long"
+                        }
+                      },
+                      {
+                        "name": "name",
+                        "type": [
+                          "null",
+                          "string"
+                        ]
+                      },
+                      {
+                        "name": "since",
+                        "type": [
+                          "null",
+                          {
+                            "type": "long",
+                            "java-class": "java.time.Instant"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "record",
+                    "name": "GoodPartner",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "type": "long",
+                          "java-class": "java.lang.Long"
+                        }
+                      },
+                      {
+                        "name": "name",
+                        "type": [
+                          "null",
+                          "string"
+                        ]
+                      },
+                      {
+                        "name": "since",
+                        "type": [
+                          "null",
+                          {
+                            "type": "long",
+                            "java-class": "java.time.Instant"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "enum",
+                    "name": "Stranger",
+                    "symbols": [
+                      "KNOWN_STRANGER",
+                      "UNKNOWN_STRANGER"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "phones",
+              "type": {
+                "type": "array",
+                "items": "long",
+                "java-class": "[J"
+              }
+            },
+            {
+              "name": "picture",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "java-class": "[B"
+                }
+              ]
+            },
+            {
+              "name": "registered",
+              "type": [
+                "null",
+                {
+                  "type": "int",
+                  "java-class": "java.time.LocalDate"
+                }
+              ]
+            },
+            {
+              "name": "tags",
+              "type": {
+                "type": "array",
+                "items": "string"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

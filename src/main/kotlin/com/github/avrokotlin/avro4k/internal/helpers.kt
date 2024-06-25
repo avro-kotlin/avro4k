@@ -31,6 +31,10 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotat
 
 internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
 
+internal fun Schema.isNamedSchema(): Boolean {
+    return this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED
+}
+
 internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
     return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.findAnnotation<AvroAlias>()?.value?.any { isFullNameMatch(it) } == true
 }

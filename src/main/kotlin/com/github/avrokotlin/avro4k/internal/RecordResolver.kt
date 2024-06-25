@@ -233,6 +233,8 @@ internal class ClassDescriptorForWriterSchema(
      */
     val encodingSteps: Array<EncodingStep>,
 ) {
+    val hasMissingWriterField by lazy { encodingSteps.any { it is EncodingStep.MissingWriterFieldFailure } }
+
     companion object {
         val EMPTY =
             ClassDescriptorForWriterSchema(

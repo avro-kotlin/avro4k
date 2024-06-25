@@ -21,6 +21,7 @@ import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.generic.GenericArray
+import org.apache.avro.generic.GenericContainer
 import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.IndexedRecord
@@ -92,8 +93,8 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
 
             is PolymorphicKind ->
                 when (val value = decodeValue()) {
-                    is IndexedRecord -> PolymorphicGenericDecoder(avro, descriptor, value)
-                    else -> throw BadDecodedValueError(value, descriptor.kind, IndexedRecord::class)
+                    is GenericContainer -> PolymorphicGenericDecoder(avro, descriptor, value.schema, value)
+                    else -> PolymorphicGenericDecoder(avro, descriptor, currentWriterSchema, value)
                 }
 
             else -> throw SerializationException("Unsupported descriptor for structure decoding: $descriptor")

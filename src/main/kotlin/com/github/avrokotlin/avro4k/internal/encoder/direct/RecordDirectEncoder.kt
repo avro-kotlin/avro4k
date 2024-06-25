@@ -34,7 +34,7 @@ internal fun RecordDirectEncoder(
  */
 private class RecordSequentialDirectEncoder(
     private val classDescriptor: ClassDescriptorForWriterSchema,
-    protected val schema: Schema,
+    private val schema: Schema,
     avro: Avro,
     binaryEncoder: org.apache.avro.io.Encoder,
 ) : AbstractAvroDirectEncoder(avro, binaryEncoder) {
@@ -63,7 +63,7 @@ private class RecordSequentialDirectEncoder(
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
-        if (descriptor.elementsCount < classDescriptor.encodingSteps.size) {
+        if (classDescriptor.hasMissingWriterField) {
             throw SerializationException("The descriptor is not writing all the expected fields of writer schema. Schema: $schema, descriptor: $descriptor")
         }
     }

@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.encoding
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.encodeToByteArray
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
@@ -11,6 +10,7 @@ import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.generic.GenericData
 import kotlin.io.path.Path
 

@@ -4,7 +4,6 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.internal.isStartingAsJson
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
-import com.github.avrokotlin.avro4k.internal.overrideNamespace
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -99,25 +98,20 @@ internal class ClassVisitor(
         elementDescriptor: SerialDescriptor,
         elementSchema: Schema,
     ): Schema.Field {
-        var finalSchema: Schema = annotations.namespaceOverride?.value?.let { elementSchema.overrideNamespace(it) } ?: elementSchema
+        val fieldDefault = getFieldDefault(annotations.default, elementSchema, elementDescriptor)
 
-        val fieldDefault = getFieldDefault(annotations.default, finalSchema, elementDescriptor)
-
-        if (fieldDefault != null) {
-            reorderUnionIfNeeded(fieldDefault, finalSchema)?.let {
-                finalSchema = it
+        val finalSchema =
+            if (fieldDefault != null) {
+                reorderUnionIfNeeded(fieldDefault, elementSchema)
+            } else {
+                elementSchema
             }
-        }
 
         val field =
             Schema.Field(
-                // name =
                 fieldName,
-                // schema =
                 finalSchema,
-                // doc =
                 annotations.doc?.value,
-                // defaultValue =
                 fieldDefault
             )
         annotations.aliases.flatMap { it.value.asSequence() }.forEach { field.addAlias(it) }
@@ -130,9 +124,9 @@ internal class ClassVisitor(
      */
     private fun reorderUnionIfNeeded(
         fieldDefault: Any,
-        finalSchema: Schema,
-    ): Schema? {
-        if (finalSchema.isUnion && finalSchema.isNullable) {
+        schema: Schema,
+    ): Schema {
+        if (schema.isUnion && schema.isNullable) {
             var nullNotFirst = false
             if (fieldDefault is Collection<*>) {
                 nullNotFirst = fieldDefault.any { it != JsonProperties.NULL_VALUE }
@@ -140,13 +134,13 @@ internal class ClassVisitor(
                 nullNotFirst = true
             }
             if (nullNotFirst) {
-                val nullIndex = finalSchema.types.indexOfFirst { it.type == Schema.Type.NULL }
-                val nonNullTypes = finalSchema.types.toMutableList()
+                val nullIndex = schema.types.indexOfFirst { it.type == Schema.Type.NULL }
+                val nonNullTypes = schema.types.toMutableList()
                 val nullType = nonNullTypes.removeAt(nullIndex)
                 return Schema.createUnion(nonNullTypes + nullType)
             }
         }
-        return null
+        return schema
     }
 
     private fun getFieldDefault(

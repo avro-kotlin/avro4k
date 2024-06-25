@@ -5,7 +5,6 @@ import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.AvroNamespaceOverride
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.internal.AnnotatedLocation
 import com.github.avrokotlin.avro4k.internal.findAnnotation
@@ -29,11 +28,9 @@ internal fun VisitorContext.resetNesting() = copy(inlinedAnnotations = null)
  * Contains all the annotations for a field of a class (kind == CLASS && isInline == true).
  */
 internal data class InlineClassFieldAnnotations(
-    val namespaceOverride: AvroNamespaceOverride?,
     val props: Sequence<AvroProp>,
 ) {
     constructor(inlineClassDescriptor: SerialDescriptor) : this(
-        inlineClassDescriptor.findElementAnnotation<AvroNamespaceOverride>(0),
         sequence {
             yieldAll(inlineClassDescriptor.findAnnotations<AvroProp>())
             yieldAll(inlineClassDescriptor.findElementAnnotations<AvroProp>(0))
@@ -53,14 +50,12 @@ internal data class FieldAnnotations(
     val aliases: Sequence<AvroAlias>,
     val doc: AvroDoc?,
     val default: AvroDefault?,
-    val namespaceOverride: AvroNamespaceOverride?,
 ) {
     constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
         descriptor.findElementAnnotations<AvroProp>(elementIndex).asSequence(),
         descriptor.findElementAnnotations<AvroAlias>(elementIndex).asSequence(),
         descriptor.findElementAnnotation<AvroDoc>(elementIndex),
-        descriptor.findElementAnnotation<AvroDefault>(elementIndex),
-        descriptor.findElementAnnotation<AvroNamespaceOverride>(elementIndex)
+        descriptor.findElementAnnotation<AvroDefault>(elementIndex)
     ) {
         require(descriptor.kind == StructureKind.CLASS) {
             "${FieldAnnotations::class.qualifiedName} is only for classes, but trying at element index $elementIndex with non class descriptor $descriptor"

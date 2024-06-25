@@ -33,15 +33,27 @@ public interface AvroEncoder : Encoder {
     @ExperimentalSerializationApi
     public val currentWriterSchema: Schema
 
+    /**
+     * Encodes a [Schema.Type.BYTES] value from a [ByteBuffer].
+     */
     @ExperimentalSerializationApi
     public fun encodeBytes(value: ByteBuffer)
 
+    /**
+     * Encodes a [Schema.Type.BYTES] value from a [ByteArray].
+     */
     @ExperimentalSerializationApi
     public fun encodeBytes(value: ByteArray)
 
+    /**
+     * Encodes a [Schema.Type.FIXED] value from a [ByteArray]. Its size must match the size of the fixed schema in [currentWriterSchema].
+     */
     @ExperimentalSerializationApi
     public fun encodeFixed(value: ByteArray)
 
+    /**
+     * Encodes a [Schema.Type.FIXED] value from a [GenericFixed]. Its size must match the size of the fixed schema in [currentWriterSchema].
+     */
     @ExperimentalSerializationApi
     public fun encodeFixed(value: GenericFixed)
 }

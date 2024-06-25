@@ -136,7 +136,7 @@ fun main() {
 
 - **Avro4k** is highly based on apache avro library, that implies all the schema validation is done by it
 - All members annotated with `@ExperimentalSerializationApi` are **subject to changes** in future releases without any notice as they are experimental, so please
-  check the release notes to check the needed migration
+  check the release notes to check the needed migration. At least, given a version `A.B.C`, only the minor `B` number will be incremented, not the major `A`.
 - **Avro4k** also supports encoding and decoding generic data, mainly because of confluent schema registry compatibility as their serializers only handle generic data. When avro4k
   will support their schema registry, the generic encoding will be removed to keep this library as simple as possible.
 
@@ -737,30 +737,6 @@ package my.package
 data class MyData(val myField: String)
 ```
 
-## Changing the namespace of all nested named type(s)
-
-Sometimes, using classes from other packages or libraries, you may want to change the namespace of a nested named type. This is done annotating the field
-with `@AvroNamespaceOverride`.
-
-```kotlin
-import kotlinx.serialization.Serializable
-import com.github.avrokotlin.avro4k.AvroNamespaceOverride
-
-@Serializable
-data class MyData(
-    @AvroNamespaceOverride("new.namespace") val myField: NestedRecord
-)
-
-// ...
-package external.package.name
-
-@Serializable
-data class NestedRecord(val field: String)
-```
-
-> [!NOTE]
-> This impacts the schema generation, the serialization and the deserialization.
-
 ## Change type name (FIXED only)
 
 > [!WARNING]
@@ -835,6 +811,9 @@ So to mark a field as optional and facilitate avro contract evolution regarding 
 
 - Kotlin 1.7.20 up to 1.8.10 cannot properly compile @SerialInfo-Annotations on enums (see https://github.com/Kotlin/kotlinx.serialization/issues/2121).
   This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's annotations on enum types, please make sure that you are using kotlin >= 1.8.20.
+
+# Migrating from v1 to v2
+Heads up to the [migration guide](Migrating-from-v1.md) to update your code from avro4k v1 to v2.
 
 # Contributions
 

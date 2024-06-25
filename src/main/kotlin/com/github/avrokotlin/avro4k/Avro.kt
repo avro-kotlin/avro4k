@@ -12,6 +12,7 @@ import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.URLSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -33,15 +34,15 @@ import java.io.ByteArrayInputStream
  */
 public sealed class Avro(
     public val configuration: AvroConfiguration,
-    public val serializersModule: SerializersModule,
-) {
+    public override val serializersModule: SerializersModule,
+) : BinaryFormat {
     // We use the identity hash map because we could have multiple descriptors with the same name, especially
-    // when having 2 different version of the schema for the same name. kotlinx-serialization is instanciating the descriptors
+    // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors
     // only once, so we are safe in the main use cases. Combined with weak references to avoid memory leaks.
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
 
     internal val recordResolver = RecordResolver(this)
-    internal val polymorphicResolver = PolymorphicResolver(this.serializersModule)
+    internal val polymorphicResolver = PolymorphicResolver(serializersModule)
     internal val enumResolver = EnumResolver()
 
     public companion object Default : Avro(
@@ -88,6 +89,20 @@ public sealed class Avro(
         }
         return result
     }
+
+    override fun <T> decodeFromByteArray(
+        deserializer: DeserializationStrategy<T>,
+        bytes: ByteArray,
+    ): T {
+        return decodeFromByteArray(schema(deserializer.descriptor), deserializer, bytes)
+    }
+
+    override fun <T> encodeToByteArray(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): ByteArray {
+        return encodeToByteArray(schema(serializer.descriptor), serializer, value)
+    }
 }
 
 public fun Avro(
@@ -121,8 +136,6 @@ public class AvroBuilder internal constructor(avro: Avro) {
 private class AvroImpl(configuration: AvroConfiguration, serializersModule: SerializersModule) :
     Avro(configuration, serializersModule)
 
-// schema gen extensions
-
 public inline fun <reified T> Avro.schema(): Schema {
     val serializer = serializersModule.serializer<T>()
     return schema(serializer.descriptor)
@@ -132,26 +145,12 @@ public fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
     return schema(serializer.descriptor)
 }
 
-// encoding extensions
-
-public inline fun <reified T> Avro.encodeToByteArray(value: T): ByteArray {
-    val serializer = serializersModule.serializer<T>()
-    return encodeToByteArray(schema(serializer), serializer, value)
-}
-
 public inline fun <reified T> Avro.encodeToByteArray(
     writerSchema: Schema,
     value: T,
 ): ByteArray {
     val serializer = serializersModule.serializer<T>()
     return encodeToByteArray(writerSchema, serializer, value)
-}
-
-// decoding extensions
-
-public inline fun <reified T> Avro.decodeFromByteArray(bytes: ByteArray): T {
-    val serializer = serializersModule.serializer<T>()
-    return decodeFromByteArray(schema(serializer.descriptor), serializer, bytes)
 }
 
 public inline fun <reified T> Avro.decodeFromByteArray(

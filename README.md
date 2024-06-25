@@ -737,30 +737,6 @@ package my.package
 data class MyData(val myField: String)
 ```
 
-## Changing the namespace of all nested named type(s)
-
-Sometimes, using classes from other packages or libraries, you may want to change the namespace of a nested named type. This is done annotating the field
-with `@AvroNamespaceOverride`.
-
-```kotlin
-import kotlinx.serialization.Serializable
-import com.github.avrokotlin.avro4k.AvroNamespaceOverride
-
-@Serializable
-data class MyData(
-    @AvroNamespaceOverride("new.namespace") val myField: NestedRecord
-)
-
-// ...
-package external.package.name
-
-@Serializable
-data class NestedRecord(val field: String)
-```
-
-> [!NOTE]
-> This impacts the schema generation, the serialization and the deserialization.
-
 ## Change type name (FIXED only)
 
 > [!WARNING]

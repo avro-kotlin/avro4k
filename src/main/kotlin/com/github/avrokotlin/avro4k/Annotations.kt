@@ -12,18 +12,6 @@ import org.apache.avro.LogicalType
 import org.intellij.lang.annotations.Language
 
 /**
- * When annotated on a property, deeply overrides the namespace for all the nested named types (records, enums and fixed).
- *
- * Works with standard classes and inline classes.
- */
-@SerialInfo
-@ExperimentalSerializationApi
-@Target(AnnotationTarget.PROPERTY)
-public annotation class AvroNamespaceOverride(
-    val value: String,
-)
-
-/**
  * Adds a property to the Avro schema or field. Its value could be any valid JSON or just a string.
  *
  * When annotated on a value class or its underlying field, the props are applied to the underlying type.
@@ -83,6 +71,11 @@ public annotation class AvroFixed(val size: Int)
 /**
  * Sets the default avro value for a record's field.
  *
+ * - Records and maps have to be represented as a json object
+ * - Arrays have to be represented as a json array
+ * - Nulls have to be represented as a json `null`. To set the string `"null"`, don't forget to quote the string, example: `""""null""""` or `"\"null\""`.
+ * - Any non json content will be treated as a string
+ *
  * Ignored in inline classes.
  */
 @SerialInfo
@@ -112,7 +105,7 @@ public annotation class AvroEnumDefault
  * }
  * ```
  *
- * For more complex needs, please file an issue [here](https://github.com/avro-kotlin/avro4k/issues).
+ * For more complex needs, please file an feature request [here](https://github.com/avro-kotlin/avro4k/issues).
  */
 @ExperimentalSerializationApi
 public fun SerialDescriptor.asAvroLogicalType(): SerialDescriptor {

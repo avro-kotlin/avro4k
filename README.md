@@ -1,8 +1,8 @@
 ![build-main](https://github.com/avro-kotlin/avro4k/workflows/build-main/badge.svg)
 [![Download](https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core)](https://search.maven.org/artifact/com.github.avro-kotlin.avro4k/avro4k-core)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
-[![Kotlinx serialization](https://img.shields.io/badge/kotlinx--serialization-1.7.0--RC-blue?logo=kotlin)](https://github.com/Kotlin/kotlinx.serialization)
-[![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.1-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.1/specification/)
+[![Kotlinx serialization](https://img.shields.io/badge/kotlinx--serialization-1.7.0-blue?logo=kotlin)](https://github.com/Kotlin/kotlinx.serialization)
+[![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.3-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.3/specification/)
 
 # Introduction
 
@@ -92,7 +92,7 @@ fun main() {
 
 </details>
 
-> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.1/specification/#single-object-encoding).
+> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.3/specification/#single-object-encoding).
 
 ## Object container
 
@@ -130,7 +130,7 @@ fun main() {
 
 </details>
 
-> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.1/specification/#single-object-encoding).
+> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.3/specification/#single-object-encoding).
 
 # Important notes
 
@@ -244,7 +244,7 @@ Writing schemas manually or using the Java based `SchemaBuilder` can be tedious.
 Also, it provides native compatibility with data classes (including open and sealed classes), inline classes, any collection, array, enums, and primitive values.
 
 > [!NOTE]
-> For more information about the avro schema, please refer to the [avro specification](https://avro.apache.org/docs/1.11.1/specification/)
+> For more information about the avro schema, please refer to the [avro specification](https://avro.apache.org/docs/1.11.3/specification/)
 
 To allow generating a schema for a specific class, you need to annotate it with `@Serializable`:
 
@@ -591,7 +591,7 @@ data class MyData(
 To be able of reading from different written schemas, or able of writing to different schemas, you can add aliases to a named type (record, enum) field by annotating it
 with `@AvroAlias`. The given aliases may contain the full name of the alias type or only the name.
 
-> [Avro spec link](https://avro.apache.org/docs/1.11.1/specification/#aliases)
+> [Avro spec link](https://avro.apache.org/docs/1.11.3/specification/#aliases)
 
 > [!NOTE]
 > Aliases are not impacted by [naming strategy](#field-naming-strategy-overall-change), so you need to provide aliases directly applying the corresponding naming strategy if you
@@ -638,7 +638,7 @@ println(Avro.schema<BigQueryJson>().toString(true)) // {"type":"string","sqlType
 ```
 
 > [!NOTE]
-> This impacts only the schema generation. For more details, check the [avro specification](https://avro.apache.org/docs/1.11.1/specification/#schema_props).
+> This impacts only the schema generation. For more details, check the [avro specification](https://avro.apache.org/docs/1.11.3/specification/#schema_props).
 
 > [!WARNING]
 > Do not use `@org.apache.avro.reflect.AvroMeta` as this annotation is not visible by Avro4k.

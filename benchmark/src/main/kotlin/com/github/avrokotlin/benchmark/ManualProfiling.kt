@@ -5,7 +5,7 @@ internal object ManualProfilingWrite {
     fun main(vararg args: String) {
         Avro4kBenchmark().apply {
             initTestData()
-            for (i in 0 until 100_000) {
+            for (i in 0 until 1_000_000) {
                 if (i % 1_000 == 0) println("Iteration $i")
                 write()
             }
@@ -17,7 +17,7 @@ internal object ManualProfilingRead {
     fun main(vararg args: String) {
         Avro4kBenchmark().apply {
             initTestData()
-            for (i in 0 until 100_000) {
+            for (i in 0 until 1_000_000) {
                 if (i % 1_000 == 0) println("Iteration $i")
                 read()
             }

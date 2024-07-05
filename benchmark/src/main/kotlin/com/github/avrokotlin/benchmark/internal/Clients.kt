@@ -41,31 +41,31 @@ class CharJacksonDeserializer : StdDeserializer<Char>(Char::class.java) {
 
 @Serializable
 internal data class Client(
-    val id: Long = 0,
-    val index: Int = 0,
-    val isActive: Boolean = false,
+    val id: Long,
+    val index: Int,
+    val isActive: Boolean,
     @Serializable(with = BigDecimalAsStringSerializer::class)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    val balance: BigDecimal? = null,
-    val picture: ByteArray? = null,
-    val age: Int = 0,
-    val eyeColor: EyeColor? = null,
-    val name: String? = null,
+    val balance: BigDecimal?,
+    val picture: ByteArray?,
+    val age: Int,
+    val eyeColor: EyeColor?,
+    val name: String?,
     @JsonSerialize(using = CharJacksonSerializer::class)
     @JsonDeserialize(using = CharJacksonDeserializer::class)
-    val gender: Char? = null,
-    val company: String? = null,
-    val emails: Array<String> = emptyArray(),
-    val phones: LongArray = LongArray(0),
-    val address: String? = null,
-    val about: String? = null,
+    val gender: Char?,
+    val company: String?,
+    val emails: Array<String>,
+    val phones: LongArray,
+    val address: String?,
+    val about: String?,
     @Serializable(with = LocalDateSerializer::class)
-    val registered: LocalDate? = null,
-    val latitude: Double = 0.0,
-    val longitude: Float = 0.0f,
-    val tags: List<String?> = emptyList(),
-    val partner: Partner,
-    val map: Map<String, String> = emptyMap(),
+    val registered: LocalDate?,
+    val latitude: Double,
+    val longitude: Float,
+    val tags: List<String?>,
+    val partner: Partner?,
+    val map: Map<String, String>,
 )
 
 @Serializable
@@ -80,18 +80,18 @@ sealed interface Partner
 
 @Serializable
 internal class GoodPartner(
-    val id: Long = 0,
-    val name: String? = null,
+    val id: Long,
+    val name: String,
     @Serializable(with = InstantSerializer::class)
-    val since: Instant? = null
+    val since: Instant
 ) : Partner
 
 @Serializable
 internal class BadPartner(
-    val id: Long = 0,
-    val name: String? = null,
+    val id: Long,
+    val name: String,
     @Serializable(with = InstantSerializer::class)
-    val since: Instant? = null
+    val since: Instant
 ) : Partner
 
 @Serializable

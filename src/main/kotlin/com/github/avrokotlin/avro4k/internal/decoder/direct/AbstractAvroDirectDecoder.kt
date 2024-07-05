@@ -18,7 +18,6 @@ import com.github.avrokotlin.avro4k.decodeResolvingInt
 import com.github.avrokotlin.avro4k.decodeResolvingLong
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.decoder.AbstractPolymorphicDecoder
-import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder.SizeGetter
 import com.github.avrokotlin.avro4k.internal.getElementIndexNullable
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
@@ -46,7 +45,7 @@ internal abstract class AbstractAvroDirectDecoder(
     protected val binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractInterceptingDecoder(), UnionDecoder {
     abstract override var currentWriterSchema: Schema
-    private var currentlyReadingCollection: Boolean = false
+    private var previousCollectionSize = -1
 
     override val serializersModule: SerializersModule
         get() = avro.serializersModule
@@ -64,60 +63,21 @@ internal abstract class AbstractAvroDirectDecoder(
             return decodeBytes() as T
         }
 
-        if (deserializer is AbstractCollectionSerializer<*, T, *> && currentWriterSchema.isCollectionOrMap()) {
-            var result: T = deserializer.merge(this, null)
-            with(result.collectionSizeGetter()) {
-                if (result.collectionSize() > 0) {
-                    currentlyReadingCollection = true
-                    var prevSize = result.collectionSize()
-                    while (true) {
-                        result = deserializer.merge(this@AbstractAvroDirectDecoder, result)
-                        val newSize = result.collectionSize()
-                        if (prevSize == newSize) {
-                            break
-                        }
-                        prevSize = newSize
-                    }
-                    currentlyReadingCollection = false
-                }
-            }
-            return result
+        if (deserializer is AbstractCollectionSerializer<*, T, *>) {
+            return decodeCollectionLike(deserializer)
         }
 
         return super<AbstractInterceptingDecoder>.decodeSerializableValue(deserializer)
     }
 
-    private fun Schema.isCollectionOrMap(): Boolean {
-        if (isUnion) {
-            this.types.forEach {
-                if (it.isCollectionOrMap()) {
-                    return true
-                }
-            }
-            return false
-        }
-        return this.type == Schema.Type.ARRAY || this.type == Schema.Type.MAP
-    }
-
-    fun interface SizeGetter<T> {
-        fun T.collectionSize(): Int
-    }
-
-    private fun <T> T.collectionSizeGetter(): SizeGetter<T> {
-        return when (this) {
-            is Collection<*> -> SizeGetter { size }
-            is Map<*, *> -> SizeGetter { size }
-            is Array<*> -> SizeGetter { size }
-            is BooleanArray -> SizeGetter { size }
-            is ByteArray -> SizeGetter { size }
-            is ShortArray -> SizeGetter { size }
-            is IntArray -> SizeGetter { size }
-            is LongArray -> SizeGetter { size }
-            is FloatArray -> SizeGetter { size }
-            is DoubleArray -> SizeGetter { size }
-            is CharArray -> SizeGetter { size }
-            else -> throw SerializationException("Unsupported collection type: ${this?.let { it::class }}")
-        }
+    @OptIn(InternalSerializationApi::class)
+    private fun <T> decodeCollectionLike(deserializer: AbstractCollectionSerializer<*, T, *>): T {
+        var result: T? = null
+        do {
+            result = deserializer.merge(this, result)
+        } while (previousCollectionSize > 0)
+        previousCollectionSize = -1
+        return result!!
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
@@ -132,7 +92,7 @@ internal abstract class AbstractAvroDirectDecoder(
                 }) {
                     when (it.type) {
                         Schema.Type.ARRAY -> {
-                            AnyValueDecoder { ArrayBlockDirectDecoder(it, decodeFirstBlock = !currentlyReadingCollection, avro, binaryDecoder) }
+                            AnyValueDecoder { ArrayBlockDirectDecoder(it, decodeFirstBlock = previousCollectionSize == -1, { previousCollectionSize = it }, avro, binaryDecoder) }
                         }
 
                         Schema.Type.BYTES -> {
@@ -152,7 +112,7 @@ internal abstract class AbstractAvroDirectDecoder(
                 }) {
                     when (it.type) {
                         Schema.Type.MAP -> {
-                            AnyValueDecoder { MapBlockDirectDecoder(it, decodeFirstBlock = !currentlyReadingCollection, avro, binaryDecoder) }
+                            AnyValueDecoder { MapBlockDirectDecoder(it, decodeFirstBlock = previousCollectionSize == -1, { previousCollectionSize = it }, avro, binaryDecoder) }
                         }
 
                         else -> null

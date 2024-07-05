@@ -39,7 +39,7 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         get() = avro.serializersModule
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        if (deserializer.descriptor == ByteArraySerializer().descriptor) {
+        if (deserializer == ByteArraySerializer()) {
             // fast-path for ByteArray fields, to avoid slow-path with ArrayGenericDecoder
             @Suppress("UNCHECKED_CAST")
             return decodeBytes() as T

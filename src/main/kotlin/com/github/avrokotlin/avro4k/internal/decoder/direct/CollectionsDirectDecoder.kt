@@ -34,6 +34,7 @@ internal class BytesDirectDecoder(
 internal class ArrayBlockDirectDecoder(
     private val arraySchema: Schema,
     private val decodeFirstBlock: Boolean,
+    private val onCollectionSizeDecoded: (Int) -> Unit,
     avro: Avro,
     binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
@@ -44,7 +45,7 @@ internal class ArrayBlockDirectDecoder(
             binaryDecoder.readArrayStart().toInt()
         } else {
             binaryDecoder.arrayNext().toInt()
-        }
+        }.also { onCollectionSizeDecoded(it) }
     }
 
     override fun beginElement(
@@ -65,6 +66,7 @@ internal class ArrayBlockDirectDecoder(
 internal class MapBlockDirectDecoder(
     private val mapSchema: Schema,
     private val decodeFirstBlock: Boolean,
+    private val onCollectionSizeDecoded: (Int) -> Unit,
     avro: Avro,
     binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
@@ -75,7 +77,7 @@ internal class MapBlockDirectDecoder(
             binaryDecoder.readMapStart().toInt()
         } else {
             binaryDecoder.mapNext().toInt()
-        }
+        }.also { onCollectionSizeDecoded(it) }
     }
 
     override fun beginElement(

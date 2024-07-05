@@ -10,6 +10,7 @@ import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.zeroPadded
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -59,14 +60,8 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         serializer: SerializationStrategy<T>,
         value: T,
     ) {
-        if (currentWriterSchema.type == Schema.Type.BYTES ||
-            currentWriterSchema.isUnion && currentWriterSchema.types.any { it.type == Schema.Type.BYTES }
-        ) {
-            when (value) {
-                is ByteArray -> encodeBytes(value)
-                is ByteBuffer -> encodeBytes(value)
-                else -> super<AbstractEncoder>.encodeSerializableValue(serializer, value)
-            }
+        if (serializer == ByteArraySerializer()) {
+            encodeBytes(value as ByteArray)
         } else {
             super<AbstractEncoder>.encodeSerializableValue(serializer, value)
         }

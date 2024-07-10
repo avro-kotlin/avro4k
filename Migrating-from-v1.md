@@ -44,7 +44,6 @@ val genericData: Any? = Avro.encodeToGenericData(TheDataClass(...))
 Avro.decodeFromGenericData<TheDataClass>(genericData)
 ```
 
-
 ## Configure the `Avro` instance
 
 ```kotlin
@@ -115,3 +114,26 @@ Files.newOutputStream(Path("/your/file.avro")).use { outputStream ->
 }
 ```
 
+## Writing a collection of Byte as BYTES or FIXED
+
+If you really want to encode a `BYTES` type, just use the `ByteArray` type or write your own `AvroSerializer` to control the schema and its serialization.
+
+For encoding to `FIXED`, then just use the `ByteArray` type with the `AvroFixed` annotation (or still write your own serializer).
+
+```kotlin
+// Previously
+@Serializable
+data class TheDataClass(
+    val collectionOfBytes: List<Byte>,
+    val listOfBytes: List<Byte>,
+    val setOfBytes: List<Byte>,
+)
+
+// Now
+@Serializable
+data class TheDataClass(
+    val collectionOfBytes: ByteArray,
+    val listOfBytes: ByteArray,
+    val setOfBytes: ByteArray,
+)
+```

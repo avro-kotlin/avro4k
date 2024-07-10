@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.AvroAssertions
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable

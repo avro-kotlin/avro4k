@@ -59,6 +59,20 @@ internal class AvroFixedEncodingTest : StringSpec({
             )
     }
 
+    "encode/decode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
+        @Serializable
+        @SerialName("Foo")
+        data class StringFoo(
+            @AvroFixed(7) val a: String?,
+        )
+
+        AvroAssertions.assertThat(StringFoo("hello"))
+            .isEncodedAs(
+                record(byteArrayOf(104, 101, 108, 108, 111, 0, 0)),
+                StringFoo(String("hello".toByteArray() + byteArrayOf(0, 0)))
+            )
+    }
+
 //    "Handle FIXED in unions with the good and bad fullNames and aliases" {
 //        fail("TODO")
 //    }

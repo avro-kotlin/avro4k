@@ -1,16 +1,14 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroFixed
-import com.github.avrokotlin.avro4k.internal.AvroLogicalTypeSupplier
-import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
+import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.internal.nullable
+import com.github.avrokotlin.avro4k.serializer.AvroSchemaSupplier
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.descriptors.nonNullOriginal
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.LogicalType
@@ -22,7 +20,6 @@ internal class ValueVisitor internal constructor(
     private val onSchemaBuilt: (Schema) -> Unit,
 ) : SerialDescriptorValueVisitor {
     private var isNullable: Boolean = false
-    private var logicalType: LogicalType? = null
 
     override val serializersModule: SerializersModule
         get() = context.avro.serializersModule
@@ -59,75 +56,49 @@ internal class ValueVisitor internal constructor(
         get() = Array(elementsCount) { getElementName(it) }
 
     override fun visitObject(descriptor: SerialDescriptor) {
-        // we consider objects as records without fields since the beginning. Is it really a good idea ?
+        // we consider objects as records without fields.
         visitClass(descriptor).endClassVisit(descriptor)
     }
 
-    override fun visitClass(descriptor: SerialDescriptor) = ClassVisitor(descriptor, context.resetNesting()) { setSchema(it) }
+    override fun visitClass(descriptor: SerialDescriptor) = ClassVisitor(descriptor, context.copy(inlinedElements = emptyList())) { setSchema(it) }
 
     override fun visitPolymorphic(
         descriptor: SerialDescriptor,
         kind: PolymorphicKind,
     ) = PolymorphicVisitor(context) { setSchema(it) }
 
-    override fun visitList(descriptor: SerialDescriptor) = ListVisitor(context.copy(inlinedAnnotations = null)) { setSchema(it) }
+    override fun visitList(descriptor: SerialDescriptor) = ListVisitor(context.copy(inlinedElements = emptyList())) { setSchema(it) }
 
-    override fun visitMap(descriptor: SerialDescriptor) = MapVisitor(context.copy(inlinedAnnotations = null)) { setSchema(it) }
+    override fun visitMap(descriptor: SerialDescriptor) = MapVisitor(context.copy(inlinedElements = emptyList())) { setSchema(it) }
 
     override fun visitInlineClass(descriptor: SerialDescriptor) = InlineClassVisitor(context) { setSchema(it) }
 
     private fun setSchema(schema: Schema) {
-        val finalSchema = logicalType?.addToSchema(schema) ?: schema
-        if (isNullable && !finalSchema.isNullable) {
-            onSchemaBuilt(finalSchema.toNullableSchema())
+        if (isNullable && !schema.isNullable) {
+            onSchemaBuilt(schema.nullable)
         } else {
-            onSchemaBuilt(finalSchema)
+            onSchemaBuilt(schema)
         }
-    }
-
-    private fun visitByteArray() {
-        setSchema(Schema.create(Schema.Type.BYTES))
-    }
-
-    private fun visitFixed(fixed: AnnotatedElementOrType<AvroFixed>) {
-        val parentFieldName =
-            fixed.elementIndex?.let { fixed.descriptor.getElementName(it) }
-                ?: throw AvroSchemaGenerationException("@AvroFixed must be used on a field")
-        val parentNamespace = fixed.descriptor.serialName.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
-
-        setSchema(
-            SchemaBuilder.fixed(parentFieldName)
-                .namespace(parentNamespace)
-                .size(fixed.annotation.size)
-        )
     }
 
     override fun visitValue(descriptor: SerialDescriptor) {
+        val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
+
+        (finalDescriptor.nonNullOriginal as? AvroSchemaSupplier)
+            ?.getSchema(context)
+            ?.let {
+                setSchema(it)
+                return
+            }
+        super.visitValue(finalDescriptor)
+    }
+
+    private fun unwrapNullable(descriptor: SerialDescriptor): SerialDescriptor {
         if (descriptor.isNullable) {
             isNullable = true
+            return descriptor.nonNullOriginal
         }
-        if (descriptor.kind == SerialKind.CONTEXTUAL) {
-            super.visitValue(descriptor)
-            return
-        }
-        val annotations = context.inlinedAnnotations.appendAnnotations(ValueAnnotations(descriptor))
-
-        (descriptor.nonNullOriginal as? AvroLogicalTypeSupplier)?.let {
-            logicalType = it.getLogicalType(annotations.stack)
-        }
-        when {
-            annotations.fixed != null -> visitFixed(annotations.fixed)
-            descriptor.isByteArray() -> visitByteArray()
-            else -> super.visitValue(descriptor)
-        }
-    }
-}
-
-private fun Schema.toNullableSchema(): Schema {
-    return if (this.isUnion) {
-        Schema.createUnion(listOf(Schema.create(Schema.Type.NULL)) + this.types)
-    } else {
-        Schema.createUnion(Schema.create(Schema.Type.NULL), this)
+        return descriptor
     }
 }
 
@@ -146,5 +117,3 @@ private fun PrimitiveKind.toSchema(): Schema =
         PrimitiveKind.DOUBLE -> Schema.create(Schema.Type.DOUBLE)
         PrimitiveKind.STRING -> Schema.create(Schema.Type.STRING)
     }
-
-private fun SerialDescriptor.isByteArray(): Boolean = kind == StructureKind.LIST && getElementDescriptor(0).let { !it.isNullable && it.kind == PrimitiveKind.BYTE }

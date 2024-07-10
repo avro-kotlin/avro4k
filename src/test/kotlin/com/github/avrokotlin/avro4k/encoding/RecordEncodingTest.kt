@@ -2,9 +2,8 @@ package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
-import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.encodeToByteArray
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
@@ -56,19 +55,6 @@ internal class RecordEncodingTest : StringSpec({
     "encode/decode strings as UTF8" {
         AvroAssertions.assertThat(StringFoo("hello"))
             .isEncodedAs(record("hello"))
-    }
-    "encode/decode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
-        @Serializable
-        @SerialName("Foo")
-        data class StringFoo(
-            @AvroFixed(7) val a: String?,
-        )
-
-        AvroAssertions.assertThat(StringFoo("hello"))
-            .isEncodedAs(
-                record(byteArrayOf(104, 101, 108, 108, 111, 0, 0)),
-                StringFoo(String("hello".toByteArray() + byteArrayOf(0, 0)))
-            )
     }
     "encode/decode nullable string" {
         @Serializable

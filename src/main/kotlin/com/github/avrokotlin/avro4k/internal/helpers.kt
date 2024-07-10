@@ -25,11 +25,23 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findAnnotation() =
 
 internal inline fun <reified T : Annotation> SerialDescriptor.findAnnotations() = annotations.filterIsInstance<T>()
 
-internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotation(elementIndex: Int) = getElementAnnotations(elementIndex).firstNotNullOfOrNull { it as? T }
+@PublishedApi
+internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotation(elementIndex: Int): T? = getElementAnnotations(elementIndex).firstNotNullOfOrNull { it as? T }
 
 internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotations(elementIndex: Int) = getElementAnnotations(elementIndex).filterIsInstance<T>()
 
 internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
+internal val SerialDescriptor.namespace: String? get() = serialName.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
+
+internal val Schema.nullable: Schema
+    get() {
+        if (isNullable) return this
+        return if (isUnion) {
+            Schema.createUnion(listOf(Schema.create(Schema.Type.NULL)) + this.types)
+        } else {
+            Schema.createUnion(Schema.create(Schema.Type.NULL), this)
+        }
+    }
 
 internal fun Schema.isNamedSchema(): Boolean {
     return this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED
@@ -43,34 +55,6 @@ internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
     return fullName == fullNameToMatch ||
         (type == Schema.Type.RECORD || type == Schema.Type.ENUM || type == Schema.Type.FIXED) &&
         aliases.any { it == fullNameToMatch }
-}
-
-private fun String.removeSuffix(suffix: Char): String {
-    if (lastOrNull() == suffix) {
-        return substring(0, length - 1)
-    }
-    return this
-}
-
-/**
- * Overrides the namespace of a [Schema] with the given namespace.
- */
-internal fun Schema.overrideNamespace(namespaceOverride: String): Schema {
-    return when (type) {
-        Schema.Type.RECORD ->
-            copy(
-                namespace = namespaceOverride,
-                fields =
-                    fields.map {
-                        it.copy(schema = it.schema().overrideNamespace(namespaceOverride))
-                    }
-            )
-
-        Schema.Type.UNION -> copy(types = types.map { it.overrideNamespace(namespaceOverride) })
-        Schema.Type.MAP -> copy(valueType = valueType.overrideNamespace(namespaceOverride))
-        Schema.Type.ARRAY -> copy(elementType = elementType.overrideNamespace(namespaceOverride))
-        else -> copy(namespace = namespaceOverride)
-    }
 }
 
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
@@ -206,27 +190,5 @@ internal fun ByteArray.zeroPadded(
         }
     } else {
         this
-    }
-}
-
-internal interface AnnotatedLocation {
-    val descriptor: SerialDescriptor
-    val elementIndex: Int?
-}
-
-internal fun SerialDescriptor.asAvroLogicalType(logicalTypeSupplier: (inlinedStack: List<AnnotatedLocation>) -> LogicalType): SerialDescriptor {
-    return SerialDescriptorWithAvroLogicalTypeWrapper(this, logicalTypeSupplier)
-}
-
-internal interface AvroLogicalTypeSupplier {
-    fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType
-}
-
-private class SerialDescriptorWithAvroLogicalTypeWrapper(
-    descriptor: SerialDescriptor,
-    private val logicalTypeSupplier: (inlinedStack: List<AnnotatedLocation>) -> LogicalType,
-) : SerialDescriptor by descriptor, AvroLogicalTypeSupplier {
-    override fun getLogicalType(inlinedStack: List<AnnotatedLocation>): LogicalType {
-        return logicalTypeSupplier(inlinedStack)
     }
 }

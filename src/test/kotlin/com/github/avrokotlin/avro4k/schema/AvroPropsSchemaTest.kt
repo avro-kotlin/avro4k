@@ -3,15 +3,16 @@ package com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroEnumDefault
+import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
-import org.apache.avro.SchemaParseException
 import kotlin.io.path.Path
 
 internal class AvroPropsSchemaTest : StringSpec({
@@ -58,12 +59,37 @@ internal class AvroPropsSchemaTest : StringSpec({
             val basicRecord: BasicRecord,
             val basicRecordWithProps: BasicRecordWithProps,
         )
-        shouldThrow<SchemaParseException> {
-            //
+        shouldThrow<SerializationException> {
             Avro.schema<SimpleDataClass>().toString()
         }
     }
+    "forbid adding props to a named schema in a value class" {
+        shouldThrow<SerializationException> {
+            Avro.schema<ValueClassWithProps<BasicRecord>>().toString()
+        }
+        shouldThrow<SerializationException> {
+            Avro.schema<ValueClassWithProps<EnumAnnotated>>().toString()
+        }
+        shouldThrow<SerializationException> {
+            Avro.schema<FixedValueClassWithProps>().toString()
+        }
+    }
 }) {
+    @JvmInline
+    @Serializable
+    private value class ValueClassWithProps<T>(
+        @AvroProp("key", "value")
+        val value: T,
+    )
+
+    @JvmInline
+    @Serializable
+    private value class FixedValueClassWithProps(
+        @AvroProp("key", "value")
+        @AvroFixed(10)
+        val value: ByteArray,
+    )
+
     @Serializable
     @SerialName("BasicRecord")
     private data class BasicRecord(

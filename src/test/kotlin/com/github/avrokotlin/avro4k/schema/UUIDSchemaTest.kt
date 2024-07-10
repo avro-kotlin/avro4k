@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroAssertions
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

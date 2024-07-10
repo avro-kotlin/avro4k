@@ -2,15 +2,16 @@ package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
+import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
-import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroProp
-import com.github.avrokotlin.avro4k.internal.AnnotatedLocation
 import com.github.avrokotlin.avro4k.internal.findAnnotation
 import com.github.avrokotlin.avro4k.internal.findAnnotations
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
 import com.github.avrokotlin.avro4k.internal.findElementAnnotations
+import com.github.avrokotlin.avro4k.serializer.ElementLocation
+import com.github.avrokotlin.avro4k.serializer.SchemaSupplierContext
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
@@ -19,10 +20,11 @@ import org.apache.avro.Schema
 internal data class VisitorContext(
     val avro: Avro,
     val resolvedSchemas: MutableMap<String, Schema>,
-    val inlinedAnnotations: ValueAnnotations? = null,
-)
-
-internal fun VisitorContext.resetNesting() = copy(inlinedAnnotations = null)
+    override val inlinedElements: List<ElementLocation> = emptyList(),
+) : SchemaSupplierContext {
+    override val configuration: AvroConfiguration
+        get() = avro.configuration
+}
 
 /**
  * Contains all the annotations for a field of a class (kind == CLASS && isInline == true).
@@ -47,13 +49,13 @@ internal data class InlineClassFieldAnnotations(
  */
 internal data class FieldAnnotations(
     val props: Sequence<AvroProp>,
-    val aliases: Sequence<AvroAlias>,
+    val aliases: AvroAlias?,
     val doc: AvroDoc?,
     val default: AvroDefault?,
 ) {
     constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
         descriptor.findElementAnnotations<AvroProp>(elementIndex).asSequence(),
-        descriptor.findElementAnnotations<AvroAlias>(elementIndex).asSequence(),
+        descriptor.findElementAnnotation<AvroAlias>(elementIndex),
         descriptor.findElementAnnotation<AvroDoc>(elementIndex),
         descriptor.findElementAnnotation<AvroDefault>(elementIndex)
     ) {
@@ -62,45 +64,6 @@ internal data class FieldAnnotations(
         }
     }
 }
-
-/**
- * Contains all the annotations for a field of a class, inline or not (kind == CLASS).
- * Helpful when nesting multiple inline classes to get the first annotation.
- */
-internal data class ValueAnnotations(
-    val stack: List<AnnotatedLocation>,
-    val fixed: AnnotatedElementOrType<AvroFixed>?,
-) {
-    constructor(descriptor: SerialDescriptor, elementIndex: Int) : this(
-        listOf(SimpleAnnotatedLocation(descriptor, elementIndex)),
-        AnnotatedElementOrType<AvroFixed>(descriptor, elementIndex)
-    )
-
-    constructor(descriptor: SerialDescriptor) : this(
-        listOf(SimpleAnnotatedLocation(descriptor)),
-        AnnotatedElementOrType<AvroFixed>(descriptor)
-    )
-}
-
-internal data class AnnotatedElementOrType<T : Annotation>(
-    override val descriptor: SerialDescriptor,
-    override val elementIndex: Int?,
-    val annotation: T,
-) : AnnotatedLocation {
-    companion object {
-        inline operator fun <reified T : Annotation> invoke(
-            descriptor: SerialDescriptor,
-            elementIndex: Int,
-        ) = descriptor.findElementAnnotation<T>(elementIndex)?.let { AnnotatedElementOrType(descriptor, elementIndex, it) }
-
-        inline operator fun <reified T : Annotation> invoke(descriptor: SerialDescriptor) = descriptor.findAnnotation<T>()?.let { AnnotatedElementOrType(descriptor, null, it) }
-    }
-}
-
-internal data class SimpleAnnotatedLocation(
-    override val descriptor: SerialDescriptor,
-    override val elementIndex: Int? = null,
-) : AnnotatedLocation
 
 /**
  * Contains all the annotations for a class, object or enum (kind == CLASS || kind == OBJECT || kind == ENUM).
@@ -120,13 +83,3 @@ internal data class TypeAnnotations(
         }
     }
 }
-
-/**
- * Keep the top-est annotation. If the current element details annotation is null, it will be replaced by the new annotation.
- * If the current element details annotation is not null, it will be kept.
- */
-internal fun ValueAnnotations?.appendAnnotations(other: ValueAnnotations) =
-    ValueAnnotations(
-        fixed = this?.fixed ?: other.fixed,
-        stack = (this?.stack ?: emptyList()) + other.stack
-    )

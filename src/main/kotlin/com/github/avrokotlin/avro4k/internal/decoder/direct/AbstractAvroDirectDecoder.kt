@@ -61,25 +61,10 @@ internal abstract class AbstractAvroDirectDecoder(
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         return when (descriptor.kind) {
             StructureKind.LIST ->
-                decodeResolvingAny({
-                    UnexpectedDecodeSchemaError(
-                        descriptor.nonNullSerialName,
-                        Schema.Type.ARRAY,
-                        Schema.Type.BYTES,
-                        Schema.Type.FIXED
-                    )
-                }) {
+                decodeResolvingAny({ UnexpectedDecodeSchemaError(descriptor.nonNullSerialName, Schema.Type.ARRAY) }) {
                     when (it.type) {
                         Schema.Type.ARRAY -> {
                             AnyValueDecoder { ArrayBlockDirectDecoder(it, decodeFirstBlock = decodedCollectionSize == -1, { decodedCollectionSize = it }, avro, binaryDecoder) }
-                        }
-
-                        Schema.Type.BYTES -> {
-                            AnyValueDecoder { BytesDirectDecoder(avro, binaryDecoder) }
-                        }
-
-                        Schema.Type.FIXED -> {
-                            AnyValueDecoder { FixedDirectDecoder(avro, it.fixedSize, binaryDecoder) }
                         }
 
                         else -> null
@@ -87,12 +72,7 @@ internal abstract class AbstractAvroDirectDecoder(
                 }
 
             StructureKind.MAP ->
-                decodeResolvingAny({
-                    UnexpectedDecodeSchemaError(
-                        descriptor.nonNullSerialName,
-                        Schema.Type.MAP
-                    )
-                }) {
+                decodeResolvingAny({ UnexpectedDecodeSchemaError(descriptor.nonNullSerialName, Schema.Type.MAP) }) {
                     when (it.type) {
                         Schema.Type.MAP -> {
                             AnyValueDecoder { MapBlockDirectDecoder(it, decodeFirstBlock = decodedCollectionSize == -1, { decodedCollectionSize = it }, avro, binaryDecoder) }
@@ -103,12 +83,7 @@ internal abstract class AbstractAvroDirectDecoder(
                 }
 
             StructureKind.CLASS, StructureKind.OBJECT ->
-                decodeResolvingAny({
-                    UnexpectedDecodeSchemaError(
-                        descriptor.nonNullSerialName,
-                        Schema.Type.RECORD
-                    )
-                }) {
+                decodeResolvingAny({ UnexpectedDecodeSchemaError(descriptor.nonNullSerialName, Schema.Type.RECORD) }) {
                     when (it.type) {
                         Schema.Type.RECORD -> {
                             AnyValueDecoder { RecordDirectDecoder(it, descriptor, avro, binaryDecoder) }

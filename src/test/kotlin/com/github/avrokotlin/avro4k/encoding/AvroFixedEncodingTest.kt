@@ -24,7 +24,7 @@ internal class AvroFixedEncodingTest : StringSpec({
             .isEncodedAs(record(GenericData.Fixed(schema, "1234567".toByteArray())))
     }
 
-    "support fixed on value classes" {
+    "support fixed on string value classes" {
         AvroAssertions.assertThat<FixedNestedStringField>()
             .generatesSchema(Path("/fixed_string.json"))
 
@@ -34,6 +34,12 @@ internal class AvroFixedEncodingTest : StringSpec({
 
         AvroAssertions.assertThat(FixedStringValueClass("1234567"))
             .isEncodedAs(GenericData.Fixed(Avro.schema<FixedStringValueClass>(), "1234567".toByteArray()))
+    }
+
+    "support @AvroFixed on ByteArray" {
+        AvroAssertions.assertThat(FixedByteArrayField("1234567".toByteArray()))
+            .generatesSchema(Path("/fixed_string.json"))
+            .isEncodedAs(record(GenericData.Fixed(Avro.schema<FixedByteArrayField>().fields[0].schema(), "1234567".toByteArray())))
     }
 
     "top-est @AvroFixed annotation takes precedence over nested @AvroFixed annotations" {
@@ -82,6 +88,25 @@ internal class AvroFixedEncodingTest : StringSpec({
     private data class FixedStringField(
         @AvroFixed(7) val mystring: String,
     )
+
+    @Serializable
+    @SerialName("Fixed")
+    private data class FixedByteArrayField(
+        @AvroFixed(7) val mystring: ByteArray,
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as FixedByteArrayField
+
+            return mystring.contentEquals(other.mystring)
+        }
+
+        override fun hashCode(): Int {
+            return mystring.contentHashCode()
+        }
+    }
 
     @Serializable
     @SerialName("Fixed")

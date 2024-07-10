@@ -17,6 +17,7 @@ import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
+import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
 
 internal class AvroValueDirectEncoder(
@@ -138,10 +139,12 @@ internal sealed class AbstractAvroDirectEncoder(
             { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
         ) {
             when (it.type) {
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.BYTES -> {
                     { binaryEncoder.writeBytes(value) }
+                }
+
+                Schema.Type.STRING -> {
+                    { binaryEncoder.writeString(Utf8(value.array())) }
                 }
 
                 Schema.Type.FIXED -> {
@@ -162,10 +165,12 @@ internal sealed class AbstractAvroDirectEncoder(
             { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
         ) {
             when (it.type) {
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.BYTES -> {
                     { binaryEncoder.writeBytes(value) }
+                }
+
+                Schema.Type.STRING -> {
+                    { binaryEncoder.writeString(Utf8(value)) }
                 }
 
                 Schema.Type.FIXED -> {
@@ -194,10 +199,12 @@ internal sealed class AbstractAvroDirectEncoder(
                     }
                 }
 
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.BYTES -> {
                     { binaryEncoder.writeBytes(value.bytes()) }
+                }
+
+                Schema.Type.STRING -> {
+                    { binaryEncoder.writeString(Utf8(value.bytes())) }
                 }
 
                 else -> null
@@ -217,10 +224,12 @@ internal sealed class AbstractAvroDirectEncoder(
                         null
                     }
 
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.BYTES -> {
                     { binaryEncoder.writeBytes(value) }
+                }
+
+                Schema.Type.STRING -> {
+                    { binaryEncoder.writeString(Utf8(value)) }
                 }
 
                 else -> null

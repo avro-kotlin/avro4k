@@ -44,8 +44,8 @@ public data class AvroDuration(
             if (days != 0u) {
                 append("${days}D")
             }
-            append("T")
             if (millis != 0u) {
+                append("T")
                 append(millis / 1000u)
                 val millisPart = millis % 1000u
                 if (millisPart != 0u) {
@@ -89,10 +89,18 @@ public data class AvroDuration(
             val match = PATTERN.matchEntire(value) ?: return null
             val (years, months, weeks, days, hours, minutes, seconds, millis) = match.destructured
             return AvroDuration(
-                months = years.toUInt() * 12u + months.toUInt(),
-                days = weeks.toUInt() * 7u + days.toUInt(),
-                millis = hours.toUInt() * 60u * 60u * 1000u + minutes.toUInt() * 60u * 1000u + seconds.toUInt() * 1000u + millis.toUInt()
+                months = years * 12u + months.toUIntOrZero(),
+                days = weeks * 7u + days.toUIntOrZero(),
+                millis = hours * 60u * 60u * 1000u + minutes * 60u * 1000u + seconds * 1000u + millis.toUIntOrZero()
             )
+        }
+
+        private operator fun String.times(other: UInt): UInt {
+            return toUIntOrNull()?.times(other) ?: 0u
+        }
+
+        private fun String.toUIntOrZero(): UInt {
+            return toUIntOrNull() ?: 0u
         }
 
         @JvmStatic
@@ -114,7 +122,9 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
         }
 
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return DURATION_SCHEMA
+        return context.inlinedElements.firstNotNullOfOrNull {
+            it.stringable?.createSchema()
+        } ?: DURATION_SCHEMA
     }
 
     override fun serializeAvro(

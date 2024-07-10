@@ -185,10 +185,10 @@ private val defaultAnnotation = AvroDecimal()
 
 public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        val decimalAnnotation = context.decimal?.annotation ?: defaultAnnotation
-        val schema = context.fixed?.createSchema() ?: Schema.create(Schema.Type.BYTES)
-        decimalAnnotation.logicalType.addToSchema(schema)
-        return schema
+        val logicalType = (context.inlinedElements.firstNotNullOfOrNull { it.decimal } ?: defaultAnnotation).logicalType
+        return context.inlinedElements.firstNotNullOfOrNull {
+            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)?.copy(logicalType = logicalType)
+        } ?: Schema.create(Schema.Type.BYTES).copy(logicalType = logicalType)
     }
 
     override fun serializeAvro(

@@ -10,7 +10,7 @@ import com.github.avrokotlin.avro4k.WrappedInt
 import com.github.avrokotlin.avro4k.WrappedLong
 import com.github.avrokotlin.avro4k.WrappedShort
 import com.github.avrokotlin.avro4k.WrappedString
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.builtins.nullable

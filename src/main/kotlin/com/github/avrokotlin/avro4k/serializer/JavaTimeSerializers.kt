@@ -3,27 +3,47 @@ package com.github.avrokotlin.avro4k.serializer
 import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
-import com.github.avrokotlin.avro4k.asAvroLogicalType
 import com.github.avrokotlin.avro4k.decodeResolvingAny
 import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
+import com.github.avrokotlin.avro4k.internal.copy
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
+import org.apache.avro.LogicalType
 import org.apache.avro.Schema
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Period
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-public object LocalDateSerializer : AvroSerializer<LocalDate>() {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("date", PrimitiveKind.INT).asAvroLogicalType()
+public val JavaTimeSerializersModule: SerializersModule =
+    SerializersModule {
+        contextual(LocalDateSerializer)
+        contextual(LocalTimeSerializer)
+        contextual(LocalDateTimeSerializer)
+        contextual(InstantSerializer)
+        contextual(JavaDurationSerializer)
+        contextual(JavaPeriodSerializer)
+    }
+
+private const val LOGICAL_TYPE_NAME_DATE = "date"
+private const val LOGICAL_TYPE_NAME_TIME_MILLIS = "time-millis"
+private const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
+private const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
+private const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
+
+public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.INT).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_DATE))
+    }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
@@ -37,7 +57,7 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>() {
             when (schema.type) {
                 Schema.Type.INT ->
                     when (schema.logicalType?.name) {
-                        "date", null -> {
+                        LOGICAL_TYPE_NAME_DATE, null -> {
                             { encoder.encodeInt(value.toEpochDay().toInt()) }
                         }
 
@@ -74,7 +94,7 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>() {
                 when (it.type) {
                     Schema.Type.INT -> {
                         when (it.logicalType?.name) {
-                            "date", null -> {
+                            LOGICAL_TYPE_NAME_DATE, null -> {
                                 AnyValueDecoder { LocalDate.ofEpochDay(decoder.decodeInt().toLong()) }
                             }
 
@@ -103,9 +123,13 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>() {
     }
 }
 
-public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("time-millis", PrimitiveKind.INT).asAvroLogicalType()
+private const val NANOS_PER_MILLISECOND = 1_000_000L
+private const val NANOS_PER_MICROSECOND = 1_000L
+
+public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.INT).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIME_MILLIS))
+    }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
@@ -118,7 +142,7 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
                 when (schema.type) {
                     Schema.Type.INT ->
                         when (schema.logicalType?.name) {
-                            "time-millis", null -> {
+                            LOGICAL_TYPE_NAME_TIME_MILLIS, null -> {
                                 { encoder.encodeInt(value.toMillisOfDay()) }
                             }
 
@@ -132,7 +156,7 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
                                 { encoder.encodeLong(value.toMillisOfDay().toLong()) }
                             }
 
-                            "time-micros" -> {
+                            LOGICAL_TYPE_NAME_TIME_MICROS -> {
                                 { encoder.encodeLong(value.toMicroOfDay()) }
                             }
 
@@ -152,9 +176,9 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
         encoder.encodeInt(value.toMillisOfDay())
     }
 
-    private fun LocalTime.toMillisOfDay() = (toNanoOfDay() / 1000000).toInt()
+    private fun LocalTime.toMillisOfDay() = (toNanoOfDay() / NANOS_PER_MILLISECOND).toInt()
 
-    private fun LocalTime.toMicroOfDay() = toNanoOfDay() / 1000
+    private fun LocalTime.toMicroOfDay() = toNanoOfDay() / NANOS_PER_MICROSECOND
 
     override fun deserializeAvro(decoder: AvroDecoder): LocalTime {
         with(decoder) {
@@ -168,8 +192,8 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
                 when (it.type) {
                     Schema.Type.INT -> {
                         when (it.logicalType?.name) {
-                            "time-millis", null -> {
-                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeInt() * 1_000_000L) }
+                            LOGICAL_TYPE_NAME_TIME_MILLIS, null -> {
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeInt() * NANOS_PER_MILLISECOND) }
                             }
 
                             else -> null
@@ -179,11 +203,11 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
                     Schema.Type.LONG -> {
                         when (it.logicalType?.name) {
                             null -> {
-                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000_000) }
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * NANOS_PER_MILLISECOND) }
                             }
 
-                            "time-micros" -> {
-                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * 1_000) }
+                            LOGICAL_TYPE_NAME_TIME_MICROS -> {
+                                AnyValueDecoder { LocalTime.ofNanoOfDay(decoder.decodeLong() * NANOS_PER_MICROSECOND) }
                             }
 
                             else -> null
@@ -197,13 +221,14 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>() {
     }
 
     override fun deserializeGeneric(decoder: Decoder): LocalTime {
-        return LocalTime.ofNanoOfDay(decoder.decodeInt() * 1_000_000L)
+        return LocalTime.ofNanoOfDay(decoder.decodeInt() * NANOS_PER_MILLISECOND)
     }
 }
 
-public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("timestamp-millis", PrimitiveKind.LONG).asAvroLogicalType()
+public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateTime::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
+    }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
@@ -228,9 +253,10 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>() {
     }
 }
 
-public object InstantSerializer : AvroSerializer<Instant>() {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("timestamp-millis", PrimitiveKind.LONG).asAvroLogicalType()
+public object InstantSerializer : AvroSerializer<Instant>(Instant::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
+    }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
@@ -244,11 +270,11 @@ public object InstantSerializer : AvroSerializer<Instant>() {
             when (it.type) {
                 Schema.Type.LONG ->
                     when (it.logicalType?.name) {
-                        "timestamp-millis", null -> {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, null -> {
                             { encoder.encodeLong(value.toEpochMilli()) }
                         }
 
-                        "timestamp-micros" -> {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> {
                             { encoder.encodeLong(value.toEpochMicros()) }
                         }
 
@@ -273,11 +299,11 @@ public object InstantSerializer : AvroSerializer<Instant>() {
                 when (it.type) {
                     Schema.Type.LONG ->
                         when (it.logicalType?.name) {
-                            "timestamp-millis", null -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, null -> {
                                 AnyValueDecoder { Instant.ofEpochMilli(decoder.decodeLong()) }
                             }
 
-                            "timestamp-micros" -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> {
                                 AnyValueDecoder { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
                             }
 
@@ -294,9 +320,10 @@ public object InstantSerializer : AvroSerializer<Instant>() {
     }
 }
 
-public object InstantToMicroSerializer : AvroSerializer<Instant>() {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("timestamp-micros", PrimitiveKind.LONG).asAvroLogicalType()
+public object InstantToMicroSerializer : AvroSerializer<Instant>(Instant::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MICROS))
+    }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
@@ -310,11 +337,11 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>() {
             when (it.type) {
                 Schema.Type.LONG ->
                     when (it.logicalType?.name) {
-                        "timestamp-micros", null -> {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, null -> {
                             { encoder.encodeLong(value.toEpochMicros()) }
                         }
 
-                        "timestamp-millis" -> {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> {
                             { encoder.encodeLong(value.toEpochMilli()) }
                         }
 
@@ -339,11 +366,11 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>() {
                 when (it.type) {
                     Schema.Type.LONG ->
                         when (it.logicalType?.name) {
-                            "timestamp-micros", null -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, null -> {
                                 AnyValueDecoder { Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS) }
                             }
 
-                            "timestamp-millis" -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> {
                                 AnyValueDecoder { Instant.ofEpochMilli(decoder.decodeLong()) }
                             }
 
@@ -362,3 +389,112 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>() {
 }
 
 private fun Instant.toEpochMicros() = ChronoUnit.MICROS.between(Instant.EPOCH, this)
+
+/**
+ * Serializes an [Duration] as a fixed logical type of `duration`.
+ *
+ * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
+ */
+public object JavaDurationSerializer : AvroSerializer<Duration>(Duration::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return AvroDurationSerializer.DURATION_SCHEMA
+    }
+
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: Duration,
+    ) {
+        AvroDurationSerializer.serializeAvro(encoder, value.toAvroDuration())
+    }
+
+    override fun deserializeAvro(decoder: AvroDecoder): Duration {
+        return AvroDurationSerializer.deserializeAvro(decoder).toJavaDuration()
+    }
+
+    override fun serializeGeneric(
+        encoder: Encoder,
+        value: Duration,
+    ) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserializeGeneric(decoder: Decoder): Duration {
+        return Duration.parse(decoder.decodeString())
+    }
+
+    private fun AvroDuration.toJavaDuration(): Duration {
+        if (months != 0u) {
+            throw SerializationException("java.time.Duration cannot contains months")
+        }
+        return Duration.ofMillis(days.toLong() * MILLIS_PER_DAY + millis.toLong())
+    }
+
+    private fun Duration.toAvroDuration(): AvroDuration {
+        if (isNegative) {
+            throw SerializationException("${Duration::class.qualifiedName} cannot be converted to ${AvroDuration::class.qualifiedName} as it cannot be negative")
+        }
+        val millis = this.toMillis()
+        return AvroDuration(
+            months = 0u,
+            days = (millis / MILLIS_PER_DAY).toUInt(),
+            millis = (millis % MILLIS_PER_DAY).toUInt()
+        )
+    }
+}
+
+/**
+ * Serializes an [Period] as a fixed logical type of `duration`.
+ *
+ * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
+ */
+public object JavaPeriodSerializer : AvroSerializer<Period>(Period::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return AvroDurationSerializer.DURATION_SCHEMA
+    }
+
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: Period,
+    ) {
+        AvroDurationSerializer.serializeAvro(encoder, value.toAvroDuration())
+    }
+
+    override fun deserializeAvro(decoder: AvroDecoder): Period {
+        return AvroDurationSerializer.deserializeAvro(decoder).toJavaPeriod()
+    }
+
+    override fun serializeGeneric(
+        encoder: Encoder,
+        value: Period,
+    ) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserializeGeneric(decoder: Decoder): Period {
+        return Period.parse(decoder.decodeString())
+    }
+
+    private fun AvroDuration.toJavaPeriod(): Period {
+        val years = (months / 12u).toInt()
+        val months = (months % 12u).toInt()
+        val days = days.toInt() + (millis.toLong() / MILLIS_PER_DAY).toInt()
+        // Ignore the remaining millis as Period does not support less than a day
+
+        return Period.of(years, months, days).also {
+            if (it.isNegative) {
+                throw SerializationException("java.time.Period overflow from $this")
+            }
+        }
+    }
+
+    private fun Period.toAvroDuration(): AvroDuration {
+        return AvroDuration(
+            months = (years * DAYS_PER_YEAR + months).toUInt(),
+            days = days.toUInt(),
+            millis = 0u
+        )
+    }
+}
+
+private const val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
+private const val DAYS_PER_YEAR = 12

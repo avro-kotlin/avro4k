@@ -4,14 +4,8 @@ import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
-import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
-import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
-import com.github.avrokotlin.avro4k.serializer.InstantSerializer
-import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
-import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
-import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
-import com.github.avrokotlin.avro4k.serializer.URLSerializer
-import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
+import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -21,8 +15,8 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.overwriteWith
+import kotlinx.serialization.modules.plus
 import kotlinx.serialization.serializer
 import okio.Buffer
 import org.apache.avro.Schema
@@ -47,16 +41,8 @@ public sealed class Avro(
 
     public companion object Default : Avro(
         AvroConfiguration(),
-        SerializersModule {
-            contextual(UUIDSerializer)
-            contextual(URLSerializer)
-            contextual(BigIntegerSerializer)
-            contextual(BigDecimalSerializer)
-            contextual(InstantSerializer)
-            contextual(LocalDateSerializer)
-            contextual(LocalTimeSerializer)
-            contextual(LocalDateTimeSerializer)
-        }
+        JavaStdLibSerializersModule +
+            JavaTimeSerializersModule
     )
 
     public fun schema(descriptor: SerialDescriptor): Schema {

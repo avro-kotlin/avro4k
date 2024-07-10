@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.AvroAssertions
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer

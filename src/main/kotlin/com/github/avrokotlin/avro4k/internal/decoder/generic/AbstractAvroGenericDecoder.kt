@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.generic
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
+import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.toByteExact
 import com.github.avrokotlin.avro4k.internal.toDoubleExact
 import com.github.avrokotlin.avro4k.internal.toFloatExact
@@ -11,7 +12,6 @@ import com.github.avrokotlin.avro4k.internal.toLongExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -39,12 +39,8 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         get() = avro.serializersModule
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        if (deserializer == ByteArraySerializer()) {
-            // fast-path for ByteArray fields, to avoid slow-path with ArrayGenericDecoder
-            @Suppress("UNCHECKED_CAST")
-            return decodeBytes() as T
-        }
-        return super<AbstractDecoder>.decodeSerializableValue(deserializer)
+        return SerializerLocatorMiddleware.apply(deserializer)
+            .deserialize(this)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -65,10 +61,6 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
                             writerSchema = currentWriterSchema,
                             avro = avro
                         )
-
-                    // TODO should be removed as byte arrays are handled by fast-path in decodeSerializableValue
-                    //  and collection of bytes should be handled as normal arrays of byte and not as native bytes
-                    is ByteBuffer -> ByteArrayGenericDecoder(avro, value.array())
 
                     else -> throw BadDecodedValueError(value, StructureKind.LIST, GenericArray::class, Collection::class, ByteBuffer::class)
                 }

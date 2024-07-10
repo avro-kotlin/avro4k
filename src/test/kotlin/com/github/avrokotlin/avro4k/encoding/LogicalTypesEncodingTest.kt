@@ -9,6 +9,7 @@ import com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.apache.avro.Conversions
 import org.apache.avro.SchemaBuilder
@@ -20,6 +21,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 internal class LogicalTypesEncodingTest : StringSpec({
     "support logical types at root level" {
@@ -36,6 +40,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
     }
 
     "support non-nullable logical types" {
+        println(Avro.schema<LogicalTypes>())
         AvroAssertions.assertThat(
             LogicalTypes(
                 BigDecimal("123.45"),
@@ -48,9 +53,31 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
-                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC)
+                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
+                36.hours + 24456.seconds,
+                java.time.Period.of(12, 3, 4),
+                (36.hours + 24456.seconds).toJavaDuration()
             )
         )
+//            .generatesSchema(
+//                SchemaBuilder.record("LogicalTypes")
+//                    .fields()
+//                    .name("decimalBytes").type(SchemaBuilder.builder().bytesType().copy(logicalType = org.apache.avro.LogicalTypes.decimal(8, 2))).noDefault()
+//                    .name("decimalFixed").type(SchemaBuilder.builder().fixed("decimalFixed").size(42).copy(logicalType = org.apache.avro.LogicalTypes.decimal(8, 2))).noDefault()
+//                    .name("decimalString").type().stringType().noDefault()
+//                    .name("date").type().intType().noDefault()
+//                    .name("time").type().intType().noDefault()
+//                    .name("instant").type().longType().noDefault()
+//                    .name("instantMicros").type().longType().noDefault()
+//                    .name("uuid").type().stringType().noDefault()
+//                    .name("url").type().stringType().noDefault()
+//                    .name("bigInteger").type().stringType().noDefault()
+//                    .name("dateTime").type().longType().noDefault()
+//                    .name("period").type(SchemaBuilder.fixed("duration").size(12).copy(logicalType = LogicalType("duration"))).noDefault()
+//                    .name("javaDuration").type("duration").noDefault()
+//                    .name("kotlinDuration").type("duration").noDefault()
+//                    .endRecord()
+//            )
             .isEncodedAs(
                 record(
                     Conversions.DecimalConversion().toBytes(
@@ -71,7 +98,10 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     "123e4567-e89b-12d3-a456-426614174000",
                     "http://example.com",
                     "1234567890",
-                    1577889296424
+                    1577889296424,
+                    byteArrayOf(0, 0, 0, 0, 1, 0, 0, 0, 64, 89, 8, 4),
+                    byteArrayOf(-109, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0),
+                    byteArrayOf(0, 0, 0, 0, 1, 0, 0, 0, 64, 89, 8, 4)
                 )
             )
     }
@@ -79,6 +109,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
     "support nullable logical types" {
         AvroAssertions.assertThat(
             NullableLogicalTypes(
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -104,6 +137,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     null,
                     null,
                     null,
+                    null,
+                    null,
+                    null,
                     null
                 )
             )
@@ -119,7 +155,10 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
-                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC)
+                LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
+                36.hours + 24456.seconds,
+                java.time.Period.of(12, 3, 4),
+                (36.hours + 24456.seconds).toJavaDuration()
             )
         )
             .isEncodedAs(
@@ -142,12 +181,16 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     "123e4567-e89b-12d3-a456-426614174000",
                     "http://example.com",
                     "1234567890",
-                    1577889296424
+                    1577889296424,
+                    byteArrayOf(0, 0, 0, 0, 1, 0, 0, 0, 64, 89, 8, 4),
+                    byteArrayOf(-109, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0),
+                    byteArrayOf(0, 0, 0, 0, 1, 0, 0, 0, 64, 89, 8, 4)
                 )
             )
     }
 }) {
     @Serializable
+    @SerialName("LogicalTypes")
     private data class LogicalTypes(
         @Contextual val decimalBytes: BigDecimal,
         @Contextual @AvroFixed(42) val decimalFixed: BigDecimal,
@@ -160,6 +203,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val url: URL,
         @Contextual val bigInteger: BigInteger,
         @Contextual val dateTime: LocalDateTime,
+        val kotlinDuration: kotlin.time.Duration,
+        @Contextual val period: java.time.Period,
+        @Contextual val javaDuration: java.time.Duration,
     )
 
     @Serializable
@@ -175,5 +221,8 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val urlNullable: URL?,
         @Contextual val bigIntegerNullable: BigInteger?,
         @Contextual val dateTimeNullable: LocalDateTime?,
+        val kotlinDuration: kotlin.time.Duration?,
+        @Contextual val period: java.time.Period?,
+        @Contextual val javaDuration: java.time.Duration?,
     )
 }

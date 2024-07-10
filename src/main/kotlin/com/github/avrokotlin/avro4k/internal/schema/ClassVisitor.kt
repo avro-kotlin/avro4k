@@ -4,6 +4,7 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.internal.isStartingAsJson
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.serializer.ElementLocation
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -60,17 +61,13 @@ internal class ClassVisitor(
         if (schemaAlreadyResolved) {
             return null
         }
-        return ValueVisitor(
-            context.copy(
-                inlinedAnnotations = ValueAnnotations(descriptor, elementIndex)
-            )
-        ) {
+        return ValueVisitor(context.copy(inlinedElements = listOf(ElementLocation(descriptor, elementIndex)))) { fieldSchema ->
             fields.add(
                 createField(
                     context.avro.configuration.fieldNamingStrategy.resolve(descriptor, elementIndex),
                     FieldAnnotations(descriptor, elementIndex),
                     descriptor.getElementDescriptor(elementIndex),
-                    it
+                    fieldSchema
                 )
             )
         }
@@ -114,7 +111,7 @@ internal class ClassVisitor(
                 annotations.doc?.value,
                 fieldDefault
             )
-        annotations.aliases.flatMap { it.value.asSequence() }.forEach { field.addAlias(it) }
+        annotations.aliases?.value?.forEach { field.addAlias(it) }
         annotations.props.forEach { field.addProp(it.key, it.jsonNode) }
         return field
     }

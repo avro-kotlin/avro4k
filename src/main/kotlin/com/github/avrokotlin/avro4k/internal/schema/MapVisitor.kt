@@ -19,7 +19,7 @@ internal class MapVisitor(
         // and then check if the output schema is about a type that we can
         // stringify (e.g. when .toString() makes sense).
         // Here we are just checking if the schema is string-compatible. We don't need to
-        // store the schema as it is a string.
+        // store the schema as it is always a string.
         if (it.isNullable()) {
             throw AvroSchemaGenerationException("Map key cannot be nullable. Actual generated map key schema: $it")
         }

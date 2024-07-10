@@ -33,6 +33,11 @@ internal class AvroEncodingAssertions<T>(
         return this
     }
 
+    fun generatesSchema(expectedSchema: Schema): AvroEncodingAssertions<T> {
+        avro.schema(serializer).toString(true) shouldBe expectedSchema.toString(true)
+        return this
+    }
+
     fun isEncodedAs(
         expectedEncodedGenericValue: Any?,
         expectedDecodedValue: T = valueToEncode,
@@ -189,6 +194,3 @@ internal object AvroAssertions {
         return AvroEncodingAssertions(value, serializer as KSerializer<T>)
     }
 }
-
-internal val Schema.nullable: Schema
-    get() = Schema.createUnion(listOf(Schema.create(Schema.Type.NULL), this))

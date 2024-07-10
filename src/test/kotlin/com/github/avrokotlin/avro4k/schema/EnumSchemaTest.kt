@@ -6,7 +6,7 @@ import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroEnumDefault
 import com.github.avrokotlin.avro4k.RecordWithGenericField
-import com.github.avrokotlin.avro4k.nullable
+import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec

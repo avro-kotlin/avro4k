@@ -8,7 +8,6 @@ import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.internal.toIntExact
-import com.github.avrokotlin.avro4k.internal.zeroPadded
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -141,7 +140,11 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
                 }
 
                 Schema.Type.FIXED -> {
-                    { encodeValue(value.array().toPaddedGenericFixed(schema, endPadded = false)) }
+                    if (value.remaining() == schema.fixedSize) {
+                        { encodeValue(value.array()) }
+                    } else {
+                        null
+                    }
                 }
 
                 Schema.Type.STRING -> {
@@ -163,7 +166,11 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
                 }
 
                 Schema.Type.FIXED -> {
-                    { encodeValue(value.toPaddedGenericFixed(schema, endPadded = false)) }
+                    if (value.size == schema.fixedSize) {
+                        { encodeValue(value) }
+                    } else {
+                        null
+                    }
                 }
 
                 Schema.Type.STRING -> {
@@ -181,12 +188,10 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         ) { schema ->
             when (schema.type) {
                 Schema.Type.FIXED ->
-                    when (schema.fullName) {
-                        value.schema.fullName -> {
-                            { encodeValue(value) }
-                        }
-
-                        else -> null
+                    if (schema.fullName == value.schema.fullName && schema.fixedSize == value.bytes().size) {
+                        { encodeValue(value) }
+                    } else {
+                        null
                     }
 
                 Schema.Type.BYTES -> {
@@ -208,7 +213,11 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         ) { schema ->
             when (schema.type) {
                 Schema.Type.FIXED -> {
-                    { encodeValue(value.toPaddedGenericFixed(schema, endPadded = false)) }
+                    if (value.size == schema.fixedSize) {
+                        { encodeValue(value) }
+                    } else {
+                        null
+                    }
                 }
 
                 Schema.Type.BYTES -> {
@@ -382,7 +391,11 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
                 }
 
                 Schema.Type.FIXED -> {
-                    { encodeValue(value.encodeToByteArray().toPaddedGenericFixed(schema, endPadded = true)) }
+                    if (value.length == schema.fixedSize) {
+                        { encodeValue(value.encodeToByteArray()) }
+                    } else {
+                        null
+                    }
                 }
 
                 Schema.Type.ENUM -> {
@@ -424,14 +437,4 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
             }
         }
     }
-}
-
-private fun ByteArray.toPaddedGenericFixed(
-    schema: Schema,
-    endPadded: Boolean,
-): GenericFixed {
-    return GenericData.Fixed(
-        schema,
-        zeroPadded(schema, endPadded = endPadded)
-    )
 }

@@ -7,7 +7,6 @@ import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
-import com.github.avrokotlin.avro4k.internal.zeroPadded
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -136,7 +135,7 @@ internal sealed class AbstractAvroDirectEncoder(
 
     override fun encodeBytes(value: ByteBuffer) {
         encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING) }
+            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
         ) {
             when (it.type) {
                 Schema.Type.STRING,
@@ -145,12 +144,13 @@ internal sealed class AbstractAvroDirectEncoder(
                     { binaryEncoder.writeBytes(value) }
                 }
 
-                Schema.Type.FIXED ->
-                    if (value.remaining() <= it.fixedSize) {
-                        { binaryEncoder.writeFixed(value.array().zeroPadded(it, endPadded = false)) }
+                Schema.Type.FIXED -> {
+                    if (value.remaining() == it.fixedSize) {
+                        { binaryEncoder.writeFixed(value.array()) }
                     } else {
                         null
                     }
+                }
 
                 else -> null
             }
@@ -159,7 +159,7 @@ internal sealed class AbstractAvroDirectEncoder(
 
     override fun encodeBytes(value: ByteArray) {
         encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING) }
+            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
         ) {
             when (it.type) {
                 Schema.Type.STRING,
@@ -168,12 +168,13 @@ internal sealed class AbstractAvroDirectEncoder(
                     { binaryEncoder.writeBytes(value) }
                 }
 
-                Schema.Type.FIXED ->
-                    if (value.size <= it.fixedSize) {
-                        { binaryEncoder.writeFixed(value.zeroPadded(it, endPadded = false)) }
+                Schema.Type.FIXED -> {
+                    if (value.size == it.fixedSize) {
+                        { binaryEncoder.writeFixed(value) }
                     } else {
                         null
                     }
+                }
 
                 else -> null
             }
@@ -182,22 +183,16 @@ internal sealed class AbstractAvroDirectEncoder(
 
     override fun encodeFixed(value: GenericFixed) {
         encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED) }
+            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED, Schema.Type.STRING, Schema.Type.BYTES) }
         ) {
             when (it.type) {
-                Schema.Type.FIXED ->
-                    when (it.fullName) {
-                        value.schema.fullName ->
-                            when (it.fixedSize) {
-                                value.bytes().size -> {
-                                    { binaryEncoder.writeFixed(value.bytes()) }
-                                }
-
-                                else -> null
-                            }
-
-                        else -> null
+                Schema.Type.FIXED -> {
+                    if (it.fullName == value.schema.fullName && it.fixedSize == value.bytes().size) {
+                        { binaryEncoder.writeFixed(value.bytes()) }
+                    } else {
+                        null
                     }
+                }
 
                 Schema.Type.STRING,
                 Schema.Type.BYTES,
@@ -212,16 +207,14 @@ internal sealed class AbstractAvroDirectEncoder(
 
     override fun encodeFixed(value: ByteArray) {
         encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED) }
+            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED, Schema.Type.STRING, Schema.Type.BYTES) }
         ) {
             when (it.type) {
                 Schema.Type.FIXED ->
-                    when (it.fixedSize) {
-                        value.size -> {
-                            { binaryEncoder.writeFixed(value) }
-                        }
-
-                        else -> null
+                    if (it.fixedSize == value.size) {
+                        { binaryEncoder.writeFixed(value) }
+                    } else {
+                        null
                     }
 
                 Schema.Type.STRING,
@@ -414,7 +407,11 @@ internal sealed class AbstractAvroDirectEncoder(
                 }
 
                 Schema.Type.FIXED -> {
-                    { binaryEncoder.writeFixed(value.encodeToByteArray().zeroPadded(it, endPadded = true)) }
+                    if (value.length == it.fixedSize) {
+                        { binaryEncoder.writeFixed(value.encodeToByteArray()) }
+                    } else {
+                        null
+                    }
                 }
 
                 Schema.Type.ENUM -> {

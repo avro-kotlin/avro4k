@@ -7,7 +7,6 @@ import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroProp
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -48,7 +47,7 @@ internal fun Schema.isNamedSchema(): Boolean {
 }
 
 internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
-    return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.findAnnotation<AvroAlias>()?.value?.any { isFullNameMatch(it) } == true
+    return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.aliases.any { isFullNameMatch(it) }
 }
 
 internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
@@ -56,6 +55,9 @@ internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
         (type == Schema.Type.RECORD || type == Schema.Type.ENUM || type == Schema.Type.FIXED) &&
         aliases.any { it == fullNameToMatch }
 }
+
+internal val SerialDescriptor.aliases: Set<String> get() =
+    findAnnotation<AvroAlias>()?.value?.toSet() ?: emptySet()
 
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
 
@@ -172,23 +174,4 @@ internal val AvroProp.jsonNode: JsonNode
 
 internal fun SerialDescriptor.getElementIndexNullable(name: String): Int? {
     return getElementIndex(name).takeIf { it >= 0 }
-}
-
-internal fun ByteArray.zeroPadded(
-    schema: Schema,
-    endPadded: Boolean,
-): ByteArray {
-    if (size > schema.fixedSize) {
-        throw SerializationException("Actual byte array size $size is greater than schema fixed size $schema")
-    }
-    val padSize = schema.fixedSize - size
-    return if (padSize > 0) {
-        if (endPadded) {
-            this + ByteArray(padSize)
-        } else {
-            ByteArray(padSize) + this
-        }
-    } else {
-        this
-    }
 }

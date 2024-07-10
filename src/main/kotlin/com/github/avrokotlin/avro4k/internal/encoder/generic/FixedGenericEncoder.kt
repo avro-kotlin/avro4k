@@ -16,10 +16,10 @@ internal class FixedGenericEncoder(
     private val onEncoded: (GenericFixed) -> Unit,
 ) : AbstractEncoder() {
     private val buffer = ByteArray(schema.fixedSize)
-    private var pos = schema.fixedSize - arraySize
+    private var pos = 0
 
     init {
-        if (arraySize > schema.fixedSize) {
+        if (arraySize != schema.fixedSize) {
             throw SerializationException("Actual collection size $arraySize is greater than schema fixed size $schema")
         }
     }

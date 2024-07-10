@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.generic.GenericData
+import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.Path
 
 internal class AvroFixedEncodingTest : StringSpec({
@@ -57,26 +58,36 @@ internal class AvroFixedEncodingTest : StringSpec({
         }
     }
 
-    "encode/decode ByteArray as FIXED when schema is Type.Fixed" {
-        AvroAssertions.assertThat(ByteArrayFixedTest(byteArrayOf(1, 4, 9)))
-            .isEncodedAs(
-                record(byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)),
-                expectedDecodedValue = ByteArrayFixedTest(byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9))
-            )
-    }
+    "Should fail when the fixed size is not respected" {
+        assertThrows<SerializationException> {
+            Avro.encodeToByteArray(ByteArrayFixedTest(byteArrayOf(1, 4, 9)))
+        }
 
-    "encode/decode strings as GenericFixed and pad bytes when schema is Type.FIXED" {
         @Serializable
         @SerialName("Foo")
         data class StringFoo(
             @AvroFixed(7) val a: String?,
         )
 
+        assertThrows<SerializationException> {
+            Avro.encodeToByteArray(StringFoo("hello"))
+        }
+    }
+
+    "encode/decode ByteArray as FIXED" {
+        AvroAssertions.assertThat(ByteArrayFixedTest(byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)))
+            .isEncodedAs(record(byteArrayOf(0, 0, 0, 0, 0, 1, 4, 9)))
+    }
+
+    "encode/decode strings as GenericFixed when schema is Type.FIXED" {
+        @Serializable
+        @SerialName("Foo")
+        data class StringFoo(
+            @AvroFixed(5) val a: String?,
+        )
+
         AvroAssertions.assertThat(StringFoo("hello"))
-            .isEncodedAs(
-                record(byteArrayOf(104, 101, 108, 108, 111, 0, 0)),
-                StringFoo(String("hello".toByteArray() + byteArrayOf(0, 0)))
-            )
+            .isEncodedAs(record(byteArrayOf(104, 101, 108, 108, 111)))
     }
 
 //    "Handle FIXED in unions with the good and bad fullNames and aliases" {

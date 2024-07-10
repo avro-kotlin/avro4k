@@ -85,12 +85,8 @@ internal class ValueVisitor internal constructor(
         val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
 
         (finalDescriptor.nonNullOriginal as? AvroSchemaSupplier)
-            ?.getSchema(context)
-            ?.let {
-                setSchema(it)
-                return
-            }
-        super.visitValue(finalDescriptor)
+            ?.getSchema(context)?.let { setSchema(it) }
+            ?: super.visitValue(finalDescriptor)
     }
 
     private fun unwrapNullable(descriptor: SerialDescriptor): SerialDescriptor {

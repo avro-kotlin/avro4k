@@ -38,6 +38,14 @@ internal class AvroEncodingAssertions<T>(
         return this
     }
 
+    fun generatesSchema(
+        expectedSchemaResourcePath: Path,
+        schemaTransformer: (Schema) -> Schema = { it },
+    ): AvroEncodingAssertions<T> {
+        generatesSchema(Schema.Parser().parse(javaClass.getResourceAsStream(expectedSchemaResourcePath.toString())).let(schemaTransformer))
+        return this
+    }
+
     fun isEncodedAs(
         expectedEncodedGenericValue: Any?,
         expectedDecodedValue: T = valueToEncode,

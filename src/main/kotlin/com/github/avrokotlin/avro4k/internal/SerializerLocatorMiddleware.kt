@@ -17,9 +17,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.AbstractCollectionSerializer
@@ -56,14 +54,12 @@ internal object SerializerLocatorMiddleware {
 
     fun apply(descriptor: SerialDescriptor): SerialDescriptor {
         return when {
-            descriptor.isCollectionOfBytes() -> SerialDescriptorWithAvroSchemaDelegate(descriptor, AvroByteArraySerializer)
-            descriptor == String.serializer().descriptor -> AvroStringSerialDescriptor
-            descriptor == Duration.serializer().descriptor -> KotlinDurationSerializer.descriptor
+            descriptor === ByteArraySerializer().descriptor -> AvroByteArraySerializer.descriptor
+            descriptor === String.serializer().descriptor -> AvroStringSerialDescriptor
+            descriptor === Duration.serializer().descriptor -> KotlinDurationSerializer.descriptor
             else -> descriptor
         }
     }
-
-    private fun SerialDescriptor.isCollectionOfBytes() = kind === StructureKind.LIST && elementsCount == 1 && getElementDescriptor(0).kind === PrimitiveKind.BYTE
 }
 
 private val AvroStringSerialDescriptor: SerialDescriptor =

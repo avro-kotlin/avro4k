@@ -1,10 +1,7 @@
 package com.github.avrokotlin.avro4k.internal.encoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractEncoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 internal class MapDirectEncoder(private val schema: Schema, mapSize: Int, avro: Avro, binaryEncoder: org.apache.avro.io.Encoder) :
@@ -68,43 +65,5 @@ internal class ArrayDirectEncoder(
 
     override fun endStructure(descriptor: SerialDescriptor) {
         binaryEncoder.writeArrayEnd()
-    }
-}
-
-internal class FixedDirectEncoder(schema: Schema, arraySize: Int, private val avro: Avro, private val binaryEncoder: org.apache.avro.io.Encoder) : AbstractEncoder() {
-    private val buffer = ByteArray(schema.fixedSize)
-    private var pos = schema.fixedSize - arraySize
-
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    init {
-        if (arraySize > schema.fixedSize) {
-            throw SerializationException("Actual collection size $arraySize is greater than schema fixed size $schema")
-        }
-    }
-
-    override fun encodeByte(value: Byte) {
-        buffer[pos++] = value
-    }
-
-    override fun endStructure(descriptor: SerialDescriptor) {
-        binaryEncoder.writeFixed(buffer)
-    }
-}
-
-internal class BytesDirectEncoder(private val avro: Avro, private val binaryEncoder: org.apache.avro.io.Encoder, collectionSize: Int) : AbstractEncoder() {
-    private val buffer = ByteArray(collectionSize)
-    private var pos = 0
-
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    override fun encodeByte(value: Byte) {
-        buffer[pos++] = value
-    }
-
-    override fun endStructure(descriptor: SerialDescriptor) {
-        binaryEncoder.writeBytes(buffer)
     }
 }

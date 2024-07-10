@@ -4,8 +4,6 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.DecodedNullError
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractDecoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
 internal class MapGenericDecoder(
@@ -90,26 +88,4 @@ internal class ArrayGenericDecoder(
     override fun decodeCollectionSize(descriptor: SerialDescriptor) = collection.size
 
     override fun decodeSequentially() = true
-}
-
-internal class ByteArrayGenericDecoder(
-    private val avro: Avro,
-    private val bytes: ByteArray,
-) : AbstractDecoder() {
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    private val iterator = bytes.iterator()
-
-    override fun decodeByte() = iterator.nextByte()
-
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
-        return bytes.size
-    }
-
-    override fun decodeSequentially() = true
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        throw IllegalIndexedAccessError()
-    }
 }

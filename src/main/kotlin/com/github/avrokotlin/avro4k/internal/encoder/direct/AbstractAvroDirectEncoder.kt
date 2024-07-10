@@ -74,20 +74,10 @@ internal sealed class AbstractAvroDirectEncoder(
     ): CompositeEncoder {
         return when (descriptor.kind) {
             StructureKind.LIST ->
-                encodeResolving(
-                    { BadEncodedValueError(emptyList<Any?>(), currentWriterSchema, Schema.Type.ARRAY, Schema.Type.BYTES, Schema.Type.FIXED) }
-                ) { schema ->
+                encodeResolving({ BadEncodedValueError(emptyList<Any?>(), currentWriterSchema, Schema.Type.ARRAY) }) { schema ->
                     when (schema.type) {
                         Schema.Type.ARRAY -> {
                             { ArrayDirectEncoder(schema, collectionSize, avro, binaryEncoder) }
-                        }
-
-                        Schema.Type.BYTES -> {
-                            { BytesDirectEncoder(avro, binaryEncoder, collectionSize) }
-                        }
-
-                        Schema.Type.FIXED -> {
-                            { FixedDirectEncoder(schema, collectionSize, avro, binaryEncoder) }
                         }
 
                         else -> null
@@ -95,9 +85,7 @@ internal sealed class AbstractAvroDirectEncoder(
                 }
 
             StructureKind.MAP ->
-                encodeResolving(
-                    { BadEncodedValueError(emptyMap<String, Any?>(), currentWriterSchema, Schema.Type.MAP) }
-                ) { schema ->
+                encodeResolving({ BadEncodedValueError(emptyMap<String, Any?>(), currentWriterSchema, Schema.Type.MAP) }) { schema ->
                     when (schema.type) {
                         Schema.Type.MAP -> {
                             { MapDirectEncoder(schema, collectionSize, avro, binaryEncoder) }

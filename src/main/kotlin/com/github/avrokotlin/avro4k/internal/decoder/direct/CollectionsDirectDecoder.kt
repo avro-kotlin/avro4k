@@ -3,59 +3,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.direct
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.AbstractDecoder
-import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
-
-internal class BytesDirectDecoder(
-    private val avro: Avro,
-    binaryDecoder: org.apache.avro.io.Decoder,
-) : AbstractDecoder() {
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    private val bytes = binaryDecoder.readBytes(null)
-
-    override fun decodeByte(): Byte {
-        return bytes.get()
-    }
-
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
-        return bytes.remaining()
-    }
-
-    override fun decodeSequentially() = true
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        throw IllegalIndexedAccessError()
-    }
-}
-
-internal class FixedDirectDecoder(
-    private val avro: Avro,
-    fixedSize: Int,
-    binaryDecoder: org.apache.avro.io.Decoder,
-) : AbstractDecoder() {
-    override val serializersModule: SerializersModule
-        get() = avro.serializersModule
-
-    private val bytes = ByteArray(fixedSize).also { binaryDecoder.readFixed(it) }
-    private var nextPosition = 0
-
-    override fun decodeByte(): Byte {
-        return bytes[nextPosition++]
-    }
-
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
-        return bytes.size
-    }
-
-    override fun decodeSequentially() = true
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        throw IllegalIndexedAccessError()
-    }
-}
 
 internal class ArrayBlockDirectDecoder(
     private val arraySchema: Schema,

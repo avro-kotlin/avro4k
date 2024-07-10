@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 
 internal class BytesEncodingTest : StringSpec({
-    "encode/decode nullable ByteArray" {
+    "encode/decode nullable ByteArray to BYTES" {
         AvroAssertions.assertThat(NullableByteArrayTest(byteArrayOf(1, 4, 9)))
             .isEncodedAs(record(byteArrayOf(1, 4, 9)))
         AvroAssertions.assertThat(NullableByteArrayTest(null))
@@ -22,7 +22,7 @@ internal class BytesEncodingTest : StringSpec({
             .isEncodedAs(null)
     }
 
-    "encode/decode ByteArray" {
+    "encode/decode ByteArray to BYTES" {
         AvroAssertions.assertThat(ByteArrayTest(byteArrayOf(1, 4, 9)))
             .isEncodedAs(record(byteArrayOf(1, 4, 9)))
 
@@ -32,24 +32,24 @@ internal class BytesEncodingTest : StringSpec({
             .isEncodedAs(byteArrayOf(1, 4, 9))
     }
 
-    "encode/decode List<Byte>" {
+    "encode/decode List<Byte> to ARRAY[INT]" {
         AvroAssertions.assertThat(ListByteTest(listOf(1, 4, 9)))
-            .isEncodedAs(record(byteArrayOf(1, 4, 9)))
+            .isEncodedAs(record(listOf(1, 4, 9)))
 
         AvroAssertions.assertThat<List<Byte>>()
-            .generatesSchema(Schema.create(Schema.Type.BYTES))
+            .generatesSchema(Schema.createArray(Schema.create(Schema.Type.INT)))
         AvroAssertions.assertThat(listOf<Byte>(1, 4, 9))
-            .isEncodedAs(byteArrayOf(1, 4, 9))
+            .isEncodedAs(listOf(1, 4, 9))
     }
 
-    "encode/decode Array<Byte> to ByteBuffer" {
+    "encode/decode Array<Byte> to ARRAY[INT]" {
         AvroAssertions.assertThat(ArrayByteTest(arrayOf(1, 4, 9)))
-            .isEncodedAs(record(byteArrayOf(1, 4, 9)))
+            .isEncodedAs(record(listOf(1, 4, 9)))
 
         AvroAssertions.assertThat<Array<Byte>>()
-            .generatesSchema(Schema.create(Schema.Type.BYTES))
+            .generatesSchema(Schema.createArray(Schema.create(Schema.Type.INT)))
         AvroAssertions.assertThat(arrayOf<Byte>(1, 4, 9))
-            .isEncodedAs(byteArrayOf(1, 4, 9))
+            .isEncodedAs(listOf(1, 4, 9))
     }
 }) {
     @Serializable

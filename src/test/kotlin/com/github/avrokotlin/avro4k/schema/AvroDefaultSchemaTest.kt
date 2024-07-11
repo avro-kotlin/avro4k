@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
@@ -117,14 +118,18 @@ internal class AvroDefaultSchemaTest : FunSpec() {
 
     @Serializable
     private data class BarDecimal(
+        @AvroDecimal(scale = 2, precision = 8)
         @Serializable(BigDecimalSerializer::class)
         val a: BigDecimal,
+        @AvroDecimal(scale = 2, precision = 8)
         @Serializable(BigDecimalSerializer::class)
         @AvroDefault("\u0000")
         val b: BigDecimal,
+        @AvroDecimal(scale = 2, precision = 8)
         @Serializable(BigDecimalSerializer::class)
         @AvroDefault("null")
         val nullableString: BigDecimal?,
+        @AvroDecimal(scale = 2, precision = 8)
         @Serializable(BigDecimalSerializer::class)
         @AvroDefault("\u0000")
         val c: BigDecimal?,

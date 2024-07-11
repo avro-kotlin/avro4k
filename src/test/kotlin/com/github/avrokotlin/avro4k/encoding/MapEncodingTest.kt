@@ -122,7 +122,7 @@ internal class MapEncodingTest : FunSpec({
     }
 
     test("support maps with contextual keys") {
-        AvroAssertions.assertThat<ContextualKeyTests>()
+        AvroAssertions.assertThat(ContextualKeyTests(mapOf(NonSerializableKey("a") to 12)))
             .withConfig {
                 serializersModule = serializersModuleOf(NonSerializableKeyKSerializer)
             }
@@ -131,10 +131,6 @@ internal class MapEncodingTest : FunSpec({
                     .name("map").type(Schema.createMap(Schema.create(Schema.Type.INT))).noDefault()
                     .endRecord()
             )
-        AvroAssertions.assertThat(ContextualKeyTests(mapOf(NonSerializableKey("a") to 12)))
-            .withConfig {
-                serializersModule = serializersModuleOf(NonSerializableKeyKSerializer)
-            }
             .isEncodedAs(record(mapOf("a" to 12)))
     }
 
@@ -151,9 +147,8 @@ internal class MapEncodingTest : FunSpec({
         SomeEnum.B
     ).forEach { keyValue ->
         test("handle string-able key type: ${keyValue::class.simpleName}") {
-            AvroAssertions.assertThat(GenericMapForTests.serializer(keyValue::class.serializer()))
-                .generatesSchema(Path("/map_string.json"))
             AvroAssertions.assertThat(GenericMapForTests(mapOf(keyValue to "something")), GenericMapForTests.serializer(keyValue::class.serializer()))
+                .generatesSchema(Path("/map_string.json"))
                 .isEncodedAs(record(mapOf(keyValue.toString() to "something")))
         }
     }

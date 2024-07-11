@@ -137,3 +137,58 @@ data class TheDataClass(
     val setOfBytes: ByteArray,
 )
 ```
+
+## Serialize a `BigDecimal` as a string
+
+> [!INFO]
+> Note that you can replace `@Serializable(with = BigDecimalAsStringSerializer::class)` with `@Contextual` to use the default global `BigDecimalSerializer` already registered,
+> which is already compatible with the `@AvroStringable` feature.
+
+```kotlin
+// Previously
+@Serializable
+data class MyData(
+    @Serializable(with = BigDecimalAsStringSerializer::class)
+    val bigDecimalAsString: BigDecimal,
+)
+
+// Now
+@Serializable
+data class MyData(
+    @Contextual
+    @AvroStringable
+    val bigDecimalAsString: BigDecimal,
+)
+```
+
+## Serialize a `BigDecimal` as a BYTES or FIXED
+
+Previously, a BigDecimal was serialized as bytes with 2 as scale and 8 as precision. Now you have to explicitly declare the needed scale and precision using `@AvroDecimal`, 
+or use `@AvroStringable` to serialize it as a string which doesn't need scale nor precision.
+
+> [!INFO]
+> Note that you can replace `@Serializable(with = BigDecimalSerializer::class)` with `@Contextual` to use the default global `BigDecimalSerializer` already registered.
+
+```kotlin
+// Previously
+@Serializable
+data class MyData(
+    @Serializable(with = BigDecimalSerializer::class)
+    val bigDecimalAsBytes: BigDecimal,
+    @AvroFixed(10)
+    @Serializable(with = BigDecimalSerializer::class)
+    val bigDecimalAsFixed: BigDecimal,
+)
+
+// Now
+@Serializable
+data class MyData(
+    @Contextual
+    @AvroDecimal(scale = 8, precision = 2)
+    val bigDecimalAsBytes: BigDecimal,
+    @Contextual
+    @AvroFixed(10)
+    @AvroDecimal(scale = 8, precision = 2)
+    val bigDecimalAsFixed: BigDecimal,
+)
+```

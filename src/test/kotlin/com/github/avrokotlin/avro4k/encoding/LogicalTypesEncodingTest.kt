@@ -2,10 +2,11 @@ package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.AvroStringable
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
-import com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Contextual
@@ -59,25 +60,6 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 (36.hours + 24456.seconds).toJavaDuration()
             )
         )
-//            .generatesSchema(
-//                SchemaBuilder.record("LogicalTypes")
-//                    .fields()
-//                    .name("decimalBytes").type(SchemaBuilder.builder().bytesType().copy(logicalType = org.apache.avro.LogicalTypes.decimal(8, 2))).noDefault()
-//                    .name("decimalFixed").type(SchemaBuilder.builder().fixed("decimalFixed").size(42).copy(logicalType = org.apache.avro.LogicalTypes.decimal(8, 2))).noDefault()
-//                    .name("decimalString").type().stringType().noDefault()
-//                    .name("date").type().intType().noDefault()
-//                    .name("time").type().intType().noDefault()
-//                    .name("instant").type().longType().noDefault()
-//                    .name("instantMicros").type().longType().noDefault()
-//                    .name("uuid").type().stringType().noDefault()
-//                    .name("url").type().stringType().noDefault()
-//                    .name("bigInteger").type().stringType().noDefault()
-//                    .name("dateTime").type().longType().noDefault()
-//                    .name("period").type(SchemaBuilder.fixed("duration").size(12).copy(logicalType = LogicalType("duration"))).noDefault()
-//                    .name("javaDuration").type("duration").noDefault()
-//                    .name("kotlinDuration").type("duration").noDefault()
-//                    .endRecord()
-//            )
             .isEncodedAs(
                 record(
                     Conversions.DecimalConversion().toBytes(
@@ -192,9 +174,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
     @Serializable
     @SerialName("LogicalTypes")
     private data class LogicalTypes(
-        @Contextual val decimalBytes: BigDecimal,
-        @Contextual @AvroFixed(42) val decimalFixed: BigDecimal,
-        @Serializable(BigDecimalAsStringSerializer::class) val decimalString: BigDecimal,
+        @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytes: BigDecimal,
+        @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixed: BigDecimal,
+        @Contextual @AvroStringable val decimalString: BigDecimal,
         @Contextual val date: LocalDate,
         @Contextual val time: LocalTime,
         @Contextual val instant: Instant,
@@ -210,9 +192,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
 
     @Serializable
     private data class NullableLogicalTypes(
-        @Contextual val decimalBytesNullable: BigDecimal?,
-        @Contextual @AvroFixed(42) val decimalFixedNullable: BigDecimal?,
-        @Serializable(BigDecimalAsStringSerializer::class) val decimalStringNullable: BigDecimal?,
+        @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytesNullable: BigDecimal?,
+        @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixedNullable: BigDecimal?,
+        @Contextual @AvroStringable val decimalStringNullable: BigDecimal?,
         @Contextual val dateNullable: LocalDate?,
         @Contextual val timeNullable: LocalTime?,
         @Contextual val instantNullable: Instant?,

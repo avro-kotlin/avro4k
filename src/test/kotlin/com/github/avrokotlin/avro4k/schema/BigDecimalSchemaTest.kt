@@ -31,19 +31,26 @@ internal class BigDecimalSchemaTest : FunSpec({
     @JvmInline
     @Serializable
     private value class BigDecimalTest(
-        @Contextual val bigDecimal: BigDecimal,
+        @AvroDecimal(scale = 2, precision = 8)
+        @Contextual
+        val bigDecimal: BigDecimal,
     )
 
     @JvmInline
     @Serializable
     @SerialName("BigDecimalFixedTest")
     private value class BigDecimalFixedTest(
-        @AvroDecimal(3, 5) @AvroFixed(5) @Contextual val field: BigDecimal,
+        @AvroDecimal(scale = 3, precision = 5)
+        @AvroFixed(5)
+        @Contextual
+        val field: BigDecimal,
     )
 
     @JvmInline
     @Serializable
     private value class BigDecimalNullableTest(
-        @AvroDecimal(1, 2) @Contextual val bigDecimal: BigDecimal?,
+        @AvroDecimal(scale = 1, precision = 2)
+        @Contextual
+        val bigDecimal: BigDecimal?,
     )
 }

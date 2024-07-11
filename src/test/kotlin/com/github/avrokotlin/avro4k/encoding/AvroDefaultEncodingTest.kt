@@ -93,28 +93,30 @@ internal class AvroDefaultEncodingTest : StringSpec({
         @AvroDefault("""[{"content":"bar"}]""")
         val filledFooList: List<FooElement>,
         @Contextual
-        @AvroDecimal(scale = 0)
+        @AvroDecimal(scale = 0, precision = 8)
         @AvroDefault("\u0000")
         val bigDecimal: BigDecimal,
         @Contextual
-        @AvroDecimal(scale = 0)
+        @AvroDecimal(scale = 0, precision = 8)
         @AvroDefault("\u0000")
         val bigDecimalNullable: BigDecimal?,
         @Contextual
+        @AvroDecimal(scale = 2, precision = 8)
         @AvroDefault("null")
         val bigDecimalNullableNull: BigDecimal?,
         @Contextual
         @AvroFixed(size = 16)
-        @AvroDecimal(scale = 0)
+        @AvroDecimal(scale = 0, precision = 8)
         @AvroDefault("\u0000")
         val bigDecimalFixed: BigDecimal,
         @Contextual
         @AvroFixed(size = 16)
-        @AvroDecimal(scale = 0)
+        @AvroDecimal(scale = 0, precision = 8)
         @AvroDefault("\u0000")
         val bigDecimalFixedNullable: BigDecimal?,
         @Contextual
         @AvroFixed(size = 16)
+        @AvroDecimal(scale = 2, precision = 8)
         @AvroDefault("null")
         val bigDecimalFixedNullableNull: BigDecimal?,
         val kotlinDefault: Int = 42,

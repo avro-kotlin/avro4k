@@ -10,9 +10,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.github.avrokotlin.avro4k.serializer.BigDecimalAsStringSerializer
+import com.github.avrokotlin.avro4k.AvroStringable
 import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.time.Instant
@@ -44,7 +45,8 @@ internal data class Client(
     val id: Long,
     val index: Int,
     val isActive: Boolean,
-    @Serializable(with = BigDecimalAsStringSerializer::class)
+    @Contextual
+    @AvroStringable
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     val balance: BigDecimal?,
     val picture: ByteArray?,

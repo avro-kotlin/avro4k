@@ -79,8 +79,8 @@ public annotation class AvroStringable
 @ExperimentalSerializationApi
 @Target(AnnotationTarget.PROPERTY)
 public annotation class AvroDecimal(
-    val scale: Int = 2,
-    val precision: Int = 8,
+    val scale: Int,
+    val precision: Int,
 )
 
 /**

@@ -62,7 +62,6 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDeci
 
 public synthetic class com/github/avrokotlin/avro4k/AvroDecimal$Impl : com/github/avrokotlin/avro4k/AvroDecimal {
 	public fun <init> (II)V
-	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final synthetic fun precision ()I
 	public final synthetic fun scale ()I
 }
@@ -373,19 +372,6 @@ public final class com/github/avrokotlin/avro4k/serializer/AvroSerializerKt {
 	public static final fun getDecimal (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroDecimal;
 	public static final fun getFixed (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroFixed;
 	public static final fun getStringable (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroStringable;
-}
-
-public final class com/github/avrokotlin/avro4k/serializer/BigDecimalAsStringSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/BigDecimalAsStringSerializer;
-	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
-	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/math/BigDecimal;
-	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/math/BigDecimal;
-	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
-	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
-	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/math/BigDecimal;)V
-	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/math/BigDecimal;)V
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/BigDecimalSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {

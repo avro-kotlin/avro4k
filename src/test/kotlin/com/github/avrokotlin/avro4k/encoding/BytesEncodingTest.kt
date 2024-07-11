@@ -14,11 +14,11 @@ internal class BytesEncodingTest : StringSpec({
         AvroAssertions.assertThat(NullableByteArrayTest(null))
             .isEncodedAs(record(null))
 
-        AvroAssertions.assertThat<ByteArray?>()
+        AvroAssertions.assertThat<ByteArray?>(byteArrayOf(1, 4, 9))
             .generatesSchema(Schema.create(Schema.Type.BYTES).nullable)
-        AvroAssertions.assertThat(byteArrayOf(1, 4, 9))
             .isEncodedAs(byteArrayOf(1, 4, 9))
         AvroAssertions.assertThat<ByteArray?>(null)
+            .generatesSchema(Schema.create(Schema.Type.BYTES).nullable)
             .isEncodedAs(null)
     }
 

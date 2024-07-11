@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.decodeResolvingAny
 import com.github.avrokotlin.avro4k.encodeResolving
+import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
@@ -180,15 +181,21 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
     }
 }
 
-private val converter = Conversions.DecimalConversion()
-private val defaultAnnotation = AvroDecimal()
-
 public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::class.qualifiedName!!) {
+    private val converter = Conversions.DecimalConversion()
+
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        val logicalType = (context.inlinedElements.firstNotNullOfOrNull { it.decimal } ?: defaultAnnotation).logicalType
+        val logicalType = context.inlinedElements.firstNotNullOfOrNull { it.decimal }?.logicalType
+
+        fun nonNullLogicalType(): LogicalTypes.Decimal {
+            if (logicalType == null) {
+                throw AvroSchemaGenerationException("BigDecimal requires @${AvroDecimal::class.qualifiedName} to works with 'fixed' or 'bytes' schema types.")
+            }
+            return logicalType
+        }
         return context.inlinedElements.firstNotNullOfOrNull {
-            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)?.copy(logicalType = logicalType)
-        } ?: Schema.create(Schema.Type.BYTES).copy(logicalType = logicalType)
+            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)?.copy(logicalType = nonNullLogicalType())
+        } ?: Schema.create(Schema.Type.BYTES).copy(logicalType = nonNullLogicalType())
     }
 
     override fun serializeAvro(
@@ -308,32 +315,4 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
         get() {
             return LogicalTypes.decimal(precision, scale)
         }
-}
-
-public object BigDecimalAsStringSerializer : AvroSerializer<BigDecimal>(BigDecimal::class.qualifiedName!!) {
-    override fun getSchema(context: SchemaSupplierContext): Schema {
-        return Schema.create(Schema.Type.STRING)
-    }
-
-    override fun serializeAvro(
-        encoder: AvroEncoder,
-        value: BigDecimal,
-    ) {
-        BigDecimalSerializer.serializeAvro(encoder, value)
-    }
-
-    override fun serializeGeneric(
-        encoder: Encoder,
-        value: BigDecimal,
-    ) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserializeAvro(decoder: AvroDecoder): BigDecimal {
-        return BigDecimalSerializer.deserializeAvro(decoder)
-    }
-
-    override fun deserializeGeneric(decoder: Decoder): BigDecimal {
-        return decoder.decodeString().toBigDecimal()
-    }
 }

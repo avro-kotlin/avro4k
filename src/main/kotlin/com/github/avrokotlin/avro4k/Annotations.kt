@@ -1,7 +1,6 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.serializer.AvroSerializer
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
@@ -45,6 +44,29 @@ public annotation class AvroDoc(val value: String)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 public annotation class AvroAlias(vararg val value: String)
+
+/**
+ * Sets the annotated property as a `string` type when inferring the class' schema. Takes precedence over any other schema modifier built-in annotation, except
+ * the fields referring to a custom serializer implementing [AvroSerializer] where you'll need to handle the annotation.
+ *
+ * If the given property is not string-able, the schema will be generated as a string, but it will fail at runtime during serialization or deserialization.
+ * You may need to provide a custom serializer for the given property to handle the string specifications.
+ *
+ * Only works with class properties for the following inferred schemas:
+ * - `string`
+ * - `boolean`
+ * - `int`
+ * - `long`
+ * - `float`
+ * - `double`
+ * - `bytes` & `fixed` (will take the fixed bytes as UTF-8 string, or custom toString/parse for logical types)
+ * - works also for all the nullable types of the above
+ * The rest will fail, except if your custom serializers handle the string type.
+ */
+@SerialInfo
+@ExperimentalSerializationApi
+@Target(AnnotationTarget.PROPERTY)
+public annotation class AvroStringable
 
 /**
  * To be used with [BigDecimalSerializer] to specify the scale, precision, type and rounding mode of the decimal value.

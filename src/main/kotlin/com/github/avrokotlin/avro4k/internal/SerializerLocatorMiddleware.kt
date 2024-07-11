@@ -10,6 +10,7 @@ import com.github.avrokotlin.avro4k.serializer.SchemaSupplierContext
 import com.github.avrokotlin.avro4k.serializer.SerialDescriptorWithAvroSchemaDelegate
 import com.github.avrokotlin.avro4k.serializer.createSchema
 import com.github.avrokotlin.avro4k.serializer.fixed
+import com.github.avrokotlin.avro4k.serializer.stringable
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -64,14 +65,17 @@ internal object SerializerLocatorMiddleware {
 
 private val AvroStringSerialDescriptor: SerialDescriptor =
     SerialDescriptorWithAvroSchemaDelegate(String.serializer().descriptor) { context ->
-        context.fixed?.createSchema() ?: Schema.create(Schema.Type.STRING)
+        context.inlinedElements.firstNotNullOfOrNull {
+            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)
+        } ?: Schema.create(Schema.Type.STRING)
     }
 
 private object KotlinDurationSerializer : AvroSerializer<Duration>(Duration::class.qualifiedName!!) {
     private const val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return AvroDurationSerializer.DURATION_SCHEMA
+        return context.inlinedElements.firstNotNullOfOrNull { it.stringable?.createSchema() }
+            ?: AvroDurationSerializer.DURATION_SCHEMA
     }
 
     override fun serializeAvro(
@@ -128,7 +132,9 @@ private object KotlinDurationSerializer : AvroSerializer<Duration>(Duration::cla
 
 private object AvroByteArraySerializer : AvroSerializer<ByteArray>(ByteArray::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return context.fixed?.createSchema() ?: Schema.create(Schema.Type.BYTES)
+        return context.inlinedElements.firstNotNullOfOrNull {
+            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)
+        } ?: Schema.create(Schema.Type.BYTES)
     }
 
     override fun serializeAvro(

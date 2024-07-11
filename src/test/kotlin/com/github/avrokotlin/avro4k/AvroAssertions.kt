@@ -50,6 +50,7 @@ internal class AvroEncodingAssertions<T>(
         expectedEncodedGenericValue: Any?,
         expectedDecodedValue: T = valueToEncode,
         writerSchema: Schema = avro.schema(serializer),
+        decodedComparator: (actual: T, expected: T) -> Unit = { a, b -> a shouldBe b },
     ): AvroEncodingAssertions<T> {
         val actualEncodedBytes = avro4kEncode(valueToEncode, writerSchema)
         val apacheEncodedBytes = avroApacheEncode(expectedEncodedGenericValue, writerSchema)
@@ -69,7 +70,7 @@ internal class AvroEncodingAssertions<T>(
 
         val decodedValue = avro4kDecode(apacheEncodedBytes, writerSchema, serializer)
         withClue("Decoded value is not the same as the expected one.") {
-            decodedValue shouldBe expectedDecodedValue
+            decodedComparator(decodedValue, expectedDecodedValue)
         }
         return this
     }

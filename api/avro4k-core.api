@@ -228,6 +228,13 @@ public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
 	public static final fun encodeToByteArray (Lcom/github/avrokotlin/avro4k/AvroSingleObject;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
 }
 
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroStringable : java/lang/annotation/Annotation {
+}
+
+public synthetic class com/github/avrokotlin/avro4k/AvroStringable$Impl : com/github/avrokotlin/avro4k/AvroStringable {
+	public fun <init> ()V
+}
+
 public abstract interface class com/github/avrokotlin/avro4k/BooleanValueDecoder {
 	public abstract fun decodeBoolean (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Z
 }
@@ -361,9 +368,11 @@ public abstract class com/github/avrokotlin/avro4k/serializer/AvroSerializer : c
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/AvroSerializerKt {
-	public static final fun createSchema (Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;)Lorg/apache/avro/Schema;
-	public static final fun getDecimal (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;
-	public static final fun getFixed (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;
+	public static final fun createSchema (Lcom/github/avrokotlin/avro4k/AvroFixed;Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lorg/apache/avro/Schema;
+	public static final fun createSchema (Lcom/github/avrokotlin/avro4k/AvroStringable;)Lorg/apache/avro/Schema;
+	public static final fun getDecimal (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroDecimal;
+	public static final fun getFixed (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroFixed;
+	public static final fun getStringable (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroStringable;
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/BigDecimalAsStringSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
@@ -412,21 +421,6 @@ public final class com/github/avrokotlin/avro4k/serializer/ElementLocation {
 	public final fun copy (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;
 	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;Lkotlinx/serialization/descriptors/SerialDescriptor;IILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun getElementIndex ()I
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/serializer/FoundElementAnnotation {
-	public fun <init> (Lkotlinx/serialization/descriptors/SerialDescriptor;ILjava/lang/annotation/Annotation;)V
-	public final fun component1 ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun component2 ()I
-	public final fun component3 ()Ljava/lang/annotation/Annotation;
-	public final fun copy (Lkotlinx/serialization/descriptors/SerialDescriptor;ILjava/lang/annotation/Annotation;)Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;Lkotlinx/serialization/descriptors/SerialDescriptor;ILjava/lang/annotation/Annotation;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/serializer/FoundElementAnnotation;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAnnotation ()Ljava/lang/annotation/Annotation;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun getElementIndex ()I
 	public fun hashCode ()I

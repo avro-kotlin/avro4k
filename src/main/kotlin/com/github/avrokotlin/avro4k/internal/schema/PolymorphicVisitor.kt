@@ -18,7 +18,7 @@ internal class PolymorphicVisitor(
 
     override fun endPolymorphicVisit(descriptor: SerialDescriptor) {
         if (possibleSchemas.isEmpty()) {
-            throw AvroSchemaGenerationException("Polymorphic descriptor must have at least one possible schema")
+            throw AvroSchemaGenerationException("Polymorphic descriptor '$descriptor' must have at least one possible schema")
         }
         if (possibleSchemas.size == 1) {
             // flatten the useless union schema

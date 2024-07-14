@@ -42,6 +42,11 @@ internal val Schema.nullable: Schema
         }
     }
 
+internal fun Schema.asSchemaList(): List<Schema> {
+    if (!isUnion) return listOf(this)
+    return types
+}
+
 internal fun Schema.isNamedSchema(): Boolean {
     return this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED
 }
@@ -56,8 +61,9 @@ internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
         aliases.any { it == fullNameToMatch }
 }
 
-internal val SerialDescriptor.aliases: Set<String> get() =
-    findAnnotation<AvroAlias>()?.value?.toSet() ?: emptySet()
+internal val SerialDescriptor.aliases: Set<String>
+    get() =
+        findAnnotation<AvroAlias>()?.value?.toSet() ?: emptySet()
 
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
 

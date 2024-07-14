@@ -13,59 +13,57 @@ import org.apache.avro.AvroTypeException
 import java.math.BigDecimal
 import kotlin.io.path.Path
 
-internal class AvroDefaultSchemaTest : FunSpec() {
-    init {
-        test("schema for data class with @AvroDefault should include default value as a string") {
-            AvroAssertions.assertThat<BarString>()
-                .generatesSchema(Path("/avro_default_annotation_string.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as an int") {
-            AvroAssertions.assertThat<BarInt>()
-                .generatesSchema(Path("/avro_default_annotation_int.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as a float") {
-            AvroAssertions.assertThat<BarFloat>()
-                .generatesSchema(Path("/avro_default_annotation_float.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
-            AvroAssertions.assertThat<BarDecimal>()
-                .generatesSchema(Path("/avro_default_annotation_big_decimal.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as an Enum") {
-            AvroAssertions.assertThat<BarEnum>()
-                .generatesSchema(Path("/avro_default_annotation_enum.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as a list") {
-            AvroAssertions.assertThat<BarList>()
-                .generatesSchema(Path("/avro_default_annotation_list.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as a list with a record element type") {
-            AvroAssertions.assertThat<BarListOfElements>()
-                .generatesSchema(Path("/avro_default_annotation_list_of_records.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as an array") {
-            AvroAssertions.assertThat<BarArray>()
-                .generatesSchema(Path("/avro_default_annotation_array.json"))
-        }
-
-        test("schema for data class with @AvroDefault should include default value as an set") {
-            AvroAssertions.assertThat<BarSet>()
-                .generatesSchema(Path("/avro_default_annotation_set.json"))
-        }
-
-        test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
-            shouldThrow<AvroTypeException> { Avro.schema(BarInvalidArrayType.serializer()) }
-            shouldThrow<AvroTypeException> { Avro.schema(BarInvalidNonArrayType.serializer()) }
-        }
+internal class AvroDefaultSchemaTest : FunSpec({
+    test("schema for data class with @AvroDefault should include default value as a string") {
+        AvroAssertions.assertThat<BarString>()
+            .generatesSchema(Path("/avro_default_annotation_string.json"))
     }
 
+    test("schema for data class with @AvroDefault should include default value as an int") {
+        AvroAssertions.assertThat<BarInt>()
+            .generatesSchema(Path("/avro_default_annotation_int.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as a float") {
+        AvroAssertions.assertThat<BarFloat>()
+            .generatesSchema(Path("/avro_default_annotation_float.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
+        AvroAssertions.assertThat<BarDecimal>()
+            .generatesSchema(Path("/avro_default_annotation_big_decimal.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as an Enum") {
+        AvroAssertions.assertThat<BarEnum>()
+            .generatesSchema(Path("/avro_default_annotation_enum.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as a list") {
+        AvroAssertions.assertThat<BarList>()
+            .generatesSchema(Path("/avro_default_annotation_list.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as a list with a record element type") {
+        AvroAssertions.assertThat<BarListOfElements>()
+            .generatesSchema(Path("/avro_default_annotation_list_of_records.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as an array") {
+        AvroAssertions.assertThat<BarArray>()
+            .generatesSchema(Path("/avro_default_annotation_array.json"))
+    }
+
+    test("schema for data class with @AvroDefault should include default value as an set") {
+        AvroAssertions.assertThat<BarSet>()
+            .generatesSchema(Path("/avro_default_annotation_set.json"))
+    }
+
+    test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
+        shouldThrow<AvroTypeException> { Avro.schema(BarInvalidArrayType.serializer()) }
+        shouldThrow<AvroTypeException> { Avro.schema(BarInvalidNonArrayType.serializer()) }
+    }
+}) {
     @Serializable
     private data class BarString(
         val a: String,

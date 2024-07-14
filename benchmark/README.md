@@ -25,15 +25,15 @@ Each benchmark is executed with the following configuration:
 Computer: Macbook air M2
 
 ```
-Benchmark                                    Mode  Cnt      Score       Error  Units  Relative Difference (%)
-Avro4kBenchmark.read                        thrpt    5  21443.935 ±  2215.328  ops/s    0.00%
-ApacheAvroReflectBenchmark.read             thrpt    5  19803.543 ±   485.869  ops/s   -7.64%
-Avro4kGenericWithApacheAvroBenchmark.read   thrpt    5   8836.787 ±   404.874  ops/s  -58.79%
+Benchmark                                    Mode  Cnt      Score      Error  Units  Relative Difference (%)
+Avro4kBenchmark.read                        thrpt    5  22306.113 ±  208.516  ops/s    0.00%
+ApacheAvroReflectBenchmark.read             thrpt    5  21048.047 ± 3974.761  ops/s   -5.65%
+Avro4kGenericWithApacheAvroBenchmark.read   thrpt    5   8366.754 ±  975.268  ops/s  -62.49%
 
-Avro4kBenchmark.write                       thrpt    5  50565.556 ±   849.344  ops/s    0.00%
-ApacheAvroReflectBenchmark.write            thrpt    5  46872.768 ±  2406.622  ops/s   -7.30%
-JacksonAvroBenchmark.write                  thrpt    5  32349.182 ± 10105.111  ops/s  -36.01%
-Avro4kGenericWithApacheAvroBenchmark.write  thrpt    5  27471.887 ±   315.498  ops/s  -45.67%
+Avro4kBenchmark.write                       thrpt    5  54307.187 ±  789.593  ops/s    0.00%
+ApacheAvroReflectBenchmark.write            thrpt    5  48056.580 ± 2290.755  ops/s  -11.52%
+JacksonAvroBenchmark.write                  thrpt    5  36193.366 ± 1124.036  ops/s  -33.34%
+Avro4kGenericWithApacheAvroBenchmark.write  thrpt    5  28268.377 ±  117.031  ops/s  -47.96%
 ```
 
 > [!WARNING]

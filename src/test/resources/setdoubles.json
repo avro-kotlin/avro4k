@@ -10,7 +10,8 @@
         "items": {
           "type": "double"
         }
-      }
+      },
+      "default": []
     }
   ]
 }

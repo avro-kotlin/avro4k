@@ -15,8 +15,8 @@ Here are the main features:
 - **Encode and decode** anything to and from binary format, and also in generic data :toolbox:
 - **Generate schemas** based on your values and data classes :pencil:
 - **Customize** the generated schemas and encoded data with annotations :construction_worker:
-- **Fast** as it is reflection-less :rocket:
-- **Simple API** to get started quickly, also with native support of `java.time`, `BigDecimal`, `BigInteger` and `UUID` classes :1st_place_medal:
+- **Fast** as it is reflection-less :rocket: (check the benchmarks [here](benchmark/README.md#results))
+- **Simple API** to get started quickly, also with native support of java standard classes like `UUID`, `BigDecimal`, `BigInteger` and `java.time` module :1st_place_medal:
 - **Relaxed matching** for easy schema evolution as it natively [adapts compatible types](#types-matrix) :cyclone:
 
 > [!WARNING]
@@ -325,6 +325,37 @@ yourAvroInstance.schema<Pizza>()
 
 # Usage
 
+## Customizing the configuration
+
+By default, `Avro` is configured with the following behavior:
+- `implicitNulls`: The nullable fields are considered null when decoding if the writer record's schema does not contain this field.
+- `implicitEmptyCollections`: The non-nullable map and collection fields are considered empty when decoding if the writer record's schema does not contain this field.
+  - If `implicitNulls` is true, it takes precedence so the empty collections are set as null if the value is missing instead of an empty collection.
+- `validateSerialization`: There is no validation of the schema when encoding or decoding data, which means that serializing using a custom serializer could lead to unexpected behavior. Be careful with your custom serializers. More details [in this section](#set-a-custom-schema).
+- `fieldNamingStrategy`: The record's field naming strategy is using the original kotlin field name. To change it, [check this section](#changing-records-field-name).
+
+So each time you call a method on the `Avro` object implicitely invoke the default configuration. Example:
+
+```kotlin
+Avro.encodeToByteArray(MyData("value"))
+Avro.decodeFromByteArray(bytes)
+Avro.schema<MyData>()
+```
+
+If you need to change the default behavior, you need to create your own instance of `Avro` with the wanted configuration:
+
+```kotlin
+val yourAvroInstance = Avro {
+    fieldNamingStrategy = FieldNamingStrategy.Builtins.SnakeCase
+    implicitNulls = false
+    implicitEmptyCollections = false
+    validateSerialization = true
+}
+yourAvroInstance.encodeToByteArray(MyData("value"))
+yourAvroInstance.decodeFromByteArray(bytes)
+yourAvroInstance.schema<MyData>()
+```
+
 ## Types matrix
 
 | Kotlin type                  | Generated schema type | Other compatible writer types                                | Compatible logical type | Note / Serializer class                                                                                                                             |
@@ -529,6 +560,7 @@ There is 3 built-ins strategies:
 - `NoOp` (default): keeps the original kotlin field name
 - `SnakeCase`: converts the original kotlin field name to snake_case with underscores before each uppercase letter
 - `PascalCase`: upper-case the first letter of the original kotlin field name
+- If you need more, please [file an issue](https://github.com/avro-kotlin/avro4k/issues/new/choose)
 
 First, create your own instance of `Avro` with the wanted naming strategy:
 
@@ -556,9 +588,9 @@ val schema = myCustomizedAvroInstance.schema<MyData>() // {...,"fields":[{"name"
 While reading avro binary data, you can miss a field (a kotlin field is present but not in the avro binary data), so Avro4k fails as it is not capable of constructing the kotlin
 type without the missing field value.
 
-> [!NOTE]
-> By default, all nullable fields are optional as a `default: null` is automatically added to the schema ([check this section](#disable-implicit-default-null-for-nullable-fields)
-> to opt out from this default behavior).
+By default:
+- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
+- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
 
 ### @AvroDefault
 
@@ -593,7 +625,7 @@ data class MyData(
 )
 ```
 
-> This impacts only the deserialization of the field, and not the serialization or deserialization.
+> This impacts only the deserialization of the field, and not the serialization or the schema generation.
 
 ## Add aliases
 
@@ -770,20 +802,6 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class Foo(val a: String, @Transient val b: String = "default value")
-```
-
-> [!NOTE]
-> This impacts the schema generation, the serialization and the deserialization.
-
-## Disable implicit `default: null` for nullable fields
-
-Avro4k makes by default your nullable fields optional (put `default: null` on all nullable fields if no other explicit default provided).
-You can opt out this feature by setting `implicitNulls` to `false` in the `Avro` configuration:
-
-```kotlin
-Avro {
-    implicitNulls = false
-}
 ```
 
 > [!NOTE]

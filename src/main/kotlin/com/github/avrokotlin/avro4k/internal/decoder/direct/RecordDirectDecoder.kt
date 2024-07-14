@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.direct
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.DecodingStep
 import com.github.avrokotlin.avro4k.internal.decoder.generic.AvroValueGenericDecoder
+import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -14,13 +15,13 @@ import org.apache.avro.generic.GenericFixed
 import org.apache.avro.io.Decoder
 
 internal class RecordDirectDecoder(
-    recordSchema: Schema,
+    private val writerRecordSchema: Schema,
     descriptor: SerialDescriptor,
     avro: Avro,
     binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
     // from descriptor element index to schema field. The missing fields are at the end to decode the default values
-    private val classDescriptor = avro.recordResolver.resolveFields(recordSchema, descriptor)
+    private val classDescriptor = avro.recordResolver.resolveFields(writerRecordSchema, descriptor)
     private lateinit var currentDecodingStep: DecodingStep.ValidatedDecodingStep
     private var nextDecodingStepIndex = 0
 
@@ -40,7 +41,11 @@ internal class RecordDirectDecoder(
 
                 is DecodingStep.SkipWriterField -> binaryDecoder.skip(field.schema)
                 is DecodingStep.MissingElementValueFailure -> {
-                    throw SerializationException("No writer schema field matching element index ${field.elementIndex} in descriptor $descriptor")
+                    throw SerializationException(
+                        "Reader field '${descriptor.nonNullSerialName}.${descriptor.getElementName(
+                            field.elementIndex
+                        )}' has no corresponding field in writer schema $writerRecordSchema"
+                    )
                 }
 
                 is DecodingStep.DeserializeWriterField -> {

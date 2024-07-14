@@ -33,7 +33,7 @@ internal class RecordEncodingTest : StringSpec({
                     .name("c").type(Schema.create(Schema.Type.BOOLEAN).nullable).withDefault(null)
                     .name("s").type(
                         SchemaBuilder.record("S").fields()
-                            .name("t").type().array().items().intType().noDefault()
+                            .name("t").type().array().items().intType().arrayDefault<Any>(emptyList())
                             .endRecord()
                     ).noDefault()
                     .name("optionalField").type().intType().noDefault()

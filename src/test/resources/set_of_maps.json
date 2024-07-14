@@ -11,7 +11,8 @@
           "type": "map",
           "values": "string"
         }
-      }
+      },
+      "default": []
     }
   ]
 }

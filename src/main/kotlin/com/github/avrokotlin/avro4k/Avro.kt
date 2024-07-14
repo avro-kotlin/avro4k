@@ -108,13 +108,17 @@ public class AvroBuilder internal constructor(avro: Avro) {
     public var implicitNulls: Boolean = avro.configuration.implicitNulls
 
     @ExperimentalSerializationApi
+    public var implicitEmptyCollections: Boolean = avro.configuration.implicitEmptyCollections
+
+    @ExperimentalSerializationApi
     public var validateSerialization: Boolean = avro.configuration.validateSerialization
     public var serializersModule: SerializersModule = EmptySerializersModule()
 
-    public fun build(): AvroConfiguration =
+    internal fun build(): AvroConfiguration =
         AvroConfiguration(
             fieldNamingStrategy = fieldNamingStrategy,
             implicitNulls = implicitNulls,
+            implicitEmptyCollections = implicitEmptyCollections,
             validateSerialization = validateSerialization
         )
 }

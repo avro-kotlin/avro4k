@@ -139,34 +139,44 @@ internal class RecordResolver(
             if (visited) return@forEachIndexed
 
             val readerDefaultAnnotation = classDescriptor.findElementAnnotation<AvroDefault>(elementIndex)
-            // TODO try to fallback on the default value of the writer schema field if no readerDefaultAnnotation
+            val readerField = readerSchema.fields[elementIndex]
 
             decodingSteps +=
                 if (readerDefaultAnnotation != null) {
-                    val elementSchema = readerSchema.fields[elementIndex].schema()
                     DecodingStep.GetDefaultValue(
                         elementIndex = elementIndex,
-                        schema = elementSchema,
-                        defaultValue = readerDefaultAnnotation.parseValueToGenericData(elementSchema)
+                        schema = readerField.schema(),
+                        defaultValue = readerDefaultAnnotation.parseValueToGenericData(readerField.schema())
                     )
                 } else if (classDescriptor.isElementOptional(elementIndex)) {
                     DecodingStep.IgnoreOptionalElement(elementIndex)
-                } else if (avro.configuration.implicitNulls &&
-                    (
-                        classDescriptor.getElementDescriptor(elementIndex).isNullable ||
-                            classDescriptor.getElementDescriptor(elementIndex).isInline && classDescriptor.getElementDescriptor(elementIndex).getElementDescriptor(0).isNullable
-                    )
-                ) {
+                } else if (avro.configuration.implicitNulls && readerField.schema().isNullable) {
                     DecodingStep.GetDefaultValue(
                         elementIndex = elementIndex,
-                        schema = NULL_SCHEMA,
+                        schema = readerField.schema().asSchemaList().first { it.type === Schema.Type.NULL },
                         defaultValue = null
+                    )
+                } else if (avro.configuration.implicitEmptyCollections && readerField.schema().isTypeOf(Schema.Type.ARRAY)) {
+                    DecodingStep.GetDefaultValue(
+                        elementIndex = elementIndex,
+                        schema = readerField.schema().asSchemaList().first { it.type === Schema.Type.ARRAY },
+                        defaultValue = emptyList<Any>()
+                    )
+                } else if (avro.configuration.implicitEmptyCollections && readerField.schema().isTypeOf(Schema.Type.MAP)) {
+                    DecodingStep.GetDefaultValue(
+                        elementIndex = elementIndex,
+                        schema = readerField.schema().asSchemaList().first { it.type === Schema.Type.MAP },
+                        defaultValue = emptyMap<String, Any>()
                     )
                 } else {
                     DecodingStep.MissingElementValueFailure(elementIndex)
                 }
         }
         return decodingSteps.toTypedArray()
+    }
+
+    private fun Schema.isTypeOf(expectedType: Schema.Type): Boolean {
+        return asSchemaList().any { it.type === expectedType }
     }
 
     private fun computeEncodingSteps(
@@ -265,7 +275,9 @@ internal sealed interface DecodingStep {
 
     /**
      * The element is present in the class descriptor but not in the writer schema, so the default value is used.
-     * Also, if the [com.github.avrokotlin.avro4k.AvroConfiguration.implicitNulls] is enabled, the default value is `null`.
+     * Also:
+     * - if the [com.github.avrokotlin.avro4k.AvroConfiguration.implicitNulls] is enabled, the default value is `null`.
+     * - if the [com.github.avrokotlin.avro4k.AvroConfiguration.implicitEmptyCollections] is enabled, the default value is an empty array or map.
      */
     data class GetDefaultValue(
         override val elementIndex: Int,
@@ -405,5 +417,3 @@ private fun Schema.resolveUnion(
     }
     return types[index]
 }
-
-private val NULL_SCHEMA = Schema.create(Schema.Type.NULL)

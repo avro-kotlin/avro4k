@@ -25,9 +25,62 @@ data class TheDataClass(
 )
 
 // Now
-// ... Nothing, as it is the default behavior!
 data class TheDataClass(
+    // ... Nothing, as it is the default behavior!
     val field: String?
+)
+
+// Or
+val avro = Avro { implicitNulls = false }
+data class TheDataClass(
+    @AvroDefault("null")
+    val field: String?
+)
+```
+
+## Set a field default value to empty array
+
+```kotlin
+// Previously
+data class TheDataClass(
+    @AvroDefault("[]")
+    val field: List<String>
+)
+
+// Now
+data class TheDataClass(
+    // ... Nothing, as it is the default behavior!
+    val field: List<String>
+)
+
+// Or
+val avro = Avro { implicitEmptyCollections = false }
+data class TheDataClass(
+    @AvroDefault("[]")
+    val field: List<String>
+)
+```
+
+## Set a field default value to empty map
+
+```kotlin
+// Previously
+data class TheDataClass(
+    @AvroDefault("{}")
+    val field: Map<String, String>
+)
+
+// Now
+data class TheDataClass(
+    // ... Nothing, as it is the default behavior!
+    val field: Map<String, String>
+)
+
+// Or
+val avro = Avro { implicitEmptyCollections = false }
+data class TheDataClass(
+    @AvroDefault("{}")
+    val field: Map<String, String>
 )
 ```
 

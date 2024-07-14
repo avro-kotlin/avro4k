@@ -1,6 +1,0 @@
-{
-  "type": "enum",
-  "name": "Colours",
-  "symbols": ["Red", "Green", "Blue"],
-  "guns": ["and", "roses"]
-}

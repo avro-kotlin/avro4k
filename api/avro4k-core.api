@@ -27,12 +27,13 @@ public synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/
 }
 
 public final class com/github/avrokotlin/avro4k/AvroBuilder {
-	public final fun build ()Lcom/github/avrokotlin/avro4k/AvroConfiguration;
 	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
+	public final fun getImplicitEmptyCollections ()Z
 	public final fun getImplicitNulls ()Z
 	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
 	public final fun getValidateSerialization ()Z
 	public final fun setFieldNamingStrategy (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;)V
+	public final fun setImplicitEmptyCollections (Z)V
 	public final fun setImplicitNulls (Z)V
 	public final fun setSerializersModule (Lkotlinx/serialization/modules/SerializersModule;)V
 	public final fun setValidateSerialization (Z)V
@@ -40,15 +41,17 @@ public final class com/github/avrokotlin/avro4k/AvroBuilder {
 
 public final class com/github/avrokotlin/avro4k/AvroConfiguration {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZ)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZ)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
 	public final fun component2 ()Z
 	public final fun component3 ()Z
-	public final fun copy (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZ)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
-	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public final fun component4 ()Z
+	public final fun copy (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZ)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
+	public final fun getImplicitEmptyCollections ()Z
 	public final fun getImplicitNulls ()Z
 	public final fun getValidateSerialization ()Z
 	public fun hashCode ()I

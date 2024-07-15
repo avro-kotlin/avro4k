@@ -128,7 +128,7 @@ internal class MapEncodingTest : FunSpec({
             }
             .generatesSchema(
                 SchemaBuilder.record("ContextualKeyTests").fields()
-                    .name("map").type(Schema.createMap(Schema.create(Schema.Type.INT))).noDefault()
+                    .name("map").type(Schema.createMap(Schema.create(Schema.Type.INT))).withDefault(mapOf<String, Int>())
                     .endRecord()
             )
             .isEncodedAs(record(mapOf("a" to 12)))
@@ -148,7 +148,11 @@ internal class MapEncodingTest : FunSpec({
     ).forEach { keyValue ->
         test("handle string-able key type: ${keyValue::class.simpleName}") {
             AvroAssertions.assertThat(GenericMapForTests(mapOf(keyValue to "something")), GenericMapForTests.serializer(keyValue::class.serializer()))
-                .generatesSchema(Path("/map_string.json"))
+                .generatesSchema(
+                    SchemaBuilder.record("mapStringStringTest").fields()
+                        .name("map").type(Schema.createMap(Schema.create(Schema.Type.STRING))).withDefault(mapOf<String, String>())
+                        .endRecord()
+                )
                 .isEncodedAs(record(mapOf(keyValue.toString() to "something")))
         }
     }
@@ -166,9 +170,12 @@ internal class MapEncodingTest : FunSpec({
         WrappedChar('a') to "a"
     ).forEach { (keyValue, avroValue) ->
         test("handle string-able key type inside a value class: ${keyValue::class.simpleName}") {
-            AvroAssertions.assertThat(GenericMapForTests.serializer(keyValue::class.serializer()))
-                .generatesSchema(Path("/map_string.json"))
             AvroAssertions.assertThat(GenericMapForTests(mapOf(keyValue to "something")), GenericMapForTests.serializer(keyValue::class.serializer()))
+                .generatesSchema(
+                    SchemaBuilder.record("mapStringStringTest").fields()
+                        .name("map").type(Schema.createMap(Schema.create(Schema.Type.STRING))).withDefault(mapOf<String, String>())
+                        .endRecord()
+                )
                 .isEncodedAs(record(mapOf(avroValue to "something")))
         }
     }

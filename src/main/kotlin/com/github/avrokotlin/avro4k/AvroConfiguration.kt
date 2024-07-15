@@ -19,6 +19,15 @@ public data class AvroConfiguration(
     @ExperimentalSerializationApi
     val implicitNulls: Boolean = true,
     /**
+     * By default, set to `true`, the array & map fields that haven't any default value are set as an empty array or map if the value is missing. It also adds `"default": []` for arrays or `"default": {}` for maps to those fields when generating schema using avro4k.
+     *
+     * If `implicitNulls` is true, the empty collections are set as null if the value is missing.
+     *
+     * When set to `false`, during decoding, any missing content for an array or a map field without its empty default value is failing.
+     */
+    @ExperimentalSerializationApi
+    val implicitEmptyCollections: Boolean = true,
+    /**
      * **To be removed when binary support is stable.**
      *
      * Set it to `true` to enable validation in case of failure, mainly for debug purpose.

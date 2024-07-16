@@ -1,15 +1,15 @@
-package com.github.avrokotlin.benchmark
+package com.github.avrokotlin.benchmark.simple
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.decodeFromByteArray
 import com.github.avrokotlin.avro4k.encodeToByteArray
 import com.github.avrokotlin.avro4k.encodeToStream
-import com.github.avrokotlin.benchmark.internal.Clients
+import com.github.avrokotlin.benchmark.internal.SimpleDatasClass
 import kotlinx.benchmark.Benchmark
 import kotlinx.serialization.ExperimentalSerializationApi
 import java.io.OutputStream
 
-internal class Avro4kBenchmark : SerializationBenchmark() {
+internal class Avro4kSimpleBenchmark : SerializationSimpleBenchmark() {
     lateinit var data: ByteArray
     var writeMode = false
 
@@ -23,7 +23,7 @@ internal class Avro4kBenchmark : SerializationBenchmark() {
     @Benchmark
     fun read() {
         if (writeMode) writeMode = false
-        Avro.decodeFromByteArray<Clients>(schema, data)
+        Avro.decodeFromByteArray<SimpleDatasClass>(schema, data)
     }
 
     @OptIn(ExperimentalSerializationApi::class)

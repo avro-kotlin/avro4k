@@ -1,10 +1,10 @@
-package com.github.avrokotlin.benchmark
+package com.github.avrokotlin.benchmark.simple
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.decodeFromGenericData
 import com.github.avrokotlin.avro4k.encodeToByteArray
 import com.github.avrokotlin.avro4k.encodeToGenericData
-import com.github.avrokotlin.benchmark.internal.Clients
+import com.github.avrokotlin.benchmark.internal.SimpleDatasClass
 import kotlinx.benchmark.Benchmark
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.avro.Conversions
@@ -17,7 +17,7 @@ import org.apache.avro.io.EncoderFactory
 import java.io.ByteArrayInputStream
 import java.io.OutputStream
 
-internal class Avro4kGenericWithApacheAvroBenchmark : SerializationBenchmark() {
+internal class Avro4kGenericWithApacheAvroSimpleBenchmark : SerializationSimpleBenchmark() {
     lateinit var writer: DatumWriter<Any?>
     lateinit var encoder: Encoder
     lateinit var reader: DatumReader<Any?>
@@ -46,7 +46,7 @@ internal class Avro4kGenericWithApacheAvroBenchmark : SerializationBenchmark() {
         if (writeMode) writeMode = false
         val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
         val genericData = reader.read(null, decoder)
-        Avro { validateSerialization = true }.decodeFromGenericData<Clients>(schema, genericData)
+        Avro.decodeFromGenericData<SimpleDatasClass>(schema, genericData)
     }
 
     @OptIn(ExperimentalSerializationApi::class)

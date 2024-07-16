@@ -73,6 +73,10 @@ internal object RandomUtils {
         return RANDOM.nextInt(bound)
     }
 
+    fun nextInt(): Int {
+        return RANDOM.nextInt()
+    }
+
     fun nextInt(startInclusive: Int, endExclusive: Int): Int {
         assert(endExclusive >= startInclusive)
         assert(startInclusive >= 0)
@@ -91,6 +95,12 @@ internal object RandomUtils {
         } else startInclusive + (endInclusive - startInclusive) * RANDOM.nextDouble()
     }
 
+    fun nextDouble(): Double {
+        return RANDOM.nextDouble()
+    }
+    fun nextFloat(): Float {
+        return RANDOM.nextFloat()
+    }
     fun nextFloat(startInclusive: Float, endInclusive: Float): Float {
         assert(endInclusive >= startInclusive)
         assert(startInclusive >= 0)

@@ -1,4 +1,4 @@
-package com.github.avrokotlin.benchmark
+package com.github.avrokotlin.benchmark.complex
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.encodeToByteArray

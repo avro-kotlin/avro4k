@@ -96,9 +96,15 @@ fun main() {
 
 ## Object container
 
-Avro4k provides a way to encode and decode object container — also known as data file — with `AvroObjectContainerFile` class. This encoding will prefix the binary data with the
+Avro4k provides a way to encode and decode object container — also known as data file — with `AvroObjectContainer` class. This encoding will prefix the binary data with the
 full schema to
-allow knowing the writer schema when reading the data. This format is perfect for storing multiple long-term objects in a single file.
+allow knowing the writer schema when reading the data. This format is perfect for storing many long-term objects in a single file.
+
+The main difference with the `AvroObjectContainer` is that you will encode and decode `Sequence` of objects instead of single objects.
+
+Be aware that consuming the decoded `Sequence` needs to be done **before** closing the stream, or you will get an exception as a sequence is a "hot" source,
+which means that if there is millions of objects in the file, all the objects are extracted one-by-one when requested. If you take only the first 10 objects and close the stream,
+the remaining objects won't be extracted. Use carefully `sequence.toList()` as it could lead to OutOfMemoryError as extracting millions of objects may not fit in memory.
 
 <details>
 <summary>Example:</summary>
@@ -108,23 +114,27 @@ package myapp
 
 import com.github.avrokotlin.avro4k.*
 import kotlinx.serialization.*
-import org.apache.avro.SchemaNormalization
 
 @Serializable
 data class Project(val name: String, val language: String)
 
 fun main() {
-    val schema = Avro.schema<Project>()
-    val schemasByFingerprint = mapOf(SchemaNormalization.parsingFingerprint64(schema), schema)
-    val singleObjectInstance = AvroSingleObject { schemasByFingerprint[it] }
-
     // Serializing objects
-    val data = Project("kotlinx.serialization", "Kotlin")
-    val bytes = singleObjectInstance.encodeToByteArray(data)
+    val valuesToEncode = sequenceOf(
+        Project("kotlinx.serialization", "Kotlin"),
+        Project("java.lang", "Java"),
+        Project("avro4k", "Kotlin"),
+    )
+    Files.newOutputStream(Path("your-file.bin")).use { fileStream ->
+        AvroObjectContainer.encodeToStream(valuesToEncode, fileStream, builder)
+    }
 
     // Deserializing objects
-    val obj = singleObjectInstance.decodeFromByteArray<Project>(bytes)
-    println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+    Files.newInputStream(Path("your-file.bin")).use { fileStream ->
+        AvroObjectContainer.decodeFromStream<Project>(valuesToEncode, fileStream, builder).forEach {
+            println(it) // Project(name=kotlinx.serialization, language=Kotlin) ...
+        }
+    }
 }
 ```
 

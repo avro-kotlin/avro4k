@@ -155,9 +155,8 @@ val dataSequence = sequenceOf(
     TheDataClass(...),
     TheDataClass(...),
 )
-val avro = Avro { fieldNamingStrategy = FieldNamingStrategy.SnakeCase }
 Files.newOutputStream(Path("/your/file.avro")).use { outputStream ->
-    AvroObjectContainerFile(avro)
+    AvroObjectContainer { fieldNamingStrategy = FieldNamingStrategy.SnakeCase }
         .encodeToStream(dataSequence, outputStream) {
             codec(CodecFactory.snappyCodec())
             // you can also add your metadata !

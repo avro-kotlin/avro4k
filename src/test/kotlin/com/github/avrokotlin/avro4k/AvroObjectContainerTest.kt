@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Contextual
@@ -11,9 +12,11 @@ import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
 
-internal class AvroObjectContainerFileTest : StringSpec({
+internal class AvroObjectContainerTest : StringSpec({
     val firstProfile =
         UserProfile(
             id = UserId(UUID.randomUUID()),
@@ -54,7 +57,7 @@ internal class AvroObjectContainerFileTest : StringSpec({
         // write with avro4k
         val bytes =
             ByteArrayOutputStream().use {
-                AvroObjectContainerFile().encodeToStream(sequenceOf(firstProfile, secondProfile), it) {
+                AvroObjectContainer.encodeToStream(sequenceOf(firstProfile, secondProfile), it) {
                     metadata("meta-string", "awesome string")
                     metadata("meta-long", 42)
                     metadata("bytes", byteArrayOf(1, 3, 2, 42))
@@ -62,10 +65,7 @@ internal class AvroObjectContainerFileTest : StringSpec({
                 it.toByteArray()
             }
         // read with apache avro lib
-        val dataFile =
-            bytes.inputStream().use {
-                DataFileStream<GenericRecord>(it, GenericDatumReader(Avro.schema<UserProfile>()))
-            }
+        val dataFile = DataFileStream<GenericRecord>(bytes.inputStream(), GenericDatumReader(Avro.schema<UserProfile>()))
         dataFile.getMetaString("meta-string") shouldBe "awesome string"
         dataFile.getMetaLong("meta-long") shouldBe 42
         dataFile.getMeta("bytes") shouldBe byteArrayOf(1, 3, 2, 42)
@@ -90,7 +90,7 @@ internal class AvroObjectContainerFileTest : StringSpec({
         // read with avro4k
         val profiles =
             bytes.inputStream().use {
-                AvroObjectContainerFile().decodeFromStream<UserProfile>(it) {
+                AvroObjectContainer.decodeFromStream<UserProfile>(it) {
                     metadata("meta-string")?.asString() shouldBe "awesome string"
                     metadata("meta-long")?.asLong() shouldBe 42
                     metadata("bytes")?.asBytes() shouldBe byteArrayOf(1, 3, 2, 42)
@@ -99,6 +99,44 @@ internal class AvroObjectContainerFileTest : StringSpec({
         profiles.size shouldBe 2
         profiles[0] shouldBe firstProfile
         profiles[1] shouldBe secondProfile
+    }
+    "encoding error is not closing the stream" {
+        class SimpleOutputStream: OutputStream() {
+            var closed = false
+
+            override fun write(b: Int) {
+                throw UnsupportedOperationException()
+            }
+
+            override fun close() {
+                closed = true
+            }
+        }
+
+        val os = SimpleOutputStream()
+        shouldThrow<UnsupportedOperationException> {
+            AvroObjectContainer.encodeToStream<UserId>(sequence {}, os)
+        }
+        os.closed shouldBe false
+    }
+    "decoding error is not closing the stream" {
+        class SimpleInputStream: InputStream() {
+            var closed = false
+
+            override fun read(): Int {
+                throw UnsupportedOperationException()
+            }
+
+            override fun close() {
+                closed = true
+            }
+        }
+
+        val input = SimpleInputStream()
+        shouldThrow<UnsupportedOperationException> {
+            AvroObjectContainer.decodeFromStream<UserId>(input).toList()
+        }
+        input.closed shouldBe false
     }
 }) {
     @Serializable

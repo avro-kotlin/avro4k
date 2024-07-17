@@ -101,7 +101,7 @@ internal class AvroObjectContainerTest : StringSpec({
         profiles[1] shouldBe secondProfile
     }
     "encoding error is not closing the stream" {
-        class SimpleOutputStream: OutputStream() {
+        class SimpleOutputStream : OutputStream() {
             var closed = false
 
             override fun write(b: Int) {
@@ -120,7 +120,7 @@ internal class AvroObjectContainerTest : StringSpec({
         os.closed shouldBe false
     }
     "decoding error is not closing the stream" {
-        class SimpleInputStream: InputStream() {
+        class SimpleInputStream : InputStream() {
             var closed = false
 
             override fun read(): Int {

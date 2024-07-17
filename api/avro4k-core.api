@@ -164,18 +164,20 @@ public final class com/github/avrokotlin/avro4k/AvroKt {
 	public static final fun schema (Lcom/github/avrokotlin/avro4k/Avro;Lkotlinx/serialization/KSerializer;)Lorg/apache/avro/Schema;
 }
 
-public final class com/github/avrokotlin/avro4k/AvroObjectContainerFile {
-	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public abstract class com/github/avrokotlin/avro4k/AvroObjectContainer {
+	public static final field Default Lcom/github/avrokotlin/avro4k/AvroObjectContainer$Default;
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun decodeFromStream (Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
-	public static synthetic fun decodeFromStream$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainerFile;Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
+	public static synthetic fun decodeFromStream$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainer;Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
 	public final fun encodeToStream (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Lkotlin/sequences/Sequence;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun encodeToStream$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainerFile;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Lkotlin/sequences/Sequence;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun encodeToStream$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainer;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Lkotlin/sequences/Sequence;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
 }
 
-public final class com/github/avrokotlin/avro4k/AvroObjectContainerFileBuilder {
+public final class com/github/avrokotlin/avro4k/AvroObjectContainer$Default : com/github/avrokotlin/avro4k/AvroObjectContainer {
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerBuilder {
 	public fun <init> (Lorg/apache/avro/file/DataFileWriter;)V
 	public final fun codec (Lorg/apache/avro/file/CodecFactory;)V
 	public final fun metadata (Ljava/lang/String;J)V
@@ -183,13 +185,18 @@ public final class com/github/avrokotlin/avro4k/AvroObjectContainerFileBuilder {
 	public final fun metadata (Ljava/lang/String;[B)V
 }
 
-public final class com/github/avrokotlin/avro4k/AvroObjectContainerFileMetadataDumper {
-	public fun <init> (Lorg/apache/avro/file/DataFileStream;)V
-	public final fun metadata (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/AvroObjectContainerFileMetadataDumper$MetadataAccessor;
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerKt {
+	public static final fun AvroObjectContainer (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/AvroObjectContainer;
+	public static synthetic fun AvroObjectContainer$default (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroObjectContainer;
 }
 
-public final class com/github/avrokotlin/avro4k/AvroObjectContainerFileMetadataDumper$MetadataAccessor {
-	public fun <init> (Lcom/github/avrokotlin/avro4k/AvroObjectContainerFileMetadataDumper;[B)V
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper {
+	public fun <init> (Lorg/apache/avro/file/DataFileStream;)V
+	public final fun metadata (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper$MetadataAccessor;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper$MetadataAccessor {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper;[B)V
 	public final fun asBytes ()[B
 	public final fun asLong ()J
 	public final fun asString ()Ljava/lang/String;

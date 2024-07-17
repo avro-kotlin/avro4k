@@ -1,20 +1,27 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.AvroAssertions
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.apache.avro.Schema
+import org.apache.avro.SchemaBuilder
 
-class TransientSchemaTest : FunSpec({
-
-  test("@AvroTransient fields should be ignored") {
-
-    val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/transient.json"))
-    val schema = Avro.default.schema(TransientFoo.serializer())
-    schema.toString(true) shouldBe expected.toString(true)
-  }
-
+internal class TransientSchemaTest : FunSpec({
+    test("ignore fields with @Transient") {
+        AvroAssertions.assertThat<TransientTest>()
+            .generatesSchema(
+                SchemaBuilder.record("TransientTest").fields()
+                    .name("presentField").type(Schema.create(Schema.Type.STRING)).noDefault()
+                    .endRecord()
+            )
+    }
 }) {
-  @Serializable
-  data class TransientFoo(val a: String, @kotlinx.serialization.Transient val b: String = "foo", val c: String)
+    @Serializable
+    @SerialName("TransientTest")
+    private data class TransientTest(
+        val presentField: String,
+        @Transient val transientField: String = "default",
+    )
 }

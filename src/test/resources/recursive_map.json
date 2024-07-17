@@ -1,15 +1,22 @@
 {
-   "type" : "record",
-   "name" : "RecursiveMapValue",
-   "namespace" : "com.github.avrokotlin.avro4k.schema",
-   "fields" : [ {
-      "name" : "payload",
-      "type" : "int"
-   }, {
-      "name" : "map",
-      "type" : [ "null", {
-         "type" : "map",
-         "values" : "RecursiveMapValue"
-      } ]
-   } ]
+  "type": "record",
+  "name": "RecursiveMapValue",
+  "namespace": "com.github.avrokotlin.avro4k.schema.RecursiveSchemaTest",
+  "fields": [
+    {
+      "name": "payload",
+      "type": "int"
+    },
+    {
+      "name": "map",
+      "type": [
+        "null",
+        {
+          "type": "map",
+          "values": "RecursiveMapValue"
+        }
+      ],
+      "default": null
+    }
+  ]
 }

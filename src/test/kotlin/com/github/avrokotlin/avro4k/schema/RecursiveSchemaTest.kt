@@ -1,63 +1,47 @@
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.AvroAssertions
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
+import kotlin.io.path.Path
 
-@Serializable
-data class RecursiveClass(val payload: Int, val klass: RecursiveClass?)
+internal class RecursiveSchemaTest : FunSpec({
 
-@Serializable
-data class RecursiveListItem(val payload: Int, val list: List<RecursiveListItem>?)
+    test("accept direct recursive classes") {
+        AvroAssertions.assertThat<RecursiveClass>()
+            .generatesSchema(Path("/recursive_class.json"))
+    }
 
-@Serializable
-data class RecursiveMapValue(val payload: Int, val map: Map<String, RecursiveMapValue>?)
+    test("accept direct recursive lists") {
+        AvroAssertions.assertThat<RecursiveListItem>()
+            .generatesSchema(Path("/recursive_list.json"))
+    }
 
-@Serializable
-data class RecursivePair(val payload: Int, val pair: Pair<RecursivePair, RecursivePair>?)
+    test("accept direct recursive maps") {
+        AvroAssertions.assertThat<RecursiveMapValue>()
+            .generatesSchema(Path("/recursive_map.json"))
+    }
 
-@Serializable
-data class Level4(val level1: Level1)
+    test("accept nested recursive classes") {
+        AvroAssertions.assertThat<Level1>()
+            .generatesSchema(Path("/recursive_nested.json"))
+    }
+}) {
+    @Serializable
+    private data class RecursiveClass(val payload: Int, val klass: RecursiveClass?)
 
-@Serializable
-data class Level3(val level4: Level4?)
+    @Serializable
+    private data class RecursiveListItem(val payload: Int, val list: List<RecursiveListItem>?)
 
-@Serializable
-data class Level2(val level3: Level3)
+    @Serializable
+    private data class RecursiveMapValue(val payload: Int, val map: Map<String, RecursiveMapValue>?)
 
-@Serializable
-data class Level1(val level2: Level2?)
+    @Serializable
+    private data class Level3(val level1: Level1?)
 
-class RecursiveSchemaTest : FunSpec({
+    @Serializable
+    private data class Level2(val level3: Level3)
 
-   test("accept direct recursive classes") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_class.json"))
-      val schema = Avro.default.schema(RecursiveClass.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("accept direct recursive lists") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_list.json"))
-      val schema = Avro.default.schema(RecursiveListItem.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("accept direct recursive maps") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_map.json"))
-      val schema = Avro.default.schema(RecursiveMapValue.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("accept direct recursive pairs") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_pair.json"))
-      val schema = Avro.default.schema(RecursivePair.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("accept nested recursive classes") {
-      val expected = org.apache.avro.Schema.Parser().parse(this::class.java.getResourceAsStream("/recursive_nested.json"))
-      val schema = Avro.default.schema(Level1.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-})
+    @Serializable
+    private data class Level1(val level2: Level2?)
+}

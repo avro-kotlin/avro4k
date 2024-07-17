@@ -1,17 +1,15 @@
 {
   "type": "record",
   "name": "StringBooleanTest",
-  "namespace": "com.github.avrokotlin.avro4k.schema.MapSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.encoding.MapEncodingTest",
   "fields": [
     {
       "name": "map",
       "type": {
         "type": "map",
-        "values": [
-          "null",
-          "boolean"
-        ]
-      }
+        "values": ["null", "boolean"]
+      },
+      "default": {}
     }
   ]
 }

@@ -1,43 +1,56 @@
-@file:UseSerializers(BigDecimalSerializer::class)
-
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.ScalePrecision
-import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.AvroDecimal
+import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
+import org.apache.avro.LogicalTypes
+import org.apache.avro.Schema
 import java.math.BigDecimal
 
-class BigDecimalSchemaTest : FunSpec({
+internal class BigDecimalSchemaTest : FunSpec({
+    test("support BigDecimal logical types") {
+        AvroAssertions.assertThat<BigDecimalTest>()
+            .generatesSchema(LogicalTypes.decimal(8, 2).addToSchema(Schema.create(Schema.Type.BYTES)))
+    }
 
-   test("accept big decimal as logical type on bytes") {
+    test("support BigDecimal logical types as fixed") {
+        AvroAssertions.assertThat<BigDecimalFixedTest>()
+            .generatesSchema(LogicalTypes.decimal(5, 3).addToSchema(Schema.createFixed("field", null, null, 5)))
+    }
 
-      val schema = Avro.default.schema(BigDecimalTest.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal.json"))
-      schema shouldBe expected
-   }
-   test("accept big decimal as logical type on bytes with custom scale and precision") {
-
-      val schema = Avro.default.schema(BigDecimalPrecisionTest.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal-scale-and-precision.json"))
-      schema shouldBe expected
-   }
-   test("support nullable BigDecimal as a union") {
-
-      val schema = Avro.default.schema(NullableBigDecimalTest.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigdecimal_nullable.json"))
-      schema shouldBe expected
-   }
+    test("support nullable BigDecimal logical types") {
+        AvroAssertions.assertThat<BigDecimalNullableTest>()
+            .generatesSchema(LogicalTypes.decimal(2, 1).addToSchema(Schema.create(Schema.Type.BYTES)).nullable)
+    }
 }) {
-   @Serializable
-   data class BigDecimalTest(val decimal: BigDecimal)
+    @JvmInline
+    @Serializable
+    private value class BigDecimalTest(
+        @AvroDecimal(scale = 2, precision = 8)
+        @Contextual
+        val bigDecimal: BigDecimal,
+    )
 
-   @Serializable
-   data class BigDecimalPrecisionTest(@ScalePrecision(1, 4) val decimal: BigDecimal)
+    @JvmInline
+    @Serializable
+    @SerialName("BigDecimalFixedTest")
+    private value class BigDecimalFixedTest(
+        @AvroDecimal(scale = 3, precision = 5)
+        @AvroFixed(5)
+        @Contextual
+        val field: BigDecimal,
+    )
 
-   @Serializable
-   data class NullableBigDecimalTest(val decimal: BigDecimal?)
+    @JvmInline
+    @Serializable
+    private value class BigDecimalNullableTest(
+        @AvroDecimal(scale = 1, precision = 2)
+        @Contextual
+        val bigDecimal: BigDecimal?,
+    )
 }

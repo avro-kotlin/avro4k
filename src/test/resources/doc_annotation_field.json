@@ -6,12 +6,12 @@
     {
       "name": "str",
       "type": "string",
-      "doc" : "hello its me"
+      "doc": "hello its me"
     },
     {
       "name": "long",
       "type": "long",
-      "doc" : "I am a long"
+      "doc": "I am a long"
     },
     {
       "name": "int",

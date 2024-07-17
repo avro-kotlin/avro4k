@@ -10,7 +10,8 @@
         "items": {
           "type": "string"
         }
-      }
+      },
+      "default": []
     }
   ]
 }

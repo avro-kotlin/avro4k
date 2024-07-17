@@ -1,20 +1,9 @@
 {
-   "type": "record",
-   "name": "EnumWithDefaultTest",
-   "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
-   "fields": [
-      {
-         "name": "type",
-         "type": {
-            "type": "enum",
-            "name": "IngredientType",
-            "namespace": "com.github.avrokotlin.avro4k.schema",
-            "symbols": [
-               "VEGGIE",
-               "MEAT"
-            ],
-            "default": "MEAT"
-         }
-      }
-   ]
+  "type": "enum",
+  "name": "Suit",
+  "namespace": "com.github.avrokotlin.avro4k.schema.EnumSchemaTest",
+  "aliases": ["MySuit"],
+  "doc": "documentation",
+  "symbols": ["SPADES", "HEARTS", "DIAMONDS", "CLUBS"],
+  "default": "DIAMONDS"
 }

@@ -1,51 +1,27 @@
 {
-   "type": "record",
-   "name": "Interface",
-   "namespace": "com.github.avrokotlin.avro4k.schema.NamingStrategySchemaTest",
-   "fields": [
-      {
-         "name": "name",
-         "type": "string"
-      },
-      {
-         "name": "ipv4_address",
-         "type": "string"
-      },
-      {
-         "name": "ipv4_subnet_mask",
-         "type": "int"
-      },
-      {
-         "name": "v",
-         "type": {
-            "type": "enum",
-            "name": "InternetProtocol",
-            "namespace" : "com.github.avrokotlin.avro4k.schema",
-            "symbols": [
-               "IPv4",
-               "IPv6"
-            ]
-         }
-      },
-      {
-         "name": "sub_interface",
-         "type": [
-            "null",
-            {
-               "type": "record",
-               "name": "SubInterface",
-               "fields": [
-                  {
-                     "name": "name",
-                     "type": "string"
-                  },
-                  {
-                     "name": "ipv4_address",
-                     "type": "string"
-                  }
-               ]
-            }
-         ]
+  "type": "record",
+  "name": "Interface",
+  "namespace": "com.github.avrokotlin.avro4k.schema.FieldNamingStrategySchemaTest",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "ipv4_address",
+      "type": "string"
+    },
+    {
+      "name": "ipv4_subnet_mask",
+      "type": "int"
+    },
+    {
+      "name": "v",
+      "type": {
+        "type": "enum",
+        "name": "InternetProtocol",
+        "symbols": ["IPv4", "IPv6"]
       }
-   ]
+    }
+  ]
 }

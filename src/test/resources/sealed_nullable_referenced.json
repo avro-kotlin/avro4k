@@ -1,61 +1,61 @@
 {
-   "type":"record",
-   "name":"ReferencingNullableSealedClass",
-   "namespace":"com.github.avrokotlin.avro4k.schema",
-   "fields":[
-      {
-         "name":"nullable",
-         "type":[
-            "null",
+  "type": "record",
+  "name": "ReferencingNullableSealedClass",
+  "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest",
+  "fields": [
+    {
+      "name": "nullable",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Add",
+          "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Binary",
+          "fields": [
             {
-               "type":"record",
-               "name":"Add",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
-               "fields":[
-                  {
-                     "name":"left",
-                     "type":"int"
-                  },
-                  {
-                     "name":"right",
-                     "type":"int"
-                  }
-               ]
+              "name": "left",
+              "type": "int"
             },
             {
-               "type":"record",
-               "name":"Substract",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Binary",
-               "fields":[
-                  {
-                     "name":"left",
-                     "type":"int"
-                  },
-                  {
-                     "name":"right",
-                     "type":"int"
-                  }
-               ]
-            },
-            {
-               "type":"record",
-               "name":"Nullary",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation",
-               "fields":[]
-            },
-            {
-               "type":"record",
-               "name":"Negate",
-               "namespace":"com.github.avrokotlin.avro4k.schema.Operation.Unary",
-               "fields":[
-                  {
-                     "name":"value",
-                     "type":"int"
-                  }
-               ]
+              "name": "right",
+              "type": "int"
             }
-         ],
-         "default" : null
-      }
-   ]
+          ]
+        },
+        {
+          "type": "record",
+          "name": "Substract",
+          "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Binary",
+          "fields": [
+            {
+              "name": "left",
+              "type": "int"
+            },
+            {
+              "name": "right",
+              "type": "int"
+            }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "Nullary",
+          "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation",
+          "fields": []
+        },
+        {
+          "type": "record",
+          "name": "Negate",
+          "namespace": "com.github.avrokotlin.avro4k.schema.SealedClassSchemaTest.Operation.Unary",
+          "fields": [
+            {
+              "name": "value",
+              "type": "int"
+            }
+          ]
+        }
+      ],
+      "default": null
+    }
+  ]
 }

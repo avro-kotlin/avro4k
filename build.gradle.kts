@@ -1,164 +1,162 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-buildscript {
-   repositories {
-      mavenCentral()
-      mavenLocal()
-      google()
-      gradlePluginPortal()
-   }
-}
-
 plugins {
-   java
-   id("java-library")
-   kotlin("jvm") version libs.versions.kotlin
-   kotlin("plugin.serialization") version libs.versions.kotlin
-   id("maven-publish")
-   signing
-   alias(libs.plugins.dokka)
-   alias(libs.plugins.kotest)
-   alias(libs.plugins.github.versions)
-   alias(libs.plugins.nexus.publish)
-}
-
-repositories {
-   mavenCentral()
-   google()
+    java
+    id("java-library")
+    kotlin("jvm") version libs.versions.kotlin
+    kotlin("plugin.serialization") version libs.versions.kotlin
+    id("maven-publish")
+    signing
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.github.versions)
+    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 tasks {
-   javadoc {
-   }
+    javadoc
 }
 
 group = "com.github.avro-kotlin.avro4k"
 version = Ci.publishVersion
 
 dependencies {
-   api(libs.apache.avro)
-   api(libs.kotlinx.serialization.core)
-   implementation(libs.kotlinx.serialization.json)
-   implementation(kotlin("reflect"))
-   implementation(libs.xerial.snappy)
-   testImplementation(libs.kotest.junit5)
-   testImplementation(libs.kotest.core)
-   testImplementation(libs.kotest.json)
-   testImplementation(libs.kotest.property)
+    api(libs.apache.avro)
+    api(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okio)
+    testImplementation(libs.kotest.junit5)
+    testImplementation(libs.kotest.core)
+    testImplementation(libs.kotest.json)
+    testImplementation(libs.kotest.property)
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-   kotlinOptions.jvmTarget = "1.8"
-   kotlinOptions.apiVersion = "1.5"
-   kotlinOptions.languageVersion = "1.5"
-   kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+kotlin {
+    explicitApi()
+
+    compilerOptions {
+        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        freeCompilerArgs = listOf("-Xcontext-receivers")
+    }
 }
 java {
-   sourceCompatibility = JavaVersion.VERSION_1_8
-   targetCompatibility = JavaVersion.VERSION_1_8
-   withJavadocJar()
-   withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
 }
 tasks.named<Test>("test") {
-   useJUnitPlatform()
-   filter {
-      isFailOnNoMatchingTests = false
-   }
-   testLogging {
-      showExceptions = true
-      showStandardStreams = true
-      events = setOf(
-         org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-         org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
-      )
-      exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-   }
+    useJUnitPlatform()
+    filter {
+        isFailOnNoMatchingTests = false
+    }
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+        events =
+            setOf(
+                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+            )
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 tasks.named<Jar>("javadocJar") {
-   from(tasks.named("dokkaJavadoc"))
+    from(tasks.named("dokkaJavadoc"))
 }
 
-//Configuration for publication on maven central
-val signingKey: String? by project
-val signingPassword: String? by project
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                val projectUrl = "https://github.com/avro-kotlin/avro4k"
+                name.set("avro4k-core")
+                description.set("Avro binary format support for kotlin, built on top of kotlinx-serialization")
+                url.set(projectUrl)
 
-val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications
+                scm {
+                    connection.set("scm:git:$projectUrl")
+                    developerConnection.set("scm:git:$projectUrl")
+                    url.set(projectUrl)
+                }
 
-signing {
-   useGpgCmd()
-   if (signingKey != null && signingPassword != null) {      
-      useInMemoryPgpKeys(signingKey, signingPassword)
-   }
-   if (Ci.isRelease) {
-      sign(publications)
-   }
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://opensource.org/licenses/Apache-2.0")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("thake")
+                        name.set("Thorsten Hake")
+                        email.set("mail@thorsten-hake.com")
+                    }
+                    developer {
+                        id.set("chuckame")
+                        name.set("Antoine Michaud")
+                        email.set("contact@antoine-michaud.fr")
+                    }
+                }
+            }
+        }
+    }
 }
 
 nexusPublishing {
-   this.repositories {
-      sonatype()
-   }
+    repositories {
+        sonatype()
+    }
 }
-publishing {
-   publications {
-      register("mavenJava", MavenPublication::class) {
-         from(components["java"])
-         pom {
-            val projectUrl = "https://github.com/avro-kotlin/avro4k"
-            name.set("avro4k-core")
-            description.set("Avro format support for kotlinx.serialization")
-            url.set(projectUrl)
 
-            scm {
-               connection.set("scm:git:$projectUrl")
-               developerConnection.set("scm:git:$projectUrl")
-               url.set(projectUrl)
-            }
+signing {
+    if (Ci.isRelease) {
+        val signingKey: String? by project
+        val signingPassword: String? by project
 
-            licenses {
-               license {
-                  name.set("Apache-2.0")
-                  url.set("https://opensource.org/licenses/Apache-2.0")
-               }
-            }
-
-            developers {
-               developer {
-                  id.set("thake")
-                  name.set("Thorsten Hake")
-                  email.set("mail@thorsten-hake.com")
-               }
-               developer {
-                  id.set("chuckame")
-                  name.set("Antoine Michaud")
-                  email.set("contact@antoine-michaud.fr")
-               }
-            }
-         }
-      }
-   }
+        if (signingKey != null && signingPassword != null) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        } else {
+            throw IllegalStateException("No signing key or password found")
+        }
+        sign(publishing.publications)
+    }
 }
-fun Project.publishing(action: PublishingExtension.() -> Unit) =
-   configure(action)
-
-fun Project.signing(configure: SigningExtension.() -> Unit): Unit =
-   configure(configure)
-
 
 object Ci {
-   // this is the version used for building snapshots
-   // .buildnumber-snapshot will be appended
-   private const val snapshotBase = "1.9.0"
+    // this is the version used for building snapshots
+    // .buildnumber-snapshot will be appended
+    private const val SNAPSHOT_BASE = "1.9.0"
 
-   private val githubBuildNumber = System.getenv("GITHUB_RUN_NUMBER")
+    private val githubBuildNumber = System.getenv("GITHUB_RUN_NUMBER")
 
-   private val snapshotVersion = when (githubBuildNumber) {
-      null -> "$snapshotBase-SNAPSHOT"
-      else -> "$snapshotBase.${githubBuildNumber}-SNAPSHOT"
-   }
+    private val snapshotVersion =
+        when (githubBuildNumber) {
+            null -> "$SNAPSHOT_BASE-SNAPSHOT"
+            else -> "$SNAPSHOT_BASE.$githubBuildNumber-SNAPSHOT"
+        }
 
-   private val releaseVersion = System.getenv("RELEASE_VERSION")
+    private val releaseVersion = System.getenv("RELEASE_VERSION")
 
-   val isRelease = releaseVersion != null
-   val publishVersion = releaseVersion ?: snapshotVersion
+    val isRelease = releaseVersion != null
+    val publishVersion = releaseVersion ?: snapshotVersion
+}
+
+spotless {
+    kotlin {
+        ktlint()
+    }
+    json {
+        target("src/test/resources/**.json")
+        prettier()
+    }
+    kotlinGradle {
+        ktlint()
+    }
 }

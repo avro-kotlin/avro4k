@@ -1,32 +1,36 @@
 name: release
 
 on:
-   workflow_dispatch:
-      inputs:
-         version:
-            description: "The release version (e.g., '1.9.0')."
-            required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The release version (e.g., '1.9.0')."
+        required: true
 
 jobs:
-   publish:
-      runs-on: ubuntu-latest
-      steps:
-         -  name: Checkout the repo
-            uses: actions/checkout@v3
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/main-v2'
+        run: |
+          echo "This workflow should only be triggered on main and main-v2 branch.
+          exit 1
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-         -  name: publish release
-            run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
-            env:
-               RELEASE_VERSION: ${{ github.event.inputs.version }}
-               ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-               ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
-               ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-               ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-         - name: create release
-           run: gh release create "v${RELEASE_VERSION}" --generate-notes
-           env:
-              RELEASE_VERSION: ${{ github.event.inputs.version }}
-              GH_TOKEN: ${{ github.token }}
-
-env:
-   GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+      - name: publish release
+        run: ./gradlew publishToSonatype closeAndReleaseStagingRepositories
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+      - name: create release
+        run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          GH_TOKEN: ${{ github.token }}

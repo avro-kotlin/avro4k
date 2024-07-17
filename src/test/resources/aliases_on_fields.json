@@ -1,25 +1,21 @@
 {
-   "type": "record",
-   "name": "FieldAnnotated",
-   "namespace": "com.github.avrokotlin.avro4k.schema.AvroAliasSchemaTest",
-   "fields": [
-      {
-         "name": "str",
-         "type": "string",
-         "aliases": [
-            "cold"
-         ]
-      },
-      {
-         "name": "long",
-         "type": "long",
-         "aliases": [
-            "kate"
-         ]
-      },
-      {
-         "name": "int",
-         "type": "int"
-      }
-   ]
+  "type": "record",
+  "name": "FieldAnnotated",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroAliasSchemaTest",
+  "fields": [
+    {
+      "name": "str",
+      "type": "string",
+      "aliases": ["cold"]
+    },
+    {
+      "name": "long",
+      "type": "long",
+      "aliases": ["kate"]
+    },
+    {
+      "name": "int",
+      "type": "int"
+    }
+  ]
 }

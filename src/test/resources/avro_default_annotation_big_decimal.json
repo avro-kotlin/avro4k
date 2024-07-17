@@ -1,51 +1,52 @@
 {
-   "type": "record",
-   "name": "BarDecimal",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "a",
-         "type": {
-            "type": "bytes",
-            "logicalType": "decimal",
-            "precision": 8,
-            "scale": 2
-         }
-      },
-      {
-         "name": "b",
-         "type": {
-            "type": "bytes",
-            "logicalType": "decimal",
-            "precision": 8,
-            "scale": 2
-         },
-         "default": "\u0000"
-      },
-      {
-         "name": "nullableString",
-         "type": ["null",
-            {
-               "type": "bytes",
-               "logicalType": "decimal",
-               "precision": 8,
-               "scale": 2
-            }
-         ],
-         "default" : null
-      },
-      {
-         "name": "c",
-         "type": [
-            {
-               "type": "bytes",
-               "logicalType": "decimal",
-               "precision": 8,
-               "scale": 2
-            }
-         ,"null"
-         ],
-         "default": "\u0000"
+  "type": "record",
+  "name": "BarDecimal",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "a",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 8,
+        "scale": 2
       }
-   ]
+    },
+    {
+      "name": "b",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 8,
+        "scale": 2
+      },
+      "default": "\u0000"
+    },
+    {
+      "name": "nullableString",
+      "type": [
+        "null",
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 8,
+          "scale": 2
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "c",
+      "type": [
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 8,
+          "scale": 2
+        },
+        "null"
+      ],
+      "default": "\u0000"
+    }
+  ]
 }

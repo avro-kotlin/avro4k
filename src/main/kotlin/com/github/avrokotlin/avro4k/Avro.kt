@@ -1,280 +1,152 @@
-@file:Suppress("DEPRECATION")
-
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.decoder.RootRecordDecoder
-import com.github.avrokotlin.avro4k.encoder.RootRecordEncoder
-import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
-import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
-import com.github.avrokotlin.avro4k.io.AvroFormat
-import com.github.avrokotlin.avro4k.io.AvroInputStream
-import com.github.avrokotlin.avro4k.io.AvroOutputStream
-import com.github.avrokotlin.avro4k.schema.schemaFor
-import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import com.github.avrokotlin.avro4k.internal.EnumResolver
+import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
+import com.github.avrokotlin.avro4k.internal.RecordResolver
+import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
+import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
+import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialFormat
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
+import kotlinx.serialization.modules.overwriteWith
+import kotlinx.serialization.modules.plus
+import kotlinx.serialization.serializer
+import okio.Buffer
 import org.apache.avro.Schema
-import org.apache.avro.file.CodecFactory
-import org.apache.avro.generic.GenericRecord
-import java.io.*
-import java.nio.ByteBuffer
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import org.apache.avro.util.WeakIdentityHashMap
+import java.io.ByteArrayInputStream
 
-open class AvroInputStreamBuilder<T>(
-   private val converter: (Any) -> T
-   ) {
-   /**
-    * The format that should be used to decode the bytes from the input stream.
-    */
-   var decodeFormat : AvroDecodeFormat = defaultDecodeFormat
-   @Deprecated("please use decodeFormat to specify the format")
-   var format: AvroFormat = AvroFormat.DataFormat
-   @Deprecated("please use decodeFormat to specify the format")
-   var writerSchema: Schema? = null
-   @Deprecated("please use decodeFormat to specify the format")
-   var readerSchema: Schema? = null
+/**
+ * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
+ */
+public sealed class Avro(
+    public val configuration: AvroConfiguration,
+    public override val serializersModule: SerializersModule,
+) : BinaryFormat {
+    // We use the identity hash map because we could have multiple descriptors with the same name, especially
+    // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors
+    // only once, so we are safe in the main use cases. Combined with weak references to avoid memory leaks.
+    private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
 
-   companion object {
-      val defaultDecodeFormat = AvroDecodeFormat.Data(null, null)
-   }
+    internal val recordResolver = RecordResolver(this)
+    internal val polymorphicResolver = PolymorphicResolver(serializersModule)
+    internal val enumResolver = EnumResolver()
 
-   private val derivedDecodeFormat : AvroDecodeFormat
-      get() {
-         return when(format){
-            is AvroFormat.JsonFormat -> {
-               val wschema = writerSchema ?: error("Writer schema needs to be supplied for Json format")
-               AvroDecodeFormat.Json(wschema, readerSchema?:wschema)
-            }
-            is AvroFormat.BinaryFormat -> {
-               val wschema = writerSchema ?: error("Writer schema needs to be supplied for Binary format")
-               AvroDecodeFormat.Binary(wschema, readerSchema?:wschema)
-            }
-            is AvroFormat.DataFormat ->  AvroDecodeFormat.Data(writerSchema, readerSchema)
-         }
-      }
+    public companion object Default : Avro(
+        AvroConfiguration(),
+        JavaStdLibSerializersModule +
+            JavaTimeSerializersModule
+    )
 
-   fun from(path: Path): AvroInputStream<T> = from(Files.newInputStream(path))
-   fun from(path: String): AvroInputStream<T> = from(Paths.get(path))
-   fun from(file: File): AvroInputStream<T> = from(file.toPath())
-   fun from(bytes: ByteArray): AvroInputStream<T> = from(ByteArrayInputStream(bytes))
-   fun from(buffer: ByteBuffer): AvroInputStream<T> = from(ByteArrayInputStream(buffer.array()))
+    public fun schema(descriptor: SerialDescriptor): Schema {
+        return schemaCache.getOrPut(descriptor) {
+            lateinit var output: Schema
+            ValueVisitor(this) { output = it }.visitValue(descriptor)
+            output
+        }
+    }
 
-   fun from(source: InputStream): AvroInputStream<T> {
-      val currentDerivedFormat = derivedDecodeFormat
-      val decodeFormatToUse = if(defaultDecodeFormat != currentDerivedFormat){
-         currentDerivedFormat
-      }else {
-         decodeFormat
-      }
-      return decodeFormatToUse.createInputStream(source, converter)
-   }
+    public fun <T> encodeToByteArray(
+        writerSchema: Schema,
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): ByteArray {
+        val buffer = Buffer()
+        encodeToSink(writerSchema, serializer, value, buffer)
+        return buffer.readByteArray()
+    }
+
+    public fun <T> decodeFromByteArray(
+        writerSchema: Schema,
+        deserializer: DeserializationStrategy<T>,
+        bytes: ByteArray,
+    ): T {
+        val inputStream = ByteArrayInputStream(bytes)
+        val result = decodeFromStream(writerSchema, deserializer, inputStream)
+        if (inputStream.available() > 0) {
+            throw SerializationException("Not all bytes were consumed during deserialization")
+        }
+        return result
+    }
+
+    override fun <T> decodeFromByteArray(
+        deserializer: DeserializationStrategy<T>,
+        bytes: ByteArray,
+    ): T {
+        return decodeFromByteArray(schema(deserializer.descriptor), deserializer, bytes)
+    }
+
+    override fun <T> encodeToByteArray(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): ByteArray {
+        return encodeToByteArray(schema(serializer.descriptor), serializer, value)
+    }
 }
-class AvroDeserializerInputStreamBuilder<T>(
-   private val deserializer: DeserializationStrategy<T>,
-   private val avro : Avro,
-   converter: (Any) -> T
-) : AvroInputStreamBuilder<T>(converter) {
-   val defaultReadSchema : Schema by lazy { avro.schema(deserializer.descriptor) }
+
+public fun Avro(
+    from: Avro = Avro,
+    builderAction: AvroBuilder.() -> Unit,
+): Avro {
+    val builder = AvroBuilder(from)
+    builder.builderAction()
+    return AvroImpl(builder.build(), from.serializersModule.overwriteWith(builder.serializersModule))
 }
 
-class AvroOutputStreamBuilder<T>(
-   private val serializer: SerializationStrategy<T>,
-   private val avro: Avro,
-   private val converterFn: (Schema) -> (T) -> GenericRecord
-){
-   var encodeFormat : AvroEncodeFormat = defaultEncodeFormat
-   @Deprecated("please use AvroEncodeFormat to specify the format")
-   var format: AvroFormat = AvroFormat.DataFormat
-   var schema: Schema? = null
-   @Deprecated("please use AvroEncodeFormat to specify the format")
-   var codec: CodecFactory = CodecFactory.nullCodec()
+public class AvroBuilder internal constructor(avro: Avro) {
+    @ExperimentalSerializationApi
+    public var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
 
-   companion object {
-      val defaultEncodeFormat = AvroEncodeFormat.Data()
-   }
-   private val derivedEncodeFormat : AvroEncodeFormat
-      get() = when(format){
-         AvroFormat.JsonFormat -> AvroEncodeFormat.Json
-         AvroFormat.BinaryFormat -> AvroEncodeFormat.Binary
-         AvroFormat.DataFormat -> AvroEncodeFormat.Data(codec)
-      }
-   fun to(path: Path): AvroOutputStream<T> = to(Files.newOutputStream(path))
-   fun to(path: String): AvroOutputStream<T> = to(Paths.get(path))
-   fun to(file: File): AvroOutputStream<T> = to(file.toPath())
+    @ExperimentalSerializationApi
+    public var implicitNulls: Boolean = avro.configuration.implicitNulls
 
-   fun to(output: OutputStream): AvroOutputStream<T> {
-      val schema = schema ?: avro.schema(serializer)
-      val converter = converterFn(schema)
-      return createOutputStream(output, schema, converter)
-   }
-   private fun createOutputStream(output: OutputStream, schema : Schema, converter: (T) -> GenericRecord): AvroOutputStream<T> {
-      val currentDirectEncodeFormat = derivedEncodeFormat
-      val encodeFormatToUse = if(currentDirectEncodeFormat != defaultEncodeFormat) {
-         currentDirectEncodeFormat
-      } else{
-         encodeFormat
-      }
-      return encodeFormatToUse.createOutputStream(output, schema, converter)
-   }
+    @ExperimentalSerializationApi
+    public var implicitEmptyCollections: Boolean = avro.configuration.implicitEmptyCollections
+
+    @ExperimentalSerializationApi
+    public var validateSerialization: Boolean = avro.configuration.validateSerialization
+    public var serializersModule: SerializersModule = EmptySerializersModule()
+
+    internal fun build(): AvroConfiguration =
+        AvroConfiguration(
+            fieldNamingStrategy = fieldNamingStrategy,
+            implicitNulls = implicitNulls,
+            implicitEmptyCollections = implicitEmptyCollections,
+            validateSerialization = validateSerialization
+        )
 }
-@OptIn(ExperimentalSerializationApi::class)
-class Avro(
-   override val serializersModule: SerializersModule = defaultModule,
-   private val configuration: AvroConfiguration = AvroConfiguration()
-) : SerialFormat, BinaryFormat {
-   constructor(configuration: AvroConfiguration) : this(defaultModule, configuration)
-   companion object {
-      val defaultModule = SerializersModule {
-         contextual(UUIDSerializer())
-      }
-      val default = Avro(defaultModule)
 
-      /**
-       * Use this constant if you want to explicitly set a default value of a field to avro null
-       */
-      const val NULL = "com.github.avrokotlin.avro4k.Avro.AVRO_NULL_DEFAULT"
-   }
+private class AvroImpl(configuration: AvroConfiguration, serializersModule: SerializersModule) :
+    Avro(configuration, serializersModule)
 
-   /**
-    * Loads an instance of <T> from the given ByteArray, with the assumption that the record was stored
-    * using [AvroEncodeFormat.Data]. The schema used will be the embedded schema.
-    */
-   override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
-      openInputStream(deserializer) {
-         decodeFormat = AvroDecodeFormat.Data(null, null)
-      }.from(bytes).nextOrThrow()
+public inline fun <reified T> Avro.schema(): Schema {
+    val serializer = serializersModule.serializer<T>()
+    return schema(serializer.descriptor)
+}
 
-   /**
-    * Creates an [AvroInputStreamBuilder] that will read avro values such as GenericRecord.
-    * Supply a function to this method to configure the builder, eg
-    *
-    * <pre>
-    * val input = openInputStream<T>(serializer) {
-    *    decodeFormat = AvroDecodeFormat.Data(writerSchema = null, readerSchema = mySchema)
-    * }
-    * </pre>
-    */
-   fun openInputStream(f: AvroInputStreamBuilder<Any>.() -> Unit = {}): AvroInputStreamBuilder<Any> {
-      val builder = AvroInputStreamBuilder { it }
-      builder.f()
-      return builder
-   }
+public fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
+    return schema(serializer.descriptor)
+}
 
+public inline fun <reified T> Avro.encodeToByteArray(
+    writerSchema: Schema,
+    value: T,
+): ByteArray {
+    val serializer = serializersModule.serializer<T>()
+    return encodeToByteArray(writerSchema, serializer, value)
+}
 
-   /**
-    * Creates an [AvroInputStreamBuilder] that will read instances of <T>.
-    * Supply a function to this method to configure the builder, eg
-    *
-    * <pre>
-    * val input = openInputStream<T>(serializer) {
-    *    decodeFormat = AvroDecodeFormat.Data(writerSchema = null, readerSchema = mySchema)
-    * }
-    * </pre>
-    */
-   fun <T> openInputStream(
-      deserializer: DeserializationStrategy<T>,
-      f: AvroDeserializerInputStreamBuilder<T>.() -> Unit = {}
-   ): AvroDeserializerInputStreamBuilder<T> {
-      val builder = AvroDeserializerInputStreamBuilder(deserializer, this) {
-         fromRecord(deserializer, it as GenericRecord)
-      }
-      builder.f()
-      return builder
-   }
-
-
-   /**
-    * Writes an instance of <T> using a [Schema] derived from the type.
-    * This method will use the [AvroEncodeFormat.Data] format without a codec.
-    * The written object will be returned as a [ByteArray].
-    */
-   override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
-      val baos = ByteArrayOutputStream()
-      openOutputStream(serializer) {
-         encodeFormat = AvroEncodeFormat.Data()
-      }.to(baos).write(value).close()
-      return baos.toByteArray()
-   }
-
-   /**
-    * Creates an [AvroOutputStreamBuilder] that will write instances of <T>.
-    * Supply a function to this method to configure the builder, eg
-    *
-    * <pre>
-    * val output = openOutputStream<T>(serializer) {
-    *    encodeFormat = AvroEncodeFormat.Data()
-    *    schema = mySchema
-    * }
-    * </pre>
-    *
-    * If the schema is not supplied in the configuration function then it will
-    * be derived from the type using [Avro.schema].
-    */
-   fun <T> openOutputStream(
-      serializer: SerializationStrategy<T>,
-      f: AvroOutputStreamBuilder<T>.() -> Unit = {}
-   ): AvroOutputStreamBuilder<T> {
-      val builder = AvroOutputStreamBuilder(serializer, this) { schema -> { toRecord(serializer, schema, it) } }
-      builder.f()
-      return builder
-   }
-
-   /**
-    * Converts an instance of <T> to an Avro [Record] using a [Schema] derived from the type.
-    */
-   fun <T> toRecord(
-      serializer: SerializationStrategy<T>,
-      obj: T,
-   ): GenericRecord {
-      return toRecord(serializer, schema(serializer), obj)
-   }
-
-   /**
-    * Converts an instance of <T> to an Avro [Record] using the given [Schema].
-    */
-   fun <T> toRecord(serializer: SerializationStrategy<T>,
-                    schema: Schema,
-                    obj: T): GenericRecord {
-      var record: Record? = null
-      val encoder = RootRecordEncoder(schema, serializersModule) { record = it }
-      encoder.encodeSerializableValue(serializer, obj)
-      return record!!
-   }
-
-   /**
-    * Converts an Avro [GenericRecord] to an instance of <T> using the schema
-    * present in the record.
-    */
-   fun <T> fromRecord(
-      deserializer: DeserializationStrategy<T>,
-      record: GenericRecord,
-   ): T {
-      return RootRecordDecoder(record, serializersModule, configuration).decodeSerializableValue(
-         deserializer
-      )
-   }
-
-   fun schema(descriptor: SerialDescriptor): Schema =
-      schemaFor(
-         serializersModule,
-         descriptor,
-         descriptor.annotations,
-         configuration,
-         mutableMapOf()
-      ).schema()
-
-   fun <T> schema(
-      serializer: SerializationStrategy<T>,
-   ): Schema {
-      return schema(serializer.descriptor)
-   }
-
+public inline fun <reified T> Avro.decodeFromByteArray(
+    writerSchema: Schema,
+    bytes: ByteArray,
+): T {
+    val serializer = serializersModule.serializer<T>()
+    return decodeFromByteArray(writerSchema, serializer, bytes)
 }

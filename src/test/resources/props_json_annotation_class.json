@@ -1,12 +1,32 @@
 {
   "type": "record",
   "name": "TypeAnnotated",
-  "namespace": "com.github.avrokotlin.avro4k.schema.AvroJsonPropSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroPropsSchemaTest",
   "fields": [
     {
-      "name": "str",
-      "type": "string"
+      "name": "field",
+      "type": {
+        "type": "enum",
+        "name": "EnumAnnotated",
+        "symbols": ["Red", "Green", "Blue"],
+        "default": "Green",
+        "enums": "power",
+        "countingAgain": ["three", "four"]
+      },
+      "cold": "play",
+      "complexObject": {
+        "a": "foo",
+        "b": 200,
+        "c": true,
+        "d": null,
+        "e": {
+          "e1": null,
+          "e2": 429
+        },
+        "f": ["bar", 404, false, null, {}]
+      }
     }
   ],
-   "guns": ["and", "roses"]
+  "hey": "there",
+  "counting": ["one", "two"]
 }

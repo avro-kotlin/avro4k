@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "StringSetNestedTest",
-  "namespace": "com.github.avrokotlin.avro4k.schema.MapSchemaTest",
+  "namespace": "com.github.avrokotlin.avro4k.encoding.MapEncodingTest",
   "fields": [
     {
       "name": "map",
@@ -20,7 +20,8 @@
             ]
           }
         }
-      }
+      },
+      "default": {}
     }
   ]
 }

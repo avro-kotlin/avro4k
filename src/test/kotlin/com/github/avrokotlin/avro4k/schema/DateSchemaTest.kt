@@ -1,96 +1,33 @@
-@file:UseSerializers(
-   LocalDateSerializer::class,
-   LocalTimeSerializer::class,
-   TimestampSerializer::class,
-   InstantSerializer::class,
-   LocalDateTimeSerializer::class
-)
-
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.serializer.*
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.internal.nullable
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer
+import com.github.avrokotlin.avro4k.serializer.InstantToMicroSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
 import io.kotest.core.spec.style.FunSpec
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
-import java.sql.Timestamp
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.nullable
+import org.apache.avro.LogicalTypes
+import org.apache.avro.Schema
 
-class DateSchemaTest : FunSpec({
-
-   test("generate date logical type for LocalDate") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate.json"))
-      val schema = Avro.default.schema(LocalDateTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate date logical type for nullable LocalDate") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdate_nullable.json"))
-      val schema = Avro.default.schema(NullableLocalDateTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate time logical type for LocalTime") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localtime.json"))
-      val schema = Avro.default.schema(LocalTimeTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate time logical type for LocalDateTime") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/localdatetime.json"))
-      val schema = Avro.default.schema(LocalDateTimeTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate timestamp-millis logical type for Instant") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/instant.json"))
-      val schema = Avro.default.schema(InstantTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate timestamp-millis logical type for Timestamp") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/timestamp.json"))
-      val schema = Avro.default.schema(TimestampTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
-   test("generate timestamp-millis logical type for nullable Timestamp") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/timestamp_nullable.json"))
-      val schema = Avro.default.schema(Test.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-}) {
-
-   @Serializable
-   data class LocalDateTest(val date: LocalDate)
-
-   @Serializable
-   data class NullableLocalDateTest(val date: LocalDate?)
-
-   @Serializable
-   data class LocalTimeTest(val time: LocalTime)
-
-   @Serializable
-   data class LocalDateTimeTest(val time: LocalDateTime)
-
-   @Serializable
-   data class InstantTest(val instant: Instant)
-
-
-   @Serializable
-   data class TimestampTest(val ts: Timestamp)
-
-   @Serializable
-   data class Test(val ts: Timestamp?)
-}
+internal class DateSchemaTest : FunSpec({
+    listOf(
+        LocalDateSerializer to LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT)),
+        LocalTimeSerializer to LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT)),
+        LocalDateTimeSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
+        InstantSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
+        InstantToMicroSerializer to LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG))
+    ).forEach { (serializer: KSerializer<*>, expected) ->
+        test("generate date logical type for $serializer") {
+            AvroAssertions.assertThat(serializer)
+                .generatesSchema(expected)
+        }
+        test("generate nullable date logical type for $serializer") {
+            AvroAssertions.assertThat(serializer.nullable)
+                .generatesSchema(expected.nullable)
+        }
+    }
+})

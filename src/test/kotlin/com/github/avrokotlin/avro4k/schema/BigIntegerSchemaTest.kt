@@ -1,34 +1,33 @@
-@file:UseSerializers(BigIntegerSerializer::class)
-
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.serializer.BigIntegerSerializer
-import io.kotest.matchers.shouldBe
+import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
+import org.apache.avro.Schema
 import java.math.BigInteger
 
-class BigIntegerSchemaTest : FunSpec({
+internal class BigIntegerSchemaTest : FunSpec({
+    test("support BigInteger as string") {
+        AvroAssertions.assertThat<BigIntegerTest>()
+            .generatesSchema(Schema.create(Schema.Type.STRING))
+    }
 
-   test("accept big integer as String") {
-
-      val schema = Avro.default.schema(Test.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigint.json"))
-      schema shouldBe expected
-   }
-
-   test("accept nullable big integer as String union") {
-
-      val schema = Avro.default.schema(NullableTest.serializer())
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/bigint_nullable.json"))
-      schema shouldBe expected
-   }
+    test("support nullable BigInteger as string") {
+        AvroAssertions.assertThat<BigIntegerNullableTest>()
+            .generatesSchema(Schema.create(Schema.Type.STRING).nullable)
+    }
 }) {
-   @Serializable
-   data class Test(val b: BigInteger)
+    @JvmInline
+    @Serializable
+    private value class BigIntegerTest(
+        @Contextual val bigInteger: BigInteger,
+    )
 
-   @Serializable
-   data class NullableTest(val b: BigInteger?)
+    @JvmInline
+    @Serializable
+    private value class BigIntegerNullableTest(
+        @Contextual val bigInteger: BigInteger?,
+    )
 }

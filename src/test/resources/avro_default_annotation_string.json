@@ -1,26 +1,26 @@
 {
-   "type": "record",
-   "name": "BarString",
-   "namespace": "com.github.avrokotlin.avro4k.schema",
-   "fields": [
-      {
-         "name": "a",
-         "type": "string"
-      },
-      {
-         "name": "b",
-         "type": "string",
-         "default": "hello"
-      },
-      {
-         "name": "nullableString",
-         "type": ["null","string"],
-         "default" : null
-      },
-      {
-         "name": "c",
-         "type": ["string","null"],
-         "default": "hello"
-      }
-   ]
+  "type": "record",
+  "name": "BarString",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "a",
+      "type": "string"
+    },
+    {
+      "name": "b",
+      "type": "string",
+      "default": "hello"
+    },
+    {
+      "name": "nullableString",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "c",
+      "type": ["string", "null"],
+      "default": "hello"
+    }
+  ]
 }

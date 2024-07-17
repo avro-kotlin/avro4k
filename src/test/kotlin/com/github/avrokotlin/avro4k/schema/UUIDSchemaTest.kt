@@ -1,26 +1,34 @@
-@file:UseSerializers(UUIDSerializer::class)
-
 package com.github.avrokotlin.avro4k.schema
 
-import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
+import org.apache.avro.LogicalTypes
+import org.apache.avro.Schema
 import java.util.UUID
 
-class UUIDSchemaTest : FunSpec({
+internal class UUIDSchemaTest : FunSpec({
+    test("support UUID logical types") {
+        AvroAssertions.assertThat<UUIDTest>()
+            .generatesSchema(LogicalTypes.uuid().addToSchema(Schema.create(Schema.Type.STRING)))
+    }
 
-   test("support UUID logical types") {
-
-      val expected = org.apache.avro.Schema.Parser().parse(javaClass.getResourceAsStream("/uuid.json"))
-      val schema = Avro.default.schema(UUIDTest.serializer())
-      schema.toString(true) shouldBe expected.toString(true)
-   }
-
+    test("support nullable UUID logical types") {
+        AvroAssertions.assertThat<UUIDNullableTest>()
+            .generatesSchema(LogicalTypes.uuid().addToSchema(Schema.create(Schema.Type.STRING)).nullable)
+    }
 }) {
+    @JvmInline
+    @Serializable
+    private value class UUIDTest(
+        @Contextual val uuid: UUID,
+    )
 
-   @Serializable
-   data class UUIDTest(val uuid: UUID)
+    @JvmInline
+    @Serializable
+    private value class UUIDNullableTest(
+        @Contextual val uuid: UUID?,
+    )
 }

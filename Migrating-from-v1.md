@@ -166,6 +166,21 @@ Files.newOutputStream(Path("/your/file.avro")).use { outputStream ->
 }
 ```
 
+## Reading previously written binary encoded (`AvroEncodeFormat.Binary`) files
+
+It was possible to use the `AvroEncodeFormat.Binary` format, which used [binary encoding](https://avro.apache.org/docs/current/spec.html#binary_encoding). The data did not have an embedded schema, so it had to be specified when reading.
+
+```kotlin
+// Previously
+Avro.default.openInputStream(serializer) { decodeFormat = AvroDecodeFormat.Binary(schema) }
+    .from(data).use { avroInputStream -> return avroInputStream.nextOrThrow() }
+
+// Now
+val reader = GenericDatumReader<Any>(schema)
+val decoder = DecoderFactory.get().binaryDecoder(ByteArrayInputStream(data), null)
+Avro.decodeFromGenericData(schema, serializer, reader.read(null, decoder))
+```
+
 ## Writing a collection of Byte as BYTES or FIXED
 
 If you really want to encode a `BYTES` type, just use the `ByteArray` type or write your own `AvroSerializer` to control the schema and its serialization.

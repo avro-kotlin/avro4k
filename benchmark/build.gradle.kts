@@ -34,6 +34,15 @@ benchmark {
         register("complex-write") {
             include("^com.github.avrokotlin.benchmark.complex.+.write$")
         }
+        register("avro4k") {
+            include("Avro4k")
+        }
+        register("avro4k-read") {
+            include("Avro4k.+read")
+        }
+        register("avro4k-write") {
+            include("Avro4k.+write")
+        }
     }
     targets {
         register("main") {

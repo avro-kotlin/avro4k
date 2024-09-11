@@ -57,11 +57,15 @@ internal class AvroObjectContainerTest : StringSpec({
         // write with avro4k
         val bytes =
             ByteArrayOutputStream().use {
-                AvroObjectContainer.encodeToStream(sequenceOf(firstProfile, secondProfile), it) {
-                    metadata("meta-string", "awesome string")
-                    metadata("meta-long", 42)
-                    metadata("bytes", byteArrayOf(1, 3, 2, 42))
-                }
+                val writer =
+                    AvroObjectContainer.openWriter<UserProfile>(it) {
+                        metadata("meta-string", "awesome string")
+                        metadata("meta-long", 42)
+                        metadata("bytes", byteArrayOf(1, 3, 2, 42))
+                    }
+                writer.writeValue(firstProfile)
+                writer.writeValue(secondProfile)
+                writer.close()
                 it.toByteArray()
             }
         // read with apache avro lib
@@ -105,7 +109,6 @@ internal class AvroObjectContainerTest : StringSpec({
             var closed = false
 
             override fun write(b: Int) {
-                throw UnsupportedOperationException()
             }
 
             override fun close() {
@@ -114,9 +117,8 @@ internal class AvroObjectContainerTest : StringSpec({
         }
 
         val os = SimpleOutputStream()
-        shouldThrow<UnsupportedOperationException> {
-            AvroObjectContainer.encodeToStream<UserId>(sequence {}, os)
-        }
+        val writer = AvroObjectContainer.openWriter<UserId>(os)
+        writer.close()
         os.closed shouldBe false
     }
     "decoding error is not closing the stream" {

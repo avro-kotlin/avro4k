@@ -12,6 +12,7 @@ import org.apache.avro.file.DataFileStream
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
+import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -28,28 +29,21 @@ public sealed class AvroObjectContainer(
     public companion object Default : AvroObjectContainer(Avro)
 
     /**
-     * Encodes the given sequence to the given output stream.
+     * Opens a writer to allow encoding values to avro and writing them to the output stream.
      *
      * Note that the output stream is not closed after the operation, which means you need to handle it to avoid resource leaks.
      */
-    public fun <T> encodeToStream(
+    public fun <T> openWriter(
         schema: Schema,
         serializer: SerializationStrategy<T>,
-        values: Sequence<T>,
         outputStream: OutputStream,
         builder: AvroObjectContainerBuilder.() -> Unit = {},
-    ) {
+    ): AvroObjectContainerWriter<T> {
         val datumWriter: DatumWriter<T> = KotlinxSerializationDatumWriter(serializer, avro)
         val dataFileWriter = DataFileWriter(datumWriter)
-        try {
-            builder(AvroObjectContainerBuilder(dataFileWriter))
-            dataFileWriter.create(schema, outputStream)
-            values.forEach {
-                dataFileWriter.append(it)
-            }
-        } finally {
-            dataFileWriter.flush()
-        }
+        builder(AvroObjectContainerBuilder(dataFileWriter))
+        dataFileWriter.create(schema, outputStream)
+        return AvroObjectContainerWriter(dataFileWriter)
     }
 
     public fun <T> decodeFromStream(
@@ -66,6 +60,18 @@ public sealed class AvroObjectContainer(
     }
 }
 
+public class AvroObjectContainerWriter<T> internal constructor(
+    private val writer: DataFileWriter<T>,
+) : Closeable {
+    public fun writeValue(value: T) {
+        writer.append(value)
+    }
+
+    override fun close() {
+        writer.flush()
+    }
+}
+
 private class AvroObjectContainerImpl(avro: Avro) : AvroObjectContainer(avro)
 
 public fun AvroObjectContainer(
@@ -76,13 +82,12 @@ public fun AvroObjectContainer(
 }
 
 @ExperimentalSerializationApi
-public inline fun <reified T> AvroObjectContainer.encodeToStream(
-    values: Sequence<T>,
+public inline fun <reified T> AvroObjectContainer.openWriter(
     outputStream: OutputStream,
     noinline builder: AvroObjectContainerBuilder.() -> Unit = {},
-) {
+): AvroObjectContainerWriter<T> {
     val serializer = avro.serializersModule.serializer<T>()
-    encodeToStream(avro.schema(serializer), serializer, values, outputStream, builder)
+    return openWriter(avro.schema(serializer), serializer, outputStream, builder)
 }
 
 @ExperimentalSerializationApi
@@ -94,7 +99,7 @@ public inline fun <reified T> AvroObjectContainer.decodeFromStream(
     return decodeFromStream(serializer, inputStream, metadataDumper)
 }
 
-public class AvroObjectContainerBuilder(private val fileWriter: DataFileWriter<*>) {
+public class AvroObjectContainerBuilder internal constructor(private val fileWriter: DataFileWriter<*>) {
     public fun metadata(
         key: String,
         value: ByteArray,
@@ -116,12 +121,16 @@ public class AvroObjectContainerBuilder(private val fileWriter: DataFileWriter<*
         fileWriter.setMeta(key, value)
     }
 
+    public fun syncInterval(value: Int) {
+        fileWriter.setSyncInterval(value)
+    }
+
     public fun codec(codec: CodecFactory) {
         fileWriter.setCodec(codec)
     }
 }
 
-public class AvroObjectContainerMetadataDumper(private val fileStream: DataFileStream<*>) {
+public class AvroObjectContainerMetadataDumper internal constructor(private val fileStream: DataFileStream<*>) {
     public fun metadata(key: String): MetadataAccessor? {
         return fileStream.getMeta(key)?.let { MetadataAccessor(it) }
     }

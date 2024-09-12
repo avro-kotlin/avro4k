@@ -42,3 +42,7 @@ dependencies {
 
     implementation(project(":"))
 }
+
+repositories {
+    mavenCentral()
+}

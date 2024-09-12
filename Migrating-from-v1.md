@@ -156,13 +156,16 @@ val dataSequence = sequenceOf(
     TheDataClass(...),
 )
 Files.newOutputStream(Path("/your/file.avro")).use { outputStream ->
-    AvroObjectContainer { fieldNamingStrategy = FieldNamingStrategy.SnakeCase }
-        .encodeToStream(dataSequence, outputStream) {
+    val writer = AvroObjectContainer { fieldNamingStrategy = FieldNamingStrategy.SnakeCase }
+        .openWriter(outputStream) {
             codec(CodecFactory.snappyCodec())
             // you can also add your metadata !
             metadata("myProp", 1234L)
             metadata("a string metadata", "hello")
         }
+    writer.use {
+        dataSequence.forEach { writer.write(it) }
+    }
 }
 ```
 

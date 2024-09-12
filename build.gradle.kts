@@ -160,3 +160,7 @@ spotless {
         ktlint()
     }
 }
+
+repositories {
+    mavenCentral()
+}

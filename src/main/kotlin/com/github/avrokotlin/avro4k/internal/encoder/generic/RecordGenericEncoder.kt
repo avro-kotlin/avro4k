@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.internal.encoder.generic
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.ListRecord
-import com.github.avrokotlin.avro4k.internal.EncodingStep
+import com.github.avrokotlin.avro4k.internal.EncodingWorkflow
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
@@ -16,7 +16,7 @@ internal class RecordGenericEncoder(
 ) : AbstractAvroGenericEncoder() {
     private val fieldValues: Array<Any?> = Array(schema.fields.size) { null }
 
-    private val classDescriptor = avro.recordResolver.resolveFields(schema, descriptor)
+    private val encodingWorkflow = avro.recordResolver.resolveFields(schema, descriptor).encoding
     private lateinit var currentField: Schema.Field
 
     override lateinit var currentWriterSchema: Schema
@@ -26,22 +26,31 @@ internal class RecordGenericEncoder(
         index: Int,
     ): Boolean {
         super.encodeElement(descriptor, index)
-        return when (val step = classDescriptor.encodingSteps[index]) {
-            is EncodingStep.SerializeWriterField -> {
-                val field = schema.fields[step.writerFieldIndex]
-                currentField = field
-                currentWriterSchema = field.schema()
-                true
-            }
+        val writerFieldIndex =
+            when (encodingWorkflow) {
+                EncodingWorkflow.ExactMatch -> index
 
-            is EncodingStep.IgnoreElement -> {
-                false
-            }
+                is EncodingWorkflow.ContiguousWithSkips -> {
+                    if (encodingWorkflow.fieldsToSkip[index]) {
+                        return false
+                    }
+                    index
+                }
 
-            is EncodingStep.MissingWriterFieldFailure -> {
-                throw SerializationException("No serializable element found for writer field ${step.writerFieldIndex} in schema $schema")
+                is EncodingWorkflow.NonContiguous -> {
+                    val writerFieldIndex = encodingWorkflow.descriptorToWriterFieldIndex[index]
+                    if (writerFieldIndex == -1) {
+                        return false
+                    }
+                    writerFieldIndex
+                }
+
+                is EncodingWorkflow.MissingWriterFields -> throw SerializationException("Invalid encoding workflow")
             }
-        }
+        val field = schema.fields[writerFieldIndex]
+        currentField = field
+        currentWriterSchema = field.schema()
+        return true
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
@@ -52,7 +61,7 @@ internal class RecordGenericEncoder(
         fieldValues[currentField.pos()] = value
     }
 
-    override fun encodeNull() {
+    override fun encodeNullUnchecked() {
         fieldValues[currentField.pos()] = null
     }
 }

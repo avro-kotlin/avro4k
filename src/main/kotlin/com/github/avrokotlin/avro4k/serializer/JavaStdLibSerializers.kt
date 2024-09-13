@@ -5,11 +5,14 @@ import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.decodeResolvingAny
-import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
-import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
+import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
+import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
+import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -91,41 +94,18 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
         encoder: AvroEncoder,
         value: BigInteger,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(
-                    value,
-                    encoder.currentWriterSchema,
-                    Schema.Type.STRING,
-                    Schema.Type.INT,
-                    Schema.Type.LONG,
-                    Schema.Type.FLOAT,
-                    Schema.Type.DOUBLE
-                )
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
+                    throw typeNotFoundInUnionError(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
             }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                Schema.Type.INT -> {
-                    { encoder.encodeInt(value.intValueExact()) }
-                }
-
-                Schema.Type.LONG -> {
-                    { encoder.encodeLong(value.longValueExact()) }
-                }
-
-                Schema.Type.FLOAT -> {
-                    { encoder.encodeFloat(value.toFloat()) }
-                }
-
-                Schema.Type.DOUBLE -> {
-                    { encoder.encodeDouble(value.toDouble()) }
-                }
-
-                else -> null
+            when (currentWriterSchema.type) {
+                Schema.Type.STRING -> encodeString(value.toString())
+                Schema.Type.INT -> encodeInt(value.intValueExact())
+                Schema.Type.LONG -> encodeLong(value.longValueExact())
+                Schema.Type.FLOAT -> encodeFloat(value.toFloat())
+                Schema.Type.DOUBLE -> encodeDouble(value.toDouble())
+                else -> throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
             }
         }
     }
@@ -202,11 +182,29 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
         encoder: AvroEncoder,
         value: BigDecimal,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(
-                    value,
-                    encoder.currentWriterSchema,
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectLogicalTypeFromUnion(converter.logicalTypeName, Schema.Type.BYTES, Schema.Type.FIXED) ||
+                    trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
+                    throw typeNotFoundInUnionError(
+                        Schema.Type.BYTES,
+                        Schema.Type.FIXED,
+                        Schema.Type.STRING,
+                        Schema.Type.INT,
+                        Schema.Type.LONG,
+                        Schema.Type.FLOAT,
+                        Schema.Type.DOUBLE
+                    )
+            }
+            when (currentWriterSchema.type) {
+                Schema.Type.BYTES -> encodeBytes(converter.toBytes(value, currentWriterSchema, currentWriterSchema.logicalType).array())
+                Schema.Type.FIXED -> encodeFixed(converter.toFixed(value, currentWriterSchema, currentWriterSchema.logicalType).bytes())
+                Schema.Type.STRING -> encodeString(value.toString())
+                Schema.Type.INT -> encodeInt(value.intValueExact())
+                Schema.Type.LONG -> encodeLong(value.longValueExact())
+                Schema.Type.FLOAT -> encodeFloat(value.toFloat())
+                Schema.Type.DOUBLE -> encodeDouble(value.toDouble())
+                else -> throw unsupportedWriterTypeError(
                     Schema.Type.BYTES,
                     Schema.Type.FIXED,
                     Schema.Type.STRING,
@@ -215,48 +213,6 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
                     Schema.Type.FLOAT,
                     Schema.Type.DOUBLE
                 )
-            }
-        }) { schema ->
-            when (schema.type) {
-                Schema.Type.BYTES ->
-                    when (schema.logicalType) {
-                        is LogicalTypes.Decimal -> {
-                            { encoder.encodeBytes(converter.toBytes(value, schema, schema.logicalType)) }
-                        }
-
-                        else -> null
-                    }
-
-                Schema.Type.FIXED ->
-                    when (schema.logicalType) {
-                        is LogicalTypes.Decimal -> {
-                            { encoder.encodeFixed(converter.toFixed(value, schema, schema.logicalType)) }
-                        }
-
-                        else -> null
-                    }
-
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                Schema.Type.INT -> {
-                    { encoder.encodeInt(value.intValueExact()) }
-                }
-
-                Schema.Type.LONG -> {
-                    { encoder.encodeLong(value.longValueExact()) }
-                }
-
-                Schema.Type.FLOAT -> {
-                    { encoder.encodeFloat(value.toFloat()) }
-                }
-
-                Schema.Type.DOUBLE -> {
-                    { encoder.encodeDouble(value.toDouble()) }
-                }
-
-                else -> null
             }
         }
     }

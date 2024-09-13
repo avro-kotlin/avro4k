@@ -30,10 +30,10 @@ internal class RecordDirectDecoder(
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         var field: DecodingStep
         while (true) {
-            if (nextDecodingStepIndex == classDescriptor.decodingSteps.size) {
+            if (nextDecodingStepIndex == classDescriptor.decoding.size) {
                 return CompositeDecoder.DECODE_DONE
             }
-            field = classDescriptor.decodingSteps[nextDecodingStepIndex++]
+            field = classDescriptor.decoding[nextDecodingStepIndex++]
             when (field) {
                 is DecodingStep.IgnoreOptionalElement -> {
                     // loop again to ignore the optional element

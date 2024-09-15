@@ -184,7 +184,3 @@ internal val AvroProp.jsonNode: JsonNode
         }
         return TextNode.valueOf(value)
     }
-
-internal fun SerialDescriptor.getElementIndexNullable(name: String): Int? {
-    return getElementIndex(name).takeIf { it >= 0 }
-}

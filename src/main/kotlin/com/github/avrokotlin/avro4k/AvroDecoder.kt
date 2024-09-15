@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
@@ -317,4 +318,14 @@ internal inline fun <T : Any> AvroDecoder.findValueDecoder(
             resolver(schema)
         }
     return foundResolver ?: throw error()
+}
+
+internal fun AvroDecoder.unsupportedWriterTypeError(
+    mainType: Schema.Type,
+    vararg fallbackTypes: Schema.Type,
+): Throwable {
+    val fallbacksStr = if (fallbackTypes.isNotEmpty()) ", and also not matching to any compatible type (one of ${fallbackTypes.joinToString()})." else ""
+    return SerializationException(
+        "Unsupported schema '${currentWriterSchema.fullName}' for decoded type of ${mainType.getName()}$fallbacksStr. Actual schema: $currentWriterSchema"
+    )
 }

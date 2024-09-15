@@ -18,7 +18,7 @@ internal abstract class AbstractAvroGenericEncoder : AbstractAvroEncoder() {
         get() = avro.serializersModule
 
     override fun getRecordEncoder(descriptor: SerialDescriptor): CompositeEncoder {
-        return RecordGenericEncoder(avro, descriptor, currentWriterSchema) { encodeValue(it) }
+        return RecordGenericEncoder(descriptor, currentWriterSchema, avro) { encodeValue(it) }
     }
 
     override fun getPolymorphicEncoder(descriptor: SerialDescriptor): CompositeEncoder {

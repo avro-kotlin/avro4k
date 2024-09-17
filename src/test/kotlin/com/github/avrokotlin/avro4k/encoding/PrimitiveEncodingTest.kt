@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.SomeEnum
 import com.github.avrokotlin.avro4k.WrappedBoolean
 import com.github.avrokotlin.avro4k.WrappedByte
 import com.github.avrokotlin.avro4k.WrappedChar
@@ -10,9 +11,13 @@ import com.github.avrokotlin.avro4k.WrappedInt
 import com.github.avrokotlin.avro4k.WrappedLong
 import com.github.avrokotlin.avro4k.WrappedShort
 import com.github.avrokotlin.avro4k.WrappedString
+import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
+import org.apache.avro.Schema
 import java.nio.ByteBuffer
 
 internal class PrimitiveEncodingTest : StringSpec({
@@ -29,6 +34,30 @@ internal class PrimitiveEncodingTest : StringSpec({
             .isEncodedAs(true)
         AvroAssertions.assertThat(WrappedBoolean(false))
             .isEncodedAs(false)
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    listOf<Any>(
+        true,
+        false,
+        1.toByte(),
+        2.toShort(),
+        3,
+        4L,
+        5.0F,
+        6.0,
+        'A',
+        SomeEnum.B
+    ).forEach {
+        "coerce ${it::class.simpleName} $it to string" {
+            AvroAssertions.assertThat(it, it::class.serializer())
+                .isEncodedAs(it.toString(), writerSchema = Schema.create(Schema.Type.STRING))
+        }
+
+        "coerce ${it::class.simpleName} $it to nullable string" {
+            AvroAssertions.assertThat(it, it::class.serializer())
+                .isEncodedAs(it.toString(), writerSchema = Schema.create(Schema.Type.STRING).nullable)
+        }
     }
 
     "read write out bytes" {

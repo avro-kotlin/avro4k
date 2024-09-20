@@ -333,18 +333,25 @@ internal abstract class AbstractAvroDirectDecoder(
                 "string",
                 Schema.Type.STRING,
                 Schema.Type.BYTES,
-                Schema.Type.FIXED
+                Schema.Type.FIXED,
+                Schema.Type.ENUM
             )
         }) {
             when (it.type) {
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.STRING -> {
                     AnyValueDecoder { binaryDecoder.readString() }
+                }
+
+                Schema.Type.BYTES -> {
+                    AnyValueDecoder { binaryDecoder.readBytes(null).array().decodeToString() }
                 }
 
                 Schema.Type.FIXED -> {
                     AnyValueDecoder { ByteArray(it.fixedSize).also { buf -> binaryDecoder.readFixed(buf) }.decodeToString() }
+                }
+
+                Schema.Type.ENUM -> {
+                    AnyValueDecoder { it.enumSymbols[binaryDecoder.readEnum()] }
                 }
 
                 else -> null

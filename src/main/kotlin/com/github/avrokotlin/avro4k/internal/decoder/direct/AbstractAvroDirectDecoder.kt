@@ -184,8 +184,8 @@ internal abstract class AbstractAvroDirectDecoder(
 
         return when (currentWriterSchema.type) {
             Schema.Type.STRING -> binaryDecoder.readString(null).toString()
-            Schema.Type.BYTES -> binaryDecoder.readBytes(null).array().decodeToString()
-            Schema.Type.FIXED -> ByteArray(currentWriterSchema.fixedSize).also { buf -> binaryDecoder.readFixed(buf) }.decodeToString()
+            Schema.Type.BYTES -> binaryDecoder.readBytes().decodeToString()
+            Schema.Type.FIXED -> binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize).decodeToString()
             else -> throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED)
         }
     }
@@ -194,32 +194,31 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.ENUM ->
+            Schema.Type.ENUM -> {
                 if (currentWriterSchema.isFullNameOrAliasMatch(enumDescriptor)) {
-                    val enumName = currentWriterSchema.enumSymbols[binaryDecoder.readEnum()]
-                    val idx = enumDescriptor.getElementIndex(enumName)
-                    if (idx >= 0) {
-                        idx
-                    } else {
-                        avro.enumResolver.getDefaultValueIndex(enumDescriptor)
-                            ?: throw SerializationException("Unknown enum symbol name '$enumName' for Enum '${enumDescriptor.serialName}' for writer schema $currentWriterSchema")
-                    }
+                    val enumSymbol = currentWriterSchema.enumSymbols[binaryDecoder.readEnum()]
+                    enumDescriptor.getEnumIndex(enumSymbol)
                 } else {
                     throw unsupportedWriterTypeError(Schema.Type.ENUM, Schema.Type.STRING)
                 }
+            }
 
             Schema.Type.STRING -> {
                 val enumSymbol = binaryDecoder.readString()
-                val idx = enumDescriptor.getElementIndex(enumSymbol)
-                if (idx >= 0) {
-                    idx
-                } else {
-                    avro.enumResolver.getDefaultValueIndex(enumDescriptor)
-                        ?: throw SerializationException("Unknown enum symbol '$enumSymbol' for Enum '${enumDescriptor.serialName}' for writer schema $currentWriterSchema")
-                }
+                enumDescriptor.getEnumIndex(enumSymbol)
             }
 
             else -> throw unsupportedWriterTypeError(Schema.Type.ENUM, Schema.Type.STRING)
+        }
+    }
+
+    private fun SerialDescriptor.getEnumIndex(enumName: String): Int {
+        val idx = getElementIndex(enumName)
+        return if (idx >= 0) {
+            idx
+        } else {
+            avro.enumResolver.getDefaultValueIndex(this)
+                ?: throw SerializationException("Unknown enum symbol name '$enumName' for Enum '${this.serialName}' for writer schema $currentWriterSchema")
         }
     }
 
@@ -227,8 +226,8 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.BYTES -> binaryDecoder.readBytes(null).array()
-            Schema.Type.FIXED -> ByteArray(currentWriterSchema.fixedSize).also { buf -> binaryDecoder.readFixed(buf) }
+            Schema.Type.BYTES -> binaryDecoder.readBytes()
+            Schema.Type.FIXED -> binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize)
             Schema.Type.STRING -> binaryDecoder.readString(null).bytes
             else -> throw unsupportedWriterTypeError(Schema.Type.BYTES, Schema.Type.FIXED, Schema.Type.STRING)
         }
@@ -238,11 +237,19 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.BYTES -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readBytes(null).array())
-            Schema.Type.FIXED -> GenericData.Fixed(currentWriterSchema, ByteArray(currentWriterSchema.fixedSize).also { buf -> binaryDecoder.readFixed(buf) })
+            Schema.Type.BYTES -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readBytes())
+            Schema.Type.FIXED -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize))
             else -> throw unsupportedWriterTypeError(Schema.Type.BYTES, Schema.Type.FIXED)
         }
     }
+}
+
+private fun org.apache.avro.io.Decoder.readFixedBytes(size: Int): ByteArray {
+    return ByteArray(size).also { buf -> readFixed(buf) }
+}
+
+private fun org.apache.avro.io.Decoder.readBytes(): ByteArray {
+    return readBytes(null).array()
 }
 
 private class PolymorphicDecoder(

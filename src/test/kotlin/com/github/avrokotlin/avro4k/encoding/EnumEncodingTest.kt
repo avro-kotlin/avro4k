@@ -5,55 +5,26 @@ package com.github.avrokotlin.avro4k.encoding
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroEnumDefault
+import com.github.avrokotlin.avro4k.basicScalarEncodeDecodeTests
+import com.github.avrokotlin.avro4k.encodeToByteArray
+import com.github.avrokotlin.avro4k.encodeToBytesUsingApacheLib
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.UseSerializers
+import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
 
 internal class EnumEncodingTest : StringSpec({
 
-    "read / write enums" {
-        AvroAssertions.assertThat(EnumTest(Cream.Bruce, BBM.Moore))
-            .isEncodedAs(record(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"), GenericData.EnumSymbol(Avro.schema<BBM>(), "Moore")))
+    basicScalarEncodeDecodeTests(Cream.Bruce, Avro.schema<Cream>(), apacheCompatibleValue = GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"))
 
-        AvroAssertions.assertThat(Cream.Bruce)
-            .isEncodedAs(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"))
-        AvroAssertions.assertThat(CreamValueClass(Cream.Bruce))
-            .isEncodedAs(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"))
-    }
-
-    "read / write list of enums" {
-        AvroAssertions.assertThat(EnumListTest(listOf(Cream.Bruce, Cream.Clapton)))
-            .isEncodedAs(record(listOf(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"), GenericData.EnumSymbol(Avro.schema<Cream>(), "Clapton"))))
-
-        AvroAssertions.assertThat(listOf(Cream.Bruce, Cream.Clapton))
-            .isEncodedAs(listOf(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"), GenericData.EnumSymbol(Avro.schema<Cream>(), "Clapton")))
-        AvroAssertions.assertThat(listOf(CreamValueClass(Cream.Bruce), CreamValueClass(Cream.Clapton)))
-            .isEncodedAs(listOf(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"), GenericData.EnumSymbol(Avro.schema<Cream>(), "Clapton")))
-    }
-
-    "read / write nullable enums" {
-        AvroAssertions.assertThat(NullableEnumTest(null))
-            .isEncodedAs(record(null))
-        AvroAssertions.assertThat(NullableEnumTest(Cream.Bruce))
-            .isEncodedAs(record(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce")))
-
-        AvroAssertions.assertThat<Cream?>(Cream.Bruce)
-            .isEncodedAs(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"))
-        AvroAssertions.assertThat<Cream?>(null)
-            .isEncodedAs(null)
-
-        AvroAssertions.assertThat<CreamValueClass?>(CreamValueClass(Cream.Bruce))
-            .isEncodedAs(GenericData.EnumSymbol(Avro.schema<Cream>(), "Bruce"))
-        AvroAssertions.assertThat<CreamValueClass?>(null)
-            .isEncodedAs(null)
-    }
-
-    "Decoding enum with an unknown uses @AvroEnumDefault value" {
+    "Decoding enum with an unknown symbol uses @AvroEnumDefault value" {
         AvroAssertions.assertThat(EnumV2WrapperRecord(EnumV2.B))
             .isEncodedAs(record(GenericData.EnumSymbol(Avro.schema<EnumV2>(), "B")))
             .isDecodedAs(EnumV1WrapperRecord(EnumV1.UNKNOWN))
@@ -61,6 +32,23 @@ internal class EnumEncodingTest : StringSpec({
         AvroAssertions.assertThat(EnumV2.B)
             .isEncodedAs(GenericData.EnumSymbol(Avro.schema<EnumV2>(), "B"))
             .isDecodedAs(EnumV1.UNKNOWN)
+    }
+
+    "Decoding enum with an unknown symbol fails without @AvroEnumDefault, also ignoring default symbol in writer schema" {
+        val schema = SchemaBuilder.enumeration("Enum").defaultSymbol("Z").symbols("X", "Z")
+
+        val bytes = encodeToBytesUsingApacheLib(schema, GenericData.EnumSymbol(schema, "X"))
+        shouldThrow<SerializationException> {
+            Avro.decodeFromByteArray(schema, EnumV1WithoutDefault.serializer(), bytes)
+        }
+    }
+
+    "Encoding enum with an unknown symbol fails even with default in writer schema" {
+        val schema = SchemaBuilder.enumeration("Enum").defaultSymbol("Z").symbols("X", "Z")
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(schema, EnumV1WithoutDefault.A)
+        }
     }
 }) {
     @Serializable
@@ -85,6 +73,13 @@ internal class EnumEncodingTest : StringSpec({
 
     @Serializable
     @SerialName("Enum")
+    private enum class EnumV1WithoutDefault {
+        UNKNOWN,
+        A,
+    }
+
+    @Serializable
+    @SerialName("Enum")
     private enum class EnumV2 {
         @AvroEnumDefault
         UNKNOWN,
@@ -93,27 +88,9 @@ internal class EnumEncodingTest : StringSpec({
     }
 
     @Serializable
-    private data class EnumTest(val a: Cream, val b: BBM)
-
-    @JvmInline
-    @Serializable
-    private value class CreamValueClass(val a: Cream)
-
-    @Serializable
-    private data class EnumListTest(val a: List<Cream>)
-
-    @Serializable
-    private data class NullableEnumTest(val a: Cream?)
-
     private enum class Cream {
         Bruce,
         Baker,
         Clapton,
-    }
-
-    private enum class BBM {
-        Bruce,
-        Baker,
-        Moore,
     }
 }

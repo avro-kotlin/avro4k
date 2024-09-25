@@ -1,15 +1,20 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.assertions.Actual
 import io.kotest.assertions.Expected
 import io.kotest.assertions.failure
 import io.kotest.assertions.print.Printed
 import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.scopes.StringSpecRootScope
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import org.apache.avro.Conversions
 import org.apache.avro.Schema
+import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
@@ -202,4 +207,84 @@ internal object AvroAssertions {
     ): AvroEncodingAssertions<T> {
         return AvroEncodingAssertions(value, serializer as KSerializer<T>)
     }
+}
+
+fun encodeToBytesUsingApacheLib(
+    schema: Schema,
+    toEncode: Any?,
+): ByteArray {
+    return ByteArrayOutputStream().use {
+        GenericData.get().createDatumWriter(schema).write(toEncode, EncoderFactory.get().directBinaryEncoder(it, null))
+        it.toByteArray()
+    }
+}
+
+internal inline fun <reified T> StringSpecRootScope.basicScalarEncodeDecodeTests(value: T, schema: Schema, apacheCompatibleValue: Any? = value) {
+    "support scalar type ${schema.type} serialization" {
+        testEncodeDecode(schema, value, apacheCompatibleValue = apacheCompatibleValue)
+        testEncodeDecode(schema, TestGenericValueClass(value), apacheCompatibleValue = apacheCompatibleValue)
+
+        testEncodeDecode<T?>(schema.nullable, value, apacheCompatibleValue = apacheCompatibleValue)
+        testEncodeDecode<T?>(schema.nullable, null)
+
+        testEncodeDecode(schema.nullable, TestGenericValueClass<T?>(value), apacheCompatibleValue = apacheCompatibleValue)
+        testEncodeDecode(schema.nullable, TestGenericValueClass<T?>(null), apacheCompatibleValue = null)
+        testEncodeDecode<TestGenericValueClass<T?>?>(schema.nullable, null)
+    }
+    "scalar type ${schema.type} in record" {
+        val record =
+            SchemaBuilder.record("theRecord").fields()
+                .name("field").type(schema).noDefault()
+                .endRecord()
+
+        testEncodeDecode(record, TestGenericRecord(value), apacheCompatibleValue = GenericData.Record(record).also { it.put(0, apacheCompatibleValue) })
+        testEncodeDecode(record, TestGenericRecord(TestGenericValueClass(value)), apacheCompatibleValue = GenericData.Record(record).also { it.put(0, apacheCompatibleValue) })
+
+        val recordNullable =
+            SchemaBuilder.record("theRecord").fields()
+                .name("field").type(schema.nullable).noDefault()
+                .endRecord()
+        testEncodeDecode(recordNullable, TestGenericRecord<T?>(value), apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) })
+        testEncodeDecode(recordNullable, TestGenericRecord<T?>(null), apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, null) })
+        testEncodeDecode(recordNullable, TestGenericRecord(TestGenericValueClass<T?>(value)), apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) })
+        testEncodeDecode(recordNullable, TestGenericRecord(TestGenericValueClass<T?>(null)), apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, null) })
+    }
+    "scalar type ${schema.type} in map" {
+        val map = SchemaBuilder.map().values(schema)
+        testEncodeDecode(map, mapOf("key" to value), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
+        testEncodeDecode(map, mapOf("key" to TestGenericValueClass(value)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
+
+        val mapNullable = SchemaBuilder.map().values(schema.nullable)
+        testEncodeDecode(mapNullable, mapOf("key" to TestGenericValueClass<T?>(value)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
+        testEncodeDecode(mapNullable, mapOf("key" to TestGenericValueClass<T?>(null)), apacheCompatibleValue = mapOf("key" to null))
+    }
+    "scalar type ${schema.type} in array" {
+        val array = SchemaBuilder.array().items(schema)
+        testEncodeDecode(array, listOf(value), apacheCompatibleValue = listOf(apacheCompatibleValue))
+        testEncodeDecode(array, listOf(TestGenericValueClass(value)), apacheCompatibleValue = listOf(apacheCompatibleValue))
+
+        val arrayNullable = SchemaBuilder.array().items(schema.nullable)
+        testEncodeDecode(arrayNullable, listOf(TestGenericValueClass<T?>(value)), apacheCompatibleValue = listOf(apacheCompatibleValue))
+        testEncodeDecode(arrayNullable, listOf(TestGenericValueClass<T?>(null)), apacheCompatibleValue = listOf(null))
+    }
+}
+
+@Serializable
+@SerialName("theRecord")
+internal data class TestGenericRecord<T>(val field: T)
+
+@JvmInline
+@Serializable
+internal value class TestGenericValueClass<T>(val value: T)
+
+inline fun <reified T> testEncodeDecode(
+    schema: Schema,
+    toEncode: T,
+    decoded: Any? = toEncode,
+    apacheCompatibleValue: Any? = toEncode,
+    serializer: KSerializer<T> = Avro.serializersModule.serializer<T>(),
+    expectedBytes: ByteArray = encodeToBytesUsingApacheLib(schema, apacheCompatibleValue),
+) {
+    Avro.encodeToByteArray(schema, serializer, toEncode) shouldBe expectedBytes
+    Avro.decodeFromByteArray(schema, serializer, expectedBytes) shouldBe decoded
 }

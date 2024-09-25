@@ -12,7 +12,11 @@ internal enum class SomeEnum {
 
 @Serializable
 @SerialName("RecordWithGenericField")
-internal data class RecordWithGenericField<T : Any>(val value: T)
+internal data class RecordWithGenericField<T>(val field: T)
+
+@JvmInline
+@Serializable
+internal value class ValueClassWithGenericField<T>(val value: T)
 
 @Serializable
 @JvmInline

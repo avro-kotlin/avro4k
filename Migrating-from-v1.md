@@ -176,9 +176,17 @@ Avro.default.openInputStream(serializer) { decodeFormat = AvroDecodeFormat.Binar
     .from(data).use { avroInputStream -> return avroInputStream.nextOrThrow() }
 
 // Now
-val reader = GenericDatumReader<Any>(schema)
-val decoder = DecoderFactory.get().binaryDecoder(ByteArrayInputStream(data), null)
-Avro.decodeFromGenericData(schema, serializer, reader.read(null, decoder))
+val inputStream = ByteArrayInputStream(data)
+while (inputStream.remaining() > 0) {
+    // If the writer schema corresponds to the specified type
+    val element = Avro.decodeFromStream<MyType>(inputStream)
+
+    // If the writer schema does not correspond to the specified type
+    val element = Avro.decodeFromStream<MyType>(writerSchema, inputStream)
+
+    // With explicit writer schema and serializer
+    val element = Avro.decodeFromStream(writerSchema, serializer, inputStream)
+}
 ```
 
 ## Writing a collection of Byte as BYTES or FIXED

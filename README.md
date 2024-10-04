@@ -97,10 +97,7 @@ fun main() {
 ## Object container
 
 Avro4k provides a way to encode and decode object container — also known as data file — with `AvroObjectContainer` class. This encoding will prefix the binary data with the
-full schema to
-allow knowing the writer schema when reading the data. This format is perfect for storing many long-term objects in a single file.
-
-The main difference with the `AvroObjectContainer` is that you will encode and decode `Sequence` of objects instead of single objects.
+full schema to allow knowing the writer schema when reading the data. This format is perfect for storing many long-term objects in a single file.
 
 Be aware that consuming the decoded `Sequence` needs to be done **before** closing the stream, or you will get an exception as a sequence is a "hot" source,
 which means that if there is millions of objects in the file, all the objects are extracted one-by-one when requested. If you take only the first 10 objects and close the stream,
@@ -126,7 +123,9 @@ fun main() {
         Project("avro4k", "Kotlin"),
     )
     Files.newOutputStream(Path("your-file.bin")).use { fileStream ->
-        AvroObjectContainer.encodeToStream(valuesToEncode, fileStream, builder)
+        AvroObjectContainer.openWriter(fileStream).use { writer ->
+            valuesToEncode.forEach { writer.write(it) }
+        }
     }
 
     // Deserializing objects

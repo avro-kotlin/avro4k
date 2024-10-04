@@ -130,7 +130,7 @@ fun main() {
 
     // Deserializing objects
     Files.newInputStream(Path("your-file.bin")).use { fileStream ->
-        AvroObjectContainer.decodeFromStream<Project>(valuesToEncode, fileStream).forEach {
+        AvroObjectContainer.decodeFromStream<Project>(fileStream).forEach {
             println(it) // Project(name=kotlinx.serialization, language=Kotlin) ...
         }
     }

@@ -32,7 +32,7 @@ benchmark {
 }
 
 dependencies {
-    implementation("org.apache.commons:commons-lang3:3.14.0")
+    implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.11")
 
     val jacksonVersion = "2.17.1"

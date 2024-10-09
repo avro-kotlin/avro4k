@@ -1,24 +1,15 @@
 package com.github.avrokotlin.avro4k.internal.encoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.AvroEncoder
-import com.github.avrokotlin.avro4k.UnionEncoder
-import com.github.avrokotlin.avro4k.encodeResolving
-import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
-import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
-import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
+import com.github.avrokotlin.avro4k.internal.encoder.AbstractAvroEncoder
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericFixed
 import org.apache.avro.util.Utf8
-import java.nio.ByteBuffer
 
 internal class AvroValueDirectEncoder(
     override var currentWriterSchema: Schema,
@@ -29,407 +20,82 @@ internal class AvroValueDirectEncoder(
 internal sealed class AbstractAvroDirectEncoder(
     protected val avro: Avro,
     protected val binaryEncoder: org.apache.avro.io.Encoder,
-) : AbstractEncoder(), AvroEncoder, UnionEncoder {
-    private var selectedUnionIndex: Int = -1
-
-    abstract override var currentWriterSchema: Schema
-
+) : AbstractAvroEncoder() {
     override val serializersModule: SerializersModule
         get() = avro.serializersModule
 
-    override fun <T> encodeSerializableValue(
-        serializer: SerializationStrategy<T>,
-        value: T,
-    ) {
-        SerializerLocatorMiddleware.apply(serializer)
-            .serialize(this, value)
+    override fun getRecordEncoder(descriptor: SerialDescriptor): CompositeEncoder {
+        return RecordDirectEncoder(descriptor, currentWriterSchema, avro, binaryEncoder)
     }
 
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        return when (descriptor.kind) {
-            StructureKind.CLASS,
-            StructureKind.OBJECT,
-            ->
-                encodeResolving(
-                    { BadEncodedValueError(null, currentWriterSchema, Schema.Type.RECORD) }
-                ) { schema ->
-                    if (schema.type == Schema.Type.RECORD && schema.isFullNameOrAliasMatch(descriptor)) {
-                        {
-                            val elementDescriptors = avro.recordResolver.resolveFields(schema, descriptor)
-                            RecordDirectEncoder(elementDescriptors, schema, avro, binaryEncoder)
-                        }
-                    } else {
-                        null
-                    }
-                }
-
-            is PolymorphicKind -> PolymorphicDirectEncoder(avro, currentWriterSchema, binaryEncoder)
-            else -> throw SerializationException("Unsupported structure kind: $descriptor")
-        }
+    override fun getPolymorphicEncoder(descriptor: SerialDescriptor): CompositeEncoder {
+        return PolymorphicDirectEncoder(avro, currentWriterSchema, binaryEncoder)
     }
 
-    override fun beginCollection(
+    override fun getArrayEncoder(
         descriptor: SerialDescriptor,
         collectionSize: Int,
     ): CompositeEncoder {
-        return when (descriptor.kind) {
-            StructureKind.LIST ->
-                encodeResolving({ BadEncodedValueError(emptyList<Any?>(), currentWriterSchema, Schema.Type.ARRAY) }) { schema ->
-                    when (schema.type) {
-                        Schema.Type.ARRAY -> {
-                            { ArrayDirectEncoder(schema, collectionSize, avro, binaryEncoder) }
-                        }
-
-                        else -> null
-                    }
-                }
-
-            StructureKind.MAP ->
-                encodeResolving({ BadEncodedValueError(emptyMap<String, Any?>(), currentWriterSchema, Schema.Type.MAP) }) { schema ->
-                    when (schema.type) {
-                        Schema.Type.MAP -> {
-                            { MapDirectEncoder(schema, collectionSize, avro, binaryEncoder) }
-                        }
-
-                        else -> null
-                    }
-                }
-
-            else -> throw SerializationException("Unsupported collection kind: $descriptor")
-        }
+        return ArrayDirectEncoder(currentWriterSchema, collectionSize, avro, binaryEncoder)
     }
 
-    override fun encodeUnionIndex(index: Int) {
-        if (selectedUnionIndex > -1) {
-            throw SerializationException("Already selected union index: $selectedUnionIndex, got $index, for selected schema $currentWriterSchema")
-        }
-        if (currentWriterSchema.isUnion) {
-            binaryEncoder.writeIndex(index)
-            selectedUnionIndex = index
-            currentWriterSchema = currentWriterSchema.types[index]
-        } else {
-            throw SerializationException("Cannot select union index for non-union schema: $currentWriterSchema")
-        }
-    }
-
-    override fun encodeElement(
+    override fun getMapEncoder(
         descriptor: SerialDescriptor,
-        index: Int,
-    ): Boolean {
-        selectedUnionIndex = -1
-        return true
+        collectionSize: Int,
+    ): CompositeEncoder {
+        return MapDirectEncoder(currentWriterSchema, collectionSize, avro, binaryEncoder)
     }
 
-    override fun encodeNull() {
-        encodeResolving(
-            { BadEncodedValueError(null, currentWriterSchema, Schema.Type.NULL) }
-        ) {
-            when (it.type) {
-                Schema.Type.NULL -> {
-                    { binaryEncoder.writeNull() }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeUnionIndexInternal(index: Int) {
+        binaryEncoder.writeIndex(index)
     }
 
-    override fun encodeBytes(value: ByteBuffer) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
-        ) {
-            when (it.type) {
-                Schema.Type.BYTES -> {
-                    { binaryEncoder.writeBytes(value) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(Utf8(value.array())) }
-                }
-
-                Schema.Type.FIXED -> {
-                    if (value.remaining() == it.fixedSize) {
-                        { binaryEncoder.writeFixed(value.array()) }
-                    } else {
-                        null
-                    }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeNullUnchecked() {
+        binaryEncoder.writeNull()
     }
 
-    override fun encodeBytes(value: ByteArray) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BYTES, Schema.Type.STRING, Schema.Type.FIXED) }
-        ) {
-            when (it.type) {
-                Schema.Type.BYTES -> {
-                    { binaryEncoder.writeBytes(value) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(Utf8(value)) }
-                }
-
-                Schema.Type.FIXED -> {
-                    if (value.size == it.fixedSize) {
-                        { binaryEncoder.writeFixed(value) }
-                    } else {
-                        null
-                    }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeBytesUnchecked(value: ByteArray) {
+        binaryEncoder.writeBytes(value)
     }
 
-    override fun encodeFixed(value: GenericFixed) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED, Schema.Type.STRING, Schema.Type.BYTES) }
-        ) {
-            when (it.type) {
-                Schema.Type.FIXED -> {
-                    if (it.fullName == value.schema.fullName && it.fixedSize == value.bytes().size) {
-                        { binaryEncoder.writeFixed(value.bytes()) }
-                    } else {
-                        null
-                    }
-                }
-
-                Schema.Type.BYTES -> {
-                    { binaryEncoder.writeBytes(value.bytes()) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(Utf8(value.bytes())) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeBooleanUnchecked(value: Boolean) {
+        binaryEncoder.writeBoolean(value)
     }
 
-    override fun encodeFixed(value: ByteArray) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED, Schema.Type.STRING, Schema.Type.BYTES) }
-        ) {
-            when (it.type) {
-                Schema.Type.FIXED ->
-                    if (it.fixedSize == value.size) {
-                        { binaryEncoder.writeFixed(value) }
-                    } else {
-                        null
-                    }
-
-                Schema.Type.BYTES -> {
-                    { binaryEncoder.writeBytes(value) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(Utf8(value)) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeIntUnchecked(value: Int) {
+        binaryEncoder.writeInt(value)
     }
 
-    override fun encodeEnum(
-        enumDescriptor: SerialDescriptor,
-        index: Int,
-    ) {
-        val enumName = enumDescriptor.getElementName(index)
-        encodeResolving(
-            { BadEncodedValueError(index, currentWriterSchema, Schema.Type.ENUM, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.ENUM ->
-                    if (it.isFullNameOrAliasMatch(enumDescriptor)) {
-                        { binaryEncoder.writeEnum(it.getEnumOrdinal(enumName)) }
-                    } else {
-                        null
-                    }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(enumName) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeLongUnchecked(value: Long) {
+        binaryEncoder.writeLong(value)
     }
 
-    override fun encodeBoolean(value: Boolean) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.BOOLEAN, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.BOOLEAN -> {
-                    { binaryEncoder.writeBoolean(value) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeFloatUnchecked(value: Float) {
+        binaryEncoder.writeFloat(value)
     }
 
-    override fun encodeByte(value: Byte) {
-        encodeInt(value.toInt())
+    override fun encodeDoubleUnchecked(value: Double) {
+        binaryEncoder.writeDouble(value)
     }
 
-    override fun encodeShort(value: Short) {
-        encodeInt(value.toInt())
+    override fun encodeStringUnchecked(value: Utf8) {
+        binaryEncoder.writeString(value)
     }
 
-    override fun encodeInt(value: Int) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.INT -> {
-                    { binaryEncoder.writeInt(value) }
-                }
-
-                Schema.Type.LONG -> {
-                    { binaryEncoder.writeLong(value.toLong()) }
-                }
-
-                Schema.Type.FLOAT -> {
-                    { binaryEncoder.writeFloat(value.toFloat()) }
-                }
-
-                Schema.Type.DOUBLE -> {
-                    { binaryEncoder.writeDouble(value.toDouble()) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeEnumUnchecked(symbol: String) {
+        binaryEncoder.writeEnum(currentWriterSchema.getEnumOrdinalChecked(symbol))
     }
 
-    override fun encodeLong(value: Long) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.LONG -> {
-                    { binaryEncoder.writeLong(value) }
-                }
-
-                Schema.Type.FLOAT -> {
-                    { binaryEncoder.writeFloat(value.toFloat()) }
-                }
-
-                Schema.Type.DOUBLE -> {
-                    { binaryEncoder.writeDouble(value.toDouble()) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeFixedUnchecked(value: ByteArray) {
+        binaryEncoder.writeFixed(value)
     }
+}
 
-    override fun encodeFloat(value: Float) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.FLOAT -> {
-                    { binaryEncoder.writeFloat(value) }
-                }
-
-                Schema.Type.DOUBLE -> {
-                    { binaryEncoder.writeDouble(value.toDouble()) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
-    }
-
-    override fun encodeDouble(value: Double) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.DOUBLE, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.DOUBLE -> {
-                    { binaryEncoder.writeDouble(value) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
-    }
-
-    override fun encodeChar(value: Char) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.INT, Schema.Type.STRING) }
-        ) {
-            when (it.type) {
-                Schema.Type.INT -> {
-                    { binaryEncoder.writeInt(value.code) }
-                }
-
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value.toString()) }
-                }
-
-                else -> null
-            }
-        }
-    }
-
-    override fun encodeString(value: String) {
-        encodeResolving(
-            { BadEncodedValueError(value, currentWriterSchema, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED, Schema.Type.ENUM) }
-        ) {
-            when (it.type) {
-                Schema.Type.STRING -> {
-                    { binaryEncoder.writeString(value) }
-                }
-
-                Schema.Type.BYTES -> {
-                    { binaryEncoder.writeBytes(value.encodeToByteArray()) }
-                }
-
-                Schema.Type.FIXED -> {
-                    if (value.length == it.fixedSize) {
-                        { binaryEncoder.writeFixed(value.encodeToByteArray()) }
-                    } else {
-                        null
-                    }
-                }
-
-                Schema.Type.ENUM -> {
-                    { binaryEncoder.writeEnum(it.getEnumOrdinal(value)) }
-                }
-
-                else -> null
-            }
-        }
+private fun Schema.getEnumOrdinalChecked(symbol: String): Int {
+    return try {
+        getEnumOrdinal(symbol)
+    } catch (e: NullPointerException) {
+        throw SerializationException("Enum symbol $symbol not found in schema $this", e)
     }
 }
 

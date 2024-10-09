@@ -23,8 +23,8 @@ internal class MapVisitor(
         if (it.isNullable()) {
             throw AvroSchemaGenerationException("Map key cannot be nullable. Actual generated map key schema: $it")
         }
-        if (!it.isStringable()) {
-            throw AvroSchemaGenerationException("Map key must be string-able (boolean, number, enum, or string). Actual generated map key schema: $it")
+        if (!it.isNonNullScalarType()) {
+            throw AvroSchemaGenerationException("Map key must be a non-null scalar type (e.g. not a record, map or array). Actual generated map key schema: $it")
         }
     }
 
@@ -40,7 +40,7 @@ internal class MapVisitor(
     }
 }
 
-private fun Schema.isStringable(): Boolean =
+internal fun Schema.isNonNullScalarType(): Boolean =
     when (type) {
         Schema.Type.BOOLEAN,
         Schema.Type.INT,
@@ -49,18 +49,16 @@ private fun Schema.isStringable(): Boolean =
         Schema.Type.DOUBLE,
         Schema.Type.STRING,
         Schema.Type.ENUM,
+        Schema.Type.BYTES,
+        Schema.Type.FIXED,
         -> true
 
         Schema.Type.NULL,
-        // bytes could be stringified, but it's not a good idea as it can produce unreadable strings.
-        Schema.Type.BYTES,
-        // same, just bytes. Btw, if the user wants to stringify it, he can use @Contextual or custom @Serializable serializer.
-        Schema.Type.FIXED,
         Schema.Type.ARRAY,
         Schema.Type.MAP,
         Schema.Type.RECORD,
         null,
         -> false
 
-        Schema.Type.UNION -> types.all { it.isStringable() }
+        Schema.Type.UNION -> types.all { it.isNonNullScalarType() }
     }

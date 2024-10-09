@@ -7,7 +7,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Schema
 import kotlin.reflect.KClass
 
@@ -73,21 +72,4 @@ internal fun AvroDecoder.UnexpectedDecodeSchemaError(
     return SerializationException(
         "For $actualType, expected type one of $allExpectedTypes, but had writer schema $currentWriterSchema"
     )
-}
-
-context(Encoder)
-internal fun BadEncodedValueError(
-    value: Any?,
-    writerSchema: Schema,
-    firstExpectedType: Schema.Type,
-    vararg expectedTypes: Schema.Type,
-): SerializationException {
-    val allExpectedTypes = listOf(firstExpectedType) + expectedTypes
-    return if (value == null) {
-        SerializationException("Encoded null value, expected one of $allExpectedTypes, actual writer schema $writerSchema")
-    } else {
-        SerializationException(
-            "Encoded value '$value' of type ${value::class.qualifiedName}, expected one of $allExpectedTypes, actual writer schema $writerSchema"
-        )
-    }
 }

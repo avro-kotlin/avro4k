@@ -31,10 +31,7 @@ import org.apache.avro.generic.GenericData
 internal class EnumTest : StringSpec({
     val expectedEnumSchema = SchemaBuilder.enumeration(Cream::class.qualifiedName).aliases("TheCream").doc("documentation").symbols("Bruce", "Baker", "Clapton")
     basicScalarEncodeDecodeTests<Cream>(Cream.Bruce, expectedEnumSchema, apacheCompatibleValue = GenericData.EnumSymbol(expectedEnumSchema, "Bruce"))
-    testSerializationTypeCompatibility(Cream.Baker, "Baker")
-
-    // TODO test alias decoding
-    // TODO test decoding from union (name resolution)
+    testSerializationTypeCompatibility(Cream.Baker, "Baker", Schema.create(Schema.Type.STRING))
 
     "Only allow 1 @AvroEnumDefault at max" {
         shouldThrow<UnsupportedOperationException> {
@@ -93,23 +90,30 @@ internal class EnumTest : StringSpec({
             .isEncodedAs(record(GenericData.EnumSymbol(writerSchema.fields[0].schema(), "A")), writerSchema = writerSchema)
     }
 
-    "support alias on enum inside an union" {
-        val writerSchema =
-            SchemaBuilder.record("EnumWrapperRecord").fields()
-                .name("value")
-                .type(
-                    Schema.createUnion(
-                        SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
-                        SchemaBuilder.record("UnknownRecord").aliases("RecordA")
-                            .fields().name("field").type().stringType().noDefault()
-                            .endRecord(),
-                        SchemaBuilder.enumeration("UnknownEnum").aliases("com.github.avrokotlin.avro4k.SomeEnum").symbols("A", "B", "C")
-                    )
-                )
-                .noDefault()
-                .endRecord()
-        AvroAssertions.assertThat(EnumWrapperRecord(SomeEnum.A))
-            .isEncodedAs(record(GenericData.EnumSymbol(writerSchema.fields[0].schema().types[2], "A")), writerSchema = writerSchema)
+    "support decoding enum inside an union with an alias on the reader schema" {
+        val writerSchema = Schema.createUnion(
+            SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
+            SchemaBuilder.record("UnknownRecord").aliases("RecordA")
+                .fields().name("field").type().stringType().noDefault()
+                .endRecord(),
+            SchemaBuilder.enumeration("TheEnum").symbols("A", "B", "C")
+        )
+
+        AvroAssertions.assertThat(EnumWithAlias.A)
+            .isEncodedAs(GenericData.EnumSymbol(writerSchema.types[2], "A"), writerSchema = writerSchema)
+    }
+
+    "support decoding enum inside an union with an alias on the writer schema" {
+        val writerSchema = Schema.createUnion(
+            SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
+            SchemaBuilder.record("UnknownRecord").aliases("RecordA")
+                .fields().name("field").type().stringType().noDefault()
+                .endRecord(),
+            SchemaBuilder.enumeration("UnknownEnum").aliases("com.github.avrokotlin.avro4k.SomeEnum").symbols("A", "B", "C")
+        )
+
+        AvroAssertions.assertThat(SomeEnum.A)
+            .isEncodedAs(GenericData.EnumSymbol(writerSchema.types[2], "A"), writerSchema = writerSchema)
     }
 }) {
     @Serializable
@@ -170,5 +174,14 @@ internal class EnumTest : StringSpec({
         Bruce,
         Baker,
         Clapton,
+    }
+
+    @Serializable
+    @AvroAlias("TheEnum")
+    @SerialName("EnumWithAlias")
+    private enum class EnumWithAlias {
+        A,
+        B,
+        C,
     }
 }

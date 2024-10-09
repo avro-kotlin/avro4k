@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.decoder.AbstractPolymorphicDecoder
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.internal.toByteExact
+import com.github.avrokotlin.avro4k.internal.toFloatExact
 import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
@@ -137,8 +138,8 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.INT -> binaryDecoder.readInt().toLong()
             Schema.Type.LONG -> binaryDecoder.readLong()
+            Schema.Type.INT -> binaryDecoder.readInt().toLong()
             Schema.Type.STRING -> binaryDecoder.readString().toLong()
             else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.INT, Schema.Type.STRING)
         }
@@ -148,11 +149,10 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.INT -> binaryDecoder.readInt().toFloat()
-            Schema.Type.LONG -> binaryDecoder.readLong().toFloat()
             Schema.Type.FLOAT -> binaryDecoder.readFloat()
+            Schema.Type.DOUBLE -> binaryDecoder.readDouble().toFloatExact()
             Schema.Type.STRING -> binaryDecoder.readString().toFloat()
-            else -> throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
+            else -> throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING)
         }
     }
 
@@ -160,12 +160,10 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.INT -> binaryDecoder.readInt().toDouble()
-            Schema.Type.LONG -> binaryDecoder.readLong().toDouble()
             Schema.Type.FLOAT -> binaryDecoder.readFloat().toDouble()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble()
             Schema.Type.STRING -> binaryDecoder.readString().toDouble()
-            else -> throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.STRING)
+            else -> throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING)
         }
     }
 
@@ -183,10 +181,24 @@ internal abstract class AbstractAvroDirectDecoder(
         decodeAndResolveUnion()
 
         return when (currentWriterSchema.type) {
-            Schema.Type.STRING -> binaryDecoder.readString(null).toString()
+            Schema.Type.STRING -> binaryDecoder.readString()
             Schema.Type.BYTES -> binaryDecoder.readBytes().decodeToString()
             Schema.Type.FIXED -> binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize).decodeToString()
-            else -> throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.FIXED)
+            Schema.Type.BOOLEAN -> binaryDecoder.readBoolean().toString()
+            Schema.Type.INT -> binaryDecoder.readInt().toString()
+            Schema.Type.LONG -> binaryDecoder.readLong().toString()
+            Schema.Type.FLOAT -> binaryDecoder.readFloat().toString()
+            Schema.Type.DOUBLE -> binaryDecoder.readDouble().toString()
+            else -> throw unsupportedWriterTypeError(
+                Schema.Type.STRING,
+                Schema.Type.BYTES,
+                Schema.Type.FIXED,
+                Schema.Type.BOOLEAN,
+                Schema.Type.INT,
+                Schema.Type.LONG,
+                Schema.Type.FLOAT,
+                Schema.Type.DOUBLE
+            )
         }
     }
 
@@ -239,7 +251,8 @@ internal abstract class AbstractAvroDirectDecoder(
         return when (currentWriterSchema.type) {
             Schema.Type.BYTES -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readBytes())
             Schema.Type.FIXED -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize))
-            else -> throw unsupportedWriterTypeError(Schema.Type.BYTES, Schema.Type.FIXED)
+            Schema.Type.STRING -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readString(null).bytes)
+            else -> throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING)
         }
     }
 }

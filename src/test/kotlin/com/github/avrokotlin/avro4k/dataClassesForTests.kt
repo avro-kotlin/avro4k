@@ -12,11 +12,38 @@ internal enum class SomeEnum {
 
 @Serializable
 @SerialName("RecordWithGenericField")
-internal data class RecordWithGenericField<T>(val field: T)
+internal data class RecordWithGenericField<T>(val field: T) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as RecordWithGenericField<*>
+
+        return deepEquals(field, other.field)
+    }
+
+    override fun hashCode(): Int {
+        return field?.hashCode() ?: 0
+    }
+
+    override fun toString(): String {
+        if (field is ByteArray) {
+            return "RecordWithGenericField(field=${field.contentToString()})"
+        }
+        return "RecordWithGenericField(field=$field)"
+    }
+}
 
 @JvmInline
 @Serializable
-internal value class ValueClassWithGenericField<T>(val value: T)
+internal value class ValueClassWithGenericField<T>(val value: T) {
+    override fun toString(): String {
+        if (value is ByteArray) {
+            return "ValueClassWithGenericField(value=${value.contentToString()})"
+        }
+        return "ValueClassWithGenericField(value=$value)"
+    }
+}
 
 @Serializable
 @JvmInline

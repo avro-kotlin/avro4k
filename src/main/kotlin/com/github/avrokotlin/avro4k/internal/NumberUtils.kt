@@ -3,13 +3,6 @@ package com.github.avrokotlin.avro4k.internal
 import kotlinx.serialization.SerializationException
 import java.math.BigDecimal
 
-internal fun BigDecimal.toLongExact(): Long {
-    if (this.toLong().toBigDecimal() != this) {
-        throw SerializationException("Value $this is not a valid Long")
-    }
-    return this.toLong()
-}
-
 internal fun Int.toByteExact(): Byte {
     if (this.toByte().toInt() != this) {
         throw SerializationException("Value $this is not a valid Byte")
@@ -54,35 +47,44 @@ internal fun BigDecimal.toShortExact(): Short {
 
 internal fun Long.toIntExact(): Int {
     if (this.toInt().toLong() != this) {
-        throw SerializationException("Value $this is not a valid Int")
+        throw invalidType<Int>()
     }
     return this.toInt()
 }
 
 internal fun BigDecimal.toIntExact(): Int {
     if (this.toInt().toBigDecimal() != this) {
-        throw SerializationException("Value $this is not a valid Int")
+        throw invalidType<Int>()
     }
     return this.toInt()
 }
 
-internal fun BigDecimal.toFloatExact(): Float {
-    if (this.toFloat().toBigDecimal() != this) {
-        throw SerializationException("Value $this is not a valid Float")
+internal fun BigDecimal.toLongExact(): Long {
+    if (this.toLong().toBigDecimal() != this) {
+        throw invalidType<Long>()
     }
-    return this.toFloat()
+    return this.toLong()
 }
 
 internal fun Double.toFloatExact(): Float {
     if (this.toFloat().toDouble() != this) {
-        throw SerializationException("Value $this is not a valid Float")
+        throw invalidType<Float>()
     }
     return this.toFloat()
 }
 
 internal fun BigDecimal.toDoubleExact(): Double {
     if (this.toDouble().toBigDecimal() != this) {
-        throw SerializationException("Value $this is not a valid Double")
+        throw invalidType<Double>()
     }
     return this.toDouble()
 }
+
+internal fun BigDecimal.toFloatExact(): Float {
+    if (this.toFloat().toBigDecimal() != this) {
+        throw invalidType<Float>()
+    }
+    return this.toFloat()
+}
+
+private inline fun <reified T> Any.invalidType() = SerializationException("Value $this is not a valid ${T::class.simpleName}")

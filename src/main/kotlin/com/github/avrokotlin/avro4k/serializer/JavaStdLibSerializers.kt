@@ -34,6 +34,7 @@ public val JavaStdLibSerializersModule: SerializersModule =
         contextual(UUIDSerializer)
         contextual(BigIntegerSerializer)
         contextual(BigDecimalSerializer)
+        contextual(ByteBufferSerializer)
     }
 
 public object URLSerializer : KSerializer<URL> {
@@ -315,4 +316,31 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
         get() {
             return LogicalTypes.decimal(precision, scale)
         }
+}
+
+/**
+ * Delegates the serialization of a [ByteBuffer] to [AvroEncoder.encodeBytes] and [AvroDecoder.decodeBytes] as all the compatible types
+ * for the current writer schema are specifically handled here.
+ */
+public object ByteBufferSerializer : AvroSerializer<ByteBuffer>(ByteBuffer::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return Schema.create(Schema.Type.BYTES)
+    }
+
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: ByteBuffer,
+    ) {
+        if (value.hasArray() && value.arrayOffset() == 0 && value.array().size == value.remaining()) {
+            encoder.encodeBytes(value.array())
+        } else {
+            val bytes = ByteArray(value.remaining())
+            value.get(bytes)
+            encoder.encodeBytes(bytes)
+        }
+    }
+
+    override fun deserializeAvro(decoder: AvroDecoder): ByteBuffer {
+        return ByteBuffer.wrap(decoder.decodeBytes())
+    }
 }

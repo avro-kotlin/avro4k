@@ -10,7 +10,7 @@ public abstract class com/github/avrokotlin/avro4k/Avro : kotlinx/serialization/
 	public fun encodeToByteArray (Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
 	public final fun encodeToByteArray (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
 	public final fun getConfiguration ()Lcom/github/avrokotlin/avro4k/AvroConfiguration;
-	public fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
 	public final fun schema (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lorg/apache/avro/Schema;
 }
 
@@ -414,6 +414,15 @@ public final class com/github/avrokotlin/avro4k/serializer/BigIntegerSerializer 
 	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/math/BigInteger;)V
 }
 
+public final class com/github/avrokotlin/avro4k/serializer/ByteBufferSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/ByteBufferSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/nio/ByteBuffer;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/nio/ByteBuffer;)V
+}
+
 public final class com/github/avrokotlin/avro4k/serializer/ElementLocation {
 	public fun <init> (Lkotlinx/serialization/descriptors/SerialDescriptor;I)V
 	public final fun component1 ()Lkotlinx/serialization/descriptors/SerialDescriptor;
@@ -425,6 +434,53 @@ public final class com/github/avrokotlin/avro4k/serializer/ElementLocation {
 	public final fun getElementIndex ()I
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericArraySerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/GenericArraySerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Lorg/apache/avro/generic/GenericArray;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lorg/apache/avro/generic/GenericArray;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericDataSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/GenericDataSerializer;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericDataSerializersKt {
+	public static final fun getGenericDataSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericEnumSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/GenericEnumSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Lorg/apache/avro/generic/GenericEnumSymbol;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lorg/apache/avro/generic/GenericEnumSymbol;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericFixedSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/GenericFixedSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Lorg/apache/avro/generic/GenericFixed;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lorg/apache/avro/generic/GenericFixed;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/GenericRecordSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/GenericRecordSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Lorg/apache/avro/generic/GenericRecord;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lorg/apache/avro/generic/GenericRecord;)V
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/InstantSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {

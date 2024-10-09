@@ -6,8 +6,41 @@ import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
+import java.nio.ByteBuffer
 
 internal class BytesEncodingTest : StringSpec({
+    "support ByteBuffer as BYTES" {
+        AvroAssertions.assertThat<ByteBuffer>(ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
+            .generatesSchema(Schema.create(Schema.Type.BYTES))
+            .isEncodedAs(byteArrayOf(1, 4, 9))
+        AvroAssertions.assertThat<ByteBuffer?>(ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
+            .generatesSchema(Schema.create(Schema.Type.BYTES).nullable)
+            .isEncodedAs(byteArrayOf(1, 4, 9))
+        AvroAssertions.assertThat<ByteBuffer?>(null)
+            .generatesSchema(Schema.create(Schema.Type.BYTES).nullable)
+            .isEncodedAs(null)
+    }
+
+    "support ByteBuffer as FIXED" {
+        val fixedSchema = Schema.createFixed("fixed", null, null, 3)
+        AvroAssertions.assertThat<ByteBuffer>(ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
+            .isEncodedAs(byteArrayOf(1, 4, 9), writerSchema = fixedSchema)
+        AvroAssertions.assertThat<ByteBuffer?>(ByteBuffer.wrap(byteArrayOf(1, 4, 9)))
+            .isEncodedAs(byteArrayOf(1, 4, 9), writerSchema = fixedSchema.nullable)
+        AvroAssertions.assertThat<ByteBuffer?>(null)
+            .isEncodedAs(null, writerSchema = fixedSchema.nullable)
+    }
+
+    "support ByteBuffer as STRING" {
+        val stringSchema = Schema.create(Schema.Type.STRING)
+        AvroAssertions.assertThat<ByteBuffer>(ByteBuffer.wrap("string".encodeToByteArray()))
+            .isEncodedAs("string", writerSchema = stringSchema)
+        AvroAssertions.assertThat<ByteBuffer?>(ByteBuffer.wrap("string".encodeToByteArray()))
+            .isEncodedAs("string", writerSchema = stringSchema.nullable)
+        AvroAssertions.assertThat<ByteBuffer?>(null)
+            .isEncodedAs(null, writerSchema = stringSchema.nullable)
+    }
+
     "encode/decode nullable ByteArray to BYTES" {
         AvroAssertions.assertThat(NullableByteArrayTest(byteArrayOf(1, 4, 9)))
             .isEncodedAs(record(byteArrayOf(1, 4, 9)))

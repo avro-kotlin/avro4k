@@ -52,22 +52,73 @@ public object URLSerializer : KSerializer<URL> {
 /**
  * Serializes an [UUID] as a string logical type of `uuid`.
  *
+ * By default, generates a `fixed` schema with a size of 16 bytes.
+ *
  * Note: it does not check if the schema logical type name is `uuid` as it does not make any conversion.
  */
 public object UUIDSerializer : AvroSerializer<UUID>(UUID::class.qualifiedName!!) {
+    private val conversion = Conversions.UUIDConversion()
+
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return Schema.create(Schema.Type.STRING).copy(logicalType = LogicalType("uuid"))
+        val schema =
+            if (context.inlinedElements.any { it.stringable != null }) {
+                Schema.create(Schema.Type.STRING)
+            } else {
+                Schema.createFixed("uuid", null, null, 16)
+            }
+        return schema.copy(logicalType = LogicalType("uuid"))
     }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: UUID,
     ) {
-        serializeGeneric(encoder, value)
+        encoder.encodeResolving({
+            with(encoder) {
+                BadEncodedValueError(
+                    value,
+                    encoder.currentWriterSchema,
+                    Schema.Type.STRING,
+                    Schema.Type.FIXED
+                )
+            }
+        }) { schema ->
+            when (schema.type) {
+                Schema.Type.STRING -> {
+                    { encoder.encodeString(value.toString()) }
+                }
+
+                Schema.Type.FIXED -> {
+                    { encoder.encodeFixed(conversion.toFixed(value, encoder.currentWriterSchema, encoder.currentWriterSchema.logicalType)) }
+                }
+
+                else -> null
+            }
+        }
     }
 
     override fun deserializeAvro(decoder: AvroDecoder): UUID {
-        return deserializeGeneric(decoder)
+        with(decoder) {
+            return decoder.decodeResolvingAny({
+                UnexpectedDecodeSchemaError(
+                    "UUID",
+                    Schema.Type.STRING,
+                    Schema.Type.FIXED
+                )
+            }) { schema ->
+                when (schema.type) {
+                    Schema.Type.STRING -> {
+                        AnyValueDecoder { UUID.fromString(decoder.decodeString()) }
+                    }
+
+                    Schema.Type.FIXED -> {
+                        AnyValueDecoder { conversion.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
+                    }
+
+                    else -> null
+                }
+            }
+        }
     }
 
     override fun serializeGeneric(

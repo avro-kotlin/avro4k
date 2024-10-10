@@ -167,6 +167,6 @@ internal class AvroObjectContainerTest : StringSpec({
     @JvmInline
     @Serializable
     private value class UserId(
-        @Contextual val value: UUID,
+        @Contextual @AvroStringable val value: UUID,
     )
 }

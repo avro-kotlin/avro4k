@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.EnumResolver
+import com.github.avrokotlin.avro4k.internal.LogicalTypesSerializersCollector
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
@@ -39,6 +40,10 @@ public sealed class Avro(
     internal val recordResolver = RecordResolver(this)
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)
     internal val enumResolver = EnumResolver()
+    internal val logicalTypeSerializers: Map<String, KSerializer<Any>> =
+        LogicalTypesSerializersCollector(configuration)
+            .apply { serializersModule.dumpTo(this) }
+            .serializers
 
     public companion object Default : Avro(
         AvroConfiguration(),

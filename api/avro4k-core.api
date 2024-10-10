@@ -73,6 +73,7 @@ public abstract interface class com/github/avrokotlin/avro4k/AvroDecoder : kotli
 	public abstract fun decodeBytes ()[B
 	public abstract fun decodeFixed ()Lorg/apache/avro/generic/GenericFixed;
 	public abstract fun decodeValue ()Ljava/lang/Object;
+	public abstract fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
 	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
 }
 
@@ -117,6 +118,7 @@ public abstract interface class com/github/avrokotlin/avro4k/AvroEncoder : kotli
 	public abstract fun encodeBytes ([B)V
 	public abstract fun encodeFixed (Lorg/apache/avro/generic/GenericFixed;)V
 	public abstract fun encodeFixed ([B)V
+	public abstract fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
 	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
 }
 

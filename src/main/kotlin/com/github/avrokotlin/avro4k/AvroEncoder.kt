@@ -33,6 +33,8 @@ public interface AvroEncoder : Encoder {
     @ExperimentalSerializationApi
     public val currentWriterSchema: Schema
 
+    public val avro: Avro
+
     /**
      * Encodes a [Schema.Type.BYTES] value from a [ByteBuffer].
      */

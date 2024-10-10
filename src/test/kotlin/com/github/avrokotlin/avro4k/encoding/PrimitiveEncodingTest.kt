@@ -83,5 +83,7 @@ internal class PrimitiveEncodingTest : StringSpec({
 }) {
     @JvmInline
     @Serializable
-    private value class FixedValue(@AvroFixed(5) val value: ByteArray)
+    private value class FixedValue(
+        @AvroFixed(5) val value: ByteArray,
+    )
 }

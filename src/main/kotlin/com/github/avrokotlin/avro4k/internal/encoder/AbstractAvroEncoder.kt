@@ -324,7 +324,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
                     Schema.Type.INT,
                     Schema.Type.LONG,
                     Schema.Type.FLOAT,
-                    Schema.Type.DOUBLE) ||
+                    Schema.Type.DOUBLE
+                ) ||
                 throw typeNotFoundInUnionError(
                     Schema.Type.BOOLEAN,
                     Schema.Type.INT,
@@ -334,7 +335,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
                     Schema.Type.STRING,
                     Schema.Type.BYTES,
                     Schema.Type.FIXED,
-                    Schema.Type.ENUM)
+                    Schema.Type.ENUM
+                )
         }
         when (currentWriterSchema.type) {
             Schema.Type.BOOLEAN -> encodeBooleanUnchecked(value.toBooleanStrict())

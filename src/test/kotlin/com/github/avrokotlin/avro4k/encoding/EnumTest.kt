@@ -91,26 +91,28 @@ internal class EnumTest : StringSpec({
     }
 
     "support decoding enum inside an union with an alias on the reader schema" {
-        val writerSchema = Schema.createUnion(
-            SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
-            SchemaBuilder.record("UnknownRecord").aliases("RecordA")
-                .fields().name("field").type().stringType().noDefault()
-                .endRecord(),
-            SchemaBuilder.enumeration("TheEnum").symbols("A", "B", "C")
-        )
+        val writerSchema =
+            Schema.createUnion(
+                SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
+                SchemaBuilder.record("UnknownRecord").aliases("RecordA")
+                    .fields().name("field").type().stringType().noDefault()
+                    .endRecord(),
+                SchemaBuilder.enumeration("TheEnum").symbols("A", "B", "C")
+            )
 
         AvroAssertions.assertThat(EnumWithAlias.A)
             .isEncodedAs(GenericData.EnumSymbol(writerSchema.types[2], "A"), writerSchema = writerSchema)
     }
 
     "support decoding enum inside an union with an alias on the writer schema" {
-        val writerSchema = Schema.createUnion(
-            SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
-            SchemaBuilder.record("UnknownRecord").aliases("RecordA")
-                .fields().name("field").type().stringType().noDefault()
-                .endRecord(),
-            SchemaBuilder.enumeration("UnknownEnum").aliases("com.github.avrokotlin.avro4k.SomeEnum").symbols("A", "B", "C")
-        )
+        val writerSchema =
+            Schema.createUnion(
+                SchemaBuilder.enumeration("OtherEnum").symbols("OTHER"),
+                SchemaBuilder.record("UnknownRecord").aliases("RecordA")
+                    .fields().name("field").type().stringType().noDefault()
+                    .endRecord(),
+                SchemaBuilder.enumeration("UnknownEnum").aliases("com.github.avrokotlin.avro4k.SomeEnum").symbols("A", "B", "C")
+            )
 
         AvroAssertions.assertThat(SomeEnum.A)
             .isEncodedAs(GenericData.EnumSymbol(writerSchema.types[2], "A"), writerSchema = writerSchema)

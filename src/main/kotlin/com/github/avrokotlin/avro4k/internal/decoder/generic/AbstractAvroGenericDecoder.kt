@@ -96,8 +96,6 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
     override fun decodeBoolean(): Boolean {
         return when (val value = decodeValue()) {
             is Boolean -> value
-            1 -> true
-            0 -> false
             is CharSequence -> value.toString().toBoolean()
             else -> throw BadDecodedValueError(value, PrimitiveKind.BOOLEAN, Boolean::class, Int::class, CharSequence::class)
         }
@@ -164,10 +162,9 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
     }
 
     override fun decodeChar(): Char {
-        val value = decodeValue()
-        return when {
-            value is Int -> value.toChar()
-            value is CharSequence && value.length == 1 -> value[0]
+        return when (val value = decodeValue()) {
+            is Int -> value.toChar()
+            is CharSequence -> value.single()
             else -> throw BadDecodedValueError(value, PrimitiveKind.CHAR, Int::class, CharSequence::class)
         }
     }

@@ -77,6 +77,14 @@ internal class EnumTest : StringSpec({
         }
     }
 
+    "Encoding enum with the wrong name fails" {
+        val schema = SchemaBuilder.enumeration("WrongName").symbols("A")
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(schema, EnumV1WithoutDefault.A)
+        }
+    }
+
     "support alias on enum" {
         val writerSchema =
             SchemaBuilder.record("EnumWrapperRecord").fields()

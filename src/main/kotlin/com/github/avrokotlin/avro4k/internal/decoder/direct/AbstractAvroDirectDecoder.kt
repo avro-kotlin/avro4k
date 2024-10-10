@@ -39,7 +39,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericFixed
 
 internal abstract class AbstractAvroDirectDecoder(
-    protected val avro: Avro,
+    override val avro: Avro,
     protected val binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractInterceptingDecoder(), UnionDecoder {
     abstract override var currentWriterSchema: Schema

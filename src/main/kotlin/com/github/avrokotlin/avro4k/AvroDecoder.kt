@@ -45,6 +45,8 @@ public interface AvroDecoder : Decoder {
     @ExperimentalSerializationApi
     public val currentWriterSchema: Schema
 
+    public val avro: Avro
+
     /**
      * Decode a [Schema.Type.BYTES] value.
      *

@@ -79,7 +79,7 @@ private class RecordSequentialDirectEncoder(
 private class RecordBadOrderDirectEncoder(
     private val classDescriptor: ClassDescriptorForWriterSchema,
     private val schema: Schema,
-    private val avro: Avro,
+    override val avro: Avro,
     private val binaryEncoder: org.apache.avro.io.Encoder,
 ) : AbstractEncoder(), AvroEncoder {
     // Each time we encode a field, if the next expected schema field index is not the good one, it is buffered until it's the time to encode it

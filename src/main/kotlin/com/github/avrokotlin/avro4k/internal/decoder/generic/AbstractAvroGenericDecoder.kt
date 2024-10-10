@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k.internal.decoder.generic
 
-import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
@@ -29,8 +28,6 @@ import java.math.BigDecimal
 import java.nio.ByteBuffer
 
 internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDecoder {
-    internal abstract val avro: Avro
-
     abstract override fun decodeNotNullMark(): Boolean
 
     abstract override fun decodeValue(): Any

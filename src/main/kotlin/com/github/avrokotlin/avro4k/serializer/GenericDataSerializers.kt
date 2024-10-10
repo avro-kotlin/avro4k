@@ -96,7 +96,10 @@ public object GenericDataSerializer : AvroSerializer<Any>("GenericData") {
     override fun deserializeAvro(decoder: AvroDecoder): Any {
         (decoder as UnionDecoder).decodeAndResolveUnion()
 
-        // TODO: logical types
+        decoder.currentWriterSchema.logicalType
+            ?.let { decoder.avro.logicalTypeSerializers[it.name] }
+            ?.let { return it.deserialize(decoder) }
+
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         return when (decoder.currentWriterSchema.type) {
             Schema.Type.DOUBLE -> decoder.decodeDouble()

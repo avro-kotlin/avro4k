@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
+import com.github.avrokotlin.avro4k.internal.getNonNullContextualDescriptor
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.internal.nullable
@@ -10,6 +11,7 @@ import com.github.avrokotlin.avro4k.serializer.stringable
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.nonNullOriginal
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.LogicalType
@@ -83,7 +85,18 @@ internal class ValueVisitor internal constructor(
     }
 
     override fun visitValue(descriptor: SerialDescriptor) {
-        val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
+        var finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
+
+        if (finalDescriptor is AvroSchemaSupplier) {
+            setSchema(finalDescriptor.getSchema(context))
+            return
+        }
+
+        // AvroSerializer uses the kind CONTEXTUAL, so if the descriptor is not AvroSchemaSupplier,
+        // we unwrap it to then check again if it is an AvroSchemaSupplier
+        if (finalDescriptor.kind == SerialKind.CONTEXTUAL) {
+            finalDescriptor = finalDescriptor.getNonNullContextualDescriptor(serializersModule)
+        }
 
         if (finalDescriptor is AvroSchemaSupplier) {
             setSchema(finalDescriptor.getSchema(context))

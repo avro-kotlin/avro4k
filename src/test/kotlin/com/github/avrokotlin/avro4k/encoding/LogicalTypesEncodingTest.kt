@@ -17,6 +17,7 @@ import org.apache.avro.SchemaBuilder
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URL
+import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -52,6 +53,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 Instant.ofEpochSecond(1577889296),
                 Instant.ofEpochSecond(1577889296, 424000),
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
                 LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
@@ -78,6 +80,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     1577889296000,
                     1577889296000424,
                     "123e4567-e89b-12d3-a456-426614174000",
+                    UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toBytes(),
                     "http://example.com",
                     "1234567890",
                     1577889296424,
@@ -91,6 +94,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
     "support nullable logical types" {
         AvroAssertions.assertThat(
             NullableLogicalTypes(
+                null,
                 null,
                 null,
                 null,
@@ -122,6 +126,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     null,
                     null,
                     null,
+                    null,
                     null
                 )
             )
@@ -134,6 +139,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 LocalTime.ofSecondOfDay(45296),
                 Instant.ofEpochSecond(1577889296),
                 Instant.ofEpochSecond(1577889296, 424000),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
@@ -161,6 +167,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     1577889296000,
                     1577889296000424,
                     "123e4567-e89b-12d3-a456-426614174000",
+                    UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toBytes(),
                     "http://example.com",
                     "1234567890",
                     1577889296424,
@@ -181,7 +188,8 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val time: LocalTime,
         @Contextual val instant: Instant,
         @Serializable(InstantToMicroSerializer::class) val instantMicros: Instant,
-        @Contextual val uuid: UUID,
+        @Contextual @AvroStringable val uuid: UUID,
+        @Contextual val uuidFixed: UUID,
         @Contextual val url: URL,
         @Contextual val bigInteger: BigInteger,
         @Contextual val dateTime: LocalDateTime,
@@ -199,7 +207,8 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val timeNullable: LocalTime?,
         @Contextual val instantNullable: Instant?,
         @Serializable(InstantToMicroSerializer::class) val instantMicrosNullable: Instant?,
-        @Contextual val uuidNullable: UUID?,
+        @Contextual @AvroStringable val uuidNullable: UUID?,
+        @Contextual val uuidFixed: UUID?,
         @Contextual val urlNullable: URL?,
         @Contextual val bigIntegerNullable: BigInteger?,
         @Contextual val dateTimeNullable: LocalDateTime?,
@@ -208,3 +217,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
         @Contextual val javaDuration: java.time.Duration?,
     )
 }
+
+private fun UUID.toBytes(): ByteArray =
+    ByteBuffer.allocate(16).apply {
+        putLong(mostSignificantBits)
+        putLong(leastSignificantBits)
+    }.array()

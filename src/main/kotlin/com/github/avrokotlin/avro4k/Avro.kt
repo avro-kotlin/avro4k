@@ -1,9 +1,11 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.EnumResolver
+import com.github.avrokotlin.avro4k.internal.LogicalTypesSerializersCollector
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
+import com.github.avrokotlin.avro4k.serializer.GenericDataSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
 import kotlinx.serialization.BinaryFormat
@@ -28,7 +30,7 @@ import java.io.ByteArrayInputStream
  */
 public sealed class Avro(
     public val configuration: AvroConfiguration,
-    public override val serializersModule: SerializersModule,
+    public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
     // We use the identity hash map because we could have multiple descriptors with the same name, especially
     // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors
@@ -38,11 +40,16 @@ public sealed class Avro(
     internal val recordResolver = RecordResolver(this)
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)
     internal val enumResolver = EnumResolver()
+    internal val logicalTypeSerializers: Map<String, KSerializer<Any>> =
+        LogicalTypesSerializersCollector(configuration)
+            .apply { serializersModule.dumpTo(this) }
+            .serializers
 
     public companion object Default : Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
-            JavaTimeSerializersModule
+            JavaTimeSerializersModule +
+            GenericDataSerializersModule
     )
 
     public fun schema(descriptor: SerialDescriptor): Schema {

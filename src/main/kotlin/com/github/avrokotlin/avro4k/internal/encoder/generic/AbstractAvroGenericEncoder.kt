@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k.internal.encoder.generic
 
-import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.UnionEncoder
 import com.github.avrokotlin.avro4k.encodeResolving
@@ -22,8 +21,6 @@ import org.apache.avro.generic.GenericFixed
 import java.nio.ByteBuffer
 
 internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEncoder, UnionEncoder {
-    abstract val avro: Avro
-
     abstract override var currentWriterSchema: Schema
 
     abstract override fun encodeValue(value: Any)

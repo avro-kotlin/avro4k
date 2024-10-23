@@ -39,7 +39,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericFixed
 
 internal abstract class AbstractAvroDirectDecoder(
-    protected val avro: Avro,
+    override val avro: Avro,
     protected val binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractInterceptingDecoder(), UnionDecoder {
     abstract override var currentWriterSchema: Schema
@@ -333,18 +333,25 @@ internal abstract class AbstractAvroDirectDecoder(
                 "string",
                 Schema.Type.STRING,
                 Schema.Type.BYTES,
-                Schema.Type.FIXED
+                Schema.Type.FIXED,
+                Schema.Type.ENUM
             )
         }) {
             when (it.type) {
-                Schema.Type.STRING,
-                Schema.Type.BYTES,
-                -> {
+                Schema.Type.STRING -> {
                     AnyValueDecoder { binaryDecoder.readString() }
+                }
+
+                Schema.Type.BYTES -> {
+                    AnyValueDecoder { binaryDecoder.readBytes(null).array().decodeToString() }
                 }
 
                 Schema.Type.FIXED -> {
                     AnyValueDecoder { ByteArray(it.fixedSize).also { buf -> binaryDecoder.readFixed(buf) }.decodeToString() }
+                }
+
+                Schema.Type.ENUM -> {
+                    AnyValueDecoder { it.enumSymbols[binaryDecoder.readEnum()] }
                 }
 
                 else -> null

@@ -28,7 +28,7 @@ import java.io.ByteArrayInputStream
  */
 public sealed class Avro(
     public val configuration: AvroConfiguration,
-    public override val serializersModule: SerializersModule,
+    public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
     // We use the identity hash map because we could have multiple descriptors with the same name, especially
     // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors

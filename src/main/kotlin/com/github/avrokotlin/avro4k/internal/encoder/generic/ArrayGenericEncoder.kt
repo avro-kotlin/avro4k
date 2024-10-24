@@ -1,8 +1,6 @@
 package com.github.avrokotlin.avro4k.internal.encoder.generic
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.encodeResolving
-import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
@@ -36,17 +34,7 @@ internal class ArrayGenericEncoder(
         values[index++] = value
     }
 
-    override fun encodeNull() {
-        encodeResolving(
-            { BadEncodedValueError(null, currentWriterSchema, Schema.Type.NULL) }
-        ) {
-            when (it.type) {
-                Schema.Type.NULL -> {
-                    { values[index++] = null }
-                }
-
-                else -> null
-            }
-        }
+    override fun encodeNullUnchecked() {
+        values[index++] = null
     }
 }

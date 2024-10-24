@@ -30,6 +30,7 @@ dependencies {
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.json)
     testImplementation(libs.kotest.property)
+    testImplementation(kotlin("reflect"))
 }
 
 kotlin {

@@ -4,9 +4,16 @@ import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.decodeResolvingAny
-import com.github.avrokotlin.avro4k.encodeResolving
-import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
+import com.github.avrokotlin.avro4k.ensureFixedSize
+import com.github.avrokotlin.avro4k.fullNameOrAliasMismatchError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
+import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
+import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectNamedSchema
+import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
+import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
+import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -116,8 +123,9 @@ public class AvroDurationParseException(value: String) : SerializationException(
 internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration::class.qualifiedName!!) {
     private const val LOGICAL_TYPE_NAME = "duration"
     private const val DURATION_BYTES = 12
+    private const val DEFAULT_DURATION_FULL_NAME = "time.Duration"
     internal val DURATION_SCHEMA =
-        Schema.createFixed("time.Duration", "A 12-byte byte array encoding a duration in months, days and milliseconds.", null, DURATION_BYTES).also {
+        Schema.createFixed(DEFAULT_DURATION_FULL_NAME, "A 12-byte byte array encoding a duration in months, days and milliseconds.", null, DURATION_BYTES).also {
             LogicalType(LOGICAL_TYPE_NAME).addToSchema(it)
         }
 
@@ -132,21 +140,22 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
         value: AvroDuration,
     ) {
         with(encoder) {
-            encodeResolving({ BadEncodedValueError(value, currentWriterSchema, Schema.Type.FIXED, Schema.Type.STRING) }) {
-                when (it.type) {
-                    Schema.Type.FIXED ->
-                        if (it.logicalType?.name == LOGICAL_TYPE_NAME && it.fixedSize == DURATION_BYTES) {
-                            { encodeFixed(encodeDuration(value)) }
-                        } else {
-                            null
-                        }
-
-                    Schema.Type.STRING -> {
-                        { encoder.encodeString(value.toString()) }
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectNamedSchema(DEFAULT_DURATION_FULL_NAME) ||
+                    trySelectLogicalTypeFromUnion(LOGICAL_TYPE_NAME, Schema.Type.FIXED) ||
+                    trySelectTypeFromUnion(Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.FIXED, Schema.Type.STRING)
+            }
+            when (currentWriterSchema.type) {
+                Schema.Type.FIXED ->
+                    if (currentWriterSchema.logicalType?.name == LOGICAL_TYPE_NAME || currentWriterSchema.isFullNameOrAliasMatch(DEFAULT_DURATION_FULL_NAME, ::emptySet)) {
+                        encodeFixed(ensureFixedSize(encodeDuration(value)))
+                    } else {
+                        throw fullNameOrAliasMismatchError(DEFAULT_DURATION_FULL_NAME, emptySet())
                     }
 
-                    else -> null
-                }
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.STRING)
             }
         }
     }

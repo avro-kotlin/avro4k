@@ -46,7 +46,7 @@ internal class MapGenericEncoder(
         }
     }
 
-    override fun encodeNull() {
+    override fun encodeNullUnchecked() {
         val key = currentKey ?: throw SerializationException("Map key cannot be null")
         entries.add(key to null)
     }

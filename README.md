@@ -599,7 +599,6 @@ type without the missing field value.
 
 By default:
 - nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
-- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
 
 ### @AvroDefault
 

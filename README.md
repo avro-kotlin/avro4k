@@ -139,7 +139,7 @@ fun main() {
 
 </details>
 
-> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.3/specification/#single-object-encoding).
+> For more details, see the Avro spec on [object container files](https://avro.apache.org/docs/1.11.3/specification/#object-container-files).
 
 # Important notes
 

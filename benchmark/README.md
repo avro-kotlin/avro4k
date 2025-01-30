@@ -92,6 +92,17 @@ c.g.a.b.simple.JacksonAvroSimpleBenchmark.read                   thrpt    5   75
 c.g.a.b.simple.JacksonAvroSimpleBenchmark.write                  thrpt    5  108864.249 ±   912.593  ops/s
 ```
 
+```
+main summary:
+Benchmark                                      Mode  Cnt      Score      Error  Units
+c.g.a.b.complex.Avro4kV1Benchmark.read        thrpt    5   4972.208 ±  705.862  ops/s
+c.g.a.b.complex.Avro4kV1Benchmark.write       thrpt    5   3441.371 ±   28.823  ops/s
+c.g.a.b.lists.Avro4kV1ListsBenchmark.read     thrpt    5     42.143 ±    0.997  ops/s
+c.g.a.b.lists.Avro4kV1ListsBenchmark.write    thrpt    5     40.493 ±    2.051  ops/s
+c.g.a.b.simple.Avro4kV1SimpleBenchmark.read   thrpt    5  54174.035 ± 3654.468  ops/s
+c.g.a.b.simple.Avro4kV1SimpleBenchmark.write  thrpt    5  52706.461 ±  422.400  ops/s
+```
+
 You can get the results in the `build/reports/benchmarks/main` directory.
 
 ## Other information

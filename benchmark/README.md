@@ -54,12 +54,42 @@ c.g.a.b.simple.JacksonAvroSimpleBenchmark.write                thrpt    5  13149
 > To add the relative difference, just ask to chatgpt "can you add another column in this benchmark that indicates the relative difference in percent regarding
 > Avro4kDirectBenchmark:"
 
+
+
+
 ## Run the benchmark locally
 
 Just execute the benchmark:
 
 ```shell
 ../gradlew benchmark
+```
+
+```
+Benchmark                                                         Mode  Cnt       Score       Error  Units
+c.g.a.b.complex.ApacheAvroReflectBenchmark.read                  thrpt    5   24299.142 ±   516.721  ops/s
+c.g.a.b.complex.ApacheAvroReflectBenchmark.write                 thrpt    5   41357.127 ±   692.390  ops/s
+c.g.a.b.complex.Avro4kBenchmark.read                             thrpt    5   24038.530 ±   638.918  ops/s
+c.g.a.b.complex.Avro4kBenchmark.write                            thrpt    5   65604.414 ±  4857.084  ops/s
+c.g.a.b.complex.Avro4kGenericWithApacheAvroBenchmark.read        thrpt    5   16787.258 ±   595.400  ops/s
+c.g.a.b.complex.Avro4kGenericWithApacheAvroBenchmark.write       thrpt    5   32217.821 ±  1032.867  ops/s
+c.g.a.b.complex.JacksonAvroBenchmark.write                       thrpt    5   31620.999 ±  2447.659  ops/s
+c.g.a.b.lists.ApacheAvroReflectListsBenchmark.read               thrpt    5      26.206 ±     0.175  ops/s
+c.g.a.b.lists.ApacheAvroReflectListsBenchmark.write              thrpt    5      50.178 ±     2.130  ops/s
+c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.read     thrpt    5      28.672 ±     0.438  ops/s
+c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.write    thrpt    5      54.315 ±     4.137  ops/s
+c.g.a.b.lists.Avro4kListsBenchmark.read                          thrpt    5      38.907 ±     3.347  ops/s
+c.g.a.b.lists.Avro4kListsBenchmark.write                         thrpt    5     130.315 ±     6.062  ops/s
+c.g.a.b.lists.JacksonAvroListsBenchmark.read                     thrpt    5      90.419 ±     2.892  ops/s
+c.g.a.b.lists.JacksonAvroListsBenchmark.write                    thrpt    5      37.269 ±     0.865  ops/s
+c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.read             thrpt    5  161057.665 ±  1306.503  ops/s
+c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.write            thrpt    5  310032.268 ± 12693.869  ops/s
+c.g.a.b.simple.Avro4kGenericWithApacheAvroSimpleBenchmark.read   thrpt    5  146317.875 ±  3168.515  ops/s
+c.g.a.b.simple.Avro4kGenericWithApacheAvroSimpleBenchmark.write  thrpt    5  234963.682 ±  1821.331  ops/s
+c.g.a.b.simple.Avro4kSimpleBenchmark.read                        thrpt    5  200297.694 ±  2373.275  ops/s
+c.g.a.b.simple.Avro4kSimpleBenchmark.write                       thrpt    5  528821.186 ±  6943.376  ops/s
+c.g.a.b.simple.JacksonAvroSimpleBenchmark.read                   thrpt    5   75876.208 ±  1021.814  ops/s
+c.g.a.b.simple.JacksonAvroSimpleBenchmark.write                  thrpt    5  108864.249 ±   912.593  ops/s
 ```
 
 You can get the results in the `build/reports/benchmarks/main` directory.

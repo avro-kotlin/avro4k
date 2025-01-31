@@ -20,6 +20,7 @@ jobs:
 
       - name: Run tests
         run: ./gradlew check
+        timeout-minutes: 5
 
       - name: Bundle the build report
         if: failure()

@@ -21,7 +21,7 @@ internal abstract class SerializationListsBenchmark {
     @Setup
     fun initTestData() {
         setup()
-        lists = ListWrapperDatasClass.create(10, 100000)
+        lists = ListWrapperDatasClass.create(10, 10000)
         prepareBinaryData()
     }
 

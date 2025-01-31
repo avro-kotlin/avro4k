@@ -1,7 +1,7 @@
 package com.github.avrokotlin.benchmark
 
 import com.github.avrokotlin.benchmark.complex.Avro4kBenchmark
-import com.github.avrokotlin.benchmark.lists.ApacheAvroReflectListsBenchmark
+import com.github.avrokotlin.benchmark.lists.Avro4kListsBenchmark
 import com.github.avrokotlin.benchmark.simple.JacksonAvroSimpleBenchmark
 
 internal object ManualProfilingWrite {
@@ -33,7 +33,7 @@ internal object ManualProfilingRead {
 internal object ManualProfilingListRead {
     @JvmStatic
     fun main(vararg args: String) {
-        ApacheAvroReflectListsBenchmark().apply {
+        Avro4kListsBenchmark().apply {
             initTestData()
             for (i in 0 until 1_000) {
                 if (i % 100 == 0) println("Iteration $i")

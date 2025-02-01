@@ -33,7 +33,7 @@ benchmark {
 
 dependencies {
     implementation("org.apache.commons:commons-lang3:3.14.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.11")
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.13")
 
     val jacksonVersion = "2.17.1"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")

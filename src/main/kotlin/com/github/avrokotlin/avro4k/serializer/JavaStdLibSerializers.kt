@@ -26,7 +26,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URL
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.*
 
 public val JavaStdLibSerializersModule: SerializersModule =
     SerializersModule {

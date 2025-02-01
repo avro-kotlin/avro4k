@@ -4,7 +4,6 @@ import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.UnionEncoder
 import com.github.avrokotlin.avro4k.encodeResolving
 import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
-import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.internal.toIntExact
 import kotlinx.serialization.SerializationException
@@ -56,7 +55,7 @@ internal abstract class AbstractAvroGenericEncoder : AbstractEncoder(), AvroEnco
         serializer: SerializationStrategy<T>,
         value: T,
     ) {
-        SerializerLocatorMiddleware.apply(serializer)
+        avro.serializationMiddleware.apply(serializer)
             .serialize(this, value)
     }
 

@@ -8,6 +8,10 @@ import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.GenericDataSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import com.github.avrokotlin.avro4k.serializer.KotlinStdLibSerializationMiddleware
+import com.github.avrokotlin.avro4k.serializer.KotlinStdLibSerializersModule
+import com.github.avrokotlin.avro4k.serializer.KotlinxJsonSerializationMiddleware
+import com.github.avrokotlin.avro4k.serializer.KotlinxJsonSerializersModule
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -38,6 +42,9 @@ public sealed class Avro(
     private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
 
     internal val recordResolver = RecordResolver(this)
+    internal val serializationMiddleware =
+                KotlinxJsonSerializationMiddleware +
+                KotlinStdLibSerializationMiddleware
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)
     internal val enumResolver = EnumResolver()
     internal val logicalTypeSerializers: Map<String, KSerializer<Any>> =
@@ -49,7 +56,9 @@ public sealed class Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
             JavaTimeSerializersModule +
-            GenericDataSerializersModule
+            GenericDataSerializersModule +
+            KotlinxJsonSerializersModule +
+            KotlinStdLibSerializersModule
     )
 
     public fun schema(descriptor: SerialDescriptor): Schema {
@@ -78,7 +87,7 @@ public sealed class Avro(
         val inputStream = ByteArrayInputStream(bytes)
         val result = decodeFromStream(writerSchema, deserializer, inputStream)
         if (inputStream.available() > 0) {
-            throw SerializationException("Not all bytes were consumed during deserialization")
+            throw SerializationException("Not all bytes were consumed during deserialization. Got ${bytes.size} bytes (${bytes.contentToString()}), remains ${inputStream.available()} bytes")
         }
         return result
     }

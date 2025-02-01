@@ -113,9 +113,21 @@ internal class GenericDataSerializationTest : StringSpec({
             expectedBytes = encodeToBytesUsingApacheLib(array, GenericData.Array<Any>(array, listOf(byteArray.asBuffer())))
         )
     }
-})
+}) {
+    private companion object {
+        fun testEncodeDecodeGeneric(
+            schema: Schema,
+            toEncode: Any?,
+            decoded: Any? = toEncode,
+            expectedBytes: ByteArray = encodeToBytesUsingApacheLib(schema, toEncode),
+        ) {
+            Avro.encodeToByteArray(schema, GenericDataSerializer.nullable, toEncode) shouldBe expectedBytes
+            Avro.decodeFromByteArray(schema, GenericDataSerializer.nullable, expectedBytes) shouldBe decoded
+        }
+    }
+}
 
-private fun encodeToBytesUsingApacheLib(
+fun encodeToBytesUsingApacheLib(
     schema: Schema,
     toEncode: Any?,
 ): ByteArray {
@@ -125,14 +137,4 @@ private fun encodeToBytesUsingApacheLib(
     }
 }
 
-private fun testEncodeDecodeGeneric(
-    schema: Schema,
-    toEncode: Any?,
-    decoded: Any? = toEncode,
-    expectedBytes: ByteArray = encodeToBytesUsingApacheLib(schema, toEncode),
-) {
-    Avro.encodeToByteArray(schema, GenericDataSerializer.nullable, toEncode) shouldBe expectedBytes
-    Avro.decodeFromByteArray(schema, GenericDataSerializer.nullable, expectedBytes) shouldBe decoded
-}
-
-private fun ByteArray.asBuffer() = ByteBuffer.wrap(this)
+fun ByteArray.asBuffer() = ByteBuffer.wrap(this)

@@ -2,7 +2,6 @@ package com.github.avrokotlin.avro4k.internal.decoder.generic
 
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.internal.BadDecodedValueError
-import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.toByteExact
 import com.github.avrokotlin.avro4k.internal.toDoubleExact
 import com.github.avrokotlin.avro4k.internal.toFloatExact
@@ -36,7 +35,7 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         get() = avro.serializersModule
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return SerializerLocatorMiddleware.apply(deserializer)
+        return avro.serializationMiddleware.apply(deserializer)
             .deserialize(this)
     }
 

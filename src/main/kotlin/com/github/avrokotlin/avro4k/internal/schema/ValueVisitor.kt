@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.Avro
-import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.internal.nullable
@@ -83,7 +82,7 @@ internal class ValueVisitor internal constructor(
     }
 
     override fun visitValue(descriptor: SerialDescriptor) {
-        val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
+        val finalDescriptor = context.avro.serializationMiddleware.apply(unwrapNullable(descriptor))
 
         if (finalDescriptor is AvroSchemaSupplier) {
             setSchema(finalDescriptor.getSchema(context))

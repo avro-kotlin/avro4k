@@ -16,7 +16,6 @@ import com.github.avrokotlin.avro4k.decodeResolvingDouble
 import com.github.avrokotlin.avro4k.decodeResolvingFloat
 import com.github.avrokotlin.avro4k.decodeResolvingInt
 import com.github.avrokotlin.avro4k.decodeResolvingLong
-import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.decoder.AbstractPolymorphicDecoder
 import com.github.avrokotlin.avro4k.internal.getElementIndexNullable
@@ -54,7 +53,7 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return SerializerLocatorMiddleware.apply(deserializer)
+        return avro.serializationMiddleware.apply(deserializer)
             .deserialize(this)
     }
 

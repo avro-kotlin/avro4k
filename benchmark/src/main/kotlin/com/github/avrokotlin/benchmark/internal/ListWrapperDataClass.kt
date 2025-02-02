@@ -3,10 +3,10 @@ package com.github.avrokotlin.benchmark.internal
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ListWrapperDataClass(val parent: Int, val related: List<Int>) {
+data class ListWrapperDataClass(val parent: SimpleDataClass, val related: List<SimpleDataClass>) {
     companion object {
         fun create(size: Int) =
-            ListWrapperDataClass(RandomUtils.nextInt(), List(size) { RandomUtils.nextInt() })
+            ListWrapperDataClass(SimpleDataClass.create(), List(size) { SimpleDataClass.create() })
     }
 }
 

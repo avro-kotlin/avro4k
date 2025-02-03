@@ -3,7 +3,7 @@ import kotlinx.benchmark.gradle.JvmBenchmarkTarget
 plugins {
     java
     kotlin("jvm") version libs.versions.kotlin
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.13"
     kotlin("plugin.allopen") version libs.versions.kotlin
     kotlin("plugin.serialization") version libs.versions.kotlin
     kotlin("plugin.noarg") version libs.versions.kotlin
@@ -22,6 +22,18 @@ benchmark {
         named("main") {
             reportFormat = "text"
         }
+        register("simple-read") {
+            include("^com.github.avrokotlin.benchmark.simple.+.read$")
+        }
+        register("simple-write") {
+            include("^com.github.avrokotlin.benchmark.simple.+.write$")
+        }
+        register("complex-read") {
+            include("^com.github.avrokotlin.benchmark.complex.+.read$")
+        }
+        register("complex-write") {
+            include("^com.github.avrokotlin.benchmark.complex.+.write$")
+        }
     }
     targets {
         register("main") {
@@ -32,10 +44,10 @@ benchmark {
 }
 
 dependencies {
-    implementation("org.apache.commons:commons-lang3:3.14.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.11")
+    implementation("org.apache.commons:commons-lang3:3.17.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.13")
 
-    val jacksonVersion = "2.17.1"
+    val jacksonVersion = "2.18.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-avro:$jacksonVersion")

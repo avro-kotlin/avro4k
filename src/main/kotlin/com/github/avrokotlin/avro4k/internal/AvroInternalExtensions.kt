@@ -6,22 +6,34 @@ import com.github.avrokotlin.avro4k.internal.encoder.direct.AvroValueDirectEncod
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import org.apache.avro.Schema
+import org.apache.avro.io.DecoderFactory
+import org.apache.avro.io.EncoderFactory
 
-internal fun <T> Avro.encodeWithBinaryEncoder(
+internal fun <T> Avro.encodeWithApacheEncoder(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
     value: T,
     binaryEncoder: org.apache.avro.io.Encoder,
 ) {
-    AvroValueDirectEncoder(writerSchema, this, binaryEncoder)
+    val apacheEncoder = if (configuration.validateSerialization) {
+        EncoderFactory.get().validatingEncoder(writerSchema, binaryEncoder)
+    } else {
+        binaryEncoder
+    }
+    AvroValueDirectEncoder(writerSchema, this, apacheEncoder)
         .encodeSerializableValue(serializer, value)
 }
 
-internal fun <T> Avro.decodeWithBinaryDecoder(
+internal fun <T> Avro.decodeWithApacheDecoder(
     writerSchema: Schema,
     deserializer: DeserializationStrategy<T>,
     binaryDecoder: org.apache.avro.io.Decoder,
 ): T {
-    return AvroValueDirectDecoder(writerSchema, this, binaryDecoder)
+    val apacheDecoder = if (configuration.validateSerialization) {
+        DecoderFactory.get().validatingDecoder(writerSchema, binaryDecoder)
+    } else {
+        binaryDecoder
+    }
+    return AvroValueDirectDecoder(writerSchema, this, apacheDecoder)
         .decodeSerializableValue(deserializer)
 }

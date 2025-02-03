@@ -2,6 +2,7 @@ package com.github.avrokotlin.benchmark.simple
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.schema
+import com.github.avrokotlin.benchmark.internal.RandomUtils
 import com.github.avrokotlin.benchmark.internal.SimpleDatasClass
 import kotlinx.benchmark.*
 import java.util.concurrent.TimeUnit
@@ -18,7 +19,7 @@ internal abstract class SerializationSimpleBenchmark {
     @Setup
     fun initTestData() {
         setup()
-        clients = SimpleDatasClass.create(25)
+        clients = SimpleDatasClass.create(25, RandomUtils())
         prepareBinaryData()
     }
 

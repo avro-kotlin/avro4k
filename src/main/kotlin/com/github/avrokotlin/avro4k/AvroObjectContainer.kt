@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decodeWithBinaryDecoder
-import com.github.avrokotlin.avro4k.internal.encodeWithBinaryEncoder
+import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
+import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -158,7 +158,7 @@ private class KotlinxSerializationDatumWriter<T>(
         datum: T,
         encoder: org.apache.avro.io.Encoder,
     ) {
-        avro.encodeWithBinaryEncoder(writerSchema, serializer, datum, encoder)
+        avro.encodeWithApacheEncoder(writerSchema, serializer, datum, encoder)
     }
 }
 
@@ -176,6 +176,6 @@ private class KotlinxSerializationDatumReader<T>(
         reuse: T?,
         decoder: org.apache.avro.io.Decoder,
     ): T {
-        return avro.decodeWithBinaryDecoder(writerSchema, deserializer, decoder)
+        return avro.decodeWithApacheDecoder(writerSchema, deserializer, decoder)
     }
 }

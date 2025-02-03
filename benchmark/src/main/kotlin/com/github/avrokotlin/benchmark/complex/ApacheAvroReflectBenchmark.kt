@@ -12,7 +12,6 @@ import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.Encoder
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.reflect.ReflectData
-import java.io.ByteArrayInputStream
 import java.io.OutputStream
 
 internal class ApacheAvroReflectBenchmark : SerializationBenchmark() {
@@ -21,7 +20,6 @@ internal class ApacheAvroReflectBenchmark : SerializationBenchmark() {
     lateinit var reader: DatumReader<Clients>
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         ReflectData.get().addLogicalTypeConversion(Conversions.UUIDConversion())
@@ -41,14 +39,12 @@ internal class ApacheAvroReflectBenchmark : SerializationBenchmark() {
 
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
-        val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
+        val decoder = DecoderFactory.get().binaryDecoder(data, null)
         reader.read(null, decoder)
     }
 
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         writer.write(clients, encoder)
     }
 }

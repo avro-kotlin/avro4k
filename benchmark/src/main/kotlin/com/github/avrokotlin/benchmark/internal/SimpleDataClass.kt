@@ -3,7 +3,7 @@ package com.github.avrokotlin.benchmark.internal
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SimpleDataClass(
+internal data class SimpleDataClass(
     val bool: Boolean,
     val byte: Byte,
     val short: Short,
@@ -15,27 +15,27 @@ data class SimpleDataClass(
     val bytes: ByteArray,
 ) {
     companion object {
-        fun create() = SimpleDataClass(
-            bool = RandomUtils.nextBoolean(),
-            byte =  RandomUtils.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toByte(),
-            short = RandomUtils.nextInt(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort(),
-            int = RandomUtils.nextInt(),
-            long = RandomUtils.nextLong(),
-            float = RandomUtils.nextFloat(),
-            double = RandomUtils.nextDouble(),
-            string = RandomUtils.randomAlphanumeric(25),
-            bytes = RandomUtils.randomBytes(50),
+        fun create(random: RandomUtils) = SimpleDataClass(
+            bool = random.nextBoolean(),
+            byte =  random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toByte(),
+            short = random.nextInt(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort(),
+            int = random.nextInt(),
+            long = random.nextLong(),
+            float = random.nextFloat(),
+            double = random.nextDouble(),
+            string = random.randomAlphanumeric(25),
+            bytes = random.randomBytes(50),
         )
     }
 }
 
 @Serializable
-data class SimpleDatasClass(
+internal data class SimpleDatasClass(
     val data: List<SimpleDataClass>
 ) {
     companion object {
-        fun create(size: Int) = SimpleDatasClass(
-            data = List(size) { SimpleDataClass.create() }
+        fun create(size: Int, random: RandomUtils) = SimpleDatasClass(
+            data = List(size) { SimpleDataClass.create(random) }
         )
     }
 }

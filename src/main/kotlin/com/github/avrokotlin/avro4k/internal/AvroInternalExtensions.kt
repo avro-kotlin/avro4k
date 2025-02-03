@@ -15,11 +15,12 @@ internal fun <T> Avro.encodeWithApacheEncoder(
     value: T,
     binaryEncoder: org.apache.avro.io.Encoder,
 ) {
-    val apacheEncoder = if (configuration.validateSerialization) {
-        EncoderFactory.get().validatingEncoder(writerSchema, binaryEncoder)
-    } else {
-        binaryEncoder
-    }
+    val apacheEncoder =
+        if (configuration.validateSerialization) {
+            EncoderFactory.get().validatingEncoder(writerSchema, binaryEncoder)
+        } else {
+            binaryEncoder
+        }
     AvroValueDirectEncoder(writerSchema, this, apacheEncoder)
         .encodeSerializableValue(serializer, value)
 }
@@ -29,11 +30,12 @@ internal fun <T> Avro.decodeWithApacheDecoder(
     deserializer: DeserializationStrategy<T>,
     binaryDecoder: org.apache.avro.io.Decoder,
 ): T {
-    val apacheDecoder = if (configuration.validateSerialization) {
-        DecoderFactory.get().validatingDecoder(writerSchema, binaryDecoder)
-    } else {
-        binaryDecoder
-    }
+    val apacheDecoder =
+        if (configuration.validateSerialization) {
+            DecoderFactory.get().validatingDecoder(writerSchema, binaryDecoder)
+        } else {
+            binaryDecoder
+        }
     return AvroValueDirectDecoder(writerSchema, this, apacheDecoder)
         .decodeSerializableValue(deserializer)
 }

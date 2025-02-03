@@ -79,13 +79,15 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
-
+    // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("23", 23, Schema.create(Schema.Type.INT))
     testSerializationTypeCompatibility("55", 55L, Schema.create(Schema.Type.LONG))
     testSerializationTypeCompatibility("5.3", 5.3F, Schema.create(Schema.Type.FLOAT))
     testSerializationTypeCompatibility("5.3", 5.3, Schema.create(Schema.Type.DOUBLE))
+    val enumSchema = Schema.createEnum("enum", null, null, listOf("A", "B"))
+    testSerializationTypeCompatibility("B", GenericData.EnumSymbol(enumSchema, "B"), enumSchema)
 
     listOf(
         Schema.Type.STRING to String.serializer(),

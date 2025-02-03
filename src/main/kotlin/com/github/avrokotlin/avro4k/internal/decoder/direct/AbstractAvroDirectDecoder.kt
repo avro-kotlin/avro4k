@@ -189,6 +189,7 @@ internal abstract class AbstractAvroDirectDecoder(
             Schema.Type.LONG -> binaryDecoder.readLong().toString()
             Schema.Type.FLOAT -> binaryDecoder.readFloat().toString()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble().toString()
+            Schema.Type.ENUM -> currentWriterSchema.enumSymbols[binaryDecoder.readEnum()]
             else -> throw unsupportedWriterTypeError(
                 Schema.Type.STRING,
                 Schema.Type.BYTES,
@@ -197,7 +198,8 @@ internal abstract class AbstractAvroDirectDecoder(
                 Schema.Type.INT,
                 Schema.Type.LONG,
                 Schema.Type.FLOAT,
-                Schema.Type.DOUBLE
+                Schema.Type.DOUBLE,
+                Schema.Type.ENUM
             )
         }
     }

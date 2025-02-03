@@ -11,7 +11,6 @@ import java.io.OutputStream
 
 internal class Avro4kBenchmark : SerializationBenchmark() {
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
     }
@@ -22,14 +21,12 @@ internal class Avro4kBenchmark : SerializationBenchmark() {
 
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
         Avro.decodeFromByteArray<Clients>(schema, data)
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         Avro.encodeToStream(schema, clients, OutputStream.nullOutputStream())
     }
 }

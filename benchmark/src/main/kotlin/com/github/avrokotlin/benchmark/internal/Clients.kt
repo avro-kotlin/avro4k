@@ -24,7 +24,7 @@ internal data class Clients(
     val clients: List<Client>
 )
 
-class CharJacksonSerializer : StdSerializer<Char>(Char::class.java) {
+internal class CharJacksonSerializer : StdSerializer<Char>(Char::class.java) {
     override fun serialize(value: Char?, gen: JsonGenerator, provider: SerializerProvider) {
         value?.code?.let { gen.writeNumber(it) } ?: gen.writeNull()
     }
@@ -34,7 +34,7 @@ class CharJacksonSerializer : StdSerializer<Char>(Char::class.java) {
     }
 }
 
-class CharJacksonDeserializer : StdDeserializer<Char>(Char::class.java) {
+internal class CharJacksonDeserializer : StdDeserializer<Char>(Char::class.java) {
     override fun deserialize(p0: JsonParser, p1: com.fasterxml.jackson.databind.DeserializationContext): Char {
         return p0.intValue.toChar()
     }
@@ -78,7 +78,7 @@ internal enum class EyeColor {
 }
 
 @Serializable
-sealed interface Partner
+internal sealed interface Partner
 
 @Serializable
 internal class GoodPartner(

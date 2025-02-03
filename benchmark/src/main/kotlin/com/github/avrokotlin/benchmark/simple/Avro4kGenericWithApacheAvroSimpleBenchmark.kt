@@ -14,7 +14,6 @@ import org.apache.avro.io.DatumWriter
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.Encoder
 import org.apache.avro.io.EncoderFactory
-import java.io.ByteArrayInputStream
 import java.io.OutputStream
 
 internal class Avro4kGenericWithApacheAvroSimpleBenchmark : SerializationSimpleBenchmark() {
@@ -23,7 +22,6 @@ internal class Avro4kGenericWithApacheAvroSimpleBenchmark : SerializationSimpleB
     lateinit var reader: DatumReader<Any?>
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         GenericData.get().addLogicalTypeConversion(Conversions.DecimalConversion())
@@ -43,8 +41,7 @@ internal class Avro4kGenericWithApacheAvroSimpleBenchmark : SerializationSimpleB
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
-        val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
+        val decoder = DecoderFactory.get().binaryDecoder(data, null)
         val genericData = reader.read(null, decoder)
         Avro.decodeFromGenericData<SimpleDatasClass>(schema, genericData)
     }
@@ -52,7 +49,6 @@ internal class Avro4kGenericWithApacheAvroSimpleBenchmark : SerializationSimpleB
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         val genericData = Avro.encodeToGenericData(schema, clients)
         writer.write(genericData, encoder)
     }

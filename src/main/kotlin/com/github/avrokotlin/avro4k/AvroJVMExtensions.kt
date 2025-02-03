@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decodeWithBinaryDecoder
-import com.github.avrokotlin.avro4k.internal.encodeWithBinaryEncoder
+import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
+import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -19,17 +19,8 @@ public fun <T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
-    val avroEncoder =
-        EncoderFactory.get().directBinaryEncoder(outputStream, null).let {
-            if (configuration.validateSerialization) {
-                EncoderFactory.get().validatingEncoder(writerSchema, it)
-            } else {
-                it
-            }
-        }
-
-    encodeWithBinaryEncoder(writerSchema, serializer, value, avroEncoder)
-
+    val avroEncoder = EncoderFactory.get().binaryEncoder(outputStream, null)
+    encodeWithApacheEncoder(writerSchema, serializer, value, avroEncoder)
     avroEncoder.flush()
 }
 
@@ -58,16 +49,7 @@ public fun <T> Avro.decodeFromStream(
     deserializer: DeserializationStrategy<T>,
     inputStream: InputStream,
 ): T {
-    val avroDecoder =
-        DecoderFactory.get().directBinaryDecoder(inputStream, null).let {
-            if (configuration.validateSerialization) {
-                DecoderFactory.get().validatingDecoder(writerSchema, it)
-            } else {
-                it
-            }
-        }
-
-    return decodeWithBinaryDecoder(writerSchema, deserializer, avroDecoder)
+    return decodeWithApacheDecoder(writerSchema, deserializer, DecoderFactory.get().binaryDecoder(inputStream, null))
 }
 
 @ExperimentalSerializationApi

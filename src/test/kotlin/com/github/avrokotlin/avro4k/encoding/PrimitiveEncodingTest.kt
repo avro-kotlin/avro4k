@@ -1,11 +1,17 @@
 package com.github.avrokotlin.avro4k.encoding
 
+import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.basicScalarEncodeDecodeTests
 import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.testSerializationTypeCompatibility
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -80,6 +86,22 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility("55", 55L, Schema.create(Schema.Type.LONG))
     testSerializationTypeCompatibility("5.3", 5.3F, Schema.create(Schema.Type.FLOAT))
     testSerializationTypeCompatibility("5.3", 5.3, Schema.create(Schema.Type.DOUBLE))
+
+    listOf(
+        Schema.Type.STRING to String.serializer(),
+        Schema.Type.BYTES to ByteArraySerializer(),
+        Schema.Type.INT to Int.serializer(),
+        Schema.Type.LONG to Long.serializer(),
+        Schema.Type.FLOAT to Float.serializer(),
+        Schema.Type.DOUBLE to Double.serializer(),
+        Schema.Type.BOOLEAN to Boolean.serializer()
+    ).forEach { (type, serializer) ->
+        "null can be encoded to non-nullable avro type $type" {
+            shouldThrow<SerializationException> {
+                Avro.encodeToByteArray(Schema.create(type), serializer.nullable, null)
+            }
+        }
+    }
 }) {
     @JvmInline
     @Serializable

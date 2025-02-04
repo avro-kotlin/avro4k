@@ -10,7 +10,6 @@ import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.Encoder
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.reflect.ReflectData
-import java.io.ByteArrayInputStream
 import java.io.OutputStream
 
 internal class ApacheAvroReflectListsBenchmark : SerializationListsBenchmark() {
@@ -33,7 +32,7 @@ internal class ApacheAvroReflectListsBenchmark : SerializationListsBenchmark() {
 
     @Benchmark
     fun read() {
-        val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
+        val decoder = DecoderFactory.get().binaryDecoder(data, null)
         reader.read(null, decoder)
     }
 

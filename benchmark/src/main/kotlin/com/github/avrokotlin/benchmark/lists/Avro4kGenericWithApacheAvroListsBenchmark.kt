@@ -13,7 +13,6 @@ import org.apache.avro.io.DatumWriter
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.Encoder
 import org.apache.avro.io.EncoderFactory
-import java.io.ByteArrayInputStream
 import java.io.OutputStream
 
 internal class Avro4kGenericWithApacheAvroListsBenchmark : SerializationListsBenchmark() {
@@ -37,7 +36,7 @@ internal class Avro4kGenericWithApacheAvroListsBenchmark : SerializationListsBen
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun read() {
-        val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
+        val decoder = DecoderFactory.get().binaryDecoder(data, null)
         val genericData = reader.read(null, decoder)
         Avro.decodeFromGenericData<Clients>(schema, genericData)
     }

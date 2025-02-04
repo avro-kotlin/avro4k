@@ -243,8 +243,11 @@ Add the avro4k dependency:
 
 | Avro4k     | Kotlin   | Kotlin API/language | Kotlin serialization |
 |------------|----------|---------------------|----------------------|
-| `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7`             |
+| `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7.0`           |
 | `< 2.0.0`  | `>= 1.6` | `>= 1.6`            | `>= 1.3`             |
+
+> [!WARNING]
+> Starting from avro4k v2, you need to ensure that `kotlinx-serialization-core` dependency has the version at least to `1.7.0`, or you will get `NoSuchMethodError: SerialDescriptorsKt.getNonNullOriginal`
 
 # How to generate schemas
 

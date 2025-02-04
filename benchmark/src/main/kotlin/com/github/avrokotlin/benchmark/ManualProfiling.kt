@@ -2,7 +2,6 @@ package com.github.avrokotlin.benchmark
 
 import com.github.avrokotlin.benchmark.complex.Avro4kBenchmark
 
-
 internal object ManualProfilingWrite {
     @JvmStatic
     fun main(vararg args: String) {
@@ -16,7 +15,6 @@ internal object ManualProfilingWrite {
         }
     }
 }
-
 internal object ManualProfilingRead {
     @JvmStatic
     fun main(vararg args: String) {

@@ -43,6 +43,12 @@ benchmark {
         register("avro4k-write") {
             include("Avro4k.+write")
         }
+        register("lists-read") {
+            include("^com.github.avrokotlin.benchmark.lists.+.read$")
+        }
+        register("lists-write") {
+            include("^com.github.avrokotlin.benchmark.lists.+.write$")
+        }
     }
     targets {
         register("main") {

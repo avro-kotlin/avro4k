@@ -7,11 +7,11 @@ internal data class SimpleDataClass(
     val bool: Boolean,
     val byte: Byte,
     val short: Short,
-    val int: Int,
+    val int: Int?,
     val long: Long,
     val float: Float,
     val double: Double,
-    val string: String,
+    val string: String?,
     val bytes: ByteArray,
 ) {
     companion object {

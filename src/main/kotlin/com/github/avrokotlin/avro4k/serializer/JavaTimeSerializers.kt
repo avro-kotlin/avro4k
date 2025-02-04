@@ -4,10 +4,13 @@ import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.decodeResolvingAny
-import com.github.avrokotlin.avro4k.encodeResolving
-import com.github.avrokotlin.avro4k.internal.BadEncodedValueError
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
+import com.github.avrokotlin.avro4k.logicalTypeMismatchError
+import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
+import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
+import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -51,36 +54,20 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.q
         encoder: AvroEncoder,
         value: LocalDate,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG)
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.STRING)
             }
-        }) { schema ->
-            when (schema.type) {
+            when (currentWriterSchema.type) {
                 Schema.Type.INT ->
-                    when (schema.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_DATE, null -> {
-                            { encoder.encodeInt(value.toEpochDay().toInt()) }
-                        }
-
-                        else -> null
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_DATE -> encodeInt(value.toEpochDay().toInt())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_DATE, Schema.Type.INT)
                     }
 
-                Schema.Type.LONG ->
-                    when (schema.logicalType) {
-                        // Date is not compatible with LONG, so we require a null logical type to encode the timestamp
-                        null -> {
-                            { encoder.encodeLong(value.toEpochDay()) }
-                        }
-
-                        else -> null
-                    }
-
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                else -> null
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
             }
         }
     }
@@ -148,39 +135,25 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.q
         value: LocalTime,
     ) {
         with(encoder) {
-            encodeResolving({
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
-            }) { schema ->
-                when (schema.type) {
-                    Schema.Type.INT ->
-                        when (schema.logicalType?.name) {
-                            LOGICAL_TYPE_NAME_TIME_MILLIS, null -> {
-                                { encoder.encodeInt(value.toMillisOfDay()) }
-                            }
-
-                            else -> null
-                        }
-
-                    Schema.Type.LONG ->
-                        when (schema.logicalType?.name) {
-                            // TimeMillis is not compatible with LONG, so we require a null logical type to encode the timestamp
-                            null -> {
-                                { encoder.encodeLong(value.toMillisOfDay().toLong()) }
-                            }
-
-                            LOGICAL_TYPE_NAME_TIME_MICROS -> {
-                                { encoder.encodeLong(value.toMicroOfDay()) }
-                            }
-
-                            else -> null
-                        }
-
-                    Schema.Type.STRING -> {
-                        { encoder.encodeString(value.toString()) }
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
+            }
+            when (currentWriterSchema.type) {
+                Schema.Type.INT ->
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_TIME_MILLIS -> encodeInt(value.toMillisOfDay())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIME_MILLIS, Schema.Type.INT)
                     }
 
-                    else -> null
-                }
+                Schema.Type.LONG ->
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_TIME_MICROS -> encodeLong(value.toMicroOfDay())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIME_MICROS, Schema.Type.LONG)
+                    }
+
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
             }
         }
     }
@@ -257,30 +230,21 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
         encoder: AvroEncoder,
         value: LocalDateTime,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.LONG, Schema.Type.STRING)
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
             }
-        }) {
-            when (it.type) {
+            when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
-                    when (it.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, null -> {
-                            { encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli()) }
-                        }
-
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> {
-                            { encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMicros()) }
-                        }
-
-                        else -> null
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMicros())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }
 
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                else -> null
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }
     }
@@ -335,30 +299,21 @@ public object InstantSerializer : AvroSerializer<Instant>(Instant::class.qualifi
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.LONG, Schema.Type.STRING)
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
             }
-        }) {
-            when (it.type) {
+            when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
-                    when (it.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, null -> {
-                            { encoder.encodeLong(value.toEpochMilli()) }
-                        }
-
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> {
-                            { encoder.encodeLong(value.toEpochMicros()) }
-                        }
-
-                        else -> null
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toEpochMicros())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toEpochMilli())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }
 
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                else -> null
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }
     }
@@ -412,30 +367,21 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>(Instant::class.
         encoder: AvroEncoder,
         value: Instant,
     ) {
-        encoder.encodeResolving({
-            with(encoder) {
-                BadEncodedValueError(value, encoder.currentWriterSchema, Schema.Type.LONG, Schema.Type.STRING)
+        with(encoder) {
+            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+                trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
+                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
             }
-        }) {
-            when (it.type) {
+            when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
-                    when (it.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, null -> {
-                            { encoder.encodeLong(value.toEpochMicros()) }
-                        }
-
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> {
-                            { encoder.encodeLong(value.toEpochMilli()) }
-                        }
-
-                        else -> null
+                    when (currentWriterSchema.logicalType?.name) {
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toEpochMicros())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toEpochMilli())
+                        else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, Schema.Type.LONG)
                     }
 
-                Schema.Type.STRING -> {
-                    { encoder.encodeString(value.toString()) }
-                }
-
-                else -> null
+                Schema.Type.STRING -> encodeString(value.toString())
+                else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }
     }

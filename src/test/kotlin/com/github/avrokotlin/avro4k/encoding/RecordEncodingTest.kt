@@ -183,6 +183,48 @@ internal class RecordEncodingTest : StringSpec({
         AvroAssertions.assertThat(input)
             .isDecodedAs(MissingFields(true))
     }
+    "support decoding from a writer schema with missing descriptor fields (just skipping, no reordering)" {
+        @Serializable
+        @SerialName("TheClass")
+        data class TheClass(
+            val a: String?,
+            val b: Boolean?,
+            val c: Int,
+        )
+
+        @Serializable
+        @SerialName("TheClass")
+        data class TheLightClass(
+            val b: Boolean?,
+        )
+
+        val writerSchema =
+            SchemaBuilder.record("TheClass").fields()
+                .name("a").type(Schema.create(Schema.Type.STRING).nullable).withDefault(null)
+                .name("b").type().booleanType().noDefault()
+                .name("c").type().intType().intDefault(42)
+                .endRecord()
+
+        AvroAssertions.assertThat(TheClass("hello", true, 42))
+            .isDecodedAs(TheLightClass(true), writerSchema = writerSchema)
+    }
+    "support encoding & decoding with additional descriptor optional fields (no reordering)" {
+        @Serializable
+        @SerialName("TheClass")
+        data class TheClass(
+            val a: String? = null,
+            val b: Boolean?,
+            val c: Int = 42,
+        )
+
+        val writerSchema =
+            SchemaBuilder.record("TheClass").fields()
+                .name("b").type().booleanType().noDefault()
+                .endRecord()
+
+        AvroAssertions.assertThat(TheClass("hello", true, 17))
+            .isEncodedAs(record(true), expectedDecodedValue = TheClass(null, true, 42), writerSchema = writerSchema)
+    }
     "should fail when trying to write a data class but missing the last schema field" {
         @Serializable
         @SerialName("Base")

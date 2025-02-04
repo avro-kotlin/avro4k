@@ -52,7 +52,14 @@ internal fun Schema.isNamedSchema(): Boolean {
 }
 
 internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
-    return isFullNameMatch(descriptor.nonNullSerialName) || descriptor.aliases.any { isFullNameMatch(it) }
+    return isFullNameOrAliasMatch(descriptor.nonNullSerialName, descriptor::aliases)
+}
+
+internal fun Schema.isFullNameOrAliasMatch(
+    fullName: String,
+    aliases: () -> Set<String>,
+): Boolean {
+    return isFullNameMatch(fullName) || aliases().any { isFullNameMatch(it) }
 }
 
 internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
@@ -177,7 +184,3 @@ internal val AvroProp.jsonNode: JsonNode
         }
         return TextNode.valueOf(value)
     }
-
-internal fun SerialDescriptor.getElementIndexNullable(name: String): Int? {
-    return getElementIndex(name).takeIf { it >= 0 }
-}

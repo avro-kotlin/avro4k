@@ -18,8 +18,8 @@ internal data class StatsEntry(val elementId: ElementId, val values: List<StatVa
     }
 }
 
-typealias ElementId = Long
-typealias StatValue = Long
+internal typealias ElementId = Long
+internal typealias StatValue = Long
 
 @Serializable
 internal data class ListWrapperDatasClass(

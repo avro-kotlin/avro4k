@@ -20,7 +20,6 @@ internal class JacksonAvroListsBenchmark : SerializationListsBenchmark() {
     lateinit var reader: ObjectReader
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         writer = ListWrapperDatasClass::class.java.createWriter()
@@ -33,13 +32,11 @@ internal class JacksonAvroListsBenchmark : SerializationListsBenchmark() {
 
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
         reader.readValue<ListWrapperDatasClass>(data)
     }
 
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         writer.writeValue(OutputStream.nullOutputStream(), lists)
     }
 

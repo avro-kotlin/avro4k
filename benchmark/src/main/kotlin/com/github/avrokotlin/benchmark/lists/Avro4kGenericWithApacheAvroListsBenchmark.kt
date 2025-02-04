@@ -22,7 +22,6 @@ internal class Avro4kGenericWithApacheAvroListsBenchmark : SerializationListsBen
     lateinit var reader: DatumReader<Any?>
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         writer = GenericData.get().createDatumWriter(schema) as DatumWriter<Any?>
@@ -38,7 +37,6 @@ internal class Avro4kGenericWithApacheAvroListsBenchmark : SerializationListsBen
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
         val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
         val genericData = reader.read(null, decoder)
         Avro.decodeFromGenericData<Clients>(schema, genericData)
@@ -47,7 +45,6 @@ internal class Avro4kGenericWithApacheAvroListsBenchmark : SerializationListsBen
     @OptIn(ExperimentalSerializationApi::class)
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         val genericData = Avro.encodeToGenericData(schema, lists)
         writer.write(genericData, encoder)
     }

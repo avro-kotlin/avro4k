@@ -19,7 +19,6 @@ internal class ApacheAvroReflectListsBenchmark : SerializationListsBenchmark() {
     lateinit var reader: DatumReader<ListWrapperDatasClass>
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         writer = ReflectData.get().createDatumWriter(schema) as DatumWriter<ListWrapperDatasClass>
@@ -34,14 +33,12 @@ internal class ApacheAvroReflectListsBenchmark : SerializationListsBenchmark() {
 
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
         val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(data), null)
         reader.read(null, decoder)
     }
 
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         writer.write(lists, encoder)
     }
 }

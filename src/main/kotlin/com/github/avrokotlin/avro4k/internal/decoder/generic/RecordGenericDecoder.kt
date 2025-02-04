@@ -37,10 +37,10 @@ internal class RecordGenericDecoder(
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         var field: DecodingStep
         do {
-            if (nextDecodingStep == classDescriptor.decodingSteps.size) {
+            if (nextDecodingStep == classDescriptor.decoding.size) {
                 return CompositeDecoder.DECODE_DONE
             }
-            field = classDescriptor.decodingSteps[nextDecodingStep++]
+            field = classDescriptor.decoding[nextDecodingStep++]
         } while (field !is DecodingStep.ValidatedDecodingStep)
         currentElement = field
         return field.elementIndex

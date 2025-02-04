@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.internal
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
+import com.github.avrokotlin.avro4k.internal.encoder.ReorderingCompositeEncoder
 import com.github.avrokotlin.avro4k.internal.schema.CHAR_LOGICAL_TYPE_NAME
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -31,7 +32,7 @@ internal class RecordResolver(
      *
      * Note: We use the descriptor in the key as we could have multiple descriptors for the same record schema, and multiple record schemas for the same descriptor.
      */
-    private val fieldCache: MutableMap<SerialDescriptor, MutableMap<Schema, ClassDescriptorForWriterSchema>> = WeakIdentityHashMap()
+    private val fieldCache: MutableMap<SerialDescriptor, MutableMap<Schema, SerializationWorkflow>> = WeakIdentityHashMap()
 
     /**
      * Maps the class fields to the schema fields.
@@ -48,9 +49,9 @@ internal class RecordResolver(
     fun resolveFields(
         writerSchema: Schema,
         classDescriptor: SerialDescriptor,
-    ): ClassDescriptorForWriterSchema {
-        if (classDescriptor.elementsCount == 0) {
-            return ClassDescriptorForWriterSchema.EMPTY
+    ): SerializationWorkflow {
+        if (classDescriptor.elementsCount == 0 && writerSchema.fields.isEmpty()) {
+            return SerializationWorkflow.EMPTY
         }
         return fieldCache.getOrPut(classDescriptor) { WeakHashMap() }.getOrPut(writerSchema) {
             loadCache(classDescriptor, writerSchema)
@@ -69,43 +70,13 @@ internal class RecordResolver(
     private fun loadCache(
         classDescriptor: SerialDescriptor,
         writerSchema: Schema,
-    ): ClassDescriptorForWriterSchema {
+    ): SerializationWorkflow {
         val readerSchema = avro.schema(classDescriptor)
 
-        val encodingSteps = computeEncodingSteps(classDescriptor, writerSchema)
-        return ClassDescriptorForWriterSchema(
-            sequentialEncoding = encodingSteps.areWriterFieldsSequentiallyOrdered(),
+        return SerializationWorkflow(
             computeDecodingSteps(classDescriptor, writerSchema, readerSchema),
-            encodingSteps
+            computeEncodingWorkflow(classDescriptor, writerSchema)
         )
-    }
-
-    private fun Array<EncodingStep>.areWriterFieldsSequentiallyOrdered(): Boolean {
-        var lastWriterFieldIndex = -1
-        forEach { step ->
-            when (step) {
-                is EncodingStep.SerializeWriterField -> {
-                    if (step.writerFieldIndex > lastWriterFieldIndex) {
-                        lastWriterFieldIndex = step.writerFieldIndex
-                    } else {
-                        return false
-                    }
-                }
-
-                is EncodingStep.MissingWriterFieldFailure -> {
-                    if (step.writerFieldIndex > lastWriterFieldIndex) {
-                        lastWriterFieldIndex = step.writerFieldIndex
-                    } else {
-                        return false
-                    }
-                }
-
-                is EncodingStep.IgnoreElement -> {
-                    // nothing to check
-                }
-            }
-        }
-        return true
     }
 
     private fun computeDecodingSteps(
@@ -175,18 +146,19 @@ internal class RecordResolver(
         return decodingSteps.toTypedArray()
     }
 
-    private fun Schema.isTypeOf(expectedType: Schema.Type): Boolean {
-        return asSchemaList().any { it.type === expectedType }
-    }
+    private fun Schema.isTypeOf(expectedType: Schema.Type): Boolean = asSchemaList().any { it.type === expectedType }
 
-    private fun computeEncodingSteps(
+    private fun computeEncodingWorkflow(
         classDescriptor: SerialDescriptor,
         writerSchema: Schema,
-    ): Array<EncodingStep> {
+    ): EncodingWorkflow {
         // Encoding steps are ordered regarding the class descriptor and not the writer schema.
         // Because kotlinx-serialization doesn't provide a way to encode non-sequentially elements.
-        val encodingSteps = mutableListOf<EncodingStep>()
+        val missingWriterFieldsIndexes = mutableListOf<Int>()
         val visitedWriterFields = BooleanArray(writerSchema.fields.size) { false }
+        val descriptorToWriterFieldIndex = IntArray(classDescriptor.elementsCount) { ReorderingCompositeEncoder.SKIP_ELEMENT_INDEX }
+
+        var expectedNextWriterIndex = 0
 
         classDescriptor.elementNames.forEachIndexed { elementIndex, _ ->
             val avroFieldName = avro.configuration.fieldNamingStrategy.resolve(classDescriptor, elementIndex)
@@ -194,24 +166,32 @@ internal class RecordResolver(
 
             if (writerField != null) {
                 visitedWriterFields[writerField.pos()] = true
-                encodingSteps +=
-                    EncodingStep.SerializeWriterField(
-                        elementIndex = elementIndex,
-                        writerFieldIndex = writerField.pos(),
-                        schema = writerField.schema()
-                    )
-            } else {
-                encodingSteps += EncodingStep.IgnoreElement(elementIndex)
+                descriptorToWriterFieldIndex[elementIndex] = writerField.pos()
+                if (expectedNextWriterIndex != -1) {
+                    if (writerField.pos() != expectedNextWriterIndex) {
+                        expectedNextWriterIndex = -1
+                    } else {
+                        expectedNextWriterIndex++
+                    }
+                }
             }
         }
 
         visitedWriterFields.forEachIndexed { writerFieldIndex, visited ->
             if (!visited) {
-                encodingSteps += EncodingStep.MissingWriterFieldFailure(writerFieldIndex)
+                missingWriterFieldsIndexes += writerFieldIndex
             }
         }
 
-        return encodingSteps.toTypedArray()
+        return if (missingWriterFieldsIndexes.isNotEmpty()) {
+            EncodingWorkflow.MissingWriterFields(missingWriterFieldsIndexes)
+        } else if (expectedNextWriterIndex == -1) {
+            EncodingWorkflow.NonContiguous(descriptorToWriterFieldIndex)
+        } else if (classDescriptor.elementsCount != writerSchema.fields.size) {
+            EncodingWorkflow.ContiguousWithSkips(descriptorToWriterFieldIndex.map { it == ReorderingCompositeEncoder.SKIP_ELEMENT_INDEX }.toBooleanArray())
+        } else {
+            EncodingWorkflow.ExactMatch
+        }
     }
 
     private fun Schema.tryGetField(
@@ -228,31 +208,42 @@ internal class RecordResolver(
             }
 }
 
-internal class ClassDescriptorForWriterSchema(
-    /**
-     * If true, indicates that the encoding steps are ordered the same as the writer schema fields.
-     * If false, indicates that the encoding steps are **NOT** ordered the same as the writer schema fields.
-     */
-    val sequentialEncoding: Boolean,
+internal class SerializationWorkflow(
     /**
      * Decoding steps are ordered regarding the writer schema and not the class descriptor.
      */
-    val decodingSteps: Array<DecodingStep>,
+    val decoding: Array<DecodingStep>,
     /**
      * Encoding steps are ordered regarding the class descriptor and not the writer schema.
      */
-    val encodingSteps: Array<EncodingStep>,
+    val encoding: EncodingWorkflow,
 ) {
-    val hasMissingWriterField by lazy { encodingSteps.any { it is EncodingStep.MissingWriterFieldFailure } }
-
     companion object {
         val EMPTY =
-            ClassDescriptorForWriterSchema(
-                sequentialEncoding = true,
-                decodingSteps = emptyArray(),
-                encodingSteps = emptyArray()
+            SerializationWorkflow(
+                decoding = emptyArray(),
+                encoding = EncodingWorkflow.ExactMatch
             )
     }
+}
+
+internal sealed interface EncodingWorkflow {
+    /**
+     * The descriptor elements exactly matches the writer schema fields as a 1-to-1 mapping.
+     */
+    data object ExactMatch : EncodingWorkflow
+
+    class ContiguousWithSkips(
+        val fieldsToSkip: BooleanArray,
+    ) : EncodingWorkflow
+
+    class NonContiguous(
+        val descriptorToWriterFieldIndex: IntArray,
+    ) : EncodingWorkflow
+
+    class MissingWriterFields(
+        val missingWriterFields: List<Int>,
+    ) : EncodingWorkflow
 }
 
 internal sealed interface DecodingStep {
@@ -310,31 +301,6 @@ internal sealed interface DecodingStep {
     ) : DecodingStep
 }
 
-internal sealed interface EncodingStep {
-    /**
-     * The element is present in the writer schema and the class descriptor.
-     */
-    data class SerializeWriterField(
-        val elementIndex: Int,
-        val writerFieldIndex: Int,
-        val schema: Schema,
-    ) : EncodingStep
-
-    /**
-     * The element is present in the class descriptor but not in the writer schema, so the element is ignored as nothing has to be serialized.
-     */
-    data class IgnoreElement(
-        val elementIndex: Int,
-    ) : EncodingStep
-
-    /**
-     * The writer field doesn't have a corresponding element in the class descriptor, so we aren't able to serialize a value.
-     */
-    data class MissingWriterFieldFailure(
-        val writerFieldIndex: Int,
-    ) : EncodingStep
-}
-
 private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? {
     if (value.isStartingAsJson()) {
         return Json.parseToJsonElement(value).convertDefaultToObject(schema)
@@ -342,8 +308,8 @@ private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? {
     return JsonPrimitive(value).convertDefaultToObject(schema)
 }
 
-private fun JsonElement.convertDefaultToObject(schema: Schema): Any? {
-    return when (this) {
+private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
+    when (this) {
         is JsonArray ->
             when (schema.type) {
                 Schema.Type.ARRAY -> this.map { it.convertDefaultToObject(schema.elementType) }
@@ -405,7 +371,6 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? {
                 else -> throw SerializationException("Not a valid primitive value for schema $schema: $this")
             }
     }
-}
 
 private fun Schema.resolveUnion(
     value: JsonElement?,

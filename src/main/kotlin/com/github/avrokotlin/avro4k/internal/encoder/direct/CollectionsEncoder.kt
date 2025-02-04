@@ -6,8 +6,6 @@ import org.apache.avro.Schema
 
 internal class MapDirectEncoder(private val schema: Schema, mapSize: Int, avro: Avro, binaryEncoder: org.apache.avro.io.Encoder) :
     AbstractAvroDirectEncoder(avro, binaryEncoder) {
-    private var isKey: Boolean = true
-
     init {
         binaryEncoder.writeMapStart()
         binaryEncoder.setItemCount(mapSize.toLong())
@@ -28,9 +26,8 @@ internal class MapDirectEncoder(private val schema: Schema, mapSize: Int, avro: 
         index: Int,
     ): Boolean {
         super.encodeElement(descriptor, index)
-        isKey = index % 2 == 0
         currentWriterSchema =
-            if (isKey) {
+            if (index % 2 == 0) {
                 binaryEncoder.startItem()
                 STRING_SCHEMA
             } else {

@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
+import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
@@ -20,15 +21,15 @@ import kotlinx.serialization.modules.plus
 import kotlinx.serialization.serializer
 import okio.Buffer
 import org.apache.avro.Schema
+import org.apache.avro.io.DecoderFactory
 import org.apache.avro.util.WeakIdentityHashMap
-import java.io.ByteArrayInputStream
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
  */
 public sealed class Avro(
     public val configuration: AvroConfiguration,
-    public override val serializersModule: SerializersModule,
+    public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
     // We use the identity hash map because we could have multiple descriptors with the same name, especially
     // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors
@@ -68,9 +69,9 @@ public sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
     ): T {
-        val inputStream = ByteArrayInputStream(bytes)
-        val result = decodeFromStream(writerSchema, deserializer, inputStream)
-        if (inputStream.available() > 0) {
+        val binaryDecoder = DecoderFactory.get().binaryDecoder(bytes, null)
+        val result = decodeWithApacheDecoder(writerSchema, deserializer, binaryDecoder)
+        if (!binaryDecoder.isEnd) {
             throw SerializationException("Not all bytes were consumed during deserialization")
         }
         return result

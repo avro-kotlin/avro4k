@@ -11,15 +11,12 @@ internal data class ListWrapperDataClass(val index: Int, val entries: List<Stats
 }
 
 @Serializable
-internal data class StatsEntry(val elementId: ElementId, val values: List<StatValue>) {
+internal data class StatsEntry(val elementId: Long, val values: List<Long>) {
     companion object {
         fun create(entriesSize: Int, random: RandomUtils = RandomUtils()) =
             StatsEntry(random.nextLong(), List(entriesSize) { random.nextLong() })
     }
 }
-
-internal typealias ElementId = Long
-internal typealias StatValue = Long
 
 @Serializable
 internal data class ListWrapperDatasClass(

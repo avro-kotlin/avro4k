@@ -17,7 +17,7 @@ kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.re
 kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotestVersion" }
 
 [plugins]
-dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
+dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 kotest = { id = "io.kotest", version = "0.4.11" }
 github-versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }

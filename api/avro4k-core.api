@@ -463,12 +463,13 @@ public final class com/github/avrokotlin/avro4k/serializer/JavaPeriodSerializer 
 	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/Period;)V
 }
 
-public final class com/github/avrokotlin/avro4k/serializer/JavaStdLibSerializersKt {
-	public static final fun getJavaStdLibSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
-}
-
-public final class com/github/avrokotlin/avro4k/serializer/JavaTimeSerializersKt {
-	public static final fun getJavaTimeSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+public final class com/github/avrokotlin/avro4k/serializer/JsonElementAvroSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/JsonElementAvroSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Lkotlinx/serialization/json/JsonElement;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/json/JsonElement;)V
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/LocalDateSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {

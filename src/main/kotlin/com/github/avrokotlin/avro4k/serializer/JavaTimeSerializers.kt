@@ -27,7 +27,7 @@ import java.time.Period
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-public val JavaTimeSerializersModule: SerializersModule =
+internal val JavaTimeSerializersModule: SerializersModule =
     SerializersModule {
         contextual(LocalDateSerializer)
         contextual(LocalTimeSerializer)

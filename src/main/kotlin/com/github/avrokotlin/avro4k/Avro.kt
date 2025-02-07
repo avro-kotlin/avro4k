@@ -7,6 +7,7 @@ import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import com.github.avrokotlin.avro4k.serializer.KotlinxJsonSerializersModule
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -43,7 +44,8 @@ public sealed class Avro(
     public companion object Default : Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
-            JavaTimeSerializersModule
+            JavaTimeSerializersModule +
+            KotlinxJsonSerializersModule
     )
 
     public fun schema(descriptor: SerialDescriptor): Schema {

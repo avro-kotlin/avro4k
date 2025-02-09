@@ -358,6 +358,7 @@ public abstract class com/github/avrokotlin/avro4k/serializer/AvroSerializer : c
 	public abstract fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
 	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun getSupportsNull ()Z
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public abstract fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
 	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V

@@ -14,6 +14,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.descriptors.nullable
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.apache.avro.Schema
@@ -32,6 +33,17 @@ public abstract class AvroSerializer<T>(
     @OptIn(InternalSerializationApi::class)
     final override val descriptor: SerialDescriptor =
         SerialDescriptorWithAvroSchemaDelegate(buildSerialDescriptor(descriptorName, SerialKind.CONTEXTUAL), this)
+            .let { if (supportsNull) it.nullable else it }
+
+    /**
+     * Indicates if this serializer is able to serialize and deserialize a null value.
+     * It allows materializing an encoded null value by a specific non-null instance (like an object placeholder).
+     *
+     * `false` by default, which means a `null` avro encoded value will always be represented by a nullable field.
+     */
+    @ExperimentalSerializationApi
+    public open val supportsNull: Boolean
+        get() = false
 
     final override fun serialize(
         encoder: Encoder,

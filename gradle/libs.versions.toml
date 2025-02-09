@@ -5,6 +5,7 @@ kotlinxSerialization = "1.7.0"
 kotestVersion = "5.9.1"
 okio = "3.9.0"
 apache-avro = "1.11.4"
+mockk = "1.13.6"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
@@ -15,6 +16,7 @@ kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.re
 kotest-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotestVersion" }
 kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotestVersion" }
 kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotestVersion" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }

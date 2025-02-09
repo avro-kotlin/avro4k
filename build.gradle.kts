@@ -6,16 +6,12 @@ plugins {
     id("maven-publish")
     signing
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.kover)
-    alias(libs.plugins.kotest)
     alias(libs.plugins.github.versions)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.spotless)
     alias(libs.plugins.binary.compatibility.validator)
-}
-
-tasks {
-    javadoc
 }
 
 group = "com.github.avro-kotlin.avro4k"
@@ -47,33 +43,30 @@ kotlin {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-    withJavadocJar()
     withSourcesJar()
 }
-tasks.named<Test>("test") {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    filter {
-        isFailOnNoMatchingTests = false
-    }
-    testLogging {
-        showExceptions = true
-        showStandardStreams = true
-        events =
-            setOf(
-                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
-            )
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-    }
 }
-tasks.named<Jar>("javadocJar") {
-    from(tasks.named("dokkaJavadoc"))
+
+val dokkaJavadocJar by tasks.register<Jar>("dokkaJavadocJar") {
+    dependsOn(tasks.dokkaGeneratePublicationJavadoc)
+    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
+}
+
+val dokkaHtmlJar by tasks.register<Jar>("dokkaHtmlJar") {
+    dependsOn(tasks.dokkaGeneratePublicationHtml)
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("html-docs")
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifact(dokkaJavadocJar)
+            artifact(dokkaHtmlJar)
             pom {
                 val projectUrl = "https://github.com/avro-kotlin/avro4k"
                 name.set("avro4k-core")
@@ -160,6 +153,14 @@ spotless {
     kotlinGradle {
         ktlint()
     }
+}
+
+task("actionsBeforeCommit") {
+    this.group = "verification"
+    dependsOn("apiDump")
+    dependsOn("spotlessApply")
+    dependsOn("test")
+    dependsOn("koverLog")
 }
 
 repositories {

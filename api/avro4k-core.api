@@ -152,6 +152,11 @@ public final class com/github/avrokotlin/avro4k/AvroJVMExtensionsKt {
 	public static final fun encodeToStream (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Ljava/io/OutputStream;)V
 }
 
+public final class com/github/avrokotlin/avro4k/AvroKotlinxIoExtensionsKt {
+	public static final fun decodeFromSource (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Lkotlinx/io/Source;)Ljava/lang/Object;
+	public static final fun encodeToSink (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lkotlinx/io/Sink;)V
+}
+
 public final class com/github/avrokotlin/avro4k/AvroKt {
 	public static final fun Avro (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/Avro;
 	public static synthetic fun Avro$default (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/Avro;

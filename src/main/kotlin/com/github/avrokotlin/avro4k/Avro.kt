@@ -7,6 +7,10 @@ import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import kotlinx.io.Buffer
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.readByteArray
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -19,7 +23,6 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.modules.plus
 import kotlinx.serialization.serializer
-import okio.Buffer
 import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.util.WeakIdentityHashMap
@@ -43,7 +46,7 @@ public sealed class Avro(
     public companion object Default : Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
-            JavaTimeSerializersModule
+                JavaTimeSerializersModule
     )
 
     public fun schema(descriptor: SerialDescriptor): Schema {
@@ -69,9 +72,9 @@ public sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
     ): T {
-        val binaryDecoder = DecoderFactory.get().binaryDecoder(bytes, null)
-        val result = decodeWithApacheDecoder(writerSchema, deserializer, binaryDecoder)
-        if (!binaryDecoder.isEnd) {
+        val source = Buffer(bytes)
+        val result = decodeFromSource(writerSchema, deserializer, source)
+        if (!source.exhausted()) {
             throw SerializationException("Not all bytes were consumed during deserialization")
         }
         return result
@@ -90,6 +93,11 @@ public sealed class Avro(
     ): ByteArray {
         return encodeToByteArray(schema(serializer.descriptor), serializer, value)
     }
+}
+
+@OptIn(UnsafeIoApi::class)
+private fun Buffer(bytes: ByteArray): Buffer = Buffer().apply {
+    UnsafeBufferOperations.moveToTail(this, bytes)
 }
 
 public fun Avro(

@@ -78,6 +78,9 @@ private object KotlinDurationSerializer : AvroSerializer<Duration>(Duration::cla
             ?: AvroDurationSerializer.DURATION_SCHEMA
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = AvroDurationSerializer.supportedLogicalTypes
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: Duration,

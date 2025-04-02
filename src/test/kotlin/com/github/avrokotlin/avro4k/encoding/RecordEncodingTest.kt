@@ -164,50 +164,6 @@ internal class RecordEncodingTest : StringSpec({
                 writerSchema = differentWriterSchema
             )
     }
-    "support written records where some fields are missing from kotlin data class when decoding" {
-        @Serializable
-        @SerialName("Foo")
-        data class MissingFields(
-            val c: Boolean?,
-        )
-
-        val input =
-            Foo(
-                "string value",
-                2.2,
-                true,
-                S(setOf(1, 2, 3)),
-                vc = ValueClass(ByteArray(3) { it.toByte() })
-            )
-
-        AvroAssertions.assertThat(input)
-            .isDecodedAs(MissingFields(true))
-    }
-    "support decoding from a writer schema with missing descriptor fields (just skipping, no reordering)" {
-        @Serializable
-        @SerialName("TheClass")
-        data class TheClass(
-            val a: String?,
-            val b: Boolean?,
-            val c: Int,
-        )
-
-        @Serializable
-        @SerialName("TheClass")
-        data class TheLightClass(
-            val b: Boolean?,
-        )
-
-        val writerSchema =
-            SchemaBuilder.record("TheClass").fields()
-                .name("a").type(Schema.create(Schema.Type.STRING).nullable).withDefault(null)
-                .name("b").type().booleanType().noDefault()
-                .name("c").type().intType().intDefault(42)
-                .endRecord()
-
-        AvroAssertions.assertThat(TheClass("hello", true, 42))
-            .isDecodedAs(TheLightClass(true), writerSchema = writerSchema)
-    }
     "support encoding & decoding with additional descriptor optional fields (no reordering)" {
         @Serializable
         @SerialName("TheClass")

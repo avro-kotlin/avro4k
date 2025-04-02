@@ -201,7 +201,7 @@ private fun Decoder.skip(s: Schema) {
             while (mapBlockItems > 0L) {
                 for (i in 0L until mapBlockItems) {
                     skipString()
-                    skip(schema.elementType)
+                    skip(schema.valueType)
                 }
                 mapBlockItems = skipMap()
             }
@@ -214,6 +214,7 @@ private fun Decoder.skip(s: Schema) {
             }
         }
 
-        else -> throw SerializationException("Unsupported schema type for $schema")
+        // Impossible to go to this branch, as the schema is resolved earlier in this method
+        Schema.Type.UNION -> throw UnsupportedOperationException("Union type should be already resolved")
     }
 }

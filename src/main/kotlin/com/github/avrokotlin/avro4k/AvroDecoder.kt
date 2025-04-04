@@ -309,8 +309,7 @@ internal inline fun <T : Any> AvroDecoder.findValueDecoder(
     val foundResolver =
         if (schema.isUnion) {
             if (this is UnionDecoder) {
-                decodeAndResolveUnion()
-                resolver(currentWriterSchema)
+                throw UnsupportedOperationException("The union should be already resolved, which means a misusage of avro4k")
             } else {
                 currentWriterSchema.types.firstNotNullOfOrNull(resolver)
             }

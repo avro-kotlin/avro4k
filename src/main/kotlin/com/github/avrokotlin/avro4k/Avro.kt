@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.AvroInternalExtensions.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
-import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
@@ -23,6 +23,7 @@ import okio.Buffer
 import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.util.WeakIdentityHashMap
+
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
@@ -132,7 +133,7 @@ public inline fun <reified T> Avro.schema(): Schema {
     return schema(serializer.descriptor)
 }
 
-public fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
+public fun Avro.schema(serializer: KSerializer<*>): Schema {
     return schema(serializer.descriptor)
 }
 

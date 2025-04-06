@@ -21,7 +21,7 @@ dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.okio)
+    implementation(libs.kotlinx.io)
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.json)

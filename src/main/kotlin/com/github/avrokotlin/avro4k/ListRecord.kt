@@ -9,9 +9,11 @@ import org.apache.avro.specific.SpecificRecord
  * An implementation of [org.apache.avro.generic.GenericContainer] that implements
  * both [GenericRecord] and [SpecificRecord].
  */
+@Deprecated("Use GenericData.Record instead", ReplaceWith("org.apache.avro.generic.GenericData.Record(schema)"))
 @ExperimentalSerializationApi
 public interface Record : GenericRecord, SpecificRecord
 
+@Deprecated("Use GenericData.Record instead", ReplaceWith("org.apache.avro.generic.GenericData.Record(schema)"))
 @ExperimentalSerializationApi
 public data class ListRecord(
     private val s: Schema,

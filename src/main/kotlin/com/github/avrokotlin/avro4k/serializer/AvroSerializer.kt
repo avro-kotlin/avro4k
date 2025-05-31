@@ -11,6 +11,7 @@ import com.github.avrokotlin.avro4k.internal.namespace
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SealedSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
@@ -166,6 +167,7 @@ internal fun interface AvroSchemaSupplier {
     fun getSchema(context: SchemaSupplierContext): Schema
 }
 
+@OptIn(SealedSerializationApi::class)
 internal class SerialDescriptorWithAvroSchemaDelegate(
     private val descriptor: SerialDescriptor,
     private val schemaSupplier: AvroSchemaSupplier,

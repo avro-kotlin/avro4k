@@ -3,10 +3,10 @@ package com.github.avrokotlin.avro4k.internal
 import com.github.avrokotlin.avro4k.AvroAlias
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
-import org.apache.avro.util.WeakIdentityHashMap
+import java.util.WeakHashMap
 
 internal class PolymorphicResolver(private val serializersModule: SerializersModule) {
-    private val cache = WeakIdentityHashMap<SerialDescriptor, Map<String, String>>()
+    private val cache = WeakHashMap<SerialDescriptor, Map<String, String>>()
 
     fun getFullNamesAndAliasesToSerialName(descriptor: SerialDescriptor): Map<String, String> {
         return cache.getOrPut(descriptor) {

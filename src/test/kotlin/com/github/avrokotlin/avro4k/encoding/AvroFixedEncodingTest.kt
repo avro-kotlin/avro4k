@@ -126,7 +126,7 @@ internal class AvroFixedEncodingTest : StringSpec({
     )
 
     @Serializable
-    @SerialName("Fixed")
+    @SerialName("FieldPriorToValueClass")
     private data class FieldPriorToValueClass(
         @AvroFixed(5) val mystring: FixedStringValueClass,
     )

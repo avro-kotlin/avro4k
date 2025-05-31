@@ -18,7 +18,7 @@ internal class RecordDirectDecoder(
     private val writerRecordSchema: Schema,
     descriptor: SerialDescriptor,
     avro: Avro,
-    binaryDecoder: org.apache.avro.io.Decoder,
+    binaryDecoder: Decoder,
 ) : AbstractAvroDirectDecoder(avro, binaryDecoder) {
     // from descriptor element index to schema field. The missing fields are at the end to decode the default values
     private val classDescriptor = avro.recordResolver.resolveFields(writerRecordSchema, descriptor)

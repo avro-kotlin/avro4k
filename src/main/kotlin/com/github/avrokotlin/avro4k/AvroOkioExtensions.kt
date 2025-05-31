@@ -12,6 +12,7 @@ import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 
+@Deprecated("Use kotlinx.io's encodeToSink instead")
 @ExperimentalSerializationApi
 public fun <T> Avro.encodeToSink(
     writerSchema: Schema,
@@ -24,6 +25,7 @@ public fun <T> Avro.encodeToSink(
     binaryEncoder.flush()
 }
 
+@Deprecated("Use kotlinx.io's encodeToSink instead")
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToSink(
     value: T,
@@ -33,6 +35,7 @@ public inline fun <reified T> Avro.encodeToSink(
     encodeToSink(schema(serializer), serializer, value, sink)
 }
 
+@Deprecated("Use kotlinx.io's encodeToSink instead")
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToSink(
     writerSchema: Schema,
@@ -43,6 +46,7 @@ public inline fun <reified T> Avro.encodeToSink(
     encodeToSink(writerSchema, serializer, value, sink)
 }
 
+@Deprecated("Use kotlinx.io's decodeFromSource instead")
 @ExperimentalSerializationApi
 public fun <T> Avro.decodeFromSource(
     writerSchema: Schema,
@@ -56,12 +60,14 @@ public fun <T> Avro.decodeFromSource(
     )
 }
 
+@Deprecated("Use kotlinx.io's decodeFromSource instead")
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromSource(source: BufferedSource): T {
     val serializer = serializersModule.serializer<T>()
     return decodeFromSource(schema(serializer.descriptor), serializer, source)
 }
 
+@Deprecated("Use kotlinx.io's decodeFromSource instead")
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromSource(
     writerSchema: Schema,

@@ -82,6 +82,10 @@ internal sealed class AbstractAvroDirectEncoder(
         binaryEncoder.writeString(value)
     }
 
+    override fun encodeStringUnchecked(value: String) {
+        binaryEncoder.writeString(value)
+    }
+
     override fun encodeEnumUnchecked(symbol: String) {
         binaryEncoder.writeEnum(currentWriterSchema.getEnumOrdinalChecked(symbol))
     }

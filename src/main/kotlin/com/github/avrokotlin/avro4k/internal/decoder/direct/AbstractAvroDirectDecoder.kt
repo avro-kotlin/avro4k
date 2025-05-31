@@ -56,6 +56,7 @@ internal abstract class AbstractAvroDirectDecoder(
                             avro,
                             binaryDecoder
                         )
+
                     else -> throw unsupportedWriterTypeError(Schema.Type.ARRAY)
                 }
 
@@ -69,6 +70,7 @@ internal abstract class AbstractAvroDirectDecoder(
                             avro,
                             binaryDecoder
                         )
+
                     else -> throw unsupportedWriterTypeError(Schema.Type.MAP)
                 }
 
@@ -264,7 +266,12 @@ private fun org.apache.avro.io.Decoder.readFixedBytes(size: Int): ByteArray {
 }
 
 private fun org.apache.avro.io.Decoder.readBytes(): ByteArray {
-    return readBytes(null).array()
+    val buffer = readBytes(null)
+    if (buffer.hasArray()) {
+        return buffer.array()
+    }
+    return ByteArray(buffer.remaining())
+        .apply { buffer.get(this) }
 }
 
 private class PolymorphicDecoder(

@@ -63,6 +63,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
 
     abstract fun encodeStringUnchecked(value: Utf8)
 
+    abstract fun encodeStringUnchecked(value: String)
+
     abstract fun encodeBytesUnchecked(value: ByteArray)
 
     abstract fun encodeFixedUnchecked(value: ByteArray)
@@ -225,7 +227,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
                     throw fullNameOrAliasMismatchError(enumDescriptor.nonNullSerialName, enumDescriptor.aliases)
                 }
 
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(enumName))
+            Schema.Type.STRING -> encodeStringUnchecked(enumName)
             else -> throw unsupportedWriterTypeError(Schema.Type.ENUM, Schema.Type.STRING)
         }
     }
@@ -237,7 +239,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         }
         when (currentWriterSchema.type) {
             Schema.Type.BOOLEAN -> encodeBooleanUnchecked(value)
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.BOOLEAN, Schema.Type.STRING)
         }
     }
@@ -258,7 +260,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value)
             Schema.Type.LONG -> encodeLongUnchecked(value.toLong())
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
         }
     }
@@ -271,7 +273,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value.toIntExact())
             Schema.Type.LONG -> encodeLongUnchecked(value)
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
         }
     }
@@ -284,7 +286,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> encodeFloatUnchecked(value)
             Schema.Type.DOUBLE -> encodeDoubleUnchecked(value.toDouble())
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING)
         }
     }
@@ -297,7 +299,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> encodeFloatUnchecked(value.toFloatExact())
             Schema.Type.DOUBLE -> encodeDoubleUnchecked(value)
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING)
         }
     }
@@ -309,7 +311,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         }
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value.code)
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value.toString()))
+            Schema.Type.STRING -> encodeStringUnchecked(value.toString())
             else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
         }
     }
@@ -344,7 +346,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             Schema.Type.LONG -> encodeLongUnchecked(value.toLong())
             Schema.Type.FLOAT -> encodeFloatUnchecked(value.toFloat())
             Schema.Type.DOUBLE -> encodeDoubleUnchecked(value.toDouble())
-            Schema.Type.STRING -> encodeStringUnchecked(Utf8(value))
+            Schema.Type.STRING -> encodeStringUnchecked(value)
             Schema.Type.BYTES -> encodeBytesUnchecked(value.encodeToByteArray())
             Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(value.encodeToByteArray()))
             Schema.Type.ENUM -> encodeEnumUnchecked(value)

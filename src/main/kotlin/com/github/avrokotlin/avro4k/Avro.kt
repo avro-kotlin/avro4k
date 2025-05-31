@@ -22,7 +22,7 @@ import kotlinx.serialization.serializer
 import okio.Buffer
 import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
-import org.apache.avro.util.WeakIdentityHashMap
+import java.util.WeakHashMap
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format, not in GenericRecords.
@@ -31,10 +31,7 @@ public sealed class Avro(
     public val configuration: AvroConfiguration,
     public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
-    // We use the identity hash map because we could have multiple descriptors with the same name, especially
-    // when having 2 different version of the schema for the same name. kotlinx-serialization is instantiating the descriptors
-    // only once, so we are safe in the main use cases. Combined with weak references to avoid memory leaks.
-    private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakIdentityHashMap()
+    private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakHashMap()
 
     internal val recordResolver = RecordResolver(this)
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)

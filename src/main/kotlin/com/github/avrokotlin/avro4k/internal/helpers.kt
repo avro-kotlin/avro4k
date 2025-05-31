@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroProp
+import kotlinx.io.Buffer
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -184,3 +187,7 @@ internal val AvroProp.jsonNode: JsonNode
         }
         return TextNode.valueOf(value)
     }
+
+@OptIn(UnsafeIoApi::class)
+internal fun Buffer(bytes: ByteArray): Buffer =
+    Buffer().apply { UnsafeBufferOperations.moveToTail(this, bytes) }

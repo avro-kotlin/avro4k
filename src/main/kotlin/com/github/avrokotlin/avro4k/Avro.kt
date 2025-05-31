@@ -1,12 +1,14 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.Buffer
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
-import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -19,9 +21,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.modules.plus
 import kotlinx.serialization.serializer
-import okio.Buffer
 import org.apache.avro.Schema
-import org.apache.avro.io.DecoderFactory
 import java.util.WeakHashMap
 
 /**
@@ -142,7 +142,8 @@ public sealed class Avro(
      * @param writerSchema the schema to use for decoding the value.
      * @param deserializer the deserialization strategy to use for decoding the value. You may prefer the other extension methods without the deserializer parameter for convenience.
      * @param bytes the [ByteArray] to read the encoded value from.
-     * @return the decoded value of type [T].
+     *
+     * @throws SerializationException if not all bytes were consumed during deserialization, or if the data does not match the [writerSchema].
      *
      * @see AvroConfiguration
      * @see AvroBuilder.serializersModule
@@ -152,9 +153,9 @@ public sealed class Avro(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
     ): T {
-        val binaryDecoder = DecoderFactory.get().binaryDecoder(bytes, null)
-        val result = decodeWithApacheDecoder(writerSchema, deserializer, binaryDecoder)
-        if (!binaryDecoder.isEnd) {
+        val source = Buffer(bytes)
+        val result = decodeFromSource(writerSchema, deserializer, source)
+        if (!source.exhausted()) {
             throw SerializationException("Not all bytes were consumed during deserialization")
         }
         return result

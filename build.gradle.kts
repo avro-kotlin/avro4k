@@ -20,6 +20,7 @@ version = Ci.publishVersion
 dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
+    api(libs.kotlinx.io)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okio)
     testImplementation(libs.kotest.junit5)

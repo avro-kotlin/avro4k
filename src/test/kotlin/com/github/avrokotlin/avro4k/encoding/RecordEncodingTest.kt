@@ -2,19 +2,61 @@ package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
+import com.github.avrokotlin.avro4k.decodeFromSource
 import com.github.avrokotlin.avro4k.encodeToByteArray
 import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import kotlinx.io.asSource
+import kotlinx.io.buffered
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import java.io.OutputStream
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
+import java.time.Instant
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class RecordEncodingTest : StringSpec({
+    "Reading from an input stream is not waiting for the buffer to be full before decoding" {
+        @Serializable
+        data class DataS(
+            val id: Int,
+            val timestamp: Long,
+        )
+
+        val latch = CountDownLatch(1)
+        val latch2 = CountDownLatch(1)
+
+        class ProduceTask(private val out: OutputStream) : Thread() {
+            override fun run() {
+                out.write(Avro.encodeToByteArray(DataS(1, Instant.now().toEpochMilli())))
+                out.flush()
+                latch.countDown()
+                latch2.await(2, TimeUnit.SECONDS)
+            }
+        }
+
+        val inStream = PipedInputStream()
+        val outStream = PipedOutputStream(inStream)
+
+        val produceTask = ProduceTask(outStream)
+        produceTask.start()
+        latch.await(1, TimeUnit.SECONDS)
+        val source = inStream.asSource().buffered()
+
+        // It should throw an exception if the data is not available yet
+        // Thanks to kotlinx.io, we can read less than the buffer size, so the data is immediately available for small chunks
+        Avro.decodeFromSource<DataS>(source)
+        latch2.countDown()
+    }
     "encoding basic data class" {
         val input =
             Foo(

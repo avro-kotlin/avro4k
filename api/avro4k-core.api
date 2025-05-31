@@ -140,6 +140,11 @@ public final class com/github/avrokotlin/avro4k/AvroJVMExtensionsKt {
 	public static final fun encodeToStream (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Ljava/io/OutputStream;)V
 }
 
+public final class com/github/avrokotlin/avro4k/AvroKotlinxIoExtensionsKt {
+	public static final fun decodeFromSource (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Lkotlinx/io/Source;)Ljava/lang/Object;
+	public static final fun encodeToSink (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lkotlinx/io/Sink;)V
+}
+
 public final class com/github/avrokotlin/avro4k/AvroKt {
 	public static final fun Avro (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/Avro;
 	public static synthetic fun Avro$default (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/Avro;
@@ -212,8 +217,10 @@ public final class com/github/avrokotlin/avro4k/AvroSingleObject : kotlinx/seria
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun decodeFromByteArray (Lkotlinx/serialization/DeserializationStrategy;[B)Ljava/lang/Object;
+	public final fun decodeFromSource (Lkotlinx/serialization/DeserializationStrategy;Lkotlinx/io/Source;)Ljava/lang/Object;
 	public final fun decodeFromStream (Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;)Ljava/lang/Object;
 	public fun encodeToByteArray (Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
+	public final fun encodeToSink (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lkotlinx/io/Sink;)V
 	public final fun encodeToStream (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Ljava/io/OutputStream;)V
 	public final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
 	public fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;

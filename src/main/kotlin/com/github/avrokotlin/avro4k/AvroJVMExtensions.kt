@@ -1,17 +1,16 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
-import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
+import kotlinx.io.asSink
+import kotlinx.io.asSource
+import kotlinx.io.buffered
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import org.apache.avro.io.DecoderFactory
-import org.apache.avro.io.EncoderFactory
 import java.io.InputStream
 import java.io.OutputStream
 
+@Deprecated("Use encodeToSink instead", ReplaceWith("encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())"))
 @ExperimentalSerializationApi
 public fun <T> Avro.encodeToStream(
     writerSchema: Schema,
@@ -19,50 +18,49 @@ public fun <T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
-    val avroEncoder = EncoderFactory.get().binaryEncoder(outputStream, null)
-    encodeWithApacheEncoder(writerSchema, serializer, value, avroEncoder)
-    avroEncoder.flush()
+    encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())
 }
 
+@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("encodeToSink(value, outputStream.asSink().buffered())"))
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
-    val serializer = serializersModule.serializer<T>()
-    encodeToStream(schema(serializer), serializer, value, outputStream)
+    encodeToSink(value, outputStream.asSink().buffered())
 }
 
+@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("encodeToSink(writerSchema, value, outputStream.asSink().buffered())"))
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToStream(
     writerSchema: Schema,
     value: T,
     outputStream: OutputStream,
 ) {
-    val serializer = serializersModule.serializer<T>()
-    encodeToStream(writerSchema, serializer, value, outputStream)
+    encodeToSink(writerSchema, value, outputStream.asSink().buffered())
 }
 
+@Deprecated("Use decodeFromSource instead", replaceWith = ReplaceWith("decodeFromSource(deserializer, inputStream.asSource().buffered())"))
 @ExperimentalSerializationApi
 public fun <T> Avro.decodeFromStream(
     writerSchema: Schema,
     deserializer: DeserializationStrategy<T>,
     inputStream: InputStream,
 ): T {
-    return decodeWithApacheDecoder(writerSchema, deserializer, DecoderFactory.get().binaryDecoder(inputStream, null))
+    return decodeFromSource(writerSchema, deserializer, inputStream.asSource().buffered())
 }
 
+@Deprecated("Use decodeFromSource instead", replaceWith = ReplaceWith("decodeFromSource(inputStream.asSource().buffered())"))
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromStream(inputStream: InputStream): T {
-    val serializer = serializersModule.serializer<T>()
-    return decodeFromStream(schema(serializer.descriptor), serializer, inputStream)
+    return decodeFromSource(inputStream.asSource().buffered())
 }
 
+@Deprecated("Use decodeFromSource instead", replaceWith = ReplaceWith("decodeFromSource(writerSchema, inputStream.asSource().buffered())"))
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromStream(
     writerSchema: Schema,
     inputStream: InputStream,
 ): T {
-    val serializer = serializersModule.serializer<T>()
-    return decodeFromStream(writerSchema, serializer, inputStream)
+    return decodeFromSource(writerSchema, inputStream.asSource().buffered())
 }

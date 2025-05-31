@@ -1,5 +1,14 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.Buffer
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.asSink
+import kotlinx.io.asSource
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
+import kotlinx.io.readLongLe
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -9,11 +18,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.SchemaNormalization
-import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * Single Avro objects are encoded as follows:
@@ -36,59 +42,73 @@ public class AvroSingleObject(
 
     private fun Schema.crc64avro(): ByteArray = SchemaNormalization.parsingFingerprint("CRC-64-AVRO", this)
 
+    @Deprecated("Use encodeToSink instead", ReplaceWith("encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())"))
     public fun <T> encodeToStream(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
         outputStream: OutputStream,
+    ): Unit = encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())
+
+    public fun <T> encodeToSink(
+        writerSchema: Schema,
+        serializer: SerializationStrategy<T>,
+        value: T,
+        sink: Sink,
     ) {
-        outputStream.write(MAGIC_BYTE)
-        outputStream.write(FORMAT_VERSION)
-        outputStream.write(writerSchema.crc64avro())
-        avro.encodeToStream(writerSchema, serializer, value, outputStream)
+        sink.writeByte(MAGIC_BYTE)
+        sink.writeByte(FORMAT_VERSION)
+        sink.write(writerSchema.crc64avro())
+        avro.encodeToSink(writerSchema, serializer, value, sink)
     }
 
+    @Deprecated("Use decodeFromSource instead", ReplaceWith("decodeFromSource(deserializer, inputStream.asSource().buffered())"))
     public fun <T> decodeFromStream(
         deserializer: DeserializationStrategy<T>,
         inputStream: InputStream,
+    ): T = decodeFromSource(deserializer, inputStream.asSource().buffered())
+
+    public fun <T> decodeFromSource(
+        deserializer: DeserializationStrategy<T>,
+        source: Source,
     ): T {
-        check(inputStream.read() == MAGIC_BYTE) { "Not a valid single-object avro format, bad magic byte" }
-        check(inputStream.read() == FORMAT_VERSION) { "Not a valid single-object avro format, bad version byte" }
-        val fingerprint = ByteBuffer.wrap(ByteArray(8).apply { inputStream.read(this) }).order(ByteOrder.LITTLE_ENDIAN).getLong()
+        check(source.readByte() == MAGIC_BYTE) { "Not a valid single-object avro format, bad magic byte" }
+        check(source.readByte() == FORMAT_VERSION) { "Not a valid single-object avro format, bad version byte" }
+        val fingerprint = source.readLongLe()
         val writerSchema =
             schemaRegistry(fingerprint) ?: throw SerializationException("schema not found for the given object's schema fingerprint 0x${fingerprint.toString(16)}")
 
-        return avro.decodeFromStream(writerSchema, deserializer, inputStream)
+        return avro.decodeFromSource(writerSchema, deserializer, source)
     }
 
     public override fun <T> decodeFromByteArray(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray,
     ): T {
-        return bytes.inputStream().use {
-            decodeFromStream(deserializer, it)
-        }
+        return decodeFromSource(deserializer, Buffer(bytes))
     }
 
     override fun <T> encodeToByteArray(
         serializer: SerializationStrategy<T>,
         value: T,
     ): ByteArray {
-        return encodeToByteArray(avro.schema(serializer.descriptor), serializer, value)
+        val writerSchema = avro.schema(serializer.descriptor)
+        return encodeToByteArray(writerSchema, serializer, value)
     }
 }
 
-private const val MAGIC_BYTE: Int = 0xC3
-private const val FORMAT_VERSION: Int = 1
+private const val MAGIC_BYTE: Byte = 0xC3.toByte()
+private const val FORMAT_VERSION: Byte = 1
 
 public fun <T> AvroSingleObject.encodeToByteArray(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
     value: T,
-): ByteArray =
-    ByteArrayOutputStream().apply {
-        encodeToStream(writerSchema, serializer, value, this)
-    }.toByteArray()
+): ByteArray {
+    val sink = Buffer()
+    encodeToSink(writerSchema, serializer, value, sink)
+    return sink.readByteArray()
+}
 
 public inline fun <reified T> AvroSingleObject.encodeToByteArray(
     writerSchema: Schema,

@@ -45,17 +45,15 @@ c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.write           thrpt    5  3203
 c.g.a.b.simple.Avro4kGenericWithApacheAvroSimpleBenchmark.write thrpt    5  168702.542 ±  5553.797  ops/s
 c.g.a.b.simple.JacksonAvroSimpleBenchmark.write                 thrpt    5  138898.312 ±  9156.715  ops/s
 
-c.g.a.b.lists.Avro4kV1ListsBenchmark.read	                    thrpt	 5	   475.048 ±    22.037  ops/s	    0%
-c.g.a.b.lists.ApacheAvroReflectListsBenchmark.read	            thrpt	 5	   290.714 ±     6.295  ops/s  -38.80%
-c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.read    thrpt	 5	   311.651 ±     3.760  ops/s  -34.42%
-c.g.a.b.lists.Avro4kListsBenchmark.read	                        thrpt    5     412.503 ±     6.127  ops/s  -13.16%
-c.g.a.b.lists.JacksonAvroListsBenchmark.read	                thrpt    5    1002.527 ±    23.039  ops/s +111.09%
+JacksonAvroListsBenchmark.read                  thrpt    5  7.441 ± 1.575  ops/s
+Avro4kListsBenchmark.read                       thrpt    5  6.443 ± 1.822  ops/s
+Avro4kGenericWithApacheAvroListsBenchmark.read  thrpt    5  5.166 ± 0.120  ops/s
+ApacheAvroReflectListsBenchmark.read            thrpt    5  4.461 ± 0.520  ops/s
 
-c.g.a.b.lists.Avro4kV1ListsBenchmark.write	                    thrpt    5     530.151 ±    14.683  ops/s       0%
-c.g.a.b.lists.ApacheAvroReflectListsBenchmark.write	            thrpt    5	   561.516 ±    11.003  ops/s   +5.91%
-c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.write   thrpt    5     708.795 ±    77.770  ops/s  +33.76%
-c.g.a.b.lists.Avro4kListsBenchmark.write                        thrpt    5    1499.795 ±    59.895  ops/s +183.02%
-c.g.a.b.lists.JacksonAvroListsBenchmark.write                   thrpt    5     464.208 ±     9.000  ops/s  -12.42%
+ApacheAvroReflectListsBenchmark.write            thrpt    5  7.199 ± 1.409  ops/s
+Avro4kListsBenchmark.write                       thrpt    5  6.140 ± 0.200  ops/s
+JacksonAvroListsBenchmark.write                  thrpt    5  5.247 ± 0.258  ops/s
+Avro4kGenericWithApacheAvroListsBenchmark.write  thrpt    5  4.520 ± 1.391  ops/s
 
 ```
 

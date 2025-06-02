@@ -1,7 +1,7 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
-import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
+import com.github.avrokotlin.avro4k.internal.AvroInternalExtensions.decodeWithApacheDecoder
+import com.github.avrokotlin.avro4k.internal.AvroInternalExtensions.encodeWithApacheEncoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy

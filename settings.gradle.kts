@@ -12,6 +12,7 @@ plugins {
 rootProject.name = "avro4k-core"
 
 include("benchmark")
+include("confluent-kafka-serializer")
 
 gradleEnterprise {
     if (System.getenv("CI") != null) {

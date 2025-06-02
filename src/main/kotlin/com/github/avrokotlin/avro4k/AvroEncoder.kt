@@ -63,14 +63,6 @@ internal fun AvroEncoder.namedSchemaNotFoundInUnionError(
     return SerializationException("Named schema $expectedName$aliasesStr not found in union.$fallbacksStr Actual schema: $currentWriterSchema")
 }
 
-internal fun AvroEncoder.typeNotFoundInUnionError(
-    mainType: Schema.Type,
-    vararg fallbackTypes: Schema.Type,
-): Throwable {
-    val fallbacksStr = if (fallbackTypes.isNotEmpty()) " Also no compatible type found (one of ${fallbackTypes.joinToString()})." else ""
-    return SerializationException("${mainType.getName().replaceFirstChar { it.uppercase() }} type not found in union.$fallbacksStr Actual schema: $currentWriterSchema")
-}
-
 internal fun AvroEncoder.unsupportedWriterTypeError(
     mainType: Schema.Type,
     vararg fallbackTypes: Schema.Type,
@@ -119,7 +111,12 @@ internal fun AvroEncoder.trySelectSingleNonNullTypeFromUnion(): Boolean {
             // we are in case of non-nullable union with only 2 types
             false
         }
+    } else if (currentWriterSchema.types.size == 1 && currentWriterSchema.types[0].type != Schema.Type.NULL) {
+        // only one non-null type in union, so we select it
+        encodeUnionIndex(0)
+        true
     } else {
+        // more than 2 types in union, so we don't know which one to select
         false
     }
 }
@@ -156,7 +153,8 @@ internal fun AvroEncoder.trySelectNamedSchema(descriptor: SerialDescriptor): Boo
     return trySelectNamedSchema(descriptor.nonNullSerialName, descriptor::aliases)
 }
 
-internal fun AvroEncoder.trySelectNamedSchema(
+@InternalAvro4kApi
+public fun AvroEncoder.trySelectNamedSchema(
     name: String,
     aliases: () -> Set<String> = ::emptySet,
 ): Boolean {
@@ -205,4 +203,17 @@ internal fun Schema.getIndexTyped(vararg oneOf: Schema.Type): Int? {
             else -> getIndexNamed(expectedType.getName())
         }
     }
+}
+
+public class MissingFieldsEncodingException(message: String) : SerializationException(message) {
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' for writer schema $writerSchema")
+
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+        descriptor: SerialDescriptor,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' for writer schema $writerSchema from descriptor $descriptor")
 }

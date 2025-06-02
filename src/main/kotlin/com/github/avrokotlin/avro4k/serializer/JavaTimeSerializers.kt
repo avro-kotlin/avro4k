@@ -7,9 +7,7 @@ import com.github.avrokotlin.avro4k.decodeResolvingAny
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.logicalTypeMismatchError
-import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
@@ -33,8 +31,8 @@ public val JavaTimeSerializersModule: SerializersModule =
         contextual(LocalTimeSerializer)
         contextual(LocalDateTimeSerializer)
         contextual(InstantSerializer)
-        contextual(JavaDurationSerializer)
         contextual(JavaPeriodSerializer)
+        contextual(JavaDurationSerializer)
     }
 
 private const val LOGICAL_TYPE_NAME_DATE = "date"
@@ -50,14 +48,17 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.q
         } ?: Schema.create(Schema.Type.INT).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_DATE))
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = setOf(LOGICAL_TYPE_NAME_DATE)
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: LocalDate,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.INT ->
@@ -130,14 +131,17 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.q
         } ?: Schema.create(Schema.Type.INT).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIME_MILLIS))
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = setOf(LOGICAL_TYPE_NAME_TIME_MILLIS, LOGICAL_TYPE_NAME_TIME_MICROS)
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: LocalTime,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.INT ->
@@ -226,14 +230,17 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
         } ?: Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = setOf(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS)
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: LocalDateTime,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
@@ -295,14 +302,17 @@ public object InstantSerializer : AvroSerializer<Instant>(Instant::class.qualifi
         } ?: Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = setOf(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS)
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: Instant,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
@@ -363,14 +373,17 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>(Instant::class.
         } ?: Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_TIMESTAMP_MICROS))
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = setOf(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS)
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: Instant,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
@@ -439,6 +452,9 @@ public object JavaDurationSerializer : AvroSerializer<Duration>(Duration::class.
         } ?: AvroDurationSerializer.DURATION_SCHEMA
     }
 
+    override val supportedLogicalTypes: Set<String>
+        get() = AvroDurationSerializer.supportedLogicalTypes
+
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: Duration,
@@ -492,6 +508,9 @@ public object JavaPeriodSerializer : AvroSerializer<Period>(Period::class.qualif
             it.stringable?.createSchema()
         } ?: AvroDurationSerializer.DURATION_SCHEMA
     }
+
+    override val supportedLogicalTypes: Set<String>
+        get() = AvroDurationSerializer.supportedLogicalTypes
 
     override fun serializeAvro(
         encoder: AvroEncoder,

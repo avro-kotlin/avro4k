@@ -4,7 +4,7 @@ jvm = "21"
 kotlinxSerialization = "1.8.1"
 kotestVersion = "5.9.1"
 okio = "3.9.0"
-apache-avro = "1.11.4"
+apache-avro = "1.12.0"
 mockk = "1.13.6"
 
 [libraries]

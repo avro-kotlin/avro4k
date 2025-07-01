@@ -27,9 +27,11 @@ internal class ApacheAvroReflectBenchmark : SerializationBenchmark() {
         ReflectData.get().addLogicalTypeConversion(TimeConversions.DateConversion())
         ReflectData.get().addLogicalTypeConversion(TimeConversions.TimestampMillisConversion())
 
+        @Suppress("UNCHECKED_CAST")
         writer = ReflectData.get().createDatumWriter(schema) as DatumWriter<Clients>
         encoder = EncoderFactory.get().directBinaryEncoder(OutputStream.nullOutputStream(), null)
 
+        @Suppress("UNCHECKED_CAST")
         reader = ReflectData.get().createDatumReader(schema) as DatumReader<Clients>
     }
 

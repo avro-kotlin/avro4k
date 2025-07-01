@@ -31,7 +31,7 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.UUID
 
-public val JavaStdLibSerializersModule: SerializersModule =
+internal val JavaStdLibSerializersModule: SerializersModule =
     SerializersModule {
         contextual(URLSerializer)
         contextual(UUIDSerializer)

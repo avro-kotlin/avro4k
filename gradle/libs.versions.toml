@@ -3,7 +3,7 @@ kotlin = "2.1.21"
 jvm = "21"
 kotlinxSerialization = "1.8.1"
 kotestVersion = "5.9.1"
-okio = "3.9.0"
+okio = "3.14.0"
 apache-avro = "1.11.4"
 mockk = "1.13.6"
 

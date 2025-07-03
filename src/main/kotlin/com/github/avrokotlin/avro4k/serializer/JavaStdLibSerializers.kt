@@ -11,7 +11,6 @@ import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -97,7 +96,7 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
-                    throw typeNotFoundInUnionError(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
+                    throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.STRING -> encodeString(value.toString())
@@ -186,7 +185,7 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectLogicalTypeFromUnion(converter.logicalTypeName, Schema.Type.BYTES, Schema.Type.FIXED) ||
                     trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
-                    throw typeNotFoundInUnionError(
+                    throw unsupportedWriterTypeError(
                         Schema.Type.BYTES,
                         Schema.Type.FIXED,
                         Schema.Type.STRING,

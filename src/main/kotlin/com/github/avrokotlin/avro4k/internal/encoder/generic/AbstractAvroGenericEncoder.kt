@@ -55,7 +55,7 @@ internal abstract class AbstractAvroGenericEncoder : AbstractAvroEncoder() {
         encodeValue(Utf8(value))
     }
 
-    override fun encodeUnionIndexInternal(index: Int) {
+    override fun encodeUnionIndexUnchecked(index: Int) {
         // nothing to do
     }
 

@@ -45,7 +45,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         collectionSize: Int,
     ): CompositeEncoder
 
-    abstract fun encodeUnionIndexInternal(index: Int)
+    abstract fun encodeUnionIndexUnchecked(index: Int)
 
     abstract fun encodeNullUnchecked()
 
@@ -141,7 +141,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             throw SerializationException("Already selected union index: $selectedUnionIndex, got $index, for selected schema $currentWriterSchema")
         }
         currentWriterSchema = currentWriterSchema.types[index]
-        encodeUnionIndexInternal(index)
+        encodeUnionIndexUnchecked(index)
         selectedUnionIndex = index
     }
 

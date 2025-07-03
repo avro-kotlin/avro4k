@@ -25,7 +25,9 @@ Here are the main features:
 
 # Quick start
 
-## Basic encoding
+## Basic "pure" avro encoding
+
+In this example, we will see how to encode and decode Avro objects in their "pure" format, which means that the schema is not prefixed to the data.
 
 <details open>
 <summary>Example:</summary>
@@ -51,6 +53,132 @@ fun main() {
     // Deserializing objects
     val obj = Avro.decodeFromByteArray<Project>(bytes)
     println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+}
+```
+
+</details>
+
+### JVM stream encoding
+
+Avro4k is also able to encode and decode objects to and from any kotlinx-io `Sink` and `Source`, which means any supported bridge to kotlinx-io is supported by avro4k.
+
+As an example, for JVM streams, you can use `InputStream.asSource().buffered()` and `OutputStream.asSink().buffered()`.
+
+> [!NOTE]
+> Note the required `buffered()` call to allow avro4k accessing the `read` and `write` methods.
+
+> [!WARNING]
+> Do not use `ByteArrayInputStream` and `ByteArrayOutputStream`, prefer using `kotlinx.io.Buffer` instead as it is more efficient and allows better performance.
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import java.io.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val data = Project("kotlinx.serialization", "Kotlin")
+    val outputStream: OutputStream = TODO("Your output stream here, e.g. FileOutputStream, etc.")
+    val sink = output.asSink().buffered()
+    Avro.encodeToSink(data, sink)
+    sink.close() // Will flush the data to the output stream at the same time
+
+    // Deserializing objects
+    val inputStream: InputStream = TODO("Your input stream here, e.g. FileInputStream, etc.")
+    val source = inputStream.asSource().buffered()
+    // Be sure to read all the content from the soure, or you may lose data from the upper stream, as buffering means that the source may read more bytes to fill the buffer.
+    val obj = Avro.decodeFromSource<Project>(source)
+    println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+}
+```
+
+</details>
+
+### Encode many objects in the same stream
+
+You can use kotlinx-io's `Buffer` to encode many objects in the same stream, and then extract the whole bytes from the buffer.
+
+> [!WARNING]
+> As kotlinx-io is using an internal buffer pool, each `Buffer` instance you create must be fully consumed to allow the internal buffer segments to be returned to the pool and reused.
+> More detailsin the [kotlinx-io documentation](https://github.com/Kotlin/kotlinx-io).
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val buffer = Buffer()
+    Avro.encodeToSink(data1, buffer)
+    Avro.encodeToSink(data2, buffer)
+    Avro.encodeToSink(data3, buffer)
+    // You need to consume the whole buffer by passing the buffer to the wanted framework or read the byte-array, or you may have kotlinx-io internal buffer leaks.
+    val bytes = buffer.readByteArray()
+
+    // Deserializing objects
+    val source: Source = TODO("a Buffer, or any other source from kotlinx-io")
+    val data1 = Avro.decodeFromSource<Project>(source)
+    val data2 = Avro.decodeFromSource<Project>(source)
+    val data3 = Avro.decodeFromSource<Project>(source)
+}
+```
+
+</details>
+
+### Custom encoding with a Buffer
+
+The following example shows how to encode in a custom format using a `Buffer` to write the data. The example is going to encode like this: `<timestamp><schema><binary-length><binary-data>`.
+
+You will still encode the data in pure avro binary format, while you will be able to add some metadata before the data (or after), compress the data, and much more.
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val buffer = Buffer()
+    buffer.writeInt(theTimestamp)
+    buffer.writeString(theSchema)
+    
+    val dataBuffer = Buffer()
+    Avro.encodeToSink(data, dataBuffer)
+    // You need to consume the whole buffer by passing the buffer to the wanted framework or read the byte-array, or you may have kotlinx-io internal buffer leaks.
+    val bytes = buffer.readByteArray()
+    buffer.writeInt()
+
+    // Deserializing objects
+    val source: Source = TODO("a Buffer, or any other source from kotlinx-io")
+    val data1 = Avro.decodeFromSource<Project>(source)
+    val data2 = Avro.decodeFromSource<Project>(source)
+    val data3 = Avro.decodeFromSource<Project>(source)
 }
 ```
 

@@ -63,14 +63,6 @@ internal fun AvroEncoder.namedSchemaNotFoundInUnionError(
     return SerializationException("Named schema $expectedName$aliasesStr not found in union.$fallbacksStr Actual schema: $currentWriterSchema")
 }
 
-internal fun AvroEncoder.typeNotFoundInUnionError(
-    mainType: Schema.Type,
-    vararg fallbackTypes: Schema.Type,
-): Throwable {
-    val fallbacksStr = if (fallbackTypes.isNotEmpty()) " Also no compatible type found (one of ${fallbackTypes.joinToString()})." else ""
-    return SerializationException("${mainType.getName().replaceFirstChar { it.uppercase() }} type not found in union.$fallbacksStr Actual schema: $currentWriterSchema")
-}
-
 internal fun AvroEncoder.unsupportedWriterTypeError(
     mainType: Schema.Type,
     vararg fallbackTypes: Schema.Type,

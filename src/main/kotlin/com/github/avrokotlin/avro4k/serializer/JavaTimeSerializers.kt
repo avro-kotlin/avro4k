@@ -9,7 +9,6 @@ import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.logicalTypeMismatchError
 import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
@@ -57,7 +56,7 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.q
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.INT ->
@@ -137,7 +136,7 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.q
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.INT ->
@@ -233,7 +232,7 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
@@ -302,7 +301,7 @@ public object InstantSerializer : AvroSerializer<Instant>(Instant::class.qualifi
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
@@ -370,7 +369,7 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>(Instant::class.
         with(encoder) {
             if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
                 trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->

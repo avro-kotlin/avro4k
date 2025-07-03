@@ -12,7 +12,6 @@ import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
 import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -144,7 +143,7 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
                 trySelectNamedSchema(DEFAULT_DURATION_FULL_NAME) ||
                     trySelectLogicalTypeFromUnion(LOGICAL_TYPE_NAME, Schema.Type.FIXED) ||
                     trySelectTypeFromUnion(Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.FIXED, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.FIXED ->

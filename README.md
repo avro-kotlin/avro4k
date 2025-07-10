@@ -826,7 +826,7 @@ You can force a field (or the value class' property) to have its inferred schema
 
 Compatible types visible in the [types matrix](#types-matrix), indicated by the "Other compatible writer types" column. The **writer schema compatibility is still respected**, so if the field has been written as an int, a stringified int will be deserialized as an int without the need of parsing it. It is the same for the rerverse: If an int has been written as a string, it will be deserialized as an int by parsing the string content.
 
-> [!INFO]
+> [!NOTE]
 > Note that the type must be compatible with the `string` type, otherwise it will be ignored.
 > Your custom serializer generated schema must handle this annotation, or it will be ignored.
 
@@ -868,6 +868,7 @@ So to mark a field as optional and facilitate avro contract evolution regarding 
 
 - Kotlin 1.7.20 up to 1.8.10 cannot properly compile @SerialInfo-Annotations on enums (see https://github.com/Kotlin/kotlinx.serialization/issues/2121).
   This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's annotations on enum types, please make sure that you are using kotlin >= 1.8.20.
+- Avro 1.12.0 introduced corruption for list of double in generic encoding, where doubles are casted to floats. Will be fixed for the next version, but they take a lot of time to release, even for a bugfix or a CVEs fix. 
 
 # Migrating from v1 to v2
 Heads up to the [migration guide](Migrating-from-v1.md) to update your code from avro4k v1 to v2.

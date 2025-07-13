@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroStringable
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
 import com.github.avrokotlin.avro4k.internal.namespace
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -27,6 +28,7 @@ import org.apache.avro.Schema
  *
  * Don't forget to implement [serializeGeneric] and [deserializeGeneric] if you want to use the serializer outside the Avro serialization, like with json format.
  */
+@OptIn(InternalSerializationApi::class)
 public abstract class AvroSerializer<T>(
     descriptorName: String,
 ) : KSerializer<T>, AvroSchemaSupplier {
@@ -163,17 +165,34 @@ public data class ElementLocation
         val elementIndex: Int,
     )
 
-internal fun interface AvroSchemaSupplier {
-    fun getSchema(context: SchemaSupplierContext): Schema
+@InternalAvro4kApi
+public fun interface AvroSchemaSupplier {
+    public fun getSchema(context: SchemaSupplierContext): Schema
 }
 
+@InternalAvro4kApi
 @OptIn(SealedSerializationApi::class)
-internal class SerialDescriptorWithAvroSchemaDelegate(
+public class SerialDescriptorWithAvroSchemaDelegate(
     private val descriptor: SerialDescriptor,
     private val schemaSupplier: AvroSchemaSupplier,
 ) : SerialDescriptor by descriptor, AvroSchemaSupplier {
     override fun getSchema(context: SchemaSupplierContext): Schema {
         return schemaSupplier.getSchema(context)
+    }
+
+    override fun toString(): String {
+        return "${descriptor.serialName}(<custom schema>)"
+    }
+}
+
+@InternalAvro4kApi
+@OptIn(SealedSerializationApi::class)
+public class SerialDescriptorWithStaticAvroSchema(
+    private val descriptor: SerialDescriptor,
+    internal val schema: Schema,
+) : SerialDescriptor by descriptor, AvroSchemaSupplier {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return schema
     }
 
     override fun toString(): String {

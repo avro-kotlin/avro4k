@@ -31,15 +31,15 @@ public val JavaTimeSerializersModule: SerializersModule =
         contextual(LocalTimeSerializer)
         contextual(LocalDateTimeSerializer)
         contextual(InstantSerializer)
-        contextual(JavaDurationSerializer)
         contextual(JavaPeriodSerializer)
+        contextual(JavaDurationSerializer)
     }
 
-private const val LOGICAL_TYPE_NAME_DATE = "date"
-private const val LOGICAL_TYPE_NAME_TIME_MILLIS = "time-millis"
-private const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
-private const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
-private const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
+internal const val LOGICAL_TYPE_NAME_DATE = "date"
+internal const val LOGICAL_TYPE_NAME_TIME_MILLIS = "time-millis"
+internal const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
+internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
+internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
 
 public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {

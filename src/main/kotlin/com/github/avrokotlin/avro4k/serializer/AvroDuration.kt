@@ -119,7 +119,7 @@ public data class AvroDuration(
 public class AvroDurationParseException(value: String) : SerializationException("Unable to parse duration: $value")
 
 internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration::class.qualifiedName!!) {
-    private const val LOGICAL_TYPE_NAME = "duration"
+    internal const val LOGICAL_TYPE_NAME = "duration"
     private const val DURATION_BYTES = 12
     private const val DEFAULT_DURATION_FULL_NAME = "time.Duration"
     internal val DURATION_SCHEMA =

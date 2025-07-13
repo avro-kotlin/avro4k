@@ -53,7 +53,8 @@ public interface AvroEncoder : Encoder {
     public fun encodeUnionIndex(index: Int)
 }
 
-internal fun AvroEncoder.namedSchemaNotFoundInUnionError(
+@InternalAvro4kApi
+public fun AvroEncoder.namedSchemaNotFoundInUnionError(
     expectedName: String,
     possibleAliases: Set<String>,
     vararg fallbackTypes: Schema.Type,
@@ -63,13 +64,20 @@ internal fun AvroEncoder.namedSchemaNotFoundInUnionError(
     return SerializationException("Named schema $expectedName$aliasesStr not found in union.$fallbacksStr Actual schema: $currentWriterSchema")
 }
 
+@InternalAvro4kApi
+public fun AvroEncoder.schemaNotFoundInUnionError(
+    schema: Schema,
+): Throwable {
+    return SerializationException("Schema $schema not found in union. Actual union: $currentWriterSchema")
+}
+
 internal fun AvroEncoder.unsupportedWriterTypeError(
     mainType: Schema.Type,
     vararg fallbackTypes: Schema.Type,
 ): Throwable {
     val fallbacksStr = if (fallbackTypes.isNotEmpty()) ", and also not matching to any compatible type (one of ${fallbackTypes.joinToString()})." else ""
     return SerializationException(
-        "Unsupported schema '${currentWriterSchema.fullName}' for encoded type of ${mainType.getName()}$fallbacksStr. Actual schema: $currentWriterSchema"
+        "Unsupported schema '${currentWriterSchema.fullName}' for encoded type of ${mainType.getName()}$fallbacksStr. Actual union: $currentWriterSchema"
     )
 }
 
@@ -127,7 +135,19 @@ internal fun AvroEncoder.trySelectNamedSchema(descriptor: SerialDescriptor): Boo
     return trySelectNamedSchema(descriptor.nonNullSerialName, descriptor::aliases)
 }
 
-internal fun AvroEncoder.trySelectNamedSchema(
+@InternalAvro4kApi
+public fun AvroEncoder.trySelectNamedSchema(schema: Schema): Boolean {
+    return trySelectNamedSchema(schema.fullName) {
+        if (schema.isNamedSchema()) {
+            schema.aliases
+        } else {
+            emptySet()
+        }
+    }
+}
+
+@InternalAvro4kApi
+public fun AvroEncoder.trySelectNamedSchema(
     name: String,
     aliases: () -> Set<String> = ::emptySet,
 ): Boolean {
@@ -175,4 +195,17 @@ internal fun Schema.getIndexTyped(expectedType: Schema.Type): Int? {
         Schema.Type.FIXED, Schema.Type.RECORD, Schema.Type.ENUM -> types.indexOfFirst { it.type == expectedType }.takeIf { it >= 0 }
         else -> getIndexNamed(expectedType.getName())
     }
+}
+
+public class MissingFieldsEncodingException(message: String) : SerializationException(message) {
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' for writer schema $writerSchema")
+
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+        descriptor: SerialDescriptor,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' for writer schema $writerSchema from descriptor $descriptor")
 }

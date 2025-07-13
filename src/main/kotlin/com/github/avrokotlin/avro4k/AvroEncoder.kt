@@ -95,30 +95,9 @@ internal fun AvroEncoder.logicalTypeMismatchError(
     return SerializationException("Expected schema type of ${type.getName()} with logical type $logicalType but had schema $currentWriterSchema")
 }
 
-/**
- * @return true is union is nullable and non-null type was selected, false otherwise
- */
-internal fun AvroEncoder.trySelectSingleNonNullTypeFromUnion(): Boolean {
-    return if (currentWriterSchema.types.size == 2) {
-        // optimization: A nullable union is very common
-        if (currentWriterSchema.types[0].type == Schema.Type.NULL) {
-            encodeUnionIndex(1)
-            true
-        } else if (currentWriterSchema.types[1].type == Schema.Type.NULL) {
-            encodeUnionIndex(0)
-            true
-        } else {
-            // we are in case of non-nullable union with only 2 types
-            false
-        }
-    } else {
-        false
-    }
-}
-
-internal fun AvroEncoder.trySelectTypeFromUnion(vararg oneOf: Schema.Type): Boolean {
+internal fun AvroEncoder.trySelectTypeNameFromUnion(expectedType: Schema.Type): Boolean {
     val index =
-        currentWriterSchema.getIndexTyped(*oneOf)
+        currentWriterSchema.getIndexTyped(expectedType)
             ?: return false
     encodeUnionIndex(index)
     return true
@@ -190,11 +169,7 @@ internal fun Schema.getIndexNamedOrAliased(expectedName: String): Int? {
         ?: types.indexOfFirst { it.isNamedSchema() && it.aliases.contains(expectedName) }.takeIf { it >= 0 }
 }
 
-internal fun Schema.getIndexTyped(vararg oneOf: Schema.Type): Int? {
-    return oneOf.firstNotNullOfOrNull { expectedType ->
-        when (expectedType) {
-            Schema.Type.FIXED, Schema.Type.RECORD, Schema.Type.ENUM -> types.indexOfFirst { it.type == expectedType }.takeIf { it >= 0 }
-            else -> getIndexNamed(expectedType.getName())
-        }
-    }
+internal fun Schema.getIndexTyped(expectedType: Schema.Type): Int? {
+    @Suppress("UsePropertyAccessSyntax") // We want to use the getter method as it doesn't return the same as the kotlin property "name"
+    return getIndexNamed(expectedType.getName())
 }

@@ -10,8 +10,7 @@ import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
-import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
-import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -139,10 +138,10 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
         value: AvroDuration,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectNamedSchema(DEFAULT_DURATION_FULL_NAME) ||
                     trySelectLogicalTypeFromUnion(LOGICAL_TYPE_NAME, Schema.Type.FIXED) ||
-                    trySelectTypeFromUnion(Schema.Type.STRING) ||
+                    trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                     throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {

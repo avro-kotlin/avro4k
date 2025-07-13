@@ -9,8 +9,7 @@ import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
-import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
-import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
+import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -94,8 +93,12 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
         value: BigInteger,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-                trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
+            if (currentWriterSchema.isUnion) {
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                    trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                    trySelectTypeNameFromUnion(Schema.Type.LONG) ||
+                    trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
+                    trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
                     throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
             }
             when (currentWriterSchema.type) {
@@ -182,9 +185,13 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
         value: BigDecimal,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectLogicalTypeFromUnion(converter.logicalTypeName, Schema.Type.BYTES, Schema.Type.FIXED) ||
-                    trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE) ||
+                    trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                    trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                    trySelectTypeNameFromUnion(Schema.Type.LONG) ||
+                    trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
+                    trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
                     throw unsupportedWriterTypeError(
                         Schema.Type.BYTES,
                         Schema.Type.FIXED,

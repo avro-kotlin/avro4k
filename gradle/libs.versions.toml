@@ -14,9 +14,7 @@ kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
 kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotestVersion" }
-kotest-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotestVersion" }
 kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotestVersion" }
-kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotestVersion" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [plugins]

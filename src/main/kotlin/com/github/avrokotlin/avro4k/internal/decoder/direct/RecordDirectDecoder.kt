@@ -176,6 +176,7 @@ private fun Decoder.skip(s: Schema) {
         } else {
             s
         }
+    @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
     when (schema.type) {
         Schema.Type.BOOLEAN -> readBoolean()
         Schema.Type.INT -> readInt()

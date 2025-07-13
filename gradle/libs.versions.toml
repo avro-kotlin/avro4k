@@ -26,4 +26,4 @@ github-versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 spotless = { id = "com.diffplug.spotless", version = "7.0.4" }
 kover = { id = "org.jetbrains.kotlinx.kover", version = "0.9.1" }
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.17.0" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.0" }

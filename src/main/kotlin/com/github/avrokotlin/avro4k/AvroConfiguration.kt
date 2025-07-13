@@ -1,6 +1,8 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 
 public data class AvroConfiguration(
@@ -39,6 +41,14 @@ public data class AvroConfiguration(
      */
     @ExperimentalSerializationApi
     val validateSerialization: Boolean = false,
+    /**
+     * Resolves a logical type name to its corresponding [kotlinx.serialization.KSerializer] for generic decoding.
+     */
+    @ExperimentalSerializationApi
+    val logicalTypes: Map<String, KSerializer<out Any>> =
+        mapOf(
+            AvroDurationSerializer.LOGICAL_TYPE_NAME to AvroDurationSerializer
+        ),
 )
 
 /**

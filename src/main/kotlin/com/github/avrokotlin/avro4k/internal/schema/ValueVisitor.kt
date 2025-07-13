@@ -7,6 +7,7 @@ import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.serializer.AvroSchemaSupplier
 import com.github.avrokotlin.avro4k.serializer.stringable
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -82,6 +83,7 @@ internal class ValueVisitor internal constructor(
         }
     }
 
+    @OptIn(InternalSerializationApi::class)
     override fun visitValue(descriptor: SerialDescriptor) {
         val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
 

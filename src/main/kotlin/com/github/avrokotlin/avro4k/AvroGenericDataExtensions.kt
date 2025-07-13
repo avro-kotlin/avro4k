@@ -9,6 +9,7 @@ import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericContainer
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public fun <T> Avro.encodeToGenericData(
     writerSchema: Schema,
@@ -22,12 +23,14 @@ public fun <T> Avro.encodeToGenericData(
     return result
 }
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
     val serializer = serializersModule.serializer<T>()
     return encodeToGenericData(schema(serializer), serializer, value)
 }
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.encodeToGenericData(
     writerSchema: Schema,
@@ -37,6 +40,7 @@ public inline fun <reified T> Avro.encodeToGenericData(
     return encodeToGenericData(writerSchema, serializer, value)
 }
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public fun <T> Avro.decodeFromGenericData(
     writerSchema: Schema,
@@ -47,6 +51,7 @@ public fun <T> Avro.decodeFromGenericData(
         .decodeSerializableValue(deserializer)
 }
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromGenericData(
     writerSchema: Schema,
@@ -56,6 +61,7 @@ public inline fun <reified T> Avro.decodeFromGenericData(
     return decodeFromGenericData(writerSchema, deserializer, value)
 }
 
+@Deprecated(message = "", level = DeprecationLevel.WARNING)
 @ExperimentalSerializationApi
 public inline fun <reified T> Avro.decodeFromGenericData(value: GenericContainer?): T? {
     if (value == null) return null

@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
@@ -41,6 +42,7 @@ import org.apache.avro.generic.GenericFixed
 public interface AvroDecoder : Decoder {
     /**
      * Provides the schema used to encode the current value.
+     *
      * It won't return a union as the schema correspond to the actual value.
      */
     @ExperimentalSerializationApi
@@ -72,17 +74,6 @@ public interface AvroDecoder : Decoder {
     @Deprecated("Use currentWriterSchema to get the schema and then decode the value using the appropriate decode* method, or use decodeResolving* for more complex use cases.")
     @ExperimentalSerializationApi
     public fun decodeValue(): Any
-}
-
-/**
- * This interface is used internally to decode and resolve union types.
- */
-@PublishedApi
-internal interface UnionDecoder : AvroDecoder {
-    /**
-     * Decode the union schema and set the resolved type in [currentWriterSchema].
-     */
-    fun decodeAndResolveUnion()
 }
 
 /**
@@ -308,9 +299,8 @@ internal inline fun <T : Any> AvroDecoder.findValueDecoder(
 
     val foundResolver =
         if (schema.isUnion) {
-            if (this is UnionDecoder) {
-                decodeAndResolveUnion()
-                resolver(currentWriterSchema)
+            if (this is AbstractAvroDirectDecoder) {
+                throw UnsupportedOperationException("The union should be already resolved, which means a misusage of avro4k")
             } else {
                 currentWriterSchema.types.firstNotNullOfOrNull(resolver)
             }

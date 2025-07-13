@@ -868,7 +868,7 @@ So to mark a field as optional and facilitate avro contract evolution regarding 
 
 - Kotlin 1.7.20 up to 1.8.10 cannot properly compile @SerialInfo-Annotations on enums (see https://github.com/Kotlin/kotlinx.serialization/issues/2121).
   This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's annotations on enum types, please make sure that you are using kotlin >= 1.8.20.
-- Avro 1.12.0 introduced corruption for list of double in generic encoding, where doubles are casted to floats. Will be fixed for the next version, but they take a lot of time to release, even for a bugfix or a CVEs fix. 
+- Avro 1.12.0 introduced corruption for list of double in generic encoding, where doubles are casted to floats. Will be fixed for the next version when it will be released 
 
 # Migrating from v1 to v2
 Heads up to the [migration guide](Migrating-from-v1.md) to update your code from avro4k v1 to v2.

@@ -1,8 +1,8 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
+import com.github.avrokotlin.avro4k.internal.AvroInternalExtensions.decodeWithApacheDecoder
+import com.github.avrokotlin.avro4k.internal.AvroInternalExtensions.encodeWithApacheEncoder
 import com.github.avrokotlin.avro4k.internal.decoder.direct.KotlinxIoDecoder
-import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
 import com.github.avrokotlin.avro4k.internal.encoder.direct.KotlinxIoEncoder
 import kotlinx.io.Sink
 import kotlinx.io.Source

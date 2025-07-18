@@ -10,9 +10,7 @@ import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
-import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -121,7 +119,7 @@ public data class AvroDuration(
 public class AvroDurationParseException(value: String) : SerializationException("Unable to parse duration: $value")
 
 internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration::class.qualifiedName!!) {
-    private const val LOGICAL_TYPE_NAME = "duration"
+    internal const val LOGICAL_TYPE_NAME = "duration"
     private const val DURATION_BYTES = 12
     private const val DEFAULT_DURATION_FULL_NAME = "time.Duration"
     internal val DURATION_SCHEMA =
@@ -140,11 +138,11 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
         value: AvroDuration,
     ) {
         with(encoder) {
-            if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+            if (currentWriterSchema.isUnion) {
                 trySelectNamedSchema(DEFAULT_DURATION_FULL_NAME) ||
                     trySelectLogicalTypeFromUnion(LOGICAL_TYPE_NAME, Schema.Type.FIXED) ||
                     trySelectTypeFromUnion(Schema.Type.STRING) ||
-                    throw typeNotFoundInUnionError(Schema.Type.FIXED, Schema.Type.STRING)
+                    throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.STRING)
             }
             when (currentWriterSchema.type) {
                 Schema.Type.FIXED ->

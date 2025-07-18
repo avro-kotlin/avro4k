@@ -1,0 +1,125 @@
+public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer : io/confluent/kafka/serializers/AbstractKafkaSchemaSerDe, org/apache/kafka/common/serialization/Deserializer {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public fun close ()V
+	public fun configure (Ljava/util/Map;Z)V
+	public fun deserialize (Ljava/lang/String;[B)Ljava/lang/Object;
+	protected final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
+	protected abstract fun getDeserializer ()Lkotlinx/serialization/DeserializationStrategy;
+}
+
+public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer : io/confluent/kafka/serializers/AbstractKafkaSchemaSerDe, org/apache/kafka/common/serialization/Serializer {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public fun close ()V
+	public fun configure (Ljava/util/Map;Z)V
+	protected final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
+	protected fun getSchema (Ljava/lang/Object;)Lorg/apache/avro/Schema;
+	protected abstract fun getSerializer ()Lkotlinx/serialization/SerializationStrategy;
+	public fun serialize (Ljava/lang/String;Ljava/lang/Object;)[B
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/Avro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {
+	public fun <init> (Lkotlinx/serialization/DeserializationStrategy;Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lkotlinx/serialization/DeserializationStrategy;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/Avro4kKafkaSerializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer {
+	public fun <init> (Lkotlinx/serialization/SerializationStrategy;Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lkotlinx/serialization/SerializationStrategy;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerde : org/apache/kafka/common/serialization/Serdes$WrapperSerde {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericMap : java/util/Map, kotlin/jvm/internal/markers/KMappedMarker, org/apache/avro/generic/GenericContainer {
+	public static final field Companion Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericMap$Companion;
+	public fun <init> (Lorg/apache/avro/Schema;Ljava/util/Map;)V
+	public fun clear ()V
+	public fun compute (Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun computeIfAbsent (Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;
+	public fun computeIfPresent (Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun containsKey (Ljava/lang/Object;)Z
+	public fun containsValue (Ljava/lang/Object;)Z
+	public final fun entrySet ()Ljava/util/Set;
+	public fun get (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun getEntries ()Ljava/util/Set;
+	public fun getKeys ()Ljava/util/Set;
+	public fun getSchema ()Lorg/apache/avro/Schema;
+	public fun getSize ()I
+	public fun getValues ()Ljava/util/Collection;
+	public fun isEmpty ()Z
+	public final fun keySet ()Ljava/util/Set;
+	public fun merge (Ljava/lang/Object;Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun putAll (Ljava/util/Map;)V
+	public fun putIfAbsent (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun replace (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun replace (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun replaceAll (Ljava/util/function/BiFunction;)V
+	public final fun size ()I
+	public final fun values ()Ljava/util/Collection;
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericMap$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericValue : org/apache/avro/generic/GenericContainer {
+	public static final field Companion Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericValue$Companion;
+	public fun <init> (Lorg/apache/avro/Schema;Ljava/lang/Object;)V
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun copy (Lorg/apache/avro/Schema;Ljava/lang/Object;)Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericValue;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericValue;Lorg/apache/avro/Schema;Ljava/lang/Object;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getSchema ()Lorg/apache/avro/Schema;
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericValue$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/KafkaAvro4kDeserializerConfig : io/confluent/kafka/serializers/AbstractKafkaSchemaSerDeConfig {
+	public fun <init> (Ljava/util/Map;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/KafkaAvro4kSerializerConfig : io/confluent/kafka/serializers/AbstractKafkaSchemaSerDeConfig {
+	public fun <init> (Ljava/util/Map;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerde : org/apache/kafka/common/serialization/Serdes$WrapperSerde {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+

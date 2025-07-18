@@ -19,14 +19,20 @@ version = Ci.publishVersion
 
 dependencies {
     api(libs.apache.avro)
+
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core") {
+//        version {
+//            strictly("[1.7.0,)")
+//            prefer("1.7.0")
+//        }
+//    }
+
     api(libs.kotlinx.serialization.core)
     api(libs.kotlinx.io)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okio)
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
-    testImplementation(libs.kotest.json)
-    testImplementation(libs.kotest.property)
     testImplementation(libs.mockk)
     testImplementation(kotlin("reflect"))
 }
@@ -35,7 +41,7 @@ kotlin {
     explicitApi()
 
     compilerOptions {
-        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi")
+        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi", "com.github.avrokotlin.avro4k.InternalAvro4kApi")
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)

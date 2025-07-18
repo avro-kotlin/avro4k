@@ -275,7 +275,7 @@ public inline fun <reified T> Avro.schema(): Schema {
  *
  * @see Avro.schema
  */
-public fun <T> Avro.schema(serializer: KSerializer<T>): Schema {
+public fun Avro.schema(serializer: KSerializer<*>): Schema {
     return schema(serializer.descriptor)
 }
 

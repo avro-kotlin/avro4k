@@ -25,7 +25,7 @@ import java.time.Period
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-public val JavaTimeSerializersModule: SerializersModule =
+internal val JavaTimeSerializersModule: SerializersModule =
     SerializersModule {
         contextual(LocalDateSerializer)
         contextual(LocalTimeSerializer)
@@ -35,11 +35,11 @@ public val JavaTimeSerializersModule: SerializersModule =
         contextual(JavaPeriodSerializer)
     }
 
-private const val LOGICAL_TYPE_NAME_DATE = "date"
-private const val LOGICAL_TYPE_NAME_TIME_MILLIS = "time-millis"
-private const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
-private const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
-private const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
+internal const val LOGICAL_TYPE_NAME_DATE = "date"
+internal const val LOGICAL_TYPE_NAME_TIME_MILLIS = "time-millis"
+internal const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
+internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
+internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
 
 public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {

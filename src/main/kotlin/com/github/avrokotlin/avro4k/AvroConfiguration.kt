@@ -1,6 +1,19 @@
 package com.github.avrokotlin.avro4k
 
+import com.github.avrokotlin.avro4k.serializer.AnySerializer
+import com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer
+import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_DATE
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MICROS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MICROS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MILLIS
+import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
+import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 
 public data class AvroConfiguration(
@@ -39,6 +52,25 @@ public data class AvroConfiguration(
      */
     @ExperimentalSerializationApi
     val validateSerialization: Boolean = false,
+    /**
+     * Resolves a logical type name to its corresponding [kotlinx.serialization.KSerializer] for generic decoding with [AnySerializer].
+     *
+     * To override the defaults, or provide additional logical types, you can configure it through `Avro { setLogicalTypeSerializer("your type", YourSerializer()) }`.
+     *
+     * @see AvroBuilder.setLogicalTypeSerializer
+     */
+    @ExperimentalSerializationApi
+    val logicalTypes: Map<String, KSerializer<out Any>> =
+        mapOf(
+            AvroDurationSerializer.LOGICAL_TYPE_NAME to AvroDurationSerializer,
+            UUIDSerializer.LOGICAL_TYPE_NAME to UUIDSerializer,
+            BigDecimalSerializer.LOGICAL_TYPE_NAME to BigDecimalSerializer,
+            LOGICAL_TYPE_NAME_DATE to LocalDateSerializer,
+            LOGICAL_TYPE_NAME_TIME_MILLIS to LocalTimeSerializer,
+            LOGICAL_TYPE_NAME_TIME_MICROS to LocalTimeSerializer,
+            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS to InstantSerializer,
+            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS to InstantSerializer
+        ),
 )
 
 /**

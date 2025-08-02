@@ -5,6 +5,7 @@ import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
+import com.github.avrokotlin.avro4k.serializer.AnyTypeSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
 import kotlinx.io.Buffer
@@ -46,7 +47,8 @@ public sealed class Avro(
     public companion object Default : Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
-            JavaTimeSerializersModule
+            JavaTimeSerializersModule +
+            AnyTypeSerializersModule
     )
 
     /**
@@ -248,12 +250,41 @@ public class AvroBuilder internal constructor(avro: Avro) {
      */
     public var serializersModule: SerializersModule = EmptySerializersModule()
 
+    private val logicalTypes: MutableMap<String, KSerializer<out Any>> = avro.configuration.logicalTypes.toMutableMap()
+
+    /**
+     * Registers a logical type serializer for the given [logicalTypeName].
+     * This serializer will be used when decoding values of the given logical type.
+     *
+     * By default, [com.github.avrokotlin.avro4k.serializer.AnySerializer] decodes the following logical types:
+     * - `duration` as [com.github.avrokotlin.avro4k.serializer.AvroDuration]
+     * - `uuid` as [java.util.UUID]
+     * - `date` as [java.time.LocalDate]
+     * - `time-millis` as [java.time.LocalTime]
+     * - `time-micros` as [java.time.LocalTime]
+     * - `timestamp-millis` as [java.time.Instant]
+     * - `timestamp-micros` as [java.time.Instant]
+     *
+     * @param logicalTypeName the name of the logical type to register the serializer for.
+     * @param serializer the serializer to use for the logical type.
+     *
+     * @see AvroConfiguration.logicalTypes
+     */
+    @ExperimentalSerializationApi
+    public fun setLogicalTypeSerializer(
+        logicalTypeName: String,
+        serializer: KSerializer<out Any>,
+    ) {
+        logicalTypes[logicalTypeName] = serializer
+    }
+
     internal fun build(): AvroConfiguration =
         AvroConfiguration(
             fieldNamingStrategy = fieldNamingStrategy,
             implicitNulls = implicitNulls,
             implicitEmptyCollections = implicitEmptyCollections,
-            validateSerialization = validateSerialization
+            validateSerialization = validateSerialization,
+            logicalTypes = logicalTypes
         )
 }
 

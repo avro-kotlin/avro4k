@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import kotlinx.io.Buffer
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
@@ -35,7 +36,11 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotat
 internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
 internal val SerialDescriptor.namespace: String? get() = serialName.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
 
-internal val Schema.nullable: Schema
+/**
+ * Make this schema nullable by wrapping it in a union with null as the first type.
+ */
+@InternalAvro4kApi
+public val Schema.nullable: Schema
     get() {
         if (isNullable) return this
         return if (isUnion) {
@@ -77,7 +82,8 @@ internal val SerialDescriptor.aliases: Set<String>
 
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
 
-internal fun Schema.copy(
+@InternalAvro4kApi
+public fun Schema.copy(
     name: String = this.name,
     doc: String? = this.doc,
     namespace: String? = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.namespace else null,

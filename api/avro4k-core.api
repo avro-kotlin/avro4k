@@ -310,10 +310,6 @@ public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {
 	public abstract fun decodeShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;)S
 }
 
-public abstract interface class com/github/avrokotlin/avro4k/UnionDecoder : com/github/avrokotlin/avro4k/AvroDecoder {
-	public abstract fun decodeAndResolveUnion ()V
-}
-
 public final class com/github/avrokotlin/avro4k/serializer/AvroDuration {
 	public static final field Companion Lcom/github/avrokotlin/avro4k/serializer/AvroDuration$Companion;
 	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V

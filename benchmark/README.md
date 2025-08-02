@@ -25,36 +25,29 @@ Each benchmark is executed with the following configuration:
 Computer: Macbook air M2
 
 ```
-Benchmark                                                       Mode   Cnt     Score       Error   Units
-c.g.a.b.complex.ApacheAvroReflectBenchmark.read                  thrpt    5   29295.192 ±  319.312  ops/s
-c.g.a.b.complex.Avro4kBenchmark.read                             thrpt    5   25766.052 ±  368.664  ops/s
-c.g.a.b.complex.Avro4kGenericWithApacheAvroBenchmark.read        thrpt    5   16209.174 ±  203.406  ops/s
+Benchmark                                               Mode  Cnt       Score       Error  Units
+c.g.a.b.complex.ApacheAvroReflectBenchmark.read        thrpt    5   28547.385 ±  1650.012  ops/s
+c.g.a.b.complex.Avro4kBenchmark.read                   thrpt    5   26632.851 ±  1234.999  ops/s
 
-c.g.a.b.complex.ApacheAvroReflectBenchmark.write                 thrpt    5   46823.034 ± 2011.928  ops/s
-c.g.a.b.complex.Avro4kBenchmark.write                            thrpt    5   44890.274 ± 1080.358  ops/s
-c.g.a.b.complex.JacksonAvroBenchmark.write                       thrpt    5   34798.967 ± 2787.370  ops/s
-c.g.a.b.complex.Avro4kGenericWithApacheAvroBenchmark.write       thrpt    5   24803.165 ± 1288.472  ops/s
+c.g.a.b.complex.ApacheAvroReflectBenchmark.write       thrpt    5   48233.161 ±  2802.632  ops/s
+c.g.a.b.complex.Avro4kBenchmark.write                  thrpt    5   40242.128 ±   959.712  ops/s
+c.g.a.b.complex.JacksonAvroBenchmark.write             thrpt    5   35803.795 ±   690.634  ops/s
 
-c.g.a.b.simple.Avro4kSimpleBenchmark.read                        thrpt    5  213794.225 ± 9560.253  ops/s
-c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.read             thrpt    5  212685.281 ± 2408.201  ops/s
-c.g.a.b.simple.Avro4kGenericWithApacheAvroSimpleBenchmark.read   thrpt    5  149715.561 ± 2054.725  ops/s
-c.g.a.b.simple.JacksonAvroSimpleBenchmark.read                   thrpt    5   62663.528 ± 2370.041  ops/s
+c.g.a.b.simple.Avro4kSimpleBenchmark.read              thrpt    5  248421.898 ±  2784.662  ops/s
+c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.read   thrpt    5  216567.573 ±  8266.148  ops/s
+c.g.a.b.simple.JacksonAvroSimpleBenchmark.read         thrpt    5   63937.063 ±   708.020  ops/s
 
-c.g.a.b.simple.Avro4kSimpleBenchmark.write                       thrpt    5  328514.289 ± 1119.183  ops/s
-c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.write            thrpt    5  253784.541 ± 8960.212  ops/s
-c.g.a.b.simple.Avro4kGenericWithApacheAvroSimpleBenchmark.write  thrpt    5  169881.518 ± 2879.094  ops/s
-c.g.a.b.simple.JacksonAvroSimpleBenchmark.write                  thrpt    5  128048.496 ± 6859.076  ops/s
+c.g.a.b.simple.Avro4kSimpleBenchmark.write             thrpt    5  299860.558 ±  1371.411  ops/s
+c.g.a.b.simple.ApacheAvroReflectSimpleBenchmark.write  thrpt    5  239041.443 ± 21416.197  ops/s
+c.g.a.b.simple.JacksonAvroSimpleBenchmark.write        thrpt    5  127574.224 ±  5285.247  ops/s
 
-c.g.a.b.lists.JacksonAvroListsBenchmark.read                     thrpt    5       7.865 ±    0.488  ops/s
-c.g.a.b.lists.Avro4kListsBenchmark.read                          thrpt    5       6.493 ±    0.211  ops/s
-c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.read     thrpt    5       5.416 ±    0.170  ops/s
-c.g.a.b.lists.ApacheAvroReflectListsBenchmark.read               thrpt    5       4.628 ±    1.104  ops/s
+c.g.a.b.lists.JacksonAvroListsBenchmark.read           thrpt    5       7.927 ±     0.931  ops/s
+c.g.a.b.lists.Avro4kListsBenchmark.read                thrpt    5       6.562 ±     0.237  ops/s
+c.g.a.b.lists.ApacheAvroReflectListsBenchmark.read     thrpt    5       4.715 ±     0.195  ops/s
 
-c.g.a.b.lists.ApacheAvroReflectListsBenchmark.write              thrpt    5      10.237 ±    0.334  ops/s
-c.g.a.b.lists.Avro4kListsBenchmark.write                         thrpt    5       8.104 ±    0.132  ops/s
-c.g.a.b.lists.JacksonAvroListsBenchmark.write                    thrpt    5       5.881 ±    0.924  ops/s
-c.g.a.b.lists.Avro4kGenericWithApacheAvroListsBenchmark.write    thrpt    5       4.721 ±    0.249  ops/s
-
+ApacheAvroReflectListsBenchmark.write                  thrpt    5       9.776 ±     1.560  ops/s
+Avro4kListsBenchmark.write                             thrpt    5       8.329 ±     0.122  ops/s
+JacksonAvroListsBenchmark.write                        thrpt    5       5.892 ±     0.217  ops/s
 ```
 
 > [!WARNING]

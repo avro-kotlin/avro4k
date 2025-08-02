@@ -46,7 +46,7 @@ internal sealed class AbstractAvroDirectEncoder(
         return MapDirectEncoder(currentWriterSchema, collectionSize, avro, binaryEncoder)
     }
 
-    override fun encodeUnionIndexInternal(index: Int) {
+    override fun encodeUnionIndexUnchecked(index: Int) {
         binaryEncoder.writeIndex(index)
     }
 

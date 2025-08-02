@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k.internal.encoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.ensureFixedSize
 import com.github.avrokotlin.avro4k.fullNameOrAliasMismatchError
-import com.github.avrokotlin.avro4k.getIndexTyped
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.isFullNameOrAliasMatch
@@ -14,9 +13,7 @@ import com.github.avrokotlin.avro4k.namedSchemaNotFoundInUnionError
 import com.github.avrokotlin.avro4k.trySelectEnumSchemaForSymbol
 import com.github.avrokotlin.avro4k.trySelectFixedSchemaForSize
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
-import com.github.avrokotlin.avro4k.trySelectSingleNonNullTypeFromUnion
-import com.github.avrokotlin.avro4k.trySelectTypeFromUnion
-import com.github.avrokotlin.avro4k.typeNotFoundInUnionError
+import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -47,7 +44,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         collectionSize: Int,
     ): CompositeEncoder
 
-    abstract fun encodeUnionIndexInternal(index: Int)
+    abstract fun encodeUnionIndexUnchecked(index: Int)
 
     abstract fun encodeNullUnchecked()
 
@@ -85,9 +82,10 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             StructureKind.OBJECT,
             -> {
                 val nameChecked: Boolean
-                if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-                    trySelectNamedSchema(descriptor).also { nameChecked = it } ||
+                if (currentWriterSchema.isUnion) {
+                    trySelectNamedSchema(descriptor) ||
                         throw namedSchemaNotFoundInUnionError(descriptor.nonNullSerialName, descriptor.aliases)
+                    nameChecked = true
                 } else {
                     nameChecked = false
                 }
@@ -115,8 +113,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     ): CompositeEncoder {
         return when (descriptor.kind) {
             StructureKind.LIST -> {
-                if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-                    trySelectTypeFromUnion(Schema.Type.ARRAY) || throw typeNotFoundInUnionError(Schema.Type.ARRAY)
+                if (currentWriterSchema.isUnion) {
+                    trySelectTypeNameFromUnion(Schema.Type.ARRAY) || throw unsupportedWriterTypeError(Schema.Type.ARRAY)
                 }
                 when (currentWriterSchema.type) {
                     Schema.Type.ARRAY -> getArrayEncoder(descriptor, collectionSize)
@@ -125,8 +123,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             }
 
             StructureKind.MAP -> {
-                if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-                    trySelectTypeFromUnion(Schema.Type.MAP) || throw typeNotFoundInUnionError(Schema.Type.MAP)
+                if (currentWriterSchema.isUnion) {
+                    trySelectTypeNameFromUnion(Schema.Type.MAP) || throw unsupportedWriterTypeError(Schema.Type.MAP)
                 }
                 when (currentWriterSchema.type) {
                     Schema.Type.MAP -> getMapEncoder(descriptor, collectionSize)
@@ -139,11 +137,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeUnionIndex(index: Int) {
-        if (selectedUnionIndex > -1) {
+        if (selectedUnionIndex != -1) {
             throw SerializationException("Already selected union index: $selectedUnionIndex, got $index, for selected schema $currentWriterSchema")
         }
         currentWriterSchema = currentWriterSchema.types[index]
-        encodeUnionIndexInternal(index)
+        encodeUnionIndexUnchecked(index)
         selectedUnionIndex = index
     }
 
@@ -157,17 +155,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
 
     override fun encodeNull() {
         if (currentWriterSchema.isUnion) {
-            // Generally, null types are the first or last in the union
-            if (currentWriterSchema.types.first().type == Schema.Type.NULL) {
-                encodeUnionIndex(0)
-            } else if (currentWriterSchema.types.last().type == Schema.Type.NULL) {
-                encodeUnionIndex(currentWriterSchema.types.size - 1)
-            } else {
-                val nullIndex =
-                    currentWriterSchema.getIndexTyped(Schema.Type.NULL)
-                        ?: throw SerializationException("Cannot encode null value for non-nullable schema: $currentWriterSchema")
-                encodeUnionIndex(nullIndex)
-            }
+            trySelectTypeNameFromUnion(Schema.Type.NULL) || throw SerializationException("Cannot encode null value for non-nullable schema: $currentWriterSchema")
         } else if (currentWriterSchema.type != Schema.Type.NULL) {
             throw SerializationException("Cannot encode null value for non-null schema: $currentWriterSchema")
         }
@@ -175,10 +163,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeBytes(value: ByteArray) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.BYTES, Schema.Type.STRING) ||
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectFixedSchemaForSize(value.size) ||
-                throw typeNotFoundInUnionError(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING)
+                throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.BYTES -> encodeBytesUnchecked(value)
@@ -189,10 +178,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeFixed(value: ByteArray) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+        if (currentWriterSchema.isUnion) {
             trySelectFixedSchemaForSize(value.size) ||
-                trySelectTypeFromUnion(Schema.Type.BYTES, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING)
+                trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.BYTES, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(value))
@@ -207,9 +197,9 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         index: Int,
     ) {
         val nameChecked: Boolean
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
+        if (currentWriterSchema.isUnion) {
             trySelectNamedSchema(enumDescriptor).also { nameChecked = it } ||
-                trySelectTypeFromUnion(Schema.Type.STRING) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 throw namedSchemaNotFoundInUnionError(
                     enumDescriptor.nonNullSerialName,
                     enumDescriptor.aliases,
@@ -233,9 +223,10 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeBoolean(value: Boolean) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.BOOLEAN, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.BOOLEAN, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.BOOLEAN, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.BOOLEAN -> encodeBooleanUnchecked(value)
@@ -253,9 +244,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeInt(value: Int) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                trySelectTypeNameFromUnion(Schema.Type.LONG) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value)
@@ -266,9 +259,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeLong(value: Long) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.LONG, Schema.Type.INT, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.LONG, Schema.Type.INT, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.LONG) ||
+                trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.INT, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value.toIntExact())
@@ -279,9 +274,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeFloat(value: Float) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
+                trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> encodeFloatUnchecked(value)
@@ -292,9 +289,11 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeDouble(value: Double) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
+                trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> encodeFloatUnchecked(value.toFloatExact())
@@ -305,9 +304,10 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeChar(value: Char) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.INT, Schema.Type.STRING) ||
-                throw typeNotFoundInUnionError(Schema.Type.INT, Schema.Type.STRING)
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
         }
         when (currentWriterSchema.type) {
             Schema.Type.INT -> encodeIntUnchecked(value.code)
@@ -317,18 +317,17 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeString(value: String) {
-        if (currentWriterSchema.isUnion && !trySelectSingleNonNullTypeFromUnion()) {
-            trySelectTypeFromUnion(Schema.Type.STRING, Schema.Type.BYTES) ||
+        if (currentWriterSchema.isUnion) {
+            trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
                 trySelectFixedSchemaForSize(value.length) ||
                 trySelectEnumSchemaForSymbol(value) ||
-                trySelectTypeFromUnion(
-                    Schema.Type.BOOLEAN,
-                    Schema.Type.INT,
-                    Schema.Type.LONG,
-                    Schema.Type.FLOAT,
-                    Schema.Type.DOUBLE
-                ) ||
-                throw typeNotFoundInUnionError(
+                trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
+                trySelectTypeNameFromUnion(Schema.Type.INT) ||
+                trySelectTypeNameFromUnion(Schema.Type.LONG) ||
+                trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
+                trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
+                throw unsupportedWriterTypeError(
                     Schema.Type.BOOLEAN,
                     Schema.Type.INT,
                     Schema.Type.LONG,

@@ -23,7 +23,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericFixed
 
 internal abstract class AbstractAvroDirectDecoder(
-    protected val avro: Avro,
+    internal val avro: Avro,
     protected val binaryDecoder: org.apache.avro.io.Decoder,
 ) : AbstractInterceptingDecoder(), AvroDecoder {
     abstract override var currentWriterSchema: Schema
@@ -66,6 +66,13 @@ internal abstract class AbstractAvroDirectDecoder(
                             currentWriterSchema,
                             decodeFirstBlock = decodedCollectionSize == -1,
                             { decodedCollectionSize = it },
+                            avro,
+                            binaryDecoder
+                        )
+
+                    Schema.Type.RECORD ->
+                        RecordAsMapDirectDecoder(
+                            currentWriterSchema,
                             avro,
                             binaryDecoder
                         )

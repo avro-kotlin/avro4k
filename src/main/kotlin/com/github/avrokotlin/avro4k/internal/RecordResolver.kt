@@ -70,6 +70,7 @@ internal class RecordResolver(
         classDescriptor: SerialDescriptor,
         writerSchema: Schema,
     ): SerializationWorkflow {
+        // TODO we should not need to resolve the whole record's schema, but just extract the fields names, aliases and their order.
         val readerSchema = avro.schema(classDescriptor)
 
         return SerializationWorkflow(

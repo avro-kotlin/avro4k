@@ -13,6 +13,7 @@ import com.github.avrokotlin.avro4k.trySelectNamedSchema
 import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
@@ -30,6 +31,7 @@ import java.nio.ByteOrder
  *
  * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
  */
+@SerialName("time.Duration")
 @Serializable(with = AvroDurationSerializer::class)
 @ExperimentalSerializationApi
 public data class AvroDuration(
@@ -119,7 +121,7 @@ public data class AvroDuration(
 public class AvroDurationParseException(value: String) : SerializationException("Unable to parse duration: $value")
 
 internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration::class.qualifiedName!!) {
-    private const val LOGICAL_TYPE_NAME = "duration"
+    internal const val LOGICAL_TYPE_NAME = "duration"
     private const val DURATION_BYTES = 12
     private const val DEFAULT_DURATION_FULL_NAME = "time.Duration"
     internal val DURATION_SCHEMA =
@@ -174,7 +176,7 @@ internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDurati
                         AnyValueDecoder { AvroDuration.parse(decodeString()) }
                     }
 
-                    else -> throw SerializationException("Expected duration fixed or string type")
+                    else -> throw SerializationException("Expected the duration logical type to be of type fixed or string, but had ${it.type}")
                 }
             }
         }

@@ -93,6 +93,7 @@ internal fun Schema.copy(
     objectProps: Map<String, Any> = this.objectProps,
     additionalProps: Map<String, Any> = emptyMap(),
     logicalType: LogicalType? = this.logicalType,
+    logicalTypeName: String? = this.logicalType?.name,
 ): Schema {
     @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
     return when (type) {
@@ -116,7 +117,10 @@ internal fun Schema.copy(
         .also { newSchema ->
             objectProps.forEach { (key, value) -> newSchema.addProp(key, value) }
             additionalProps.forEach { (key, value) -> newSchema.addProp(key, value) }
-            logicalType?.addToSchema(newSchema)
+            if (logicalType != null && logicalTypeName != null) {
+                require(logicalType.name == logicalTypeName) { "Logical type name mismatch: expected '$logicalTypeName', but got '${logicalType.name}'" }
+            }
+            (logicalType ?: logicalTypeName?.let(::LogicalType))?.addToSchema(newSchema)
             aliases.forEach { newSchema.addAlias(it) }
         }
 }

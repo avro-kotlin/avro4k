@@ -474,6 +474,7 @@ By default, `Avro` is configured with the following behavior:
   - If `implicitNulls` is true, it takes precedence so the empty collections are set as null if the value is missing instead of an empty collection.
 - `validateSerialization`: There is no validation of the schema when encoding or decoding data, which means that serializing using a custom serializer could lead to unexpected behavior. Be careful with your custom serializers. More details [in this section](#set-a-custom-schema).
 - `fieldNamingStrategy`: The record's field naming strategy is using the original kotlin field name. To change it, [check this section](#changing-records-field-name).
+- `logicalTypes`: Indicates how a logical type should be deserialized when decoding generically to `Any`. Check this section for more details: [generic decoding](#generic-decoding-for-decoding-a-type-that-is-not-known-at-compile-time).
 
 So each time you call a method on the `Avro` object implicitely invoke the default configuration. Example:
 
@@ -491,6 +492,7 @@ val yourAvroInstance = Avro {
     implicitNulls = false
     implicitEmptyCollections = false
     validateSerialization = true
+    setLogicalTypeSerializer("your-logical-type", YourSerializer())
 }
 yourAvroInstance.encodeToByteArray(MyData("value"))
 yourAvroInstance.decodeFromByteArray(bytes)
@@ -559,6 +561,45 @@ enum class MyEnum {
 
 > [!NOTE]
 > This impacts only the schema generation.
+
+## Generic decoding (for decoding a type that is not known at compile time)
+When decoding, you may want to specify the type `Any` when you don't know at compile time the type of the data you are decoding.
+
+To do so, just provide the type `Any` to the `decodeFromByteArray` (and the other `decodeFromX`) methods.
+
+> [!WARNING]
+> You need to provide the schema, or an error will be thrown as Avro4k is not able to infer the schema.
+
+```kotlin
+Avro.decodeFromByteArray<Any>(writerSchema, bytes)
+Avro.encodeToByteArray<Any>(writerSchema, data)
+```
+
+You can also decode `Any` type *inside* a data class, or any other type (map, list, inline type, etc.) by annotating the field:
+
+```kotlin
+@Serializable
+data class MyData(
+    // implicit serializer resolving to AnySerializer
+    @Contextual val myGenericField: Any,
+    // or explicitly
+    @Serializable(with = AnySerializer::class) val myAnotherGenericField: Any,
+)
+Avro.decodeFromByteArray<MyData>(writerSchema, bytes)
+
+// or with value classes
+@JvmInline
+@Serializable
+value class MyValue(
+    @Contextual val myData: Any
+)
+Avro.decodeFromByteArray<MyData>(writerSchema, bytes)
+
+// or with any other generic type
+Avro.decodeFromByteArray<List<Any>>(writerSchema, bytes)
+Avro.decodeFromByteArray<Map<String, Any>>(writerSchema, bytes)
+Avro.decodeFromByteArray<YourType<Any>>(writerSchema, bytes)
+```
 
 ## Support additional non-serializable types
 
@@ -729,9 +770,9 @@ val schema = myCustomizedAvroInstance.schema<MyData>() // {...,"fields":[{"name"
 While reading avro binary data, you can miss a field (a kotlin field is present but not in the avro binary data), so Avro4k fails as it is not capable of constructing the kotlin
 type without the missing field value.
 
-By default:
-- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
-- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
+By default ([check this section](#customizing-the-configuration) to opt out from this default behavior):
+- nullable fields are optional and `default: null` is automatically added to the field definition.
+- arrays and maps fields are optional and `default: []` is automatically added to the field definition.
 
 ### @AvroDefault
 

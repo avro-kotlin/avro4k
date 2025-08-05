@@ -29,7 +29,7 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.UUID
 
-public val JavaStdLibSerializersModule: SerializersModule =
+internal val JavaStdLibSerializersModule: SerializersModule =
     SerializersModule {
         contextual(URLSerializer)
         contextual(UUIDSerializer)
@@ -56,8 +56,10 @@ public object URLSerializer : KSerializer<URL> {
  * Note: it does not check if the schema logical type name is `uuid` as it does not make any conversion.
  */
 public object UUIDSerializer : AvroSerializer<UUID>(UUID::class.qualifiedName!!) {
+    internal const val LOGICAL_TYPE_NAME = "uuid"
+
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return Schema.create(Schema.Type.STRING).copy(logicalType = LogicalType("uuid"))
+        return Schema.create(Schema.Type.STRING).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME))
     }
 
     override fun serializeAvro(
@@ -164,6 +166,7 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
 }
 
 public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::class.qualifiedName!!) {
+    internal const val LOGICAL_TYPE_NAME = "decimal"
     private val converter = Conversions.DecimalConversion()
 
     override fun getSchema(context: SchemaSupplierContext): Schema {

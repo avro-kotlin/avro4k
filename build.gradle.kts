@@ -29,11 +29,15 @@ dependencies {
     testImplementation(kotlin("reflect"))
 }
 
+apiValidation {
+    nonPublicMarkers += "com.github.avrokotlin.avro4k.InternalAvro4kApi"
+}
+
 kotlin {
     explicitApi()
 
     compilerOptions {
-        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi")
+        optIn = listOf("kotlin.RequiresOptIn", "kotlinx.serialization.ExperimentalSerializationApi", "com.github.avrokotlin.avro4k.InternalAvro4kApi")
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
@@ -155,7 +159,7 @@ spotless {
     }
 }
 
-task("actionsBeforeCommit") {
+tasks.register("actionsBeforeCommit") {
     this.group = "verification"
     dependsOn("apiDump")
     dependsOn("spotlessApply")

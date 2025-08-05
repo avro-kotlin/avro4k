@@ -316,6 +316,6 @@ internal fun AvroDecoder.unsupportedWriterTypeError(
 ): Throwable {
     val fallbacksStr = if (fallbackTypes.isNotEmpty()) ", and also not matching to any compatible type (one of ${fallbackTypes.joinToString()})." else ""
     return SerializationException(
-        "Unsupported schema '${currentWriterSchema.fullName}' for decoded type of ${mainType.getName()}$fallbacksStr. Actual schema: $currentWriterSchema"
+        "Unsupported schema named '${currentWriterSchema.fullName}' for decoded type of $mainType$fallbacksStr. Actual schema: $currentWriterSchema"
     )
 }

@@ -9,7 +9,6 @@ import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDe
 import com.github.avrokotlin.avro4k.schema
 import com.github.avrokotlin.avro4k.serializer.AnySerializer
 import com.github.avrokotlin.avro4k.serializer.AvroDuration
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -71,7 +70,8 @@ class AnySerializerTest : StringSpec() {
             every { encoder.serializersModule } returns EmptySerializersModule()
             val serializer =
                 object : AnySerializer() {
-                    override fun SerializersModule.inferSerializationStrategyFromNonSerializableType(type: Class<out Any>) = fallbackSerializer
+                    override fun SerializersModule.inferSerializationStrategyFromNonSerializableType(type: Class<out Any>) =
+                        fallbackSerializer
                 }
 
             serializer.serialize(encoder, NonSerializableType)
@@ -129,17 +129,11 @@ class AnySerializerTest : StringSpec() {
 
             Avro.encodeToByteArray(schema, AnySerializer, value) shouldBe expectedOutputBytes
         }
-        "should be able to encode a custom parameterized record type" {
-            shouldThrow<IllegalArgumentException> {
-                // FIXME This test fails as RecordResolver resolves the type's schema
-                //  however, as the field is generic, it uses "Any?" type by default, which is not able to generate a schema.
-                //  To fix it, we need to change the RecordResolver to instead iterate over the type's fields without going inside the field's type.
-                //  btw generating a schema internally feels like a bad idea...
-                val value = SerializableGenericType("Hello")
-                val schema = Avro.schema<SerializableGenericType<String?>>()
-                val expectedOutputBytes = Avro.encodeToByteArray(schema, value)
-                Avro.encodeToByteArray(schema, AnySerializer, value) shouldBe expectedOutputBytes
-            }
+        "should be able to encode a custom parameterized class as record type" {
+            val value = SerializableGenericType("Hello")
+            val schema = Avro.schema<SerializableGenericType<String?>>()
+            val expectedOutputBytes = Avro.encodeToByteArray(schema, value)
+            Avro.encodeToByteArray(schema, AnySerializer, value) shouldBe expectedOutputBytes
         }
         "should be able to encode a custom parameterized inline type" {
             val value = ValueClassWithGenericField("Hello")
@@ -258,7 +252,8 @@ class AnySerializerTest : StringSpec() {
             every { decoder.currentWriterSchema } returns Avro.schema<RecordType>()
             val serializer =
                 object : AnySerializer() {
-                    override fun SerializersModule.resolveRecordDeserializationStrategy(writerSchema: Schema) = fallbackSerializer
+                    override fun SerializersModule.resolveRecordDeserializationStrategy(writerSchema: Schema) =
+                        fallbackSerializer
                 }
 
             serializer.deserialize(decoder)
@@ -287,7 +282,8 @@ class AnySerializerTest : StringSpec() {
             every { decoder.currentWriterSchema } returns Schema.createFixed("the.name", null, null, 5)
             val serializer =
                 object : AnySerializer() {
-                    override fun SerializersModule.resolveFixedDeserializationStrategy(writerSchema: Schema) = fallbackSerializer
+                    override fun SerializersModule.resolveFixedDeserializationStrategy(writerSchema: Schema) =
+                        fallbackSerializer
                 }
 
             serializer.deserialize(decoder)
@@ -301,13 +297,17 @@ class AnySerializerTest : StringSpec() {
             every { decoder.serializersModule } returns EmptySerializersModule()
             val serializer =
                 object : AnySerializer() {
-                    override fun SerializersModule.preResolveDeserializationStrategy(writerSchema: Schema) = fallbackSerializer
+                    override fun SerializersModule.preResolveDeserializationStrategy(writerSchema: Schema) =
+                        fallbackSerializer
 
-                    override fun SerializersModule.resolveFixedDeserializationStrategy(writerSchema: Schema) = serializerThatShouldNotBeUsed
+                    override fun SerializersModule.resolveFixedDeserializationStrategy(writerSchema: Schema) =
+                        serializerThatShouldNotBeUsed
 
-                    override fun SerializersModule.resolveRecordDeserializationStrategy(writerSchema: Schema) = serializerThatShouldNotBeUsed
+                    override fun SerializersModule.resolveRecordDeserializationStrategy(writerSchema: Schema) =
+                        serializerThatShouldNotBeUsed
 
-                    override fun SerializersModule.resolveEnumDeserializationStrategy(writerSchema: Schema) = serializerThatShouldNotBeUsed
+                    override fun SerializersModule.resolveEnumDeserializationStrategy(writerSchema: Schema) =
+                        serializerThatShouldNotBeUsed
                 }
 
             serializer.deserialize(decoder)

@@ -75,6 +75,9 @@ internal val SerialDescriptor.aliases: Set<String>
     get() =
         findAnnotation<AvroAlias>()?.value?.toSet() ?: emptySet()
 
+internal fun SerialDescriptor.getElementAliases(elementIndex: Int): Set<String> =
+    findElementAnnotation<AvroAlias>(elementIndex)?.value?.toSet() ?: emptySet()
+
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
 
 internal fun Schema.copy(

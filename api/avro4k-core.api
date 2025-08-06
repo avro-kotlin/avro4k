@@ -256,6 +256,9 @@ public abstract interface class com/github/avrokotlin/avro4k/DoubleValueDecoder 
 	public abstract fun decodeDouble (Lcom/github/avrokotlin/avro4k/AvroDecoder;)D
 }
 
+public abstract interface annotation class com/github/avrokotlin/avro4k/ExperimentalAvro4kApi : java/lang/annotation/Annotation {
+}
+
 public abstract interface class com/github/avrokotlin/avro4k/FieldNamingStrategy {
 	public static final field Builtins Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins;
 	public abstract fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;

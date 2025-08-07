@@ -1,4 +1,5 @@
 import kotlinx.benchmark.gradle.JvmBenchmarkTarget
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
     java
@@ -70,6 +71,15 @@ dependencies {
     implementation(project(":"))
 }
 
+kotlin {
+    explicitApi = ExplicitApiMode.Disabled
+
+    compilerOptions {
+        optIn = listOf(
+            "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
+        )
+    }
+}
 repositories {
     mavenCentral()
 }

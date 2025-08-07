@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import okio.BufferedSink
@@ -13,7 +12,7 @@ import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 
 @Deprecated("Use kotlinx.io's encodeToSink instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun <T> Avro.encodeToSink(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
@@ -26,7 +25,7 @@ public fun <T> Avro.encodeToSink(
 }
 
 @Deprecated("Use kotlinx.io's encodeToSink instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToSink(
     value: T,
     sink: BufferedSink,
@@ -36,7 +35,7 @@ public inline fun <reified T> Avro.encodeToSink(
 }
 
 @Deprecated("Use kotlinx.io's encodeToSink instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToSink(
     writerSchema: Schema,
     value: T,
@@ -47,7 +46,7 @@ public inline fun <reified T> Avro.encodeToSink(
 }
 
 @Deprecated("Use kotlinx.io's decodeFromSource instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun <T> Avro.decodeFromSource(
     writerSchema: Schema,
     deserializer: DeserializationStrategy<T>,
@@ -61,14 +60,14 @@ public fun <T> Avro.decodeFromSource(
 }
 
 @Deprecated("Use kotlinx.io's decodeFromSource instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.decodeFromSource(source: BufferedSource): T {
     val serializer = serializersModule.serializer<T>()
     return decodeFromSource(schema(serializer.descriptor), serializer, source)
 }
 
 @Deprecated("Use kotlinx.io's decodeFromSource instead")
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.decodeFromSource(
     writerSchema: Schema,
     source: BufferedSource,

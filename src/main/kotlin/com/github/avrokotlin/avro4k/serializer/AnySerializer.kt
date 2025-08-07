@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -39,7 +39,7 @@ internal val AnyTypeSerializersModule: SerializersModule =
  * At decoding, it delegates the process to the inferred [KSerializer] from the [Schema.type] (example: [Schema.Type.BOOLEAN] is handled by the [Boolean]'s serializer).
  * For more customization about named types, see [resolveFixedDeserializationStrategy], [resolveEnumDeserializationStrategy], and [resolveRecordDeserializationStrategy].
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public open class AnySerializer : KSerializer<Any> {
     // No need to use a WeakHashMap with class keys
     private val encodingCache = HashMap<Class<out Any>, SerializationStrategy<Any>>()

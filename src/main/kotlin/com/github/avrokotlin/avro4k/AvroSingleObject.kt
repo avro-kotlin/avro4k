@@ -11,7 +11,6 @@ import kotlinx.io.readByteArray
 import kotlinx.io.readLongLe
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.modules.SerializersModule
@@ -31,7 +30,7 @@ import java.io.OutputStream
  *
  * @param schemaRegistry a function to find a schema by its fingerprint, and returns null when not found. You should use [SchemaNormalization.parsingFingerprint64] to generate the fingerprint.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public class AvroSingleObject(
     private val schemaRegistry: (fingerprint: Long) -> Schema?,
     @PublishedApi

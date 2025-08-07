@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import com.github.avrokotlin.avro4k.internal.encodeWithApacheEncoder
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
@@ -21,7 +20,7 @@ import java.io.OutputStream
  *
  * [spec](https://avro.apache.org/docs/1.11.1/specification/#object-container-files)
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public sealed class AvroObjectContainer(
     @PublishedApi
     internal val avro: Avro,
@@ -60,7 +59,7 @@ public sealed class AvroObjectContainer(
     }
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public class AvroObjectContainerWriter<T> internal constructor(
     private val writer: DataFileWriter<T>,
 ) : Closeable {
@@ -75,7 +74,7 @@ public class AvroObjectContainerWriter<T> internal constructor(
 
 private class AvroObjectContainerImpl(avro: Avro) : AvroObjectContainer(avro)
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun AvroObjectContainer(
     from: Avro = Avro,
     builderAction: AvroBuilder.() -> Unit,
@@ -83,7 +82,7 @@ public fun AvroObjectContainer(
     return AvroObjectContainerImpl(Avro(from, builderAction))
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> AvroObjectContainer.openWriter(
     outputStream: OutputStream,
     noinline builder: AvroObjectContainerBuilder.() -> Unit = {},
@@ -92,7 +91,7 @@ public inline fun <reified T> AvroObjectContainer.openWriter(
     return openWriter(avro.schema(serializer), serializer, outputStream, builder)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> AvroObjectContainer.decodeFromStream(
     inputStream: InputStream,
     noinline metadataDumper: AvroObjectContainerMetadataDumper.() -> Unit = {},
@@ -101,7 +100,7 @@ public inline fun <reified T> AvroObjectContainer.decodeFromStream(
     return decodeFromStream(serializer, inputStream, metadataDumper)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public class AvroObjectContainerBuilder internal constructor(private val fileWriter: DataFileWriter<*>) {
     public fun metadata(
         key: String,
@@ -133,7 +132,7 @@ public class AvroObjectContainerBuilder internal constructor(private val fileWri
     }
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public class AvroObjectContainerMetadataDumper internal constructor(private val fileStream: DataFileStream<*>) {
     public fun metadata(key: String): MetadataAccessor? {
         return fileStream.getMeta(key)?.let { MetadataAccessor(it) }

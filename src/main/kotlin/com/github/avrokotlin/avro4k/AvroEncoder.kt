@@ -3,7 +3,6 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.isNamedSchema
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Encoder
@@ -30,26 +29,26 @@ public interface AvroEncoder : Encoder {
     /**
      * Provides the schema used to encode the current value.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public val currentWriterSchema: Schema
 
     /**
      * Encodes a [Schema.Type.BYTES] value from a [ByteArray].
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun encodeBytes(value: ByteArray)
 
     /**
      * Encodes a [Schema.Type.FIXED] value from a [ByteArray]. Its size must match the size of the fixed schema in [currentWriterSchema].
      * When many fixed schemas are in a union, the first one that matches the size is selected. To avoid this auto-selection, use [encodeUnionIndex] with the index of the expected fixed schema.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun encodeFixed(value: ByteArray)
 
     /**
      * Selects the index of the union type to encode. Also sets [currentWriterSchema] to the selected type.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun encodeUnionIndex(index: Int)
 }
 

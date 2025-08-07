@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.specific.SpecificRecord
@@ -10,11 +9,11 @@ import org.apache.avro.specific.SpecificRecord
  * both [GenericRecord] and [SpecificRecord].
  */
 @Deprecated("Use GenericData.Record instead", ReplaceWith("org.apache.avro.generic.GenericData.Record(schema)"))
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public interface Record : GenericRecord, SpecificRecord
 
 @Deprecated("Use GenericData.Record instead", ReplaceWith("org.apache.avro.generic.GenericData.Record(schema)"))
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public data class ListRecord(
     private val s: Schema,
     private val values: List<Any?>,

@@ -272,7 +272,7 @@ fun main() {
 # Important notes
 
 - **Avro4k** is highly based on apache avro library, that implies all the schema validation is done by it
-- All members annotated with `@ExperimentalSerializationApi` are **subject to changes** in future releases without any notice as they are experimental, so please
+- All members annotated with `@ExperimentalAvro4kApi` are **subject to changes** in future releases without any notice as they are experimental, so please
   check the release notes to check the needed migration. At least, given a version `A.B.C`, only the minor `B` number will be incremented, not the major `A`.
 - **Avro4k** also supports encoding and decoding generic data, mainly because of confluent schema registry compatibility as their serializers only handle generic data. When avro4k
   will support their schema registry, the generic encoding will be removed to keep this library as simple as possible.

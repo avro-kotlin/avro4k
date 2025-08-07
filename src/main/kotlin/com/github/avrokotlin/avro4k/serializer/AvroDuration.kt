@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.serializer
 import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.decodeResolvingAny
 import com.github.avrokotlin.avro4k.ensureFixedSize
 import com.github.avrokotlin.avro4k.fullNameOrAliasMismatchError
@@ -12,7 +13,6 @@ import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
 import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -33,7 +33,7 @@ import java.nio.ByteOrder
  */
 @SerialName("time.Duration")
 @Serializable(with = AvroDurationSerializer::class)
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public data class AvroDuration(
     val months: UInt,
     val days: UInt,
@@ -117,7 +117,7 @@ public data class AvroDuration(
     }
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public class AvroDurationParseException(value: String) : SerializationException("Unable to parse duration: $value")
 
 internal object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration::class.qualifiedName!!) {

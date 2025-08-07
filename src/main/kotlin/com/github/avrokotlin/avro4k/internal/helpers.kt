@@ -9,7 +9,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -32,6 +31,7 @@ internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotat
 
 internal inline fun <reified T : Annotation> SerialDescriptor.findElementAnnotations(elementIndex: Int) = getElementAnnotations(elementIndex).filterIsInstance<T>()
 
+@OptIn(ExperimentalSerializationApi::class)
 internal val SerialDescriptor.nonNullSerialName: String get() = nonNullOriginal.serialName
 internal val SerialDescriptor.namespace: String? get() = serialName.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
 
@@ -146,7 +146,7 @@ internal fun Schema.Field.copy(
         }
 }
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule: SerializersModule): Sequence<SerialDescriptor> {
     return when (this.kind) {
         PolymorphicKind.SEALED ->
@@ -165,9 +165,9 @@ internal fun SerialDescriptor.possibleSerializationSubclasses(serializersModule:
     }
 }
 
-@OptIn(InternalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 internal fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: SerializersModule) =
-    requireNotNull(serializersModule.getContextualDescriptor(this) ?: this.capturedKClass?.serializerOrNull()?.descriptor) {
+    requireNotNull(serializersModule.getContextualDescriptor(this) ?: this.capturedKClass?.java?.let(serializersModule::serializerOrNull)?.descriptor) {
         "No descriptor found in serialization context for $this"
     }
 

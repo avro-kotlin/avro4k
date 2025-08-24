@@ -15,7 +15,9 @@ plugins {
 }
 
 group = "com.github.avro-kotlin.avro4k"
-version = Ci.publishVersion
+System.getenv("RELEASE_VERSION")?.let {
+    version = it
+}
 
 dependencies {
     api(libs.apache.avro)
@@ -114,41 +116,19 @@ nexusPublishing {
 }
 
 signing {
-    if (Ci.isRelease) {
-        val signingKey: String? by project
-        val signingPassword: String? by project
-
-        if (signingKey != null && signingPassword != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        } else {
-            throw IllegalStateException("No signing key or password found")
-        }
-        sign(publishing.publications)
+    setRequired {
+        // signing is required if this is a release version and the artifacts are to be published
+        // do not use hasTask() as this require realization of the tasks that maybe are not necessary
+        (System.getenv("RELEASE_VERSION")?.let { !it.endsWith("-SNAPSHOT") } ?: false) &&
+            gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
     }
-}
-
-object Ci {
-    // this is the version used for building snapshots
-    // .buildnumber-snapshot will be appended
-    private const val SNAPSHOT_BASE = "1.9.0"
-
-    private val githubBuildNumber = System.getenv("GITHUB_RUN_NUMBER")
-
-    private val snapshotVersion =
-        when (githubBuildNumber) {
-            null -> "$SNAPSHOT_BASE-SNAPSHOT"
-            else -> "$SNAPSHOT_BASE.$githubBuildNumber-SNAPSHOT"
-        }
-
-    private val releaseVersion = System.getenv("RELEASE_VERSION")
-
-    val isRelease = releaseVersion != null
-    val publishVersion = releaseVersion ?: snapshotVersion
+    sign(publishing.publications["mavenJava"])
 }
 
 spotless {
     kotlin {
         ktlint()
+        // test
     }
     json {
         target("src/test/resources/**.json")
@@ -159,12 +139,22 @@ spotless {
     }
 }
 
-tasks.register("actionsBeforeCommit") {
+tasks.register("commitPrePush") {
     this.group = "verification"
     dependsOn("apiDump")
     dependsOn("spotlessApply")
-    dependsOn("test")
-    dependsOn("koverLog")
+    // titi
+}
+
+copy {
+    println("Copying git hooks")
+    // noooooo
+    from("$rootDir/.githooks/pre-push")
+    into("$rootDir/.git/hooks")
+    // coucou 2 zd erdgdtgd sr gdtg  testeur
+    filePermissions {
+        user { execute = true }
+    }
 }
 
 repositories {

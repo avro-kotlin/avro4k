@@ -1,0 +1,41 @@
+#!/bin/bash
+echo "Running post-commit hook: commitPrePush"
+exit 0
+
+if [ "$SKIP_POST_COMMIT_HOOK" ]; then
+    # Skip the pre-push hook
+    exit 0
+fi
+
+# stash non staged files
+echo "Stashing non-committed changes"
+git status
+stashId=$(git stash create 'pre-push hook stash')
+git stash store -m 'pre-push hook stash' $stashId
+git reset --keep
+
+echo
+echo "Executing commitPrePush gradle task"
+./gradlew commitPrePush
+
+status=$?
+
+if [ "$status" = 0 ] ; then
+    # Amend the commit with the changed files
+    echo
+    echo
+    echo "Applying changes if any"
+    git add --all
+    SKIP_POST_COMMIT_HOOK=true git commit --amend --no-verify
+    # pop the stash to get back to the previous state
+    echo
+    echo "Restoring non-staged files"
+    git stash apply $stashId
+    echo
+    echo "Dropping stash"
+    git stash drop $stashId
+    #Exit
+    exit 0
+else
+    exit $status
+fi

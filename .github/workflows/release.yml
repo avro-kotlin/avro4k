@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "The release version (e.g., '1.9.0')."
+        # TODO: get the latest release, incrementing the component related to the commits
+        description: "The release version (e.g., '2.1.3')."
         required: true
 
 jobs:
@@ -17,18 +18,20 @@ jobs:
           echo "This workflow should only be triggered on main and main-v2 branch.
           exit 1
       - name: Checkout the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
+      - name: Build
+        run: ./gradlew build
       - name: publish release
         run: ./gradlew publishToSonatype closeAndReleaseStagingRepositories
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
       - name: create release
         run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
         env:

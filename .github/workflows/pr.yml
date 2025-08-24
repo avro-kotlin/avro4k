@@ -3,28 +3,44 @@ name: build-pr
 on:
   pull_request:
     paths-ignore:
-      - 'doc/**'
       - '*.md'
+
+permissions:
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          add-job-summary-as-pr-comment: on-failure
+          build-scan-publish: true
+          build-scan-terms-of-use-agree: yes
+          build-scan-terms-of-use-url: https://gradle.com/terms-of-service
+
+      - name: Build
+        run: ./gradlew classes
 
       - name: Run tests
-        run: ./gradlew check
+        run: ./gradlew check --scan
 
-      - name: Bundle the build report
-        if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+      - name: Publish snapshot
+        run: ./gradlew publish
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
+          # TODO: get the latest release, incrementing the minor
+          RELEASE_VERSION: 1.9.0.${{ github.run_number }}-SNAPSHOT
 
-      - name: Upload the build report
-        if: failure()
+      - name: Upload build reports
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: error-report
-          path: build-reports.zip
+          name: build-reports
+          path: '**/build/reports/'

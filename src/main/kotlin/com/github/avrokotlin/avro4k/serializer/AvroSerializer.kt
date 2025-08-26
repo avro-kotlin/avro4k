@@ -6,9 +6,9 @@ import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroStringable
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
 import com.github.avrokotlin.avro4k.internal.namespace
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SealedSerializationApi
@@ -42,7 +42,6 @@ public abstract class AvroSerializer<T>(
      *
      * `false` by default, which means a `null` avro encoded value will always be represented by a nullable field.
      */
-    @ExperimentalSerializationApi
     public open val supportsNull: Boolean
         get() = false
 
@@ -101,7 +100,7 @@ public abstract class AvroSerializer<T>(
     public abstract fun deserializeAvro(decoder: AvroDecoder): T
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public interface SchemaSupplierContext {
     public val configuration: AvroConfiguration
 
@@ -116,7 +115,7 @@ public interface SchemaSupplierContext {
 /**
  * Search for the first annotation of type [T] in the given [ElementLocation].
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T : Annotation> ElementLocation.findAnnotation(): T? {
     return descriptor.findElementAnnotation(elementIndex)
 }
@@ -124,38 +123,38 @@ public inline fun <reified T : Annotation> ElementLocation.findAnnotation(): T? 
 /**
  * Shorthand for [findAnnotation] with [AvroDecimal] as it is a built-in annotation.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public val ElementLocation.decimal: AvroDecimal?
     get() = findAnnotation()
 
 /**
  * Shorthand for [findAnnotation] with [AvroStringable] as it is a built-in annotation.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public val ElementLocation.stringable: AvroStringable?
     get() = findAnnotation()
 
 /**
  * Creates a string schema from the [AvroStringable] annotation.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun AvroStringable.createSchema(): Schema = Schema.create(Schema.Type.STRING)
 
 /**
  * Shorthand for [findAnnotation] with [AvroFixed] as it is a built-in annotation.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public val ElementLocation.fixed: AvroFixed?
     get() = findAnnotation()
 
 /**
  * Creates a fixed schema from the [AvroFixed] annotation.
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun AvroFixed.createSchema(elementLocation: ElementLocation): Schema =
     Schema.createFixed(elementLocation.descriptor.getElementName(elementLocation.elementIndex), null, elementLocation.descriptor.namespace, size)
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public data class ElementLocation
     @PublishedApi
     internal constructor(

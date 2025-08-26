@@ -1,7 +1,6 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
@@ -45,7 +44,7 @@ public interface AvroDecoder : Decoder {
      *
      * It won't return a union as the schema correspond to the actual value.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public val currentWriterSchema: Schema
 
     /**
@@ -53,7 +52,7 @@ public interface AvroDecoder : Decoder {
      *
      * A bytes value is a sequence of bytes prefixed with an int corresponding to its length.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun decodeBytes(): ByteArray
 
     /**
@@ -61,7 +60,7 @@ public interface AvroDecoder : Decoder {
      *
      * A fixed value is a fixed-size sequence of bytes, where the length is not materialized in the binary output as it is known by the [currentWriterSchema].
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun decodeFixed(): GenericFixed
 
     /**
@@ -72,7 +71,7 @@ public interface AvroDecoder : Decoder {
      * Will be removed in the future as direct decoding isn't capable of it.
      */
     @Deprecated("Use currentWriterSchema to get the schema and then decode the value using the appropriate decode* method, or use decodeResolving* for more complex use cases.")
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun decodeValue(): Any
 }
 
@@ -97,7 +96,7 @@ public interface AvroDecoder : Decoder {
  * @see decodeResolvingDouble
  * @see decodeResolvingChar
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <T : Any> AvroDecoder.decodeResolvingAny(
     error: () -> Throwable,
     resolver: (Schema) -> AnyValueDecoder<T>?,
@@ -110,7 +109,7 @@ public inline fun <T : Any> AvroDecoder.decodeResolvingAny(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingByte(
     error: () -> Throwable,
     resolver: (Schema) -> ByteValueDecoder?,
@@ -123,7 +122,7 @@ public inline fun AvroDecoder.decodeResolvingByte(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingShort(
     error: () -> Throwable,
     resolver: (Schema) -> ShortValueDecoder?,
@@ -136,7 +135,7 @@ public inline fun AvroDecoder.decodeResolvingShort(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingInt(
     error: () -> Throwable,
     resolver: (Schema) -> IntValueDecoder?,
@@ -149,7 +148,7 @@ public inline fun AvroDecoder.decodeResolvingInt(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingLong(
     error: () -> Throwable,
     resolver: (Schema) -> LongValueDecoder?,
@@ -162,7 +161,7 @@ public inline fun AvroDecoder.decodeResolvingLong(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingBoolean(
     error: () -> Throwable,
     resolver: (Schema) -> BooleanValueDecoder?,
@@ -175,7 +174,7 @@ public inline fun AvroDecoder.decodeResolvingBoolean(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingFloat(
     error: () -> Throwable,
     resolver: (Schema) -> FloatValueDecoder?,
@@ -188,7 +187,7 @@ public inline fun AvroDecoder.decodeResolvingFloat(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingDouble(
     error: () -> Throwable,
     resolver: (Schema) -> DoubleValueDecoder?,
@@ -201,7 +200,7 @@ public inline fun AvroDecoder.decodeResolvingDouble(
  *
  * @see decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun AvroDecoder.decodeResolvingChar(
     error: () -> Throwable,
     resolver: (Schema) -> CharValueDecoder?,
@@ -212,7 +211,7 @@ public inline fun AvroDecoder.decodeResolvingChar(
 /**
  * @see AvroDecoder.decodeResolvingAny
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface AnyValueDecoder<T> {
     context(AvroDecoder)
     public fun decodeAny(): T
@@ -221,7 +220,7 @@ public fun interface AnyValueDecoder<T> {
 /**
  * @see AvroDecoder.decodeResolvingBoolean
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface BooleanValueDecoder {
     context(AvroDecoder)
     public fun decodeBoolean(): Boolean
@@ -230,7 +229,7 @@ public fun interface BooleanValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingByte
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface ByteValueDecoder {
     context(AvroDecoder)
     public fun decodeByte(): Byte
@@ -239,7 +238,7 @@ public fun interface ByteValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingShort
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface ShortValueDecoder {
     context(AvroDecoder)
     public fun decodeShort(): Short
@@ -248,7 +247,7 @@ public fun interface ShortValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingInt
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface IntValueDecoder {
     context(AvroDecoder)
     public fun decodeInt(): Int
@@ -257,7 +256,7 @@ public fun interface IntValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingLong
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface LongValueDecoder {
     context(AvroDecoder)
     public fun decodeLong(): Long
@@ -266,7 +265,7 @@ public fun interface LongValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingFloat
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface FloatValueDecoder {
     context(AvroDecoder)
     public fun decodeFloat(): Float
@@ -275,7 +274,7 @@ public fun interface FloatValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingDouble
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface DoubleValueDecoder {
     context(AvroDecoder)
     public fun decodeDouble(): Double
@@ -284,7 +283,7 @@ public fun interface DoubleValueDecoder {
 /**
  * @see AvroDecoder.decodeResolvingChar
  */
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun interface CharValueDecoder {
     context(AvroDecoder)
     public fun decodeChar(): Char

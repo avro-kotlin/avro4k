@@ -3,13 +3,12 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.decoder.generic.AvroValueGenericDecoder
 import com.github.avrokotlin.avro4k.internal.encoder.generic.AvroValueGenericEncoder
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericContainer
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun <T> Avro.encodeToGenericData(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
@@ -22,13 +21,13 @@ public fun <T> Avro.encodeToGenericData(
     return result
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToGenericData(value: T): Any? {
     val serializer = serializersModule.serializer<T>()
     return encodeToGenericData(schema(serializer), serializer, value)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToGenericData(
     writerSchema: Schema,
     value: T,
@@ -37,7 +36,7 @@ public inline fun <reified T> Avro.encodeToGenericData(
     return encodeToGenericData(writerSchema, serializer, value)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public fun <T> Avro.decodeFromGenericData(
     writerSchema: Schema,
     deserializer: DeserializationStrategy<T>,
@@ -47,7 +46,7 @@ public fun <T> Avro.decodeFromGenericData(
         .decodeSerializableValue(deserializer)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.decodeFromGenericData(
     writerSchema: Schema,
     value: Any?,
@@ -56,7 +55,7 @@ public inline fun <reified T> Avro.decodeFromGenericData(
     return decodeFromGenericData(writerSchema, deserializer, value)
 }
 
-@ExperimentalSerializationApi
+@ExperimentalAvro4kApi
 public inline fun <reified T> Avro.decodeFromGenericData(value: GenericContainer?): T? {
     if (value == null) return null
     val deserializer = serializersModule.serializer<T>()

@@ -12,7 +12,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -221,25 +220,25 @@ public class AvroBuilder internal constructor(avro: Avro) {
     /**
      * @see AvroConfiguration.fieldNamingStrategy
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public var fieldNamingStrategy: FieldNamingStrategy = avro.configuration.fieldNamingStrategy
 
     /**
      * @see AvroConfiguration.implicitNulls
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public var implicitNulls: Boolean = avro.configuration.implicitNulls
 
     /**
      * @see AvroConfiguration.implicitEmptyCollections
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public var implicitEmptyCollections: Boolean = avro.configuration.implicitEmptyCollections
 
     /**
      * @see AvroConfiguration.validateSerialization
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public var validateSerialization: Boolean = avro.configuration.validateSerialization
 
     /**
@@ -270,7 +269,7 @@ public class AvroBuilder internal constructor(avro: Avro) {
      *
      * @see AvroConfiguration.logicalTypes
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     public fun setLogicalTypeSerializer(
         logicalTypeName: String,
         serializer: KSerializer<out Any>,

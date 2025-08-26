@@ -25,7 +25,7 @@ import kotlinx.serialization.modules.SerializersModule
  * @param encodedElementsCount The final number of elements to encode. If the mapper provides a smaller number of elements, an error will be thrown indicating the missing index.
  * @param mapElementIndex maps the element index to a new positional zero-based index. If this mapper provides the same index for multiple elements, only the last one will be encoded as the previous ones will be overridden. The mapped index just helps to reorder the elements, but the reordered `encode*Element` method calls will still pass the original element index.
  */
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 internal class ReorderingCompositeEncoder(
     encodedElementsCount: Int,
     private val compositeEncoderDelegate: CompositeEncoder,
@@ -34,7 +34,6 @@ internal class ReorderingCompositeEncoder(
     private val bufferedCalls = Array<BufferedCall?>(encodedElementsCount) { null }
 
     companion object {
-        @ExperimentalSerializationApi
         const val SKIP_ELEMENT_INDEX: Int = -1
     }
 
@@ -266,7 +265,6 @@ internal class ReorderingCompositeEncoder(
             bufferEncoding { encodeLong(value) }
         }
 
-        @ExperimentalSerializationApi
         override fun encodeNull() {
             bufferEncoding { encodeNull() }
         }

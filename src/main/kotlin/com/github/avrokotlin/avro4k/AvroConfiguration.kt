@@ -12,7 +12,6 @@ import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MILLIS
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 
@@ -22,14 +21,14 @@ public data class AvroConfiguration(
      *
      * Default: [FieldNamingStrategy.Builtins.OriginalElementName]
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     val fieldNamingStrategy: FieldNamingStrategy = FieldNamingStrategy.Builtins.OriginalElementName,
     /**
      * By default, set to `true`, the nullable fields that haven't any default value are set as null if the value is missing. It also adds `"default": null` to those fields when generating schema using avro4k.
      *
      * When set to `false`, during decoding, any missing value for a nullable field without default `null` value (e.g. `val field: Type?` without `= null`) is failing.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     val implicitNulls: Boolean = true,
     /**
      * By default, set to `true`, the array & map fields that haven't any default value are set as an empty array or map if the value is missing. It also adds `"default": []` for arrays or `"default": {}` for maps to those fields when generating schema using avro4k.
@@ -38,7 +37,7 @@ public data class AvroConfiguration(
      *
      * When set to `false`, during decoding, any missing content for an array or a map field without its empty default value is failing.
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     val implicitEmptyCollections: Boolean = true,
     /**
      * **To be removed when binary support is stable.**
@@ -50,7 +49,7 @@ public data class AvroConfiguration(
      * @see [org.apache.avro.io.ValidatingEncoder]
      * @see [org.apache.avro.io.ValidatingDecoder]
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     val validateSerialization: Boolean = false,
     /**
      * Resolves a logical type name to its corresponding [kotlinx.serialization.KSerializer] for generic decoding with [AnySerializer].
@@ -59,7 +58,7 @@ public data class AvroConfiguration(
      *
      * @see AvroBuilder.setLogicalTypeSerializer
      */
-    @ExperimentalSerializationApi
+    @ExperimentalAvro4kApi
     val logicalTypes: Map<String, KSerializer<out Any>> =
         mapOf(
             AvroDurationSerializer.LOGICAL_TYPE_NAME to AvroDurationSerializer,
@@ -86,7 +85,7 @@ public interface FieldNamingStrategy {
         /**
          * Simply returns the element name.
          */
-        @ExperimentalSerializationApi
+        @ExperimentalAvro4kApi
         public object OriginalElementName : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,
@@ -140,7 +139,7 @@ public interface FieldNamingStrategy {
         /**
          * Enforce camelCase naming strategy by upper-casing the first field name letter.
          */
-        @ExperimentalSerializationApi
+        @ExperimentalAvro4kApi
         public object PascalCase : FieldNamingStrategy {
             override fun resolve(
                 descriptor: SerialDescriptor,

@@ -1,8 +1,8 @@
 [versions]
-kotlin = "2.1.21"
-kotlinxSerialization = "1.9.0"
+kotlin = "2.2.10"
+kotlinx-serialization = "1.9.0"
 kotlinx-io = "0.8.0"
-kotestVersion = "5.9.1"
+kotest = "5.9.1"
 okio = "3.16.0"
 apache-avro = "1.11.4"
 mockk = "1.14.5"
@@ -10,11 +10,11 @@ mockk = "1.14.5"
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
-kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotestVersion" }
-kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotestVersion" }
+kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [plugins]

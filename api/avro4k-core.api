@@ -21,7 +21,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroAlia
 	public abstract fun value ()[Ljava/lang/String;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/avrokotlin/avro4k/AvroAlias {
+public final synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/avrokotlin/avro4k/AvroAlias {
 	public fun <init> ([Ljava/lang/String;)V
 	public final synthetic fun value ()[Ljava/lang/String;
 }
@@ -66,7 +66,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDeci
 	public abstract fun scale ()I
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroDecimal$Impl : com/github/avrokotlin/avro4k/AvroDecimal {
+public final synthetic class com/github/avrokotlin/avro4k/AvroDecimal$Impl : com/github/avrokotlin/avro4k/AvroDecimal {
 	public fun <init> (II)V
 	public final synthetic fun precision ()I
 	public final synthetic fun scale ()I
@@ -96,7 +96,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDefa
 	public abstract fun value ()Ljava/lang/String;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroDefault$Impl : com/github/avrokotlin/avro4k/AvroDefault {
+public final synthetic class com/github/avrokotlin/avro4k/AvroDefault$Impl : com/github/avrokotlin/avro4k/AvroDefault {
 	public fun <init> (Ljava/lang/String;)V
 	public final synthetic fun value ()Ljava/lang/String;
 }
@@ -105,7 +105,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDoc 
 	public abstract fun value ()Ljava/lang/String;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroDoc$Impl : com/github/avrokotlin/avro4k/AvroDoc {
+public final synthetic class com/github/avrokotlin/avro4k/AvroDoc$Impl : com/github/avrokotlin/avro4k/AvroDoc {
 	public fun <init> (Ljava/lang/String;)V
 	public final synthetic fun value ()Ljava/lang/String;
 }
@@ -120,7 +120,7 @@ public abstract interface class com/github/avrokotlin/avro4k/AvroEncoder : kotli
 public abstract interface annotation class com/github/avrokotlin/avro4k/AvroEnumDefault : java/lang/annotation/Annotation {
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroEnumDefault$Impl : com/github/avrokotlin/avro4k/AvroEnumDefault {
+public final synthetic class com/github/avrokotlin/avro4k/AvroEnumDefault$Impl : com/github/avrokotlin/avro4k/AvroEnumDefault {
 	public fun <init> ()V
 }
 
@@ -128,7 +128,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroFixe
 	public abstract fun size ()I
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroFixed$Impl : com/github/avrokotlin/avro4k/AvroFixed {
+public final synthetic class com/github/avrokotlin/avro4k/AvroFixed$Impl : com/github/avrokotlin/avro4k/AvroFixed {
 	public fun <init> (I)V
 	public final synthetic fun size ()I
 }
@@ -210,7 +210,7 @@ public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp
 	public abstract fun value ()[Lcom/github/avrokotlin/avro4k/AvroProp;
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/github/avrokotlin/avro4k/AvroProp {
+public final synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/github/avrokotlin/avro4k/AvroProp {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final synthetic fun key ()Ljava/lang/String;
 	public final synthetic fun value ()Ljava/lang/String;
@@ -236,7 +236,7 @@ public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
 public abstract interface annotation class com/github/avrokotlin/avro4k/AvroStringable : java/lang/annotation/Annotation {
 }
 
-public synthetic class com/github/avrokotlin/avro4k/AvroStringable$Impl : com/github/avrokotlin/avro4k/AvroStringable {
+public final synthetic class com/github/avrokotlin/avro4k/AvroStringable$Impl : com/github/avrokotlin/avro4k/AvroStringable {
 	public fun <init> ()V
 }
 

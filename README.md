@@ -1,7 +1,6 @@
 ![build-main](https://github.com/avro-kotlin/avro4k/workflows/build-main/badge.svg)
 [![Download](https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core)](https://search.maven.org/artifact/com.github.avro-kotlin.avro4k/avro4k-core)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
-[![Kotlinx serialization](https://img.shields.io/badge/kotlinx--serialization-1.8.1-blue?logo=kotlin)](https://github.com/Kotlin/kotlinx.serialization)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.2-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.4-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.4/specification/)
 
 # Introduction
@@ -18,6 +17,7 @@ Here are the main features:
 - **Fast** as it is reflection-less :rocket: (check the benchmarks [here](benchmark/README.md#results))
 - **Simple API** to get started quickly, also with native support of java standard classes like `UUID`, `BigDecimal`, `BigInteger` and `java.time` module :1st_place_medal:
 - **Relaxed matching** for easy schema evolution as it natively [adapts compatible types](#types-matrix) :cyclone:
+- **Kafka confluent's schema registry ready** thanks to the [confluent-kafka-serializer module](confluent-kafka-serializer/README.md), allowing to use avro4k in any kafka or spring cloud project :white_check_mark:
 
 > [!WARNING]
 > **Important**: As of today, avro4k is **only available for JVM platform**, and theoretically for android platform (as apache avro library is already **android-ready**). <br/>If

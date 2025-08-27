@@ -102,6 +102,7 @@ internal class AvroEncodingAssertions<T>(
         value: T,
         schema: Schema,
     ): Any? {
+        @Suppress("DEPRECATION")
         return avro.encodeToGenericData(schema, serializer, value)
     }
 
@@ -235,7 +236,7 @@ internal inline fun <reified T : Any> StringSpecRootScope.basicScalarEncodeDecod
         testEncodeDecode<T?>(expectedSchema.nullable, null)
 
         Avro.schema<ValueClassWithGenericField<T?>>() shouldBe expectedSchema.nullable
-        testEncodeDecode(expectedSchema.nullable, ValueClassWithGenericField<T?>(value), apacheCompatibleValue = apacheCompatibleValue)
+        testEncodeDecode(expectedSchema.nullable, ValueClassWithGenericField(value), apacheCompatibleValue = apacheCompatibleValue)
         testEncodeDecode(expectedSchema.nullable, ValueClassWithGenericField<T?>(null), apacheCompatibleValue = null)
 
         Avro.schema<ValueClassWithGenericField<T?>?>() shouldBe expectedSchema.nullable
@@ -278,7 +279,7 @@ internal inline fun <reified T : Any> StringSpecRootScope.basicScalarEncodeDecod
                 .endRecord()
         testEncodeDecode(
             recordNullable,
-            RecordWithGenericField<T?>(value),
+            RecordWithGenericField(value),
             apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) }
         )
         testEncodeDecode(
@@ -288,7 +289,7 @@ internal inline fun <reified T : Any> StringSpecRootScope.basicScalarEncodeDecod
         )
         testEncodeDecode(
             recordNullable,
-            RecordWithGenericField(ValueClassWithGenericField<T?>(value)),
+            RecordWithGenericField(ValueClassWithGenericField(value)),
             apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) }
         )
         testEncodeDecode(
@@ -321,7 +322,7 @@ internal inline fun <reified T : Any> StringSpecRootScope.basicScalarEncodeDecod
         Avro.schema<Map<ValueClassWithGenericField<T>, ValueClassWithGenericField<T>?>>() shouldBe mapNullable
         Avro.schema<Map<T, T?>>() shouldBe mapNullable
         Avro.schema<Map<ValueClassWithGenericField<T>, T?>>() shouldBe mapNullable
-        testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField<T?>(value)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
+        testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField(value)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
         testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField<T?>(null)), apacheCompatibleValue = mapOf("key" to null))
     }
     "support runtime ${expectedSchema.type} type ${value::class.qualifiedName} in array" {
@@ -348,7 +349,7 @@ internal inline fun <reified T : Any> StringSpecRootScope.basicScalarEncodeDecod
         Avro.schema<Array<ValueClassWithGenericField<T>?>>() shouldBe arrayNullable
         Avro.schema<Array<ValueClassWithGenericField<T?>?>>() shouldBe arrayNullable
         Avro.schema<Array<ValueClassWithGenericField<T>?>>() shouldBe arrayNullable
-        testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField<T?>(value)), apacheCompatibleValue = listOf(apacheCompatibleValue))
+        testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField(value)), apacheCompatibleValue = listOf(apacheCompatibleValue))
         testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField<T?>(null)), apacheCompatibleValue = listOf(null))
     }
 }
@@ -367,7 +368,7 @@ internal inline fun <reified T : Any, reified R : Any> StringSpecRootScope.testS
         testEncodeDecode<T?>(writerSchema.nullable, logicalValue, apacheCompatibleValue = apacheCompatibleValue)
         testEncodeDecode<T?>(writerSchema.nullable, null)
 
-        testEncodeDecode(writerSchema.nullable, ValueClassWithGenericField<T?>(logicalValue), apacheCompatibleValue = apacheCompatibleValue)
+        testEncodeDecode(writerSchema.nullable, ValueClassWithGenericField(logicalValue), apacheCompatibleValue = apacheCompatibleValue)
         testEncodeDecode(writerSchema.nullable, ValueClassWithGenericField<T?>(null), apacheCompatibleValue = null)
 
         testEncodeDecode<ValueClassWithGenericField<T?>?>(writerSchema.nullable, null)
@@ -396,7 +397,7 @@ internal inline fun <reified T : Any, reified R : Any> StringSpecRootScope.testS
                 .endRecord()
         testEncodeDecode(
             recordNullable,
-            RecordWithGenericField<T?>(logicalValue),
+            RecordWithGenericField(logicalValue),
             apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) }
         )
         testEncodeDecode(
@@ -406,7 +407,7 @@ internal inline fun <reified T : Any, reified R : Any> StringSpecRootScope.testS
         )
         testEncodeDecode(
             recordNullable,
-            RecordWithGenericField(ValueClassWithGenericField<T?>(logicalValue)),
+            RecordWithGenericField(ValueClassWithGenericField(logicalValue)),
             apacheCompatibleValue = GenericData.Record(recordNullable).also { it.put(0, apacheCompatibleValue) }
         )
         testEncodeDecode(
@@ -421,7 +422,7 @@ internal inline fun <reified T : Any, reified R : Any> StringSpecRootScope.testS
         testEncodeDecode(map, mapOf("key" to ValueClassWithGenericField(logicalValue)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
 
         val mapNullable = SchemaBuilder.map().values(writerSchema.nullable)
-        testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField<T?>(logicalValue)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
+        testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField(logicalValue)), apacheCompatibleValue = mapOf("key" to apacheCompatibleValue))
         testEncodeDecode(mapNullable, mapOf("key" to ValueClassWithGenericField<T?>(null)), apacheCompatibleValue = mapOf("key" to null))
     }
     "support coercion from ${originalSchema.type} runtime type ${logicalValue::class.qualifiedName} inside an array of ${writerSchema.type} items" {
@@ -430,7 +431,7 @@ internal inline fun <reified T : Any, reified R : Any> StringSpecRootScope.testS
         testEncodeDecode(array, listOf(ValueClassWithGenericField(logicalValue)), apacheCompatibleValue = listOf(apacheCompatibleValue))
 
         val arrayNullable = SchemaBuilder.array().items(writerSchema.nullable)
-        testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField<T?>(logicalValue)), apacheCompatibleValue = listOf(apacheCompatibleValue))
+        testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField(logicalValue)), apacheCompatibleValue = listOf(apacheCompatibleValue))
         testEncodeDecode(arrayNullable, listOf(ValueClassWithGenericField<T?>(null)), apacheCompatibleValue = listOf(null))
     }
 }

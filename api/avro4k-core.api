@@ -312,23 +312,17 @@ public abstract interface class com/github/avrokotlin/avro4k/LongValueDecoder {
 	public abstract fun decodeLong (Lcom/github/avrokotlin/avro4k/AvroDecoder;)J
 }
 
+public final class com/github/avrokotlin/avro4k/MissingFieldsEncodingException : kotlinx/serialization/SerializationException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/util/List;Lorg/apache/avro/Schema;)V
+	public fun <init> (Ljava/util/List;Lorg/apache/avro/Schema;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
 public abstract interface class com/github/avrokotlin/avro4k/Record : org/apache/avro/generic/GenericRecord, org/apache/avro/specific/SpecificRecord {
 }
 
 public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {
 	public abstract fun decodeShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;)S
-}
-
-public class com/github/avrokotlin/avro4k/serializer/AnySerializer : kotlinx/serialization/KSerializer {
-	public static final field Default Lcom/github/avrokotlin/avro4k/serializer/AnySerializer$Default;
-	public fun <init> ()V
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun getNullable ()Lkotlinx/serialization/KSerializer;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-}
-
-public final class com/github/avrokotlin/avro4k/serializer/AnySerializer$Default : com/github/avrokotlin/avro4k/serializer/AnySerializer {
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/AvroDuration {
@@ -406,7 +400,6 @@ public final class com/github/avrokotlin/avro4k/serializer/BigIntegerSerializer 
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/ElementLocation {
-	public fun <init> (Lkotlinx/serialization/descriptors/SerialDescriptor;I)V
 	public final fun component1 ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun component2 ()I
 	public final fun copy (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;

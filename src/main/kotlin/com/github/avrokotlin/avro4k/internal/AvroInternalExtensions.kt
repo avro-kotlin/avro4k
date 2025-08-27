@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.internal
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AvroValueDirectDecoder
 import com.github.avrokotlin.avro4k.internal.encoder.direct.AvroValueDirectEncoder
 import kotlinx.serialization.DeserializationStrategy
@@ -9,7 +10,8 @@ import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 
-internal fun <T> Avro.encodeWithApacheEncoder(
+@InternalAvro4kApi
+public fun <T> Avro.encodeWithApacheEncoder(
     writerSchema: Schema,
     serializer: SerializationStrategy<T>,
     value: T,
@@ -25,7 +27,8 @@ internal fun <T> Avro.encodeWithApacheEncoder(
         .encodeSerializableValue(serializer, value)
 }
 
-internal fun <T> Avro.decodeWithApacheDecoder(
+@InternalAvro4kApi
+public fun <T> Avro.decodeWithApacheDecoder(
     writerSchema: Schema,
     deserializer: DeserializationStrategy<T>,
     binaryDecoder: org.apache.avro.io.Decoder,

@@ -47,9 +47,6 @@ internal class RecordResolver(
         writerSchema: Schema,
         classDescriptor: SerialDescriptor,
     ): SerializationWorkflow {
-        if (classDescriptor.elementsCount == 0 && writerSchema.fields.isEmpty()) {
-            return SerializationWorkflow.EMPTY
-        }
         return fieldCache.getOrPut(classDescriptor to writerSchema) {
             loadCache(classDescriptor, writerSchema)
         }
@@ -230,15 +227,7 @@ internal class SerializationWorkflow(
      * Encoding steps are ordered regarding the class descriptor and not the writer schema.
      */
     val encoding: EncodingWorkflow,
-) {
-    companion object {
-        val EMPTY =
-            SerializationWorkflow(
-                decoding = emptyArray(),
-                encoding = EncodingWorkflow.ExactMatch
-            )
-    }
-}
+)
 
 internal sealed interface EncodingWorkflow {
     /**

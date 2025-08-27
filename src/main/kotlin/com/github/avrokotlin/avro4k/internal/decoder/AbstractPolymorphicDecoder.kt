@@ -4,6 +4,7 @@ import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
 import com.github.avrokotlin.avro4k.internal.isNamedSchema
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
@@ -11,6 +12,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
+@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractPolymorphicDecoder(
     protected val avro: Avro,
     private val descriptor: SerialDescriptor,

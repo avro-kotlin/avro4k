@@ -29,7 +29,7 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.UUID
 
-internal val JavaStdLibSerializersModule: SerializersModule =
+internal val JavaStdLibSerializersModule: SerializersModule get() =
     SerializersModule {
         contextual(URLSerializer)
         contextual(UUIDSerializer)

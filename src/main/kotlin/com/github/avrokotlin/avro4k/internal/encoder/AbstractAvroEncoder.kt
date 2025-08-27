@@ -15,6 +15,7 @@ import com.github.avrokotlin.avro4k.trySelectFixedSchemaForSize
 import com.github.avrokotlin.avro4k.trySelectNamedSchema
 import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -25,6 +26,7 @@ import kotlinx.serialization.encoding.CompositeEncoder
 import org.apache.avro.Schema
 import org.apache.avro.util.Utf8
 
+@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     private var selectedUnionIndex: Int = -1
 

@@ -31,6 +31,7 @@ public inline fun <reified T> Avro.encodeToSink(
     sink: BufferedSink,
 ) {
     val serializer = serializersModule.serializer<T>()
+    @Suppress("DEPRECATION")
     encodeToSink(schema(serializer), serializer, value, sink)
 }
 
@@ -42,6 +43,7 @@ public inline fun <reified T> Avro.encodeToSink(
     sink: BufferedSink,
 ) {
     val serializer = serializersModule.serializer<T>()
+    @Suppress("DEPRECATION")
     encodeToSink(writerSchema, serializer, value, sink)
 }
 
@@ -63,6 +65,7 @@ public fun <T> Avro.decodeFromSource(
 @ExperimentalAvro4kApi
 public inline fun <reified T> Avro.decodeFromSource(source: BufferedSource): T {
     val serializer = serializersModule.serializer<T>()
+    @Suppress("DEPRECATION")
     return decodeFromSource(schema(serializer.descriptor), serializer, source)
 }
 
@@ -73,5 +76,6 @@ public inline fun <reified T> Avro.decodeFromSource(
     source: BufferedSource,
 ): T {
     val serializer = serializersModule.serializer<T>()
+    @Suppress("DEPRECATION")
     return decodeFromSource(writerSchema, serializer, source)
 }

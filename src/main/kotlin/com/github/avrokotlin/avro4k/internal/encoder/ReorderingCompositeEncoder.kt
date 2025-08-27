@@ -136,6 +136,7 @@ internal class ReorderingCompositeEncoder(
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun <T : Any> encodeNullableSerializableElement(
         descriptor: SerialDescriptor,
         index: Int,
@@ -185,6 +186,7 @@ internal class ReorderingCompositeEncoder(
         return BufferingInlineEncoder(descriptor, index)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun shouldEncodeElementDefault(
         descriptor: SerialDescriptor,
         index: Int,
@@ -201,6 +203,7 @@ internal class ReorderingCompositeEncoder(
         override val serializersModule: SerializersModule
             get() = this@ReorderingCompositeEncoder.serializersModule
 
+        @OptIn(ExperimentalSerializationApi::class)
         private fun bufferEncoding(encoder: Encoder.() -> Unit) {
             bufferEncoding(descriptor, elementIndex) {
                 compositeEncoderDelegate.encodeInlineElement(descriptor, elementIndex).apply {
@@ -212,10 +215,12 @@ internal class ReorderingCompositeEncoder(
             }
         }
 
+        @OptIn(ExperimentalSerializationApi::class)
         override fun encodeNotNullMark() {
             encodeNotNullMarkCalled = true
         }
 
+        @OptIn(ExperimentalSerializationApi::class)
         override fun <T : Any> encodeNullableSerializableValue(
             serializer: SerializationStrategy<T>,
             value: T?,

@@ -1,9 +1,9 @@
 package com.github.avrokotlin.avro4k.internal.encoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.MissingFieldsEncodingException
 import com.github.avrokotlin.avro4k.internal.EncodingWorkflow
 import com.github.avrokotlin.avro4k.internal.encoder.ReorderingCompositeEncoder
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeEncoder
 import org.apache.avro.Schema
@@ -31,8 +31,10 @@ internal fun RecordDirectEncoder(
                 encodingWorkflow.descriptorToWriterFieldIndex[index]
             }
 
-        is EncodingWorkflow.MissingWriterFields -> throw SerializationException(
-            "Missing writer fields ${schema.fields.filter { it.pos() in encodingWorkflow.missingWriterFields }}} from the descriptor $descriptor"
+        is EncodingWorkflow.MissingWriterFields -> throw MissingFieldsEncodingException(
+            schema.fields.filter { it.pos() in encodingWorkflow.missingWriterFields },
+            schema,
+            descriptor
         )
     }
 }

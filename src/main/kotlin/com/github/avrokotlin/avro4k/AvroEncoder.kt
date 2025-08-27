@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.isNamedSchema
+import com.github.avrokotlin.avro4k.internal.nonFailingAliases
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -52,7 +53,13 @@ public interface AvroEncoder : Encoder {
     public fun encodeUnionIndex(index: Int)
 }
 
-internal fun AvroEncoder.namedSchemaNotFoundInUnionError(
+@InternalAvro4kApi
+public fun AvroEncoder.namedSchemaNotFoundInUnionError(
+    schema: Schema,
+): Throwable = namedSchemaNotFoundInUnionError(schema.fullName, schema.nonFailingAliases())
+
+@InternalAvro4kApi
+public fun AvroEncoder.namedSchemaNotFoundInUnionError(
     expectedName: String,
     possibleAliases: Set<String>,
     vararg fallbackTypes: Schema.Type,
@@ -126,7 +133,13 @@ internal fun AvroEncoder.trySelectNamedSchema(descriptor: SerialDescriptor): Boo
     return trySelectNamedSchema(descriptor.nonNullSerialName, descriptor::aliases)
 }
 
-internal fun AvroEncoder.trySelectNamedSchema(
+@InternalAvro4kApi
+public fun AvroEncoder.trySelectNamedSchema(schema: Schema): Boolean {
+    return trySelectNamedSchema(schema.fullName, schema::nonFailingAliases)
+}
+
+@InternalAvro4kApi
+public fun AvroEncoder.trySelectNamedSchema(
     name: String,
     aliases: () -> Set<String> = ::emptySet,
 ): Boolean {
@@ -171,4 +184,18 @@ internal fun Schema.getIndexNamedOrAliased(expectedName: String): Int? {
 internal fun Schema.getIndexTyped(expectedType: Schema.Type): Int? {
     @Suppress("UsePropertyAccessSyntax") // We want to use the getter method as it doesn't return the same as the kotlin property "name"
     return getIndexNamed(expectedType.getName())
+}
+
+@ExperimentalAvro4kApi
+public class MissingFieldsEncodingException(message: String) : SerializationException(message) {
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' when encoding with writer schema $writerSchema")
+
+    public constructor(
+        missingFields: List<Schema.Field>,
+        writerSchema: Schema,
+        descriptor: SerialDescriptor,
+    ) : this("Missing required fields '${missingFields.joinToString("', '") { it.name() }}' when encoding with writer schema $writerSchema from descriptor $descriptor")
 }

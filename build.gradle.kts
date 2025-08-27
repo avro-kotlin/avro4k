@@ -25,6 +25,7 @@ dependencies {
     api(libs.kotlinx.io)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okio)
+
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.mockk)

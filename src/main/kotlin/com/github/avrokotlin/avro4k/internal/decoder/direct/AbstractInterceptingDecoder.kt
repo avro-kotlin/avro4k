@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.internal.decoder.direct
 
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
@@ -109,6 +110,7 @@ internal abstract class AbstractInterceptingDecoder : Decoder, CompositeDecoder 
         return decodeSerializableValue(deserializer)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun <T : Any> decodeNullableSerializableElement(
         descriptor: SerialDescriptor,
         index: Int,
@@ -122,6 +124,7 @@ internal abstract class AbstractInterceptingDecoder : Decoder, CompositeDecoder 
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private inline fun <T : Any> Decoder.decodeIfNullable(
     deserializer: DeserializationStrategy<T?>,
     block: () -> T?,

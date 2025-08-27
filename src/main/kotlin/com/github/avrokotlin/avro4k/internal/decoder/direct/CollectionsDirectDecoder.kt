@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 
@@ -30,6 +31,7 @@ internal class ArrayBlockDirectDecoder(
         currentWriterSchema = arraySchema.elementType
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeSequentially() = true
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -62,6 +64,7 @@ internal class MapBlockDirectDecoder(
         currentWriterSchema = if (index % 2 == 0) KEY_SCHEMA else mapSchema.valueType
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeSequentially() = true
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {

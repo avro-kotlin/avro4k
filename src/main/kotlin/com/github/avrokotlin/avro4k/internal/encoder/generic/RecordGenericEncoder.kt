@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.avrokotlin.avro4k.internal.encoder.generic
 
 import com.github.avrokotlin.avro4k.Avro

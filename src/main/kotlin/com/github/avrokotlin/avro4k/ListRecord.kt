@@ -14,6 +14,7 @@ public interface Record : GenericRecord, SpecificRecord
 
 @Deprecated("Use GenericData.Record instead", ReplaceWith("org.apache.avro.generic.GenericData.Record(schema)"))
 @ExperimentalAvro4kApi
+@Suppress("DEPRECATION")
 public data class ListRecord(
     private val s: Schema,
     private val values: List<Any?>,

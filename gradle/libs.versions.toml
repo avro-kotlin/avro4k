@@ -5,10 +5,12 @@ kotlinx-io = "0.8.0"
 kotest = "5.9.1"
 okio = "3.16.0"
 apache-avro = "1.11.4"
+confluent-schema-registry = "8.0.0"
 mockk = "1.14.5"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
+confluent-kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent-schema-registry" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }

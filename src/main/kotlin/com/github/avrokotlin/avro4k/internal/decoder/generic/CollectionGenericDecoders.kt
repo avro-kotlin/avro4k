@@ -3,6 +3,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.generic
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.DecodedNullError
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 
@@ -38,6 +39,7 @@ internal class MapGenericDecoder(
         return currentData.second ?: throw DecodedNullError()
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeNull(): Nothing? {
         decodedNotNullMark = false
         return null
@@ -49,6 +51,7 @@ internal class MapGenericDecoder(
 
     override fun decodeCollectionSize(descriptor: SerialDescriptor) = map.size
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeSequentially() = true
 
     companion object {
@@ -87,5 +90,6 @@ internal class ArrayGenericDecoder(
 
     override fun decodeCollectionSize(descriptor: SerialDescriptor) = collection.size
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeSequentially() = true
 }

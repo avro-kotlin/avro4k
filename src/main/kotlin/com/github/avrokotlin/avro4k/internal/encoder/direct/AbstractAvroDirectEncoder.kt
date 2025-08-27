@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal.encoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.encoder.AbstractAvroEncoder
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -103,6 +104,7 @@ private fun Schema.getEnumOrdinalChecked(symbol: String): Int {
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 internal class PolymorphicDirectEncoder(
     private val avro: Avro,
     private val schema: Schema,

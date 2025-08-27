@@ -8,6 +8,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.AbstractEncoder
@@ -91,11 +92,13 @@ private abstract class BasicSerializer : AvroSerializer<Any>("basic") {
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private class CustomEncoder : AbstractEncoder() {
     override val serializersModule: SerializersModule
         get() = EmptySerializersModule()
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private class CustomDecoder : AbstractDecoder() {
     override val serializersModule: SerializersModule
         get() = EmptySerializersModule()

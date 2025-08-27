@@ -8,6 +8,7 @@ import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.record
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.builtins.nullable
@@ -17,6 +18,7 @@ import org.apache.avro.SchemaBuilder
 import java.math.BigDecimal
 import kotlin.time.Duration.Companion.days
 
+@OptIn(ExperimentalSerializationApi::class)
 internal class AvroStringableEncodingTest : StringSpec({
     listOf(
         true to "true",

@@ -1,12 +1,14 @@
 package com.github.avrokotlin.avro4k.internal.encoder.generic
 
 import com.github.avrokotlin.avro4k.Avro
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.apache.avro.Schema
 
+@OptIn(ExperimentalSerializationApi::class)
 internal class PolymorphicEncoder(
     private val avro: Avro,
     private val schema: Schema,

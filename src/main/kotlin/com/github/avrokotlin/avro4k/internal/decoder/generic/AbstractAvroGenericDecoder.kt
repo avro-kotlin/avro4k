@@ -11,6 +11,7 @@ import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.toLongExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -28,6 +29,7 @@ import org.apache.avro.generic.IndexedRecord
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 
+@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDecoder {
     internal abstract val avro: Avro
 

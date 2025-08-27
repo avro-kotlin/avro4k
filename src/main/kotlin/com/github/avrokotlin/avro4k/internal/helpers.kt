@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import kotlinx.io.Buffer
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
@@ -50,8 +51,20 @@ internal fun Schema.asSchemaList(): List<Schema> {
     return types
 }
 
-internal fun Schema.isNamedSchema(): Boolean {
-    return this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED
+@InternalAvro4kApi
+public fun Schema.isNamedSchema(): Boolean {
+    return when (this.type) {
+        Schema.Type.RECORD, Schema.Type.ENUM, Schema.Type.FIXED -> true
+        else -> false
+    }
+}
+
+internal fun Schema.nonFailingAliases(): Set<String> {
+    return if (isNamedSchema()) {
+        aliases
+    } else {
+        emptySet()
+    }
 }
 
 internal fun Schema.isFullNameOrAliasMatch(descriptor: SerialDescriptor): Boolean {
@@ -71,7 +84,8 @@ internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
         aliases.any { it == fullNameToMatch }
 }
 
-internal val SerialDescriptor.aliases: Set<String>
+@InternalAvro4kApi
+public val SerialDescriptor.aliases: Set<String>
     get() =
         findAnnotation<AvroAlias>()?.value?.toSet() ?: emptySet()
 
@@ -80,7 +94,8 @@ internal fun SerialDescriptor.getElementAliases(elementIndex: Int): Set<String> 
 
 private val SCHEMA_PLACEHOLDER = Schema.create(Schema.Type.NULL)
 
-internal fun Schema.copy(
+@InternalAvro4kApi
+public fun Schema.copy(
     name: String = this.name,
     doc: String? = this.doc,
     namespace: String? = if (this.type == Schema.Type.RECORD || this.type == Schema.Type.ENUM || this.type == Schema.Type.FIXED) this.namespace else null,

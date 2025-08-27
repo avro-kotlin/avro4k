@@ -156,7 +156,6 @@ public fun AvroFixed.createSchema(elementLocation: ElementLocation): Schema =
 
 @ExperimentalAvro4kApi
 public data class ElementLocation
-    @PublishedApi
     internal constructor(
         val descriptor: SerialDescriptor,
         val elementIndex: Int,
@@ -170,11 +169,7 @@ internal fun interface AvroSchemaSupplier {
 internal class SerialDescriptorWithAvroSchemaDelegate(
     private val descriptor: SerialDescriptor,
     private val schemaSupplier: AvroSchemaSupplier,
-) : SerialDescriptor by descriptor, AvroSchemaSupplier {
-    override fun getSchema(context: SchemaSupplierContext): Schema {
-        return schemaSupplier.getSchema(context)
-    }
-
+) : SerialDescriptor by descriptor, AvroSchemaSupplier by schemaSupplier {
     override fun toString(): String {
         return "${descriptor.serialName}(<custom schema>)"
     }

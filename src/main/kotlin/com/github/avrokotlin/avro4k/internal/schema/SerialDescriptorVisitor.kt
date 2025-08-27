@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.internal.getNonNullContextualDescriptor
 import com.github.avrokotlin.avro4k.internal.possibleSerializationSubclasses
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -36,6 +37,7 @@ internal interface SerialDescriptorValueVisitor {
      */
     fun visitPolymorphic(
         descriptor: SerialDescriptor,
+        @OptIn(ExperimentalSerializationApi::class)
         kind: PolymorphicKind,
     ): SerialDescriptorPolymorphicVisitor?
 
@@ -64,6 +66,7 @@ internal interface SerialDescriptorValueVisitor {
      */
     fun visitInlineClass(descriptor: SerialDescriptor): SerialDescriptorInlineClassVisitor?
 
+    @OptIn(ExperimentalSerializationApi::class)
     fun visitValue(descriptor: SerialDescriptor) {
         if (descriptor.isInline) {
             visitInlineClass(descriptor)?.apply {

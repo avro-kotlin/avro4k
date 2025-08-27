@@ -7,6 +7,7 @@ import com.github.avrokotlin.avro4k.internal.nonNullSerialName
 import com.github.avrokotlin.avro4k.internal.nullable
 import com.github.avrokotlin.avro4k.serializer.AvroSchemaSupplier
 import com.github.avrokotlin.avro4k.serializer.stringable
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -63,6 +64,7 @@ internal class ValueVisitor internal constructor(
 
     override fun visitClass(descriptor: SerialDescriptor) = ClassVisitor(descriptor, context.copy(inlinedElements = emptyList())) { setSchema(it) }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun visitPolymorphic(
         descriptor: SerialDescriptor,
         kind: PolymorphicKind,
@@ -98,6 +100,7 @@ internal class ValueVisitor internal constructor(
         super.visitValue(finalDescriptor)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun unwrapNullable(descriptor: SerialDescriptor): SerialDescriptor {
         if (descriptor.isNullable) {
             isNullable = true

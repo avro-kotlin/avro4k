@@ -1,10 +1,10 @@
 package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
-import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -26,10 +26,11 @@ import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
 import java.util.WeakHashMap
 
-internal val AnyTypeSerializersModule: SerializersModule =
-    SerializersModule {
-        contextual(AnySerializer)
-    }
+internal val AnyTypeSerializersModule: SerializersModule
+    get() =
+        SerializersModule {
+            contextual(AnySerializer())
+        }
 
 /**
  * This serializer handles [Any] type, for both encoding and decoding.
@@ -39,13 +40,11 @@ internal val AnyTypeSerializersModule: SerializersModule =
  * At decoding, it delegates the process to the inferred [KSerializer] from the [Schema.type] (example: [Schema.Type.BOOLEAN] is handled by the [Boolean]'s serializer).
  * For more customization about named types, see [resolveFixedDeserializationStrategy], [resolveEnumDeserializationStrategy], and [resolveRecordDeserializationStrategy].
  */
-@ExperimentalAvro4kApi
+@InternalAvro4kApi
 public open class AnySerializer : KSerializer<Any> {
     // No need to use a WeakHashMap with class keys
     private val encodingCache = HashMap<Class<out Any>, SerializationStrategy<Any>>()
     private val decodingCache = WeakHashMap<Schema, DeserializationStrategy<Any>>()
-
-    public companion object Default : AnySerializer()
 
     /**
      * Provides the nullable version of this [AnySerializer].
@@ -79,6 +78,7 @@ public open class AnySerializer : KSerializer<Any> {
         }
         // Then, try to find the serializer for the type with its type parameters as nullable Any. Any parameterized types will be handled as nullable Any.
         // This handles all the collections, maps, kotlin pair, triple, etc.
+        @OptIn(ExperimentalSerializationApi::class)
         runCatching { serializer(type.kotlin, type.typeParameters.map { this@AnySerializer.nullable }, false) }.getOrNull()?.let {
             return@inferSerializationStrategy it as KSerializer<Any>
         }

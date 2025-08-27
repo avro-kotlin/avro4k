@@ -11,6 +11,7 @@ import com.github.avrokotlin.avro4k.internal.toIntExact
 import com.github.avrokotlin.avro4k.internal.toShortExact
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -22,6 +23,7 @@ import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericFixed
 
+@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractAvroDirectDecoder(
     internal val avro: Avro,
     protected val binaryDecoder: org.apache.avro.io.Decoder,

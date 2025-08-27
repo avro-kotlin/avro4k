@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal.decoder.direct
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.internal.IllegalIndexedAccessError
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericFixed
@@ -37,6 +38,7 @@ internal class RecordAsMapDirectDecoder(
         return fieldNameToRead ?: super.decodeString()
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun decodeSequentially() = true
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {

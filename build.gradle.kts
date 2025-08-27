@@ -121,13 +121,17 @@ nexusPublishing {
 }
 
 signing {
-    setRequired {
-        // signing is required if this is a release version and the artifacts are to be published
-        // do not use hasTask() as this require realization of the tasks that maybe are not necessary
-        (System.getenv("RELEASE_VERSION")?.let { !it.endsWith("-SNAPSHOT") } ?: false) &&
-            gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
+    if (System.getenv("RELEASE_VERSION")?.let { !it.endsWith("-SNAPSHOT") } ?: false) {
+        val signingKey: String? by project
+        val signingPassword: String? by project
+
+        if (signingKey != null && signingPassword != null) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        } else {
+            throw IllegalStateException("No signing key or password found")
+        }
+        sign(publishing.publications)
     }
-    sign(publishing.publications["mavenJava"])
 }
 
 spotless {

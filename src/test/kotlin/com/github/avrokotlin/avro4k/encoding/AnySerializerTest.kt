@@ -213,7 +213,22 @@ class AnySerializerTest : StringSpec() {
 
             Avro.decodeFromByteArray(schema, AnySerializer(), bytes) shouldBe listOf(33, null, 123456789L, "Hello")
         }
-        "deserializing an MAP schema should return a Map" {
+        "deserializing an ARRAY schema with a custom DeserializationStrategy should return the custom type" {
+            val decoder = mockk<AbstractAvroDirectDecoder>(relaxed = true)
+            val fallbackSerializer = mockk<DeserializationStrategy<Any>>()
+            every { decoder.serializersModule } returns EmptySerializersModule()
+            every { decoder.currentWriterSchema } returns Avro.schema<List<PolymorphicType?>>()
+            val serializer =
+                object : AnySerializer() {
+                    override fun SerializersModule.resolveArrayDeserializationStrategy(writerSchema: Schema) =
+                        fallbackSerializer
+                }
+
+            serializer.deserialize(decoder)
+
+            verify { decoder.decodeSerializableValue(fallbackSerializer) }
+        }
+        "deserializing a MAP schema should return a Map" {
             val value =
                 mapOf(
                     PolymorphicType.A(33) to null,
@@ -231,6 +246,21 @@ class AnySerializerTest : StringSpec() {
                     "World" to 42,
                     "0" to 987654321L
                 )
+        }
+        "deserializing a MAP schema with a custom DeserializationStrategy should return the custom type" {
+            val decoder = mockk<AbstractAvroDirectDecoder>(relaxed = true)
+            val fallbackSerializer = mockk<DeserializationStrategy<Any>>()
+            every { decoder.serializersModule } returns EmptySerializersModule()
+            every { decoder.currentWriterSchema } returns Avro.schema<Map<String, String>>()
+            val serializer =
+                object : AnySerializer() {
+                    override fun SerializersModule.resolveMapDeserializationStrategy(writerSchema: Schema) =
+                        fallbackSerializer
+                }
+
+            serializer.deserialize(decoder)
+
+            verify { decoder.decodeSerializableValue(fallbackSerializer) }
         }
         "deserializing a RECORD schema should return a Map" {
             val value =

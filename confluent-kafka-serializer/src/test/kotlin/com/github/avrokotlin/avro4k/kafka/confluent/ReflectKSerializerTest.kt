@@ -52,6 +52,22 @@ class ReflectKSerializerTest : StringSpec() {
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe GenericData.EnumSymbol(schema, "B")
         }
+        "MAP should be deserialized as a Map of excepted key type when having java-key-class property" {
+            val schema = Schema.createMap(Schema.create(Schema.Type.STRING)).also {
+                it.addProp("java-key-class", Int::class.javaObjectType.name)
+            }
+            val bytes = Avro.encodeToByteArray(schema, ReflectKSerializer(), mapOf("1" to "A", "2" to "B"))
+
+            Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe mapOf(1 to "A", 2 to "B")
+        }
+        "ARRAY should be deserialized as a List of excepted item type when having java-element-class property" {
+            val schema = Schema.createArray(Schema.create(Schema.Type.STRING)).also {
+                it.addProp("java-element-class", Int::class.javaObjectType.name)
+            }
+            val bytes = Avro.encodeToByteArray(schema, ReflectKSerializer(), listOf("1", "2", "3"))
+
+            Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe listOf(1, 2, 3)
+        }
         "deserializing type with java-class should return the class instance specified in the property" {
             val schema = Schema.create(Schema.Type.STRING).also {
                 it.addProp("java-class", CustomString::class.java.name)

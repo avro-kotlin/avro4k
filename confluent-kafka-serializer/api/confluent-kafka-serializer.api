@@ -28,10 +28,13 @@ public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKaf
 
 public class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerde : org/apache/kafka/common/serialization/Serdes$WrapperSerde {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer;)V
 	public fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;)V
 	public synthetic fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerdeKt {
+	public static final fun GenericAvro4kKafkaSerde (Lcom/github/avrokotlin/avro4k/Avro;)Lcom/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerde;
 }
 
 public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaSerializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer {
@@ -52,10 +55,13 @@ public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKaf
 
 public class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerde : org/apache/kafka/common/serialization/Serdes$WrapperSerde {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaDeserializer;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaDeserializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerializer;Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaDeserializer;)V
 	public fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;)V
 	public synthetic fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerdeKt {
+	public static final fun ReflectAvro4kKafkaSerde (Lcom/github/avrokotlin/avro4k/Avro;)Lcom/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerde;
 }
 
 public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaSerializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer {

@@ -16,6 +16,9 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.nonNullOriginal
@@ -51,6 +54,22 @@ internal class ReflectKSerializer : AnySerializer() {
         writerSchema.getProp(SpecificData.CLASS_PROP)
             ?.let { tryGetJavaClass(it) }
             ?.let { serializerOrNull(it) }
+
+    override fun SerializersModule.resolveArrayDeserializationStrategy(writerSchema: Schema): DeserializationStrategy<Any> {
+        val itemSerializer = writerSchema.getProp(SpecificData.ELEMENT_PROP)
+            ?.let { tryGetJavaClass(it) }
+            ?.let { serializerOrNull(it) }
+            ?: this@ReflectKSerializer.nullable
+        return ListSerializer(itemSerializer)
+    }
+
+    override fun SerializersModule.resolveMapDeserializationStrategy(writerSchema: Schema): DeserializationStrategy<Any> {
+        val keySerializer = writerSchema.getProp(SpecificData.KEY_CLASS_PROP)
+            ?.let { tryGetJavaClass(it) }
+            ?.let { serializerOrNull(it) }
+            ?: String.serializer()
+        return MapSerializer(keySerializer, this@ReflectKSerializer.nullable)
+    }
 
     override fun SerializersModule.resolveEnumDeserializationStrategy(writerSchema: Schema) =
         resolveNamedSchema(writerSchema) ?: GenericEnumKSerializer

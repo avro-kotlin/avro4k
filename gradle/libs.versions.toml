@@ -1,5 +1,4 @@
 [versions]
-kotlin = "2.2.10"
 kotlinx-serialization = "1.9.0"
 kotlinx-io = "0.8.0"
 kotest = "5.9.1"
@@ -18,12 +17,3 @@ kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", versio
 kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
-
-[plugins]
-dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
-dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version = "2.0.0" }
-github-versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
-spotless = { id = "com.diffplug.spotless", version = "7.2.1" }
-kover = { id = "org.jetbrains.kotlinx.kover", version = "0.9.1" }
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }

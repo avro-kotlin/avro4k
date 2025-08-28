@@ -7,7 +7,6 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import org.apache.kafka.common.serialization.Serdes.WrapperSerde
 
-
 /**
  * A Serde that can serialize and deserialize any type supported by Avro4k, based on the confluent's schema registry.
  *
@@ -24,10 +23,11 @@ import org.apache.kafka.common.serialization.Serdes.WrapperSerde
  * @see GenericAvro4kKafkaSerde
  * @see SpecificAvro4kKafkaSerde
  */
-public fun ReflectAvro4kKafkaSerde(avro: Avro): ReflectAvro4kKafkaSerde = ReflectAvro4kKafkaSerde(
-    ReflectAvro4kKafkaSerializer(avro),
-    ReflectAvro4kKafkaDeserializer(avro)
-)
+public fun ReflectAvro4kKafkaSerde(avro: Avro): ReflectAvro4kKafkaSerde =
+    ReflectAvro4kKafkaSerde(
+        ReflectAvro4kKafkaSerializer(avro),
+        ReflectAvro4kKafkaDeserializer(avro)
+    )
 
 /**
  * A Serde that can serialize and deserialize any type supported by Avro4k, based on the confluent's schema registry.
@@ -62,7 +62,7 @@ public open class ReflectAvro4kKafkaSerde(
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(
         ReflectAvro4kKafkaSerializer(isKey, avro, props, schemaRegistry),
         ReflectAvro4kKafkaDeserializer(isKey, avro, props, schemaRegistry)
@@ -75,7 +75,7 @@ public class ReflectAvro4kKafkaSerializer(avro: Avro = Avro) : AbstractAvro4kKaf
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(avro) {
         initialize(schemaRegistry, props, isKey)
     }
@@ -93,7 +93,7 @@ public class ReflectAvro4kKafkaDeserializer(avro: Avro = Avro) : AbstractAvro4kK
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(avro) {
         initialize(schemaRegistry, props, isKey)
     }

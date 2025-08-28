@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.internal
 
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.FieldNamingStrategy
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encoding.Decoder
@@ -34,7 +35,7 @@ internal object Samples {
 
     class YourType
 
-    class YourTypeSerializer : kotlinx.serialization.KSerializer<YourType> {
+    class YourTypeSerializer : KSerializer<YourType> {
         override val descriptor get() = TODO("Not yet implemented")
 
         override fun serialize(encoder: Encoder, value: YourType) = TODO("Not yet implemented")
@@ -46,7 +47,7 @@ internal object Samples {
 
     object YourSubType : YourParentType
 
-    class YourSubTypeSerializer : kotlinx.serialization.KSerializer<YourSubType> {
+    class YourSubTypeSerializer : KSerializer<YourSubType> {
         override val descriptor get() = TODO("Not yet implemented")
 
         override fun serialize(encoder: Encoder, value: YourSubType) = TODO("Not yet implemented")

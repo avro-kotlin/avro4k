@@ -32,20 +32,17 @@ class AbstractAvro4kKafkaSerializerTest : StringSpec() {
             listOf(null),
             listOf(null, 12),
             listOf(12, null),
-
             emptySet<Any>(),
             setOf(null),
             setOf(null, 12),
             setOf(12, null),
-
             emptyArray<Any>(),
             arrayOf<Any?>(null),
             arrayOf(null, 12),
             arrayOf(12, null),
-
             emptyMap<Any, Any>(),
             mapOf("a" to null, "b" to 12),
-            mapOf("a" to 12, "b" to null),
+            mapOf("a" to 12, "b" to null)
         ).forEach { value ->
             "serializing ${value::class.simpleName}($value) is not supported as the collection cannot contain nulls" {
                 shouldThrowAny { GenericAvro4kKafkaSerializer(isKey = false, schemaRegistry = MockSchemaRegistryClient()).serialize("topic", value) }
@@ -70,8 +67,13 @@ class AbstractAvro4kKafkaSerializerTest : StringSpec() {
             byteArrayOf(1, 2, 3) to Schema.create(Schema.Type.BYTES),
             ByteBuffer.wrap(byteArrayOf(1, 2, 3)) to Schema.create(Schema.Type.BYTES),
             Avro.schema<SomeEnum>().let { GenericData.EnumSymbol(it, "B") to it },
-            Avro.schema<TestData>().let { GenericData.Record(it).apply { put(0, "str"); put(1, 17) } to it },
-            Schema.create(Schema.Type.STRING).let { NonRecordContainer(it, 42L) to it },
+            Avro.schema<TestData>().let {
+                GenericData.Record(it).apply {
+                    put(0, "str")
+                    put(1, 17)
+                } to it
+            },
+            Schema.create(Schema.Type.STRING).let { NonRecordContainer(it, 42L) to it }
         ).forEach { (value, expectedSchema) ->
             "serializing ${value::class.simpleName}($value) registers schema $expectedSchema" {
                 value shouldRegisterSchema expectedSchema

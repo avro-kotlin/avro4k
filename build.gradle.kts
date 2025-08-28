@@ -18,7 +18,3 @@ tasks.register("actionsBeforeCommit") {
     dependsOn(":confluent-kafka-serializer:apiDump")
     dependsOn(":confluent-kafka-serializer:spotlessApply")
 }
-
-repositories {
-    mavenCentral()
-}

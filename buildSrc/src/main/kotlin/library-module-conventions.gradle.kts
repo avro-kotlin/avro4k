@@ -121,3 +121,7 @@ spotless {
         ktlint()
     }
 }
+
+repositories {
+    mavenCentral()
+}

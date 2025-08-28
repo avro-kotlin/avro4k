@@ -17,7 +17,6 @@ import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes.WrapperSerde
 import kotlin.reflect.KClass
 
-
 /**
  * A Serde that can serialize and deserialize a specific serializable type known at compile time supported by Avro4k, based on the confluent's schema registry.
  * The given type must be annotated with @Serializable or contextually accessible through the avro's serializers module.
@@ -43,7 +42,7 @@ public inline fun <reified T : Any> SpecificAvro4kKafkaSerde(
     isKey: Boolean,
     avro: Avro = Avro,
     props: Map<String, Any?> = emptyMap(),
-    schemaRegistry: SchemaRegistryClient? = null
+    schemaRegistry: SchemaRegistryClient? = null,
 ): Serde<T> {
     val kSerializer = avro.serializersModule.serializer<T>()
     return SpecificAvro4kKafkaSerde(kSerializer, isKey, avro, props, schemaRegistry)
@@ -56,7 +55,7 @@ public open class SpecificAvro4kKafkaSerde<T : Any>(
 ) : WrapperSerde<T>(serializer, deserializer) {
     public constructor(
         kSerializer: KSerializer<T>,
-        avro: Avro = Avro
+        avro: Avro = Avro,
     ) : this(
         SpecificAvro4kKafkaSerializer(kSerializer, avro),
         SpecificAvro4kKafkaDeserializer(kSerializer, avro)
@@ -73,7 +72,7 @@ public open class SpecificAvro4kKafkaSerde<T : Any>(
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(
         SpecificAvro4kKafkaSerializer(kSerializer, isKey, avro, props, schemaRegistry),
         SpecificAvro4kKafkaDeserializer(kSerializer, isKey, avro, props, schemaRegistry)
@@ -93,7 +92,7 @@ public inline fun <reified T : Any> SpecificAvro4kKafkaSerializer(
     isKey: Boolean,
     avro: Avro = Avro,
     props: Map<String, Any?> = emptyMap(),
-    schemaRegistry: SchemaRegistryClient? = null
+    schemaRegistry: SchemaRegistryClient? = null,
 ): SpecificAvro4kKafkaSerializer<T> =
     SpecificAvro4kKafkaSerializer(avro.serializersModule.serializer<T>(), isKey, avro, props, schemaRegistry)
 
@@ -117,7 +116,7 @@ public class SpecificAvro4kKafkaSerializer<T : Any>(
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(serializer, avro) {
         initialize(schemaRegistry, props, isKey)
     }
@@ -143,7 +142,7 @@ public inline fun <reified T : Any> SpecificAvro4kKafkaDeserializer(
     isKey: Boolean,
     avro: Avro = Avro,
     props: Map<String, Any?> = emptyMap(),
-    schemaRegistry: SchemaRegistryClient? = null
+    schemaRegistry: SchemaRegistryClient? = null,
 ): SpecificAvro4kKafkaDeserializer<T> =
     SpecificAvro4kKafkaDeserializer(avro.serializersModule.serializer<T>(), isKey, avro, props, schemaRegistry)
 
@@ -176,24 +175,26 @@ public class SpecificAvro4kKafkaDeserializer<T : Any>(
         isKey: Boolean,
         avro: Avro = Avro,
         props: Map<String, Any?> = emptyMap(),
-        schemaRegistry: SchemaRegistryClient? = null
+        schemaRegistry: SchemaRegistryClient? = null,
     ) : this(deserializer, avro) {
         initialize(schemaRegistry, props, isKey)
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun configure(config: KafkaAvroDeserializerConfig) {
-        val specificAvroClassLookupKey = when (isKey) {
-            true -> KafkaAvroDeserializerConfig.SPECIFIC_AVRO_KEY_TYPE_CONFIG
-            false -> KafkaAvroDeserializerConfig.SPECIFIC_AVRO_VALUE_TYPE_CONFIG
-        }
+        val specificAvroClassLookupKey =
+            when (isKey) {
+                true -> KafkaAvroDeserializerConfig.SPECIFIC_AVRO_KEY_TYPE_CONFIG
+                false -> KafkaAvroDeserializerConfig.SPECIFIC_AVRO_VALUE_TYPE_CONFIG
+            }
 
         config.getString(specificAvroClassLookupKey)?.let { typeName ->
             val foundKSerializer =
                 findKSerializerForClassName(typeName)
                     ?: findDeserializationStrategyInSerializersModule(typeName)
                     ?: throw ConfigException(
-                        specificAvroClassLookupKey, typeName,
+                        specificAvroClassLookupKey,
+                        typeName,
                         "The configured type name was not found "
                     )
             @Suppress("UNCHECKED_CAST")
@@ -209,29 +210,37 @@ public class SpecificAvro4kKafkaDeserializer<T : Any>(
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun findDeserializationStrategyInSerializersModule(serialName: String): DeserializationStrategy<*>? {
-        var found: DeserializationStrategy<*>? = null
+        return KSerializerFinder(serialName).let {
+            avro.serializersModule.dumpTo(it)
+            it.found
+        }
+    }
+}
 
-        avro.serializersModule.dumpTo(object : SimpleSerializersModuleCollector {
-            private fun setFoundKSerializer(serializer: DeserializationStrategy<*>) {
-                if (found == null && (serializer.descriptor.nonNullOriginal.serialName == serialName || serialName in serializer.descriptor.nonNullOriginal.aliases)) {
-                    found = serializer
-                }
-            }
+private class KSerializerFinder(
+    private val serialName: String,
+) : SimpleSerializersModuleCollector {
+    var found: DeserializationStrategy<*>? = null
 
-            override fun <T : Any> contextual(kClass: KClass<T>, serializer: KSerializer<T>) =
-                setFoundKSerializer(serializer)
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun setFoundKSerializer(serializer: DeserializationStrategy<*>) {
+        if (found != null) return
+        val descriptor = serializer.descriptor.nonNullOriginal
+        if (descriptor.serialName == serialName || serialName in descriptor.aliases) {
+            found = serializer
+        }
+    }
 
-            override fun <T : Any> contextual(kClass: KClass<T>, provider: (typeArgumentsSerializers: List<KSerializer<*>>) -> KSerializer<*>) =
-                setFoundKSerializer(provider(kClass.typeParameters.map { ReflectKSerializer() }))
+    override fun <T : Any> contextual(kClass: KClass<T>, serializer: KSerializer<T>) =
+        setFoundKSerializer(serializer)
 
-            override fun <Base : Any, Sub : Base> polymorphic(baseClass: KClass<Base>, actualClass: KClass<Sub>, actualSerializer: KSerializer<Sub>) =
-                setFoundKSerializer(actualSerializer)
+    override fun <T : Any> contextual(kClass: KClass<T>, provider: (typeArgumentsSerializers: List<KSerializer<*>>) -> KSerializer<*>) =
+        setFoundKSerializer(provider(kClass.typeParameters.map { ReflectKSerializer() }))
 
-            override fun <Base : Any> polymorphicDefaultDeserializer(baseClass: KClass<Base>, defaultDeserializerProvider: (className: String?) -> DeserializationStrategy<Base>?) {
-                defaultDeserializerProvider(serialName)?.let { setFoundKSerializer(it) }
-            }
-        })
+    override fun <Base : Any, Sub : Base> polymorphic(baseClass: KClass<Base>, actualClass: KClass<Sub>, actualSerializer: KSerializer<Sub>) =
+        setFoundKSerializer(actualSerializer)
 
-        return found
+    override fun <Base : Any> polymorphicDefaultDeserializer(baseClass: KClass<Base>, defaultDeserializerProvider: (className: String?) -> DeserializationStrategy<Base>?) {
+        defaultDeserializerProvider(serialName)?.let { setFoundKSerializer(it) }
     }
 }

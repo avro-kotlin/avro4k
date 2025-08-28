@@ -39,7 +39,6 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ExecutionException
 import org.apache.kafka.common.errors.SerializationException as KafkaSerializationException
 
-
 @ExperimentalAvro4kApi
 public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
     protected val avro: Avro,
@@ -56,17 +55,18 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
     protected fun initialize(
         schemaRegistry: SchemaRegistryClient?,
         props: Map<String, Any?>,
-        isKey: Boolean
+        isKey: Boolean,
     ) {
         super.schemaRegistry = schemaRegistry
         super.ticker = ticker(schemaRegistry)
 
-        val props = if (schemaRegistry != null && AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG !in props) {
-            // ensure the schema registry url config is set to some value, otherwise it raises an exception
-            props + mapOf(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "")
-        } else {
-            props
-        }
+        val props =
+            if (schemaRegistry != null && AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG !in props) {
+                // ensure the schema registry url config is set to some value, otherwise it raises an exception
+                props + mapOf(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "")
+            } else {
+                props
+            }
         configure(props, isKey)
     }
 
@@ -100,8 +100,11 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
         if (value.isEmpty()) {
             throw SerializationException("Cannot determine schema for an empty collection. Please provide a non-empty collection or specify the schema using $typeToUse.")
         }
-        val element = value.first()
-            ?: throw SerializationException("Cannot determine schema for a collection with only null elements. Please provide at least one non-null element or specify the schema using $typeToUse.")
+        val element =
+            value.first()
+                ?: throw SerializationException(
+                    "Cannot determine schema for a collection with only null elements. Please provide at least one non-null element or specify the schema using $typeToUse."
+                )
         return getAnySchema(element)
     }
 
@@ -119,7 +122,8 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
 
     // TODO this will override super method when a new version of the SR is released
     @InternalAvro4kApi
-    /*override*/ protected open fun getDatumWriter(value: Any, rawSchema: Schema): DatumWriter<Any?> {
+    // override
+    protected open fun getDatumWriter(value: Any, rawSchema: Schema): DatumWriter<Any?> {
         return object : DatumWriter<Any?> {
             override fun write(value: Any?, out: org.apache.avro.io.Encoder) {
                 @Suppress("UNCHECKED_CAST")
@@ -173,16 +177,22 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
                 restClientErrorMsg = "Error retrieving latest with metadata '$metadata'"
                 val extendedSchema = getLatestWithMetadata(subject)
                 schema = (extendedSchema.getSchema() as AvroSchema?)!!
-                schemaId = SchemaId(
-                    AvroSchema.TYPE, extendedSchema.getId(), extendedSchema.getGuid()
-                )
+                schemaId =
+                    SchemaId(
+                        AvroSchema.TYPE,
+                        extendedSchema.getId(),
+                        extendedSchema.getGuid()
+                    )
             } else if (useLatestVersion) {
                 restClientErrorMsg = "Error retrieving latest version of Avro schema"
                 val extendedSchema = lookupLatestVersion(subject, schema, latestCompatStrict)
                 schema = (extendedSchema.getSchema() as AvroSchema?)!!
-                schemaId = SchemaId(
-                    AvroSchema.TYPE, extendedSchema.getId(), extendedSchema.getGuid()
-                )
+                schemaId =
+                    SchemaId(
+                        AvroSchema.TYPE,
+                        extendedSchema.getId(),
+                        extendedSchema.getGuid()
+                    )
             } else {
                 restClientErrorMsg = "Error retrieving Avro schema"
                 val response =
@@ -190,7 +200,9 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
                 schemaId = SchemaId(AvroSchema.TYPE, response.id, response.guid)
             }
             AvroSchemaUtils.setThreadLocalData(
-                schema.rawSchema(), avroUseLogicalTypeConverters, avroReflectionAllowNull
+                schema.rawSchema(),
+                avroUseLogicalTypeConverters,
+                avroReflectionAllowNull
             )
             try {
                 value = executeRules(subject, topic, headers, RuleMode.WRITE, null, schema, value)
@@ -248,17 +260,18 @@ public abstract class AbstractAvro4kKafkaDeserializer<T : Any>(
     protected fun initialize(
         schemaRegistry: SchemaRegistryClient?,
         props: Map<String, Any?>,
-        isKey: Boolean
+        isKey: Boolean,
     ) {
         super.schemaRegistry = schemaRegistry
         super.ticker = ticker(schemaRegistry)
 
-        val props = if (schemaRegistry != null && AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG !in props) {
-            // ensure the schema registry url config is set to some value, otherwise it raises an exception
-            props + mapOf(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "")
-        } else {
-            props
-        }
+        val props =
+            if (schemaRegistry != null && AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG !in props) {
+                // ensure the schema registry url config is set to some value, otherwise it raises an exception
+                props + mapOf(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "")
+            } else {
+                props
+            }
         configure(props, isKey)
     }
 

@@ -31,9 +31,10 @@ class ReflectKSerializerTest : StringSpec() {
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe GenericData.EnumSymbol(schema, "B")
 
             Avro {
-                serializersModule = SerializersModule {
-                    contextual(TestEnum::class, TestEnum.serializer())
-                }
+                serializersModule =
+                    SerializersModule {
+                        contextual(TestEnum::class, TestEnum.serializer())
+                    }
             }.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe TestEnum.B
         }
         "ENUM should be deserialized as concrete class based on the custom serial name when registered in the serializers module" {
@@ -42,9 +43,10 @@ class ReflectKSerializerTest : StringSpec() {
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe GenericData.EnumSymbol(schema, "B")
 
             Avro {
-                serializersModule = SerializersModule {
-                    contextual(TestEnumCustomSerialName::class, TestEnumCustomSerialName.serializer())
-                }
+                serializersModule =
+                    SerializersModule {
+                        contextual(TestEnumCustomSerialName::class, TestEnumCustomSerialName.serializer())
+                    }
             }.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe TestEnumCustomSerialName.B
         }
         "ENUM should be deserialized as GenericEnumSymbol if the schema's full-name doesn't exist as a class" {
@@ -53,33 +55,37 @@ class ReflectKSerializerTest : StringSpec() {
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), byteArrayOf(2)) shouldBe GenericData.EnumSymbol(schema, "B")
         }
         "MAP should be deserialized as a Map of excepted key type when having java-key-class property" {
-            val schema = Schema.createMap(Schema.create(Schema.Type.STRING)).also {
-                it.addProp("java-key-class", Int::class.javaObjectType.name)
-            }
+            val schema =
+                Schema.createMap(Schema.create(Schema.Type.STRING)).also {
+                    it.addProp("java-key-class", Int::class.javaObjectType.name)
+                }
             val bytes = Avro.encodeToByteArray(schema, ReflectKSerializer(), mapOf("1" to "A", "2" to "B"))
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe mapOf(1 to "A", 2 to "B")
         }
         "ARRAY should be deserialized as a List of excepted item type when having java-element-class property" {
-            val schema = Schema.createArray(Schema.create(Schema.Type.STRING)).also {
-                it.addProp("java-element-class", Int::class.javaObjectType.name)
-            }
+            val schema =
+                Schema.createArray(Schema.create(Schema.Type.STRING)).also {
+                    it.addProp("java-element-class", Int::class.javaObjectType.name)
+                }
             val bytes = Avro.encodeToByteArray(schema, ReflectKSerializer(), listOf("1", "2", "3"))
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe listOf(1, 2, 3)
         }
         "deserializing type with java-class should return the class instance specified in the property" {
-            val schema = Schema.create(Schema.Type.STRING).also {
-                it.addProp("java-class", CustomString::class.java.name)
-            }
+            val schema =
+                Schema.create(Schema.Type.STRING).also {
+                    it.addProp("java-class", CustomString::class.java.name)
+                }
             val bytes = Avro.encodeToByteArray(schema, "Hello")
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe CustomString("Hello")
         }
         "deserializing type with an unknown java-class should return the natural type" {
-            val schema = Schema.create(Schema.Type.STRING).also {
-                it.addProp("java-class", "unknown.ClassName")
-            }
+            val schema =
+                Schema.create(Schema.Type.STRING).also {
+                    it.addProp("java-class", "unknown.ClassName")
+                }
             val bytes = Avro.encodeToByteArray(schema, "Hello")
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe "Hello"
@@ -96,11 +102,13 @@ class ReflectKSerializerTest : StringSpec() {
             val schema = Schema.createFixed("theFixed", null, null, 3)
             val bytes = byteArrayOf(1, 2, 3)
 
-            val decoded = Avro {
-                serializersModule = SerializersModule {
-                    contextual(CustomFixed::class, CustomFixed.serializer())
-                }
-            }.decodeFromByteArray(schema, ReflectKSerializer(), bytes)
+            val decoded =
+                Avro {
+                    serializersModule =
+                        SerializersModule {
+                            contextual(CustomFixed::class, CustomFixed.serializer())
+                        }
+                }.decodeFromByteArray(schema, ReflectKSerializer(), bytes)
             decoded should beOfType<CustomFixed>()
             (decoded as CustomFixed).value shouldBe bytes
         }
@@ -123,28 +131,31 @@ class ReflectKSerializerTest : StringSpec() {
             // not specifying the configured Avro instance should fallback on deserializing as GenericRecord
             Avro.decodeFromByteArray<Any>(schema, ReflectKSerializer(), bytes) should beInstanceOf<GenericRecord>()
 
-            val avro = Avro {
-                serializersModule = SerializersModule {
-                    contextual(TheRecord::class, TheRecord.serializer())
+            val avro =
+                Avro {
+                    serializersModule =
+                        SerializersModule {
+                            contextual(TheRecord::class, TheRecord.serializer())
+                        }
                 }
-            }
             avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe TheRecord("Hello", null)
         }
         "RECORD should be deserialized as GenericRecord if the schema's full-name doesn't exist as a class" {
-            val schema = SchemaBuilder.record("theRecord")
-                .fields()
-                .requiredString("field")
-                .endRecord()
-            val value = GenericData.Record(schema).apply {
-                put("field", "Hello")
-            }
+            val schema =
+                SchemaBuilder.record("theRecord")
+                    .fields()
+                    .requiredString("field")
+                    .endRecord()
+            val value =
+                GenericData.Record(schema).apply {
+                    put("field", "Hello")
+                }
             val bytes = Avro.encodeToByteArray(schema, ReflectKSerializer(), value)
 
             Avro.decodeFromByteArray(schema, ReflectKSerializer(), bytes) shouldBe value
         }
     }
 }
-
 
 @JvmInline
 @Serializable
@@ -158,13 +169,17 @@ private value class CustomFixed(val value: ByteArray)
 @Serializable
 @AvroAlias("theEnum")
 private enum class TestEnum {
-    A, B, C
+    A,
+    B,
+    C,
 }
 
 @Serializable
 @SerialName("theTestEnumCustomSerialName")
 private enum class TestEnumCustomSerialName {
-    A, B, C
+    A,
+    B,
+    C,
 }
 
 @Serializable

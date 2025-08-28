@@ -1,13 +1,12 @@
 import kotlinx.benchmark.gradle.JvmBenchmarkTarget
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
     java
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("org.jetbrains.kotlinx.benchmark") version "0.4.14"
-    kotlin("plugin.allopen") version libs.versions.kotlin
-    kotlin("plugin.serialization") version libs.versions.kotlin
-    kotlin("plugin.noarg") version libs.versions.kotlin
+    kotlin("plugin.allopen")
+    kotlin("plugin.serialization")
+    kotlin("plugin.noarg")
 }
 
 allOpen {
@@ -68,12 +67,10 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-avro:$jacksonVersion")
     implementation("org.slf4j:slf4j-simple:2.0.17")
 
-    implementation(project(":"))
+    implementation(project(":core"))
 }
 
 kotlin {
-    explicitApi = ExplicitApiMode.Disabled
-
     compilerOptions {
         optIn = listOf(
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",

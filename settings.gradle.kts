@@ -1,11 +1,5 @@
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
+rootProject.name = "avro4k"
 
-rootProject.name = "avro4k-core"
-
-include("benchmark")
+include("core")
 include("confluent-kafka-serializer")
+include("benchmark")

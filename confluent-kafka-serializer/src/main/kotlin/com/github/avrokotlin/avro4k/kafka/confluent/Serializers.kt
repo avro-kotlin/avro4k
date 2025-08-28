@@ -39,12 +39,12 @@ import java.nio.ByteBuffer
 import java.util.WeakHashMap
 import kotlin.reflect.KClass
 
-
 internal fun Avro.withAnyKSerializer(kSerializer: AnySerializer): Avro =
     Avro(from = this) {
-        serializersModule = SerializersModule {
-            contextual(Any::class, kSerializer)
-        }
+        serializersModule =
+            SerializersModule {
+                contextual(Any::class, kSerializer)
+            }
     }
 
 internal class ReflectKSerializer : AnySerializer() {
@@ -56,18 +56,20 @@ internal class ReflectKSerializer : AnySerializer() {
             ?.let { serializerOrNull(it) }
 
     override fun SerializersModule.resolveArrayDeserializationStrategy(writerSchema: Schema): DeserializationStrategy<Any> {
-        val itemSerializer = writerSchema.getProp(SpecificData.ELEMENT_PROP)
-            ?.let { tryGetJavaClass(it) }
-            ?.let { serializerOrNull(it) }
-            ?: this@ReflectKSerializer.nullable
+        val itemSerializer =
+            writerSchema.getProp(SpecificData.ELEMENT_PROP)
+                ?.let { tryGetJavaClass(it) }
+                ?.let { serializerOrNull(it) }
+                ?: this@ReflectKSerializer.nullable
         return ListSerializer(itemSerializer)
     }
 
     override fun SerializersModule.resolveMapDeserializationStrategy(writerSchema: Schema): DeserializationStrategy<Any> {
-        val keySerializer = writerSchema.getProp(SpecificData.KEY_CLASS_PROP)
-            ?.let { tryGetJavaClass(it) }
-            ?.let { serializerOrNull(it) }
-            ?: String.serializer()
+        val keySerializer =
+            writerSchema.getProp(SpecificData.KEY_CLASS_PROP)
+                ?.let { tryGetJavaClass(it) }
+                ?.let { serializerOrNull(it) }
+                ?: String.serializer()
         return MapSerializer(keySerializer, this@ReflectKSerializer.nullable)
     }
 
@@ -83,52 +85,55 @@ internal class ReflectKSerializer : AnySerializer() {
     private fun SerializersModule.resolveNamedSchema(writerSchema: Schema): DeserializationStrategy<Any>? =
         findRegisteredDeserializerFromModule(writerSchema) ?: findDeserializerFromJavaClassPath(writerSchema)
 
-    private fun SerializersModule.findDeserializerFromJavaClassPath(writerSchema: Schema): DeserializationStrategy<Any>? = iterator {
-        yield(writerSchema.fullName)
-        yieldAll(writerSchema.aliases)
-    }.asSequence()
-        .mapNotNull { tryGetJavaClass(it) }
-        .firstNotNullOfOrNull { serializerOrNull(it) }
+    private fun SerializersModule.findDeserializerFromJavaClassPath(writerSchema: Schema): DeserializationStrategy<Any>? =
+        iterator {
+            yield(writerSchema.fullName)
+            yieldAll(writerSchema.aliases)
+        }.asSequence()
+            .mapNotNull { tryGetJavaClass(it) }
+            .firstNotNullOfOrNull { serializerOrNull(it) }
 
     private fun SerializersModule.findRegisteredDeserializerFromModule(schema: Schema): DeserializationStrategy<Any>? {
         if (!schema.isNamedSchema()) return null
 
         val names = mutableMapOf<String, DeserializationStrategy<*>>()
         @OptIn(ExperimentalSerializationApi::class)
-        dumpTo(object : SimpleSerializersModuleCollector {
-            private fun dumpNames(deserializationStrategy: DeserializationStrategy<*>) {
-                names[deserializationStrategy.descriptor.nonNullOriginal.serialName] = deserializationStrategy
-                deserializationStrategy.descriptor.aliases.forEach {
-                    names[it] = deserializationStrategy
+        dumpTo(
+            object : SimpleSerializersModuleCollector {
+                private fun dumpNames(deserializationStrategy: DeserializationStrategy<*>) {
+                    names[deserializationStrategy.descriptor.nonNullOriginal.serialName] = deserializationStrategy
+                    deserializationStrategy.descriptor.aliases.forEach {
+                        names[it] = deserializationStrategy
+                    }
+                }
+
+                override fun <T : Any> contextual(kClass: KClass<T>, serializer: KSerializer<T>) {
+                    dumpNames(serializer)
+                }
+
+                override fun <T : Any> contextual(
+                    kClass: KClass<T>,
+                    provider: (typeArgumentsSerializers: List<KSerializer<*>>) -> KSerializer<*>,
+                ) {
+                    dumpNames(provider(kClass.typeParameters.map { this@ReflectKSerializer }))
+                }
+
+                override fun <Base : Any, Sub : Base> polymorphic(
+                    baseClass: KClass<Base>,
+                    actualClass: KClass<Sub>,
+                    actualSerializer: KSerializer<Sub>,
+                ) {
+                    dumpNames(actualSerializer)
+                }
+
+                override fun <Base : Any> polymorphicDefaultDeserializer(
+                    baseClass: KClass<Base>,
+                    defaultDeserializerProvider: (className: String?) -> DeserializationStrategy<Base>?,
+                ) {
+                    defaultDeserializerProvider(null)?.let { dumpNames(it) }
                 }
             }
-
-            override fun <T : Any> contextual(kClass: KClass<T>, serializer: KSerializer<T>) {
-                dumpNames(serializer)
-            }
-
-            override fun <T : Any> contextual(
-                kClass: KClass<T>,
-                provider: (typeArgumentsSerializers: List<KSerializer<*>>) -> KSerializer<*>
-            ) {
-                dumpNames(provider(kClass.typeParameters.map { this@ReflectKSerializer }))
-            }
-
-            override fun <Base : Any, Sub : Base> polymorphic(
-                baseClass: KClass<Base>,
-                actualClass: KClass<Sub>,
-                actualSerializer: KSerializer<Sub>
-            ) {
-                dumpNames(actualSerializer)
-            }
-
-            override fun <Base : Any> polymorphicDefaultDeserializer(
-                baseClass: KClass<Base>,
-                defaultDeserializerProvider: (className: String?) -> DeserializationStrategy<Base>?
-            ) {
-                defaultDeserializerProvider(null)?.let { dumpNames(it) }
-            }
-        })
+        )
         @Suppress("UNCHECKED_CAST")
         return (names[schema.fullName] ?: schema.aliases.asSequence().mapNotNull { names[it] }.firstOrNull()) as DeserializationStrategy<Any>?
     }
@@ -138,19 +143,23 @@ internal class ReflectKSerializer : AnySerializer() {
 
 internal class GenericKSerializer : AnySerializer() {
     override fun SerializersModule.inferSerializationStrategyFromNonSerializableType(type: Class<out Any>) = inferSerializationStrategy(type)
+
     override fun SerializersModule.resolveEnumDeserializationStrategy(writerSchema: Schema) = GenericEnumKSerializer
+
     override fun SerializersModule.resolveFixedDeserializationStrategy(writerSchema: Schema) = GenericFixedKSerializer
+
     override fun SerializersModule.resolveRecordDeserializationStrategy(writerSchema: Schema) = GenericRecordKSerializer(this@GenericKSerializer)
 }
 
-private fun AnySerializer.inferSerializationStrategy(type: Class<out Any>): SerializationStrategy<*>? = when {
-    GenericFixed::class.java.isAssignableFrom(type) -> GenericFixedKSerializer
-    GenericEnumSymbol::class.java.isAssignableFrom(type) -> GenericEnumKSerializer
-    IndexedRecord::class.java.isAssignableFrom(type) -> GenericRecordKSerializer(this)
-    ByteBuffer::class.java.isAssignableFrom(type) -> ByteBufferKSerializer
-    Utf8::class.java.isAssignableFrom(type) -> Utf8KSerializer
-    else -> null
-}
+private fun AnySerializer.inferSerializationStrategy(type: Class<out Any>): SerializationStrategy<*>? =
+    when {
+        GenericFixed::class.java.isAssignableFrom(type) -> GenericFixedKSerializer
+        GenericEnumSymbol::class.java.isAssignableFrom(type) -> GenericEnumKSerializer
+        IndexedRecord::class.java.isAssignableFrom(type) -> GenericRecordKSerializer(this)
+        ByteBuffer::class.java.isAssignableFrom(type) -> ByteBufferKSerializer
+        Utf8::class.java.isAssignableFrom(type) -> Utf8KSerializer
+        else -> null
+    }
 
 internal object GenericEnumKSerializer : AvroSerializer<GenericEnumSymbol<*>>(GenericEnumSymbol::class.qualifiedName!!) {
     override fun deserializeAvro(decoder: AvroDecoder): GenericEnumSymbol<*> {
@@ -199,7 +208,7 @@ internal class GenericRecordKSerializer(
         with(encoder) {
             if (currentWriterSchema.isUnion) {
                 trySelectNamedSchema(value.schema.fullName, value.schema::getAliases) ||
-                        throw namedSchemaNotFoundInUnionError(value.schema.fullName, value.schema.aliases)
+                    throw namedSchemaNotFoundInUnionError(value.schema.fullName, value.schema.aliases)
             }
             val descriptor = value.schema.toGenericDescriptor()
             encodeStructure(descriptor) {
@@ -241,24 +250,29 @@ internal class GenericRecordKSerializer(
                 fields.forEach { field ->
                     // Let kotlinx serialization know about the field's nullability.
                     val fieldDescriptor =
-                        if (field.schema().isNullable) anySerializer.nullable.descriptor
-                        else anySerializer.descriptor
+                        if (field.schema().isNullable) {
+                            anySerializer.nullable.descriptor
+                        } else {
+                            anySerializer.descriptor
+                        }
                     element(
                         field.name(),
                         fieldDescriptor,
-                        annotations = buildList {
-                            field.aliases().takeIf { it.isNotEmpty() }?.let {
-                                add(AvroAlias(*it.toTypedArray()))
+                        annotations =
+                            buildList {
+                                field.aliases().takeIf { it.isNotEmpty() }?.let {
+                                    add(AvroAlias(*it.toTypedArray()))
+                                }
                             }
-                        }
                     )
                 }
                 @OptIn(ExperimentalSerializationApi::class)
-                annotations = buildList {
-                    aliases.takeIf { it.isNotEmpty() }?.let {
-                        add(AvroAlias(*it.toTypedArray()))
+                annotations =
+                    buildList {
+                        aliases.takeIf { it.isNotEmpty() }?.let {
+                            add(AvroAlias(*it.toTypedArray()))
+                        }
                     }
-                }
             }
         }
 

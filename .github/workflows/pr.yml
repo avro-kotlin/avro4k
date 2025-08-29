@@ -28,14 +28,26 @@ jobs:
       - name: Run tests
         run: ./gradlew check --scan
 
-#      - name: Publish snapshot
-#        run: ./gradlew publish
-#        env:
-#          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-#          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-#          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-#          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
-#          RELEASE_VERSION: 1.9.0.${{ github.run_number }}-SNAPSHOT #TODO: get the latest release, incrementing the minor
+      - name: Get Previous tag
+        id: previoustag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Get next minor version
+        id: semvers
+        uses: WyriHaximus/github-action-next-semvers@v1
+        with:
+          version: ${{ steps.previoustag.outputs.tag }}
+      - name: Show next version
+        run: echo Snapshot version:: ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
+      - name: Publish snapshot
+        run: ./gradlew publish
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
 
       - name: Upload build reports
         uses: actions/upload-artifact@v4

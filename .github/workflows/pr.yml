@@ -27,18 +27,14 @@ jobs:
       - name: Run tests
         run: ./gradlew check --scan
 
-      - name: Get Previous tag
-        id: previoustag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Get next minor version
-        id: semvers
-        uses: WyriHaximus/github-action-next-semvers@v1
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
         with:
-          version: ${{ steps.previoustag.outputs.tag }}
+          token: ${{ github.token }}
+          branch: main
       - name: Show next version
-        run: echo Snapshot version ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
+        run: echo Snapshot version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
       - name: Publish snapshot
         run: ./gradlew publish
         env:
@@ -46,7 +42,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
-          RELEASE_VERSION: ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
+          RELEASE_VERSION: ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
 
       - name: Upload build reports
         uses: actions/upload-artifact@v4

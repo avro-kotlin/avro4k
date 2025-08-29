@@ -2,11 +2,6 @@ name: release
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        # TODO: get the latest release, incrementing the component related to the commits
-        description: "The release version (e.g., '2.1.3')."
-        required: true
 
 jobs:
   publish:
@@ -24,10 +19,19 @@ jobs:
 
       - name: Build
         run: ./gradlew build
-      - name: publish release
+
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
+      - name: Show next version
+        run: echo Version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
+      - name: Publish release
         run: ./gradlew publishToSonatype closeAndReleaseStagingRepositories
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_VERSION: ${{ steps.semver.outputs.next }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}

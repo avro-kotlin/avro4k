@@ -31,7 +31,7 @@ import java.util.WeakHashMap
  * The main advantage of this library is that it allows you to serialize your data classes (and any other serializable type) to avro binary format, with the kotlin-style native serialization API provided by `kotlinx.serialization`.
  * This framework maintained by jetbrains provides a powerful framework and gradle plugin to generate serializers at compile time, just with a few [kotlinx.serialization.Serializable] anotations.
  *
- * @sample Samples.customizeAvroInstance
+ * @sample com.github.avrokotlin.avro4k.internal.Samples.customizeAvroInstance
  */
 public sealed class Avro(
     public val configuration: AvroConfiguration,

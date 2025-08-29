@@ -62,7 +62,7 @@ publishing {
                 val projectUrl = "https://github.com/avro-kotlin/avro4k"
                 name = project.name
                 artifactId = "avro4k-${project.name}"
-                description = "Avro binary format support for kotlin, built on top of kotlinx-serialization"
+                description = "Avro binary format support for kotlin, built on top of kotlinx-serialization."
                 url = projectUrl
 
                 scm {
@@ -96,15 +96,10 @@ publishing {
 }
 
 signing {
-    if (System.getenv("RELEASE_VERSION")?.let { !it.endsWith("-SNAPSHOT") } ?: false) {
+    if (System.getenv("RELEASE_VERSION") != null) {
         val signingKey: String? by project
         val signingPassword: String? by project
-
-        if (signingKey != null && signingPassword != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        } else {
-            throw IllegalStateException("No signing key or password found")
-        }
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications)
     }
 }

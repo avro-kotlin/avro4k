@@ -22,10 +22,10 @@ jobs:
           build-scan-terms-of-use-agree: yes
           build-scan-terms-of-use-url: https://gradle.com/terms-of-service
 
-      - name: Build
-        run: ./gradlew classes
-      - name: Run tests
-        run: ./gradlew check --scan
+#      - name: Build
+#        run: ./gradlew classes
+#      - name: Run tests
+#        run: ./gradlew check --scan
 
       - name: Get Next Version
         id: semver

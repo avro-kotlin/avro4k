@@ -100,10 +100,10 @@ signing {
         val signingKey: String? by project
         val signingPassword: String? by project
 
-        if (signingKey != null && signingPassword != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        } else {
+        if (signingKey.isNullOrBlank() || signingPassword.isNullOrBlank()) {
             throw IllegalStateException("No signing key or password found")
+        } else {
+            useInMemoryPgpKeys(signingKey, signingPassword)
         }
         sign(publishing.publications)
     }

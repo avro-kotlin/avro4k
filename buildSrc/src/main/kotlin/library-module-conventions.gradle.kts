@@ -96,7 +96,7 @@ publishing {
 }
 
 signing {
-    if (System.getenv("RELEASE_VERSION")?.let { !it.endsWith("-SNAPSHOT") } ?: false) {
+    if (System.getenv("RELEASE_VERSION") != null) {
         val signingKey: String? by project
         val signingPassword: String? by project
 

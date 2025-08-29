@@ -18,18 +18,25 @@ jobs:
 
       - name: Build
         run: ./gradlew classes
-
       - name: Run tests
         run: ./gradlew check
 
-#      - name: deploy to sonatype snapshots
-#        run: ./gradlew publish
-#        env:
-#          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-#          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-#          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-#          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
-#          RELEASE_VERSION: 1.9.0-SNAPSHOT # TODO: get the latest release, incrementing the minor
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
+      - name: Show next version
+        run: echo Snapshot version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
+      - name: Publish snapshot
+        run: ./gradlew publish
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
 
       - name: Upload build reports
         uses: actions/upload-artifact@v4

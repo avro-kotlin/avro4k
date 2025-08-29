@@ -62,7 +62,7 @@ publishing {
                 val projectUrl = "https://github.com/avro-kotlin/avro4k"
                 name = project.name
                 artifactId = "avro4k-${project.name}"
-                description = "Avro binary format support for kotlin, built on top of kotlinx-serialization"
+                description = "Avro binary format support for kotlin, built on top of kotlinx-serialization."
                 url = projectUrl
 
                 scm {

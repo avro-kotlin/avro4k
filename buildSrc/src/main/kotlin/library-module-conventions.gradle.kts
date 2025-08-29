@@ -100,11 +100,7 @@ signing {
         val signingKey = System.getenv("SIGNING_KEY")
         val signingPassword = System.getenv("SIGNING_PASSWORD")
 
-        if (signingKey.isNullOrBlank() || signingPassword.isNullOrBlank()) {
-            throw IllegalStateException("No signing key or password found")
-        } else {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications)
     }
 }

@@ -1,8 +1,7 @@
 plugins {
     id("java-library")
     kotlin("jvm")
-    id("maven-publish")
-    signing
+    id("com.vanniktech.maven.publish")
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
@@ -40,67 +39,45 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
-val dokkaJavadocJar by tasks.register<Jar>("dokkaJavadocJar") {
-    dependsOn(tasks.dokkaGeneratePublicationJavadoc)
-    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
-    archiveClassifier = "javadoc"
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 }
+mavenPublishing {
+    coordinates(
+        artifactId = "avro4k-${project.name}",
+    )
+    pom {
+        val projectUrl = "https://github.com/avro-kotlin/avro4k"
+        name = project.name
+        description = "Avro binary format support for kotlin, built on top of kotlinx-serialization."
+        url = projectUrl
 
-val dokkaHtmlJar by tasks.register<Jar>("dokkaHtmlJar") {
-    dependsOn(tasks.dokkaGeneratePublicationHtml)
-    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
-    archiveClassifier = "html-docs"
-}
+        scm {
+            connection = "scm:git:$projectUrl"
+            developerConnection = "scm:git:$projectUrl"
+            url = projectUrl
+        }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-            artifact(dokkaJavadocJar)
-            artifact(dokkaHtmlJar)
-            pom {
-                val projectUrl = "https://github.com/avro-kotlin/avro4k"
-                name = project.name
-                artifactId = "avro4k-${project.name}"
-                description = "Avro binary format support for kotlin, built on top of kotlinx-serialization."
-                url = projectUrl
-
-                scm {
-                    connection = "scm:git:$projectUrl"
-                    developerConnection = "scm:git:$projectUrl"
-                    url = projectUrl
-                }
-
-                licenses {
-                    license {
-                        name = "Apache-2.0"
-                        url = "https://opensource.org/licenses/Apache-2.0"
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = "thake"
-                        name = "Thorsten Hake"
-                        email = "mail@thorsten-hake.com"
-                    }
-                    developer {
-                        id = "chuckame"
-                        name = "Antoine Michaud"
-                        email = "contact@antoine-michaud.fr"
-                    }
-                }
+        licenses {
+            license {
+                name = "Apache-2.0"
+                url = "https://opensource.org/licenses/Apache-2.0"
             }
         }
-    }
-}
 
-signing {
-    if (System.getenv("RELEASE_VERSION") != null) {
-        val signingKey: String? by project
-        val signingPassword: String? by project
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications)
+        developers {
+            developer {
+                id = "thake"
+                name = "Thorsten Hake"
+                email = "mail@thorsten-hake.com"
+            }
+            developer {
+                id = "chuckame"
+                name = "Antoine Michaud"
+                email = "contact@antoine-michaud.fr"
+            }
+        }
     }
 }
 

@@ -1,15 +1,5 @@
-plugins {
-    id("io.github.gradle-nexus.publish-plugin")
-}
-
 group = "com.github.avro-kotlin.avro4k"
 version = System.getenv("RELEASE_VERSION") ?: "local-SNAPSHOT"
-
-nexusPublishing {
-    repositories {
-        sonatype()
-    }
-}
 
 tasks.register("actionsBeforeCommit") {
     this.group = "verification"

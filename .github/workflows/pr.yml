@@ -24,7 +24,6 @@ jobs:
 
       - name: Build
         run: ./gradlew classes
-
       - name: Run tests
         run: ./gradlew check --scan
 
@@ -39,7 +38,7 @@ jobs:
         with:
           version: ${{ steps.previoustag.outputs.tag }}
       - name: Show next version
-        run: echo Snapshot version:: ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
+        run: echo Snapshot version ${{ steps.semvers.outputs.minor }}.${{ github.run_number }}-SNAPSHOT
       - name: Publish snapshot
         run: ./gradlew publish
         env:

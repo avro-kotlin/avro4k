@@ -97,8 +97,8 @@ publishing {
 
 signing {
     if (System.getenv("RELEASE_VERSION") != null) {
-        val signingKey: String? by rootProject
-        val signingPassword: String? by rootProject
+        val signingKey = System.getenv("SIGNING_KEY")
+        val signingPassword = System.getenv("SIGNING_PASSWORD")
 
         if (signingKey.isNullOrBlank() || signingPassword.isNullOrBlank()) {
             throw IllegalStateException("No signing key or password found")

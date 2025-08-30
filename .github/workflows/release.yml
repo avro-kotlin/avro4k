@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       is-draft:
-        description: Create the release as a draft and
-        default: false
+        description: Create the release as a draft.
+        default: true
         type: boolean
       is-auto-close-sonatype-staging:
-        description: Close the Sonatype staging repository automatically after publishing
-        default: true
+        description: Close the Sonatype staging repository automatically after publishing. If false, you will need to close and release the staging repository at https://central.sonatype.com/publishing/deployments.
+        default: false
         type: boolean
 
 jobs:
@@ -22,6 +22,13 @@ jobs:
           echo "This workflow should only be triggered on main branch.
           exit 1
 
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
+
       - name: Checkout the repo
         uses: actions/checkout@v5
       - name: Setup Gradle
@@ -29,17 +36,13 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}
 
-      - name: Get Next Version
-        id: semver
-        uses: ietf-tools/semver-action@v1
-        with:
-          token: ${{ github.token }}
-          branch: main
       - name: Publish release
         run: ./gradlew publishToMavenCentral
         env:
-          RELEASE_VERSION: ${{ steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}

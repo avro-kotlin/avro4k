@@ -1,5 +1,4 @@
 group = "com.github.avro-kotlin.avro4k"
-version = System.getenv("RELEASE_VERSION") ?: "local-SNAPSHOT"
 
 tasks.register("actionsBeforeCommit") {
     this.group = "verification"

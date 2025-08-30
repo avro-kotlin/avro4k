@@ -2,16 +2,26 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      is-draft:
+        description: Create the release as a draft
+        default: false
+        type: boolean
+      is-auto-close-sonatype-staging:
+        description: Indicates whether to close the Sonatype staging repository automatically after publishing
+        default: true
+        type: boolean
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - name: Fail if branch is not main
-        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/main-v2'
+        if: github.ref != 'refs/heads/main'
         run: |
-          echo "This workflow should only be triggered on main and main-v2 branch.
+          echo "This workflow should only be triggered on main branch.
           exit 1
+
       - name: Checkout the repo
         uses: actions/checkout@v5
       - name: Setup Gradle
@@ -27,17 +37,23 @@ jobs:
           token: ${{ github.token }}
           branch: main
       - name: Show next version
-        run: echo Version ${{ steps.semver.outputs.next }}
+        run: echo Version ${{ steps.semver.outputs.nextStrict }}
       - name: Publish release
         run: ./gradlew publishToMavenCentral
         env:
-          RELEASE_VERSION: ${{ steps.semver.outputs.next }}
+          RELEASE_VERSION: ${{ steps.semver.outputs.nextStrict }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
-      - name: create release
-        run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
+          ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-auto-close-sonatype-staging }}
+      - name: Create release
+        if: ${{ github.event.inputs.is-draft == 'false' }}
+        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar ./*/build/publications/maven/* --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
         env:
-          RELEASE_VERSION: ${{ steps.semver.outputs.next }}
+          GH_TOKEN: ${{ github.token }}
+      - name: Create draft release
+        if: ${{ github.event.inputs.is-draft == 'true' }}
+        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar ./*/build/publications/maven/* --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
+        env:
           GH_TOKEN: ${{ github.token }}

@@ -30,7 +30,7 @@ jobs:
       - name: Show next version
         run: echo Snapshot version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
       - name: Publish snapshot
-        run: ./gradlew publish
+        run: ./gradlew publishToMavenCentral
         env:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}

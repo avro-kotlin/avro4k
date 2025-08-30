@@ -29,7 +29,7 @@ jobs:
       - name: Show next version
         run: echo Version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
       - name: Publish release
-        run: ./gradlew publishToSonatype closeAndReleaseStagingRepositories
+        run: ./gradlew publishToMavenCentral
         env:
           RELEASE_VERSION: ${{ steps.semver.outputs.next }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}

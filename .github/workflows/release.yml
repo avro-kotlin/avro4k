@@ -27,7 +27,7 @@ jobs:
           token: ${{ github.token }}
           branch: main
       - name: Show next version
-        run: echo Version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
+        run: echo Version ${{ steps.semver.outputs.next }}
       - name: Publish release
         run: ./gradlew publishToMavenCentral
         env:
@@ -39,5 +39,5 @@ jobs:
       - name: create release
         run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_VERSION: ${{ steps.semver.outputs.next }}
           GH_TOKEN: ${{ github.token }}

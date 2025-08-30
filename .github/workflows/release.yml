@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       is-draft:
-        description: Create the release as a draft
+        description: Create the release as a draft and
         default: false
         type: boolean
       is-auto-close-sonatype-staging:
-        description: Indicates whether to close the Sonatype staging repository automatically after publishing
+        description: Close the Sonatype staging repository automatically after publishing
         default: true
         type: boolean
 
@@ -36,8 +36,6 @@ jobs:
         with:
           token: ${{ github.token }}
           branch: main
-      - name: Show next version
-        run: echo Version ${{ steps.semver.outputs.nextStrict }}
       - name: Publish release
         run: ./gradlew publishToMavenCentral
         env:
@@ -49,11 +47,11 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-auto-close-sonatype-staging }}
       - name: Create release
         if: ${{ github.event.inputs.is-draft == 'false' }}
-        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar ./*/build/publications/maven/* --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
+        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Create draft release
         if: ${{ github.event.inputs.is-draft == 'true' }}
-        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar ./*/build/publications/maven/* --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
+        run: gh release create "${{ steps.semver.outputs.next }}" ./*/build/libs/*.jar --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
         env:
           GH_TOKEN: ${{ github.token }}

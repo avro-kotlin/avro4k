@@ -1,0 +1,26 @@
+[
+    "int",
+    "null",
+    {
+        "type": "map",
+        "values": [
+            "string",
+            "null",
+            {
+                "type": "array",
+                "items": [
+                    "long",
+                    "null",
+                    {
+                        "type": "map",
+                        "values": ["boolean", "null"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "array",
+        "items": ["long", "null", "double"]
+    }
+]

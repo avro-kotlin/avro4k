@@ -1,0 +1,71 @@
+{
+    "type": "record",
+    "name": "theRecord",
+    "namespace": "ns",
+    "doc": "doc",
+    "customProp": "customValue",
+    "fields": [
+        {
+            "name": "s",
+            "type": "ns.theRecord"
+        },
+        {
+            "name": "field",
+            "type": {
+                "type": "record",
+                "name": "theRecord2",
+                "doc": "doc",
+                "fields": [
+                    {
+                        "name": "field1",
+                        "type": "string",
+                        "doc": "field doc"
+                    },
+                    {
+                        "name": "field2",
+                        "type": ["null", "int"],
+                        "default": null,
+                        "aliases": ["field3", "otherField"]
+                    }
+                ],
+                "aliases": ["alias2"]
+            },
+            "doc": "field doc"
+        },
+        {
+            "name": "b",
+            "type": "bytes",
+            "default": "\u0001\u0002\u0003"
+        },
+        {
+            "name": "f",
+            "type": {
+                "type": "fixed",
+                "name": "Fixed",
+                "doc": "the doc",
+                "size": 3
+            },
+            "default": "ÿ\u0004\u0007"
+        },
+        {
+            "name": "map",
+            "type": {
+                "type": "map",
+                "values": "int"
+            },
+            "default": {
+                "a": 1,
+                "b": 2
+            }
+        },
+        {
+            "name": "array",
+            "type": {
+                "type": "array",
+                "items": "int"
+            },
+            "default": [17, 42]
+        }
+    ],
+    "aliases": ["alias1", "toto"]
+}

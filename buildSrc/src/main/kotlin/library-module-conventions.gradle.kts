@@ -85,10 +85,6 @@ spotless {
     kotlin {
         ktlint()
     }
-    json {
-        target("src/test/resources/**.json")
-        prettier()
-    }
     kotlinGradle {
         ktlint()
     }

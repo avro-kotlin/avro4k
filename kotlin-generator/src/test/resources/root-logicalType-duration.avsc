@@ -1,0 +1,7 @@
+{
+    "type": "fixed",
+    "name": "IgnoredName",
+    "namespace": "ignored.namespace",
+    "size": 12,
+    "logicalType": "duration"
+}

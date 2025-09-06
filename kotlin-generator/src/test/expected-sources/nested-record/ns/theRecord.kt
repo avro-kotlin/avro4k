@@ -12,6 +12,8 @@ import kotlin.Int
 import kotlin.String
 import kotlin.collections.List
 import kotlin.collections.Map
+import kotlin.collections.listOf
+import kotlin.collections.mapOf
 import kotlinx.serialization.Serializable
 
 @Serializable

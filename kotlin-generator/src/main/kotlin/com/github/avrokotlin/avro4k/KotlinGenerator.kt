@@ -227,6 +227,75 @@ public class KotlinGenerator(
         }
     }
 
+    private fun TypeSafeSchema.getLogicalTypeName(): SerializableTypeName? {
+        return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this.isNullable)
+    }
+
+    private fun getTypeName(schema: TypeSafeSchema, potentialAnonymousBaseName: String): SerializableTypeName {
+        schema.actualJavaClassName?.let {
+            return parseJavaClassName(it).nullableIf(schema.isNullable)
+        }
+        schema.getLogicalTypeName()?.let {
+            return it
+        }
+        return when (schema) {
+            is TypeSafeSchema.NamedSchema.RecordSchema,
+            is TypeSafeSchema.NamedSchema.EnumSchema,
+            -> {
+                @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
+                (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
+            }
+
+            is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.BytesSchema,
+            is TypeSafeSchema.NamedSchema.FixedSchema,
+            -> ByteArray::class.asClassName().nativelySerializable()
+
+            is TypeSafeSchema.CollectionSchema.ArraySchema -> {
+                val itemType: SerializableTypeName =
+                    schema.actualElementClass?.let { parseJavaClassName(it).nullableIf(schema.elementSchema.isNullable) }
+                        ?: getTypeName(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName))
+
+                val wrapperType = List::class.asClassName().parameterizedBy(itemType.typeName)
+                if (!itemType.isNativelySerializable()) {
+                    // There is no way to annotate the type argument of a List, so we let the whole List be contextual
+                    wrapperType.contextual()
+                } else {
+                    wrapperType.nativelySerializable()
+                }
+            }
+
+            is TypeSafeSchema.CollectionSchema.MapSchema -> {
+                val keyType =
+                    schema.actualKeyClass?.let { parseJavaClassName(it) }
+                        ?: String::class.asClassName().nativelySerializable()
+                val valueType = getTypeName(schema.valueSchema, mapNameFormatter(potentialAnonymousBaseName))
+
+                val wrappedType =
+                    Map::class.asClassName().parameterizedBy(
+                        keyType.typeName,
+                        valueType.typeName
+                    )
+                if (!keyType.isNativelySerializable() || !valueType.isNativelySerializable()) {
+                    // There is no way to annotate the type argument of a Map, so we let the whole Map be contextual
+                    wrappedType.contextual()
+                } else {
+                    wrappedType.nativelySerializable()
+                }
+            }
+
+            is TypeSafeSchema.UnionSchema -> {
+                // This union will be generated, so it will be natively serializable
+                ClassName("", unionNameFormatter(potentialAnonymousBaseName)).nativelySerializable()
+            }
+        }.nullableIf(schema.isNullable)
+    }
+
     /**
      * Generates a sealed interface representing a complex union (more than one non-null type).
      *
@@ -372,103 +441,35 @@ public class KotlinGenerator(
             is TypeSafeSchema.PrimitiveSchema.StringSchema,
             -> CodeBlock.of("%S", fieldDefault)
 
-            is TypeSafeSchema.PrimitiveSchema -> CodeBlock.of("%L", fieldDefault)
+//            is TypeSafeSchema.PrimitiveSchema -> CodeBlock.of("%L", fieldDefault)
+            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> CodeBlock.of("%L", fieldDefault as Boolean)
+            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> CodeBlock.of("%L", fieldDefault as Double)
+            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> CodeBlock.of("%L", "${fieldDefault}f")
+            is TypeSafeSchema.PrimitiveSchema.IntSchema -> CodeBlock.of("%L", fieldDefault as Int)
+            is TypeSafeSchema.PrimitiveSchema.LongSchema -> CodeBlock.of("%L", fieldDefault as Long)
 
             // for union, the default has to be of the first type
             is TypeSafeSchema.UnionSchema -> getRecordFieldDefault(schema.types.first(), fieldDefault)
 
             is TypeSafeSchema.CollectionSchema.ArraySchema ->
-                if ((fieldDefault as Collection<*>).isEmpty()) {
-                    CodeBlock.of("emptyList()")
-                } else {
-                    CodeBlock.of(
-                        "listOf(%L)",
-                        (fieldDefault as List<*>).mapNotNull { getRecordFieldDefault(schema.elementSchema, it) }.joinToCode()
-                    )
-                }
+                @Suppress("UNCHECKED_CAST")
+                (fieldDefault as List<*>)
+                    .map { getRecordFieldDefault(schema.elementSchema, it) }
+                    .takeIf { it.all { it != null } }
+                    ?.let {
+                        getListOfCodeBlock(it as List<CodeBlock>)
+                    }
 
             is TypeSafeSchema.CollectionSchema.MapSchema ->
-                if ((fieldDefault as Map<*, *>).isEmpty()) {
-                    CodeBlock.of("emptyMap()")
-                } else {
-                    CodeBlock.of(
-                        "mapOf(%L)",
-                        fieldDefault.mapNotNull { (key, value) -> getRecordFieldDefault(schema.valueSchema, value)?.let { CodeBlock.of("%S to %L", key, it) } }.joinToCode()
-                    )
-                }
+                @Suppress("UNCHECKED_CAST")
+                (fieldDefault as Map<*, *>)
+                    .mapValues { getRecordFieldDefault(schema.valueSchema, it.value) }
+                    .takeIf { it.all { it.key is String && it.value != null } }
+                    ?.let { getMapOfCodeBlock(it as Map<String, CodeBlock>) }
 
             // TODO records' defaults are Maps, which needs to be converted to the actual record class instance
             is TypeSafeSchema.NamedSchema.RecordSchema -> null
         }
-    }
-
-    private fun TypeSafeSchema.getLogicalTypeName(): SerializableTypeName? {
-        return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this.isNullable)
-    }
-
-    private fun getTypeName(schema: TypeSafeSchema, potentialAnonymousBaseName: String): SerializableTypeName {
-        schema.actualJavaClassName?.let {
-            return parseJavaClassName(it).nullableIf(schema.isNullable)
-        }
-        schema.getLogicalTypeName()?.let {
-            return it
-        }
-        return when (schema) {
-            is TypeSafeSchema.NamedSchema.RecordSchema,
-            is TypeSafeSchema.NamedSchema.EnumSchema,
-            -> {
-                @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
-                (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
-            }
-
-            is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.BytesSchema,
-            is TypeSafeSchema.NamedSchema.FixedSchema,
-            -> ByteArray::class.asClassName().nativelySerializable()
-
-            is TypeSafeSchema.CollectionSchema.ArraySchema -> {
-                val itemType: SerializableTypeName =
-                    schema.actualElementClass?.let { parseJavaClassName(it).nullableIf(schema.elementSchema.isNullable) }
-                        ?: getTypeName(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName))
-
-                val wrapperType = List::class.asClassName().parameterizedBy(itemType.typeName)
-                if (!itemType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a List, so we let the whole List be contextual
-                    wrapperType.contextual()
-                } else {
-                    wrapperType.nativelySerializable()
-                }
-            }
-
-            is TypeSafeSchema.CollectionSchema.MapSchema -> {
-                val keyType =
-                    schema.actualKeyClass?.let { parseJavaClassName(it) }
-                        ?: String::class.asClassName().nativelySerializable()
-                val valueType = getTypeName(schema.valueSchema, mapNameFormatter(potentialAnonymousBaseName))
-
-                val wrappedType =
-                    Map::class.asClassName().parameterizedBy(
-                        keyType.typeName,
-                        valueType.typeName
-                    )
-                if (!keyType.isNativelySerializable() || !valueType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a Map, so we let the whole Map be contextual
-                    wrappedType.contextual()
-                } else {
-                    wrappedType.nativelySerializable()
-                }
-            }
-
-            is TypeSafeSchema.UnionSchema -> {
-                // This union will be generated, so it will be natively serializable
-                ClassName("", unionNameFormatter(potentialAnonymousBaseName)).nativelySerializable()
-            }
-        }.nullableIf(schema.isNullable)
     }
 
     private fun PropertySpec.Builder.addImplicitAvroDefaultAnnotation(schema: TypeSafeSchema): PropertySpec.Builder {
@@ -489,13 +490,31 @@ public class KotlinGenerator(
             return CodeBlock.of("null")
         } else if (avro.configuration.implicitEmptyCollections) {
             if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
-                return CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyList"))
+                return getListOfCodeBlock(emptyList())
             } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
-                return CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyMap"))
+                return getMapOfCodeBlock(emptyMap())
             }
         }
         return null
     }
+
+    private fun getMapOfCodeBlock(map: Map<String, CodeBlock>): CodeBlock =
+        if (map.isNotEmpty()) {
+            CodeBlock.of(
+                "%M(%L)",
+                MemberName("kotlin.collections", "mapOf"),
+                map.map { (key, value) -> CodeBlock.of("%S to %L", key, value) }.joinToCode()
+            )
+        } else {
+            CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyMap"))
+        }
+
+    private fun getListOfCodeBlock(list: List<CodeBlock>): CodeBlock =
+        if (list.isNotEmpty()) {
+            CodeBlock.of("%M(%L)", MemberName("kotlin.collections", "listOf"), list.joinToCode())
+        } else {
+            CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyList"))
+        }
 }
 
 private data class SerializableTypeName(

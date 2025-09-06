@@ -17,6 +17,8 @@ import kotlin.collections.List
 import kotlin.collections.Map
 import kotlin.collections.emptyList
 import kotlin.collections.emptyMap
+import kotlin.collections.listOf
+import kotlin.collections.mapOf
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,7 +41,7 @@ public data class theRecord(
     @AvroDefault("4242")
     public val l: Long = 4_242,
     @AvroDefault("4.2")
-    public val f1: Float = 4.2,
+    public val f1: Float = 4.2f,
     @AvroDefault("8.4")
     public val d: Double = 8.4,
     @AvroDefault("true")

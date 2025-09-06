@@ -3,16 +3,20 @@ plugins {
     id("idea")
 }
 
-val testExpectedGeneratedSources by sourceSets.creating
-val testExpectedGeneratedSourcesImplementation by configurations.getting
+val commonExpectedGeneratedSources by sourceSets.creating
+val commonExpectedGeneratedSourcesImplementation by configurations.getting
 
 file("src/test/expected-sources").list().forEach { testCase ->
     val sourceSet = sourceSets.create("testExpectedSources_$testCase")
     sourceSet.kotlin.srcDir(file("src/test/expected-sources/$testCase"))
 
+    // Make the test-case's sourceSet using the common
     val implementation = configurations.getByName(sourceSet.implementationConfigurationName)
-    implementation.extendsFrom(testExpectedGeneratedSourcesImplementation)
+    implementation.extendsFrom(commonExpectedGeneratedSourcesImplementation)
 
+    tasks.named("testClasses") {
+        dependsOn(tasks.named(sourceSet.classesTaskName))
+    }
     // make them green in IntelliJ !
     idea.module.testSources += sourceSet.kotlin
 }
@@ -28,7 +32,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testExpectedGeneratedSourcesImplementation(project(":core"))
+    commonExpectedGeneratedSourcesImplementation(project(":core"))
 }
 
 repositories {

@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k
 
 import io.kotest.matchers.file.shouldHaveSameStructureAndContentAs
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
@@ -14,6 +15,7 @@ class KotlinGeneratorTest {
     @ParameterizedTest
     @MethodSource("getSchemasToTest")
     fun verifyGeneration(schemaPath: File) {
+        // TODO decimal logical type
         val testName = schemaPath.nameWithoutExtension
         val expectedBaseDir = Path("src/test/expected-sources/$testName/").toFile()
         val actualBaseDir = Path("build/generated-sources/$testName/").toFile()
@@ -24,7 +26,7 @@ class KotlinGeneratorTest {
         actualBaseDir shouldHaveSameStructureAndContentAs expectedBaseDir
     }
 
-//    @Disabled
+    @Disabled
     @ParameterizedTest
     @MethodSource("getSchemasToTest")
     fun updateExpectedGeneratedSources(schemaPath: File) {

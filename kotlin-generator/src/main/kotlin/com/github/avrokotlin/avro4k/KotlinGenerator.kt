@@ -73,6 +73,7 @@ public class KotlinGenerator(
         }
         return when (schema) {
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
+                // TODO refactor/unify with nested record generation
                 val recordType = generateRecordClass(schema)
                 listOf(recordType.toFileSpec(schema.space)) +
                     // generate nested types

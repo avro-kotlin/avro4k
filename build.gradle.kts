@@ -1,8 +1,10 @@
 group = "com.github.avro-kotlin.avro4k"
 
 tasks.register("actionsBeforeCommit") {
-    this.group = "verification"
+    group = "verification"
     val tasksToBeRun = listOf(
+        "classes",
+        "testClasses",
         "apiDump",
         "spotlessApply"
     )

@@ -15,3 +15,10 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(kotlin("reflect"))
 }
+
+spotless {
+    json {
+        target("**.json")
+        prettier()
+    }
+}

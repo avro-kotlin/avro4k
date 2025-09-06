@@ -1,0 +1,4 @@
+{
+    "type": "string",
+    "java-class": "java.time.Instant"
+}

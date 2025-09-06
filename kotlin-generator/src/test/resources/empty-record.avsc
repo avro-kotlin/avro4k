@@ -1,0 +1,9 @@
+{
+    "type": "record",
+    "name": "theRecord",
+    "namespace": "ns",
+    "doc": "doc",
+    "fields": [],
+    "aliases": ["alias1", "toto"],
+    "customProp": "customValue"
+}

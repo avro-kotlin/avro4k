@@ -98,15 +98,9 @@ public inline fun <reified T : Any> SpecificAvro4kKafkaSerializer(
 
 @ExperimentalAvro4kApi
 public class SpecificAvro4kKafkaSerializer<T : Any>(
-    serializer: SerializationStrategy<T> = ReflectKSerializer(),
+    override val serializer: SerializationStrategy<T> = ReflectKSerializer(),
     avro: Avro = Avro,
 ) : AbstractAvro4kKafkaSerializer<T>(avro.withAnyKSerializer(ReflectKSerializer())) {
-    override var serializer: SerializationStrategy<T> private set
-
-    init {
-        this.serializer = serializer
-    }
-
     /**
      * Create a configured instance of [SpecificAvro4kKafkaSerializer].
      * You need to pass at least a non-null [schemaRegistry], or the `schema.registry.url` entry in [props].

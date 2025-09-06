@@ -5,7 +5,9 @@ kotest = "5.9.1"
 okio = "3.16.0"
 apache-avro = "1.11.4"
 confluent-schema-registry = "8.0.0"
+kotlinpoet = "2.2.0"
 mockk = "1.14.5"
+junit = "5.13.4"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
@@ -17,3 +19,5 @@ kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", versio
 kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }

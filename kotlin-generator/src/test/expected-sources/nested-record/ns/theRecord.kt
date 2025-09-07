@@ -5,6 +5,7 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.ByteArray
@@ -23,6 +24,7 @@ import kotlinx.serialization.Serializable
     "ns.alias1",
     "ns.toto",
 )
+@AvroGenerated("""{"type":"record","name":"theRecord","namespace":"ns","doc":"doc","fields":[{"name":"s","type":"theRecord"},{"name":"field","type":{"type":"record","name":"theRecord2","doc":"doc","fields":[{"name":"field1","type":"string","doc":"field doc"},{"name":"field2","type":["null","int"],"default":null,"aliases":["field3","otherField"]}],"aliases":["alias2"]},"doc":"field doc"},{"name":"b","type":"bytes","default":"\u0001\u0002\u0003"},{"name":"f","type":{"type":"fixed","name":"Fixed","doc":"the doc","size":3},"default":"ÿ\u0004\u0007"},{"name":"map","type":{"type":"map","values":"int"},"default":{"a":1,"b":2}},{"name":"array","type":{"type":"array","items":"int"},"default":[17,42]}],"customProp":"customValue","aliases":["alias1","toto"]}""")
 public data class theRecord(
     public val s: theRecord,
     @AvroDoc("field doc")

@@ -73,8 +73,9 @@ public class KotlinGenerator(
         }
         return when (schema) {
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
-                // TODO refactor/unify with nested record generation
-                val recordType = generateRecordClass(schema)
+                val recordType =
+                    generateRecordClass(schema)
+                        .addAvroGenerated(schemaStr)
                 listOf(recordType.toFileSpec(schema.space)) +
                     // generate nested types
                     schema.fields.flatMap { field ->
@@ -101,6 +102,7 @@ public class KotlinGenerator(
                         potentialAnonymousClassName,
                         schema
                     )
+                        .addAvroGenerated(schemaStr)
                         .toFileSpec(null)
 
                 listOf(unionType) + schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousClassName, emptyMap()) }
@@ -152,7 +154,7 @@ public class KotlinGenerator(
                 PropertySpec.builder("value", wrappedType.typeName)
                     .addAvroDecimalAnnotation(schema)
                     .addAvroFixedAnnotation(schema)
-                    .addAvroProps(schema)
+                    .addAvroPropAnnotation(schema)
                     .addImplicitAvroDefaultAnnotation(schema)
                     .apply { wrappedType.applySerializableAnnotationOn(this) }
                     .build(),
@@ -361,9 +363,9 @@ public class KotlinGenerator(
     private fun generateEnumClass(schema: TypeSafeSchema.NamedSchema.EnumSchema): TypeSpec {
         return TypeSpec.enumBuilder(schema.name)
             .addAnnotation(Serializable::class)
-            .addAvroProps(schema)
-            .addAvroDoc(schema)
-            .addAvroAliases(schema)
+            .addAvroPropAnnotation(schema)
+            .addAvroDocAnnotation(schema)
+            .addAvroAliasAnnotation(schema)
             .apply {
                 schema.symbols.forEach { enumSymbol ->
                     addEnumConstant(
@@ -384,9 +386,9 @@ public class KotlinGenerator(
     private fun generateRecordClass(schema: TypeSafeSchema.NamedSchema.RecordSchema): TypeSpec {
         return (if (schema.fields.isNotEmpty()) TypeSpec.classBuilder(schema.name).addModifiers(KModifier.DATA) else TypeSpec.objectBuilder(schema.name))
             .addAnnotation(Serializable::class)
-            .addAvroProps(schema)
-            .addAvroDoc(schema)
-            .addAvroAliases(schema)
+            .addAvroPropAnnotation(schema)
+            .addAvroDocAnnotation(schema)
+            .addAvroAliasAnnotation(schema)
             .let {
                 schema.fields.fold(it) { builder, field ->
                     val typeName = getTypeName(field.schema, field.name.toPascalCase())
@@ -394,9 +396,9 @@ public class KotlinGenerator(
                     builder.addPrimaryProperty(
                         PropertySpec.builder(field.name, typeName.typeName)
                             .initializer(field.name)
-                            .addAvroProps(field)
-                            .addAvroDoc(field)
-                            .addAvroAliases(field)
+                            .addAvroPropAnnotation(field)
+                            .addAvroDocAnnotation(field)
+                            .addAvroAliasAnnotation(field)
                             .addAvroDecimalAnnotation(field.schema)
                             .addAvroFixedAnnotation(field.schema)
                             .addAvroDefaultAnnotation(field)
@@ -555,7 +557,7 @@ private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue()
             }
         } ?: "null"
 
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroProps(carrier: WithProps): T {
+private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroPropAnnotation(carrier: WithProps): T {
     carrier.props.forEach { (key, value) ->
         addAnnotation(
             AnnotationSpec.builder(AvroProp::class.asClassName())
@@ -572,7 +574,7 @@ private fun buildAvroDefaultAnnotation(defaultValue: String): AnnotationSpec {
         .build()
 }
 
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroAliases(carrier: WithAliases): T {
+private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroAliasAnnotation(carrier: WithAliases): T {
     if (carrier.aliases.isNotEmpty()) {
         addAnnotation(
             AnnotationSpec.builder(AvroAlias::class.asClassName())
@@ -587,7 +589,7 @@ private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroAl
     return this
 }
 
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroDoc(carrier: WithDoc): T {
+private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroDocAnnotation(carrier: WithDoc): T {
     if (carrier.doc != null) {
         addAnnotation(
             AnnotationSpec.builder(AvroDoc::class.asClassName())

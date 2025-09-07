@@ -5,6 +5,7 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.ByteArray
@@ -28,6 +29,7 @@ import kotlinx.serialization.Serializable
     "ns.alias1",
     "ns.toto",
 )
+@AvroGenerated("""{"type":"record","name":"theRecord","namespace":"ns","doc":"doc","fields":[{"name":"b","type":"bytes","default":"\u0001\u0002\u0003","aliases":["fieldAlias1","fieldAlias2"],"customFieldProp":"customValue"},{"name":"i","type":"int","default":42},{"name":"l","type":"long","default":4242},{"name":"f1","type":"float","default":4.2},{"name":"d","type":"double","default":8.4},{"name":"bool","type":"boolean","default":true},{"name":"str","type":"string","default":"the default"},{"name":"nullableStringField","type":["null","string"],"default":null},{"name":"nullableStringFieldButDefaulted","type":["string","null"],"default":"default value"},{"name":"f","type":{"type":"fixed","name":"Fixed","doc":"the doc","size":3},"default":"ÿ\u0004\u0007"},{"name":"map","type":{"type":"map","values":"int"},"default":{"a":1,"b":2}},{"name":"mapWithNullableValues","type":{"type":"map","values":["null","int"]}},{"name":"array","type":{"type":"array","items":"int"},"default":[17,42]},{"name":"arrayWithNullableValues","type":{"type":"array","items":["null","int"]}}],"customProp":"customValue","aliases":["alias1","toto"]}""")
 public data class theRecord(
     @AvroProp("customFieldProp", "customValue")
     @AvroAlias(

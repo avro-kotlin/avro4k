@@ -1,4 +1,5 @@
 import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.ByteArray
 import kotlin.Double
 import kotlin.Int
@@ -9,6 +10,7 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 @Serializable
+@AvroGenerated("""["null","string","int",{"type":"record","name":"NestedRecord","fields":[{"name":"field","type":"string","doc":"field doc"}]},{"type":"enum","name":"AnEnum","symbols":["A","B","C"]},{"type":"fixed","name":"AFixed","size":5},{"type":"array","items":"int"},{"type":"map","values":["null","double"]}]""")
 public sealed interface TestSchema {
     @JvmInline
     @Serializable

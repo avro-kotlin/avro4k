@@ -1,3 +1,4 @@
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.Int
 import kotlin.String
 import kotlin.collections.List
@@ -6,6 +7,7 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 @Serializable
+@AvroGenerated("""["int","null",{"type":"map","values":["string","null",{"type":"array","items":["long","null",{"type":"map","values":["boolean","null"]}]}]},{"type":"array","items":["long","null","double"]}]""")
 public sealed interface TestSchema {
     @JvmInline
     @Serializable

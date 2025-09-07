@@ -15,7 +15,6 @@ import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
-import org.apache.avro.util.internal.JacksonUtils
 
 /**
  * Generates Kotlin classes from Avro schemas, fully compatible with avro4k.
@@ -151,7 +150,7 @@ public class KotlinGenerator(
             .addPrimaryProperty(
                 PropertySpec.builder("value", wrappedType.typeName)
                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
-                    .addAnnotationIfNotNull((schema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
+                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(schema))
                     .addAnnotations(buildAvroPropAnnotations(schema))
                     .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, avro.configuration))
                     .addSerializableAnnotation(wrappedType)
@@ -331,7 +330,7 @@ public class KotlinGenerator(
                             .addPrimaryProperty(
                                 PropertySpec.builder("value", typeName.typeName)
                                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(subSchema))
-                                    .addAnnotationIfNotNull((subSchema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
+                                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(subSchema))
                                     .addSerializableAnnotation(typeName)
                                     .build()
                             )
@@ -398,21 +397,17 @@ public class KotlinGenerator(
                             .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
                             .addAnnotationIfNotNull(buildAvroAliasAnnotation(field))
                             .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
-                            .addAnnotationIfNotNull((field.schema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
-                            .apply {
-                                if (field.hasDefaultValue()) {
-                                    addAnnotation(buildAvroDefaultAnnotation(field.unquotedDefaultValue()))
-                                }
-                            }
+                            .addAnnotationIfNotNull(buildAvroFixedAnnotation(field.schema))
+                            .addAnnotationIfNotNull(buildAvroDefaultAnnotation(field))
                             .addSerializableAnnotation(typeName)
                             .build(),
                         defaultValue =
                             if (field.hasDefaultValue()) {
                                 if (typeName.isNativelySerializable()) {
-                                    // TODO contextual types needs to be converted to match well the default value
                                     // TODO recursive types needs to have a default value, or it's not possible to instantiate them
                                     getRecordFieldDefault(field.schema, field.defaultValue)
                                 } else {
+                                    // TODO contextual types needs to be converted to match well the default value
                                     null
                                 }
                             } else {
@@ -505,16 +500,6 @@ private data class SerializableTypeName(
 private fun TypeName.nativelySerializable() = SerializableTypeName(this, serializableAnnotation = null)
 
 private fun TypeName.contextual() = SerializableTypeName(this, serializableAnnotation = AnnotationSpec.builder(Contextual::class.asClassName()).build())
-
-private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue(): String =
-    JacksonUtils.toJsonNode(defaultValue)
-        ?.let {
-            if (it.isTextual) {
-                it.asText()
-            } else {
-                it.toString()
-            }
-        } ?: "null"
 
 /**
  * Any non word character is considered as a separator, and the next character is capitalized.

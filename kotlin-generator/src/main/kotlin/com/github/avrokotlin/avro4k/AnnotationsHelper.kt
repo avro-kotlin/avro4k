@@ -4,8 +4,12 @@ import com.github.avrokotlin.avro4k.internal.AvroGenerated
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.asClassName
+import org.apache.avro.util.internal.JacksonUtils
 
-internal fun buildAvroFixedAnnotation(schema: TypeSafeSchema.NamedSchema.FixedSchema): AnnotationSpec {
+internal fun buildAvroFixedAnnotation(schema: TypeSafeSchema): AnnotationSpec? {
+    if (schema !is TypeSafeSchema.NamedSchema.FixedSchema) {
+        return null
+    }
     return AnnotationSpec.builder(AvroFixed::class.asClassName())
         .addMember(CodeBlock.of("${AvroFixed::size.name} = %L", schema.size))
         .build()
@@ -56,11 +60,28 @@ internal fun buildAvroGeneratedAnnotation(schemaStr: String): AnnotationSpec {
         .build()
 }
 
-internal fun buildAvroDefaultAnnotation(unquotedDefaultValue: String): AnnotationSpec {
+internal fun buildAvroDefaultAnnotation(field: TypeSafeSchema.NamedSchema.RecordSchema.Field): AnnotationSpec? {
+    if (!field.hasDefaultValue()) {
+        return null
+    }
+    return buildAvroDefaultAnnotation(field.unquotedDefaultValue())
+}
+
+private fun buildAvroDefaultAnnotation(unquotedDefaultValue: String): AnnotationSpec {
     return AnnotationSpec.builder(AvroDefault::class.asClassName())
         .addMember("%S", unquotedDefaultValue)
         .build()
 }
+
+private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue(): String =
+    JacksonUtils.toJsonNode(defaultValue)
+        ?.let {
+            if (it.isTextual) {
+                it.asText()
+            } else {
+                it.toString()
+            }
+        } ?: "null"
 
 internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, configuration: AvroConfiguration): AnnotationSpec? {
     if (configuration.implicitNulls && schema.isNullable) {

@@ -1,19 +1,17 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.AvroGenerated
+import com.github.avrokotlin.avro4k.SerializableTypeName.Companion.addSerializableAnnotation
 import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
-import com.squareup.kotlinpoet.joinToCode
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
@@ -31,6 +29,7 @@ public class KotlinGenerator(
     private val unionNameFormatter: (String) -> String = { "${it}Union" },
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
+    private val unionSubTypeNameFormatter: (String) -> String = { "For$it" },
     logicalTypes: Map<String, String> = mapOf(),
 ) {
     private val logicalTypes: Map<String, SerializableTypeName> =
@@ -39,7 +38,7 @@ public class KotlinGenerator(
                 typeName = ClassName.bestGuess(it.value.descriptor.serialName),
                 serializableAnnotation =
                     AnnotationSpec.builder(Serializable::class)
-                        .addMember("with = %T::class", it.value::class.asClassName())
+                        .addMember("${Serializable::with.name} = %T::class", it.value::class.asClassName())
                         .build()
             )
         } + logicalTypes.mapValues { parseJavaClassName(it.value) }
@@ -75,7 +74,7 @@ public class KotlinGenerator(
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
                 val recordType =
                     generateRecordClass(schema)
-                        .addAvroGenerated(schemaStr)
+                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
                 listOf(recordType.toFileSpec(schema.space)) +
                     // generate nested types
                     schema.fields.flatMap { field ->
@@ -91,18 +90,18 @@ public class KotlinGenerator(
             is TypeSafeSchema.NamedSchema.EnumSchema ->
                 listOf(
                     generateEnumClass(schema)
-                        .addAvroGenerated(schemaStr)
+                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
                         .toFileSpec(schema.space)
                 )
 
             is TypeSafeSchema.UnionSchema -> {
                 val unionType =
-                    generateUnionSealedInterface(
+                    generateSealedInterface(
+                        schema,
                         potentialAnonymousClassName,
-                        potentialAnonymousClassName,
-                        schema
+                        potentialAnonymousClassName
                     )
-                        .addAvroGenerated(schemaStr)
+                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
                         .toFileSpec(null)
 
                 listOf(unionType) + schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousClassName, emptyMap()) }
@@ -152,16 +151,16 @@ public class KotlinGenerator(
             .addAnnotation(Serializable::class)
             .addPrimaryProperty(
                 PropertySpec.builder("value", wrappedType.typeName)
-                    .addAvroDecimalAnnotation(schema)
-                    .addAvroFixedAnnotation(schema)
-                    .addAvroPropAnnotation(schema)
-                    .addImplicitAvroDefaultAnnotation(schema)
-                    .apply { wrappedType.applySerializableAnnotationOn(this) }
+                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
+                    .addAnnotationIfNotNull((schema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
+                    .addAnnotations(buildAvroPropAnnotations(schema))
+                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, avro.configuration))
+                    .addSerializableAnnotation(wrappedType)
                     .build(),
-                defaultValue = getImplicitAvroPropertyDefault(schema)
+                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, avro.configuration)
             )
+            .addAnnotation(buildAvroGeneratedAnnotation(schemaStr))
             .build()
-            .addAvroGenerated(schemaStr)
     }
 
     private fun generateNestedKotlinClasses(
@@ -202,10 +201,10 @@ public class KotlinGenerator(
 
             is TypeSafeSchema.UnionSchema -> {
                 val unionType =
-                    generateUnionSealedInterface(
+                    generateSealedInterface(
+                        schema,
                         unionNameFormatter(potentialAnonymousBaseName),
-                        potentialAnonymousBaseName,
-                        schema
+                        potentialAnonymousBaseName
                     )
                 listOf(unionType.toFileSpec(null)) +
                     schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
@@ -312,10 +311,10 @@ public class KotlinGenerator(
      *     ...
      * }
      */
-    private fun generateUnionSealedInterface(
+    private fun generateSealedInterface(
+        schema: TypeSafeSchema.UnionSchema,
         className: String,
         potentialAnonymousBaseName: String,
-        schema: TypeSafeSchema.UnionSchema,
     ): TypeSpec {
         return TypeSpec.interfaceBuilder(className)
             .addModifiers(KModifier.SEALED)
@@ -325,16 +324,16 @@ public class KotlinGenerator(
                     val hasSimilarNames = schema.types.groupBy { it.name }.any { it.value.size > 1 }
                     schema.types.map { subSchema ->
                         val typeName = getTypeName(subSchema, potentialAnonymousBaseName)
-                        TypeSpec.classBuilder("For${(if (hasSimilarNames) subSchema.fullName else subSchema.name).toPascalCase()}")
+                        TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.name.toPascalCase()))
                             .addSuperinterface(ClassName("", className))
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(JvmInline::class)
                             .addAnnotation(Serializable::class)
                             .addPrimaryProperty(
                                 PropertySpec.builder("value", typeName.typeName)
-                                    .addAvroDecimalAnnotation(subSchema)
-                                    .addAvroFixedAnnotation(subSchema)
-                                    .apply { typeName.applySerializableAnnotationOn(this) }
+                                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(subSchema))
+                                    .addAnnotationIfNotNull((subSchema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
+                                    .addSerializableAnnotation(typeName)
                                     .build()
                             )
                             .build()
@@ -363,9 +362,9 @@ public class KotlinGenerator(
     private fun generateEnumClass(schema: TypeSafeSchema.NamedSchema.EnumSchema): TypeSpec {
         return TypeSpec.enumBuilder(schema.name)
             .addAnnotation(Serializable::class)
-            .addAvroPropAnnotation(schema)
-            .addAvroDocAnnotation(schema)
-            .addAvroAliasAnnotation(schema)
+            .addAnnotations(buildAvroPropAnnotations(schema))
+            .addAnnotationIfNotNull(buildAvroDocAnnotation(schema))
+            .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .apply {
                 schema.symbols.forEach { enumSymbol ->
                     addEnumConstant(
@@ -386,23 +385,27 @@ public class KotlinGenerator(
     private fun generateRecordClass(schema: TypeSafeSchema.NamedSchema.RecordSchema): TypeSpec {
         return (if (schema.fields.isNotEmpty()) TypeSpec.classBuilder(schema.name).addModifiers(KModifier.DATA) else TypeSpec.objectBuilder(schema.name))
             .addAnnotation(Serializable::class)
-            .addAvroPropAnnotation(schema)
-            .addAvroDocAnnotation(schema)
-            .addAvroAliasAnnotation(schema)
+            .addAnnotations(buildAvroPropAnnotations(schema))
+            .addAnnotationIfNotNull(buildAvroDocAnnotation(schema))
+            .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .let {
                 schema.fields.fold(it) { builder, field ->
-                    val typeName = getTypeName(field.schema, field.name.toPascalCase())
+                    val typeName = getTypeName(field.schema, field.name.uppercaseFirstChar())
 
                     builder.addPrimaryProperty(
                         PropertySpec.builder(field.name, typeName.typeName)
                             .initializer(field.name)
-                            .addAvroPropAnnotation(field)
-                            .addAvroDocAnnotation(field)
-                            .addAvroAliasAnnotation(field)
-                            .addAvroDecimalAnnotation(field.schema)
-                            .addAvroFixedAnnotation(field.schema)
-                            .addAvroDefaultAnnotation(field)
-                            .apply { typeName.applySerializableAnnotationOn(this) }
+                            .addAnnotations(buildAvroPropAnnotations(field))
+                            .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
+                            .addAnnotationIfNotNull(buildAvroAliasAnnotation(field))
+                            .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
+                            .addAnnotationIfNotNull((field.schema as? TypeSafeSchema.NamedSchema.FixedSchema)?.let { buildAvroFixedAnnotation(it) })
+                            .apply {
+                                if (field.hasDefaultValue()) {
+                                    addAnnotation(buildAvroDefaultAnnotation(field.unquotedDefaultValue()))
+                                }
+                            }
+                            .addSerializableAnnotation(typeName)
                             .build(),
                         defaultValue =
                             if (field.hasDefaultValue()) {
@@ -414,7 +417,7 @@ public class KotlinGenerator(
                                     null
                                 }
                             } else {
-                                getImplicitAvroPropertyDefault(field.schema)
+                                buildImplicitAvroDefaultCodeBlock(field.schema, avro.configuration)
                             }
                     )
                 }
@@ -422,7 +425,7 @@ public class KotlinGenerator(
             .addTypes(
                 schema.fields.mapNotNull { field ->
                     if (field.schema is TypeSafeSchema.UnionSchema) {
-                        generateUnionSealedInterface(unionNameFormatter(field.name.toPascalCase()), field.name.toPascalCase(), field.schema)
+                        generateSealedInterface(field.schema, unionNameFormatter(field.name.uppercaseFirstChar()), field.name.uppercaseFirstChar())
                     } else {
                         null
                     }
@@ -444,7 +447,6 @@ public class KotlinGenerator(
             is TypeSafeSchema.PrimitiveSchema.StringSchema,
             -> CodeBlock.of("%S", fieldDefault)
 
-//            is TypeSafeSchema.PrimitiveSchema -> CodeBlock.of("%L", fieldDefault)
             is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> CodeBlock.of("%L", fieldDefault as Boolean)
             is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> CodeBlock.of("%L", fieldDefault as Double)
             is TypeSafeSchema.PrimitiveSchema.FloatSchema -> CodeBlock.of("%L", "${fieldDefault}f")
@@ -474,50 +476,6 @@ public class KotlinGenerator(
             is TypeSafeSchema.NamedSchema.RecordSchema -> null
         }
     }
-
-    private fun PropertySpec.Builder.addImplicitAvroDefaultAnnotation(schema: TypeSafeSchema): PropertySpec.Builder {
-        if (avro.configuration.implicitNulls && schema.isNullable) {
-            addAnnotation(buildAvroDefaultAnnotation("null"))
-        } else if (avro.configuration.implicitEmptyCollections) {
-            if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
-                addAnnotation(buildAvroDefaultAnnotation("[]"))
-            } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
-                addAnnotation(buildAvroDefaultAnnotation("{}"))
-            }
-        }
-        return this
-    }
-
-    private fun getImplicitAvroPropertyDefault(schema: TypeSafeSchema): CodeBlock? {
-        if (avro.configuration.implicitNulls && schema.isNullable) {
-            return CodeBlock.of("null")
-        } else if (avro.configuration.implicitEmptyCollections) {
-            if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
-                return getListOfCodeBlock(emptyList())
-            } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
-                return getMapOfCodeBlock(emptyMap())
-            }
-        }
-        return null
-    }
-
-    private fun getMapOfCodeBlock(map: Map<String, CodeBlock>): CodeBlock =
-        if (map.isNotEmpty()) {
-            CodeBlock.of(
-                "%M(%L)",
-                MemberName("kotlin.collections", "mapOf"),
-                map.map { (key, value) -> CodeBlock.of("%S to %L", key, value) }.joinToCode()
-            )
-        } else {
-            CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyMap"))
-        }
-
-    private fun getListOfCodeBlock(list: List<CodeBlock>): CodeBlock =
-        if (list.isNotEmpty()) {
-            CodeBlock.of("%M(%L)", MemberName("kotlin.collections", "listOf"), list.joinToCode())
-        } else {
-            CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyList"))
-        }
 }
 
 private data class SerializableTypeName(
@@ -534,11 +492,13 @@ private data class SerializableTypeName(
         )
     }
 
-    fun <T : Annotatable.Builder<T>> applySerializableAnnotationOn(builder: Annotatable.Builder<T>): Annotatable.Builder<T> {
-        return if (serializableAnnotation != null) {
-            builder.addAnnotation(serializableAnnotation)
-        } else {
-            builder
+    companion object {
+        fun <T : Annotatable.Builder<T>> T.addSerializableAnnotation(type: SerializableTypeName): T {
+            return if (type.serializableAnnotation != null) {
+                addAnnotation(type.serializableAnnotation)
+            } else {
+                this
+            }
         }
     }
 }
@@ -557,116 +517,19 @@ private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue()
             }
         } ?: "null"
 
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroPropAnnotation(carrier: WithProps): T {
-    carrier.props.forEach { (key, value) ->
-        addAnnotation(
-            AnnotationSpec.builder(AvroProp::class.asClassName())
-                .addMember(CodeBlock.of("%S, %S", key, value.toString()))
-                .build()
-        )
-    }
-    return this
-}
-
-private fun buildAvroDefaultAnnotation(defaultValue: String): AnnotationSpec {
-    return AnnotationSpec.builder(AvroDefault::class.asClassName())
-        .addMember("%S", defaultValue)
-        .build()
-}
-
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroAliasAnnotation(carrier: WithAliases): T {
-    if (carrier.aliases.isNotEmpty()) {
-        addAnnotation(
-            AnnotationSpec.builder(AvroAlias::class.asClassName())
-                .apply {
-                    carrier.aliases.forEach { alias ->
-                        addMember(CodeBlock.of("%S", alias))
-                    }
-                }
-                .build()
-        )
-    }
-    return this
-}
-
-private fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAvroDocAnnotation(carrier: WithDoc): T {
-    if (carrier.doc != null) {
-        addAnnotation(
-            AnnotationSpec.builder(AvroDoc::class.asClassName())
-                .addMember(CodeBlock.of("%S", carrier.doc))
-                .build()
-        )
-    }
-    return this
-}
-
-private fun PropertySpec.Builder.addAvroDefaultAnnotation(field: TypeSafeSchema.NamedSchema.RecordSchema.Field): PropertySpec.Builder {
-    if (field.hasDefaultValue()) {
-        AnnotationSpec.builder(AvroDefault::class.asClassName())
-            .addMember(CodeBlock.of("%S", field.unquotedDefaultValue()))
-            .build()
-            .let { addAnnotation(it) }
-    }
-    return this
-}
-
-private fun PropertySpec.Builder.addAvroFixedAnnotation(schema: TypeSafeSchema): PropertySpec.Builder {
-    if (schema is TypeSafeSchema.NamedSchema.FixedSchema) {
-        AnnotationSpec.builder(AvroFixed::class.asClassName())
-            .addMember(CodeBlock.of("${AvroFixed::size.name} = %L", schema.size))
-            .build()
-            .let { addAnnotation(it) }
-    }
-    return this
-}
-
-private fun PropertySpec.Builder.addAvroDecimalAnnotation(schema: TypeSafeSchema): PropertySpec.Builder {
-    if (schema.logicalTypeName != "decimal") {
-        return this
-    }
-    val scale = (schema.props["scale"] as? Int) ?: 0
-    val precision = (schema.props["precision"] as? Int) ?: error("Missing 'precision' prop for 'decimal' logical type of schema $schema")
-    AnnotationSpec.builder(AvroDecimal::class.asClassName())
-        .addMember(CodeBlock.of("${AvroDecimal::scale.name} = %L", scale))
-        .addMember(CodeBlock.of("${AvroDecimal::precision.name} = %L", precision))
-        .build()
-        .let { addAnnotation(it) }
-    return this
-}
-
-private fun TypeSpec.addAvroGenerated(schemaStr: String): TypeSpec {
-    return toBuilder()
-        .addAnnotation(
-            AnnotationSpec.builder(AvroGenerated::class.asClassName())
-                .addMember("%P", schemaStr)
-                .build()
-        )
-        .build()
-}
-
 /**
  * Any non word character is considered as a separator, and the next character is capitalized.
  */
 private fun String.toPascalCase(): String {
-    return split(Regex("\\W")).joinToString("") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+    return split(Regex("\\W")).joinToString("") { it.uppercaseFirstChar() }
+}
+
+private fun String.uppercaseFirstChar(): String {
+    return replaceFirstChar { it.uppercaseChar() }
 }
 
 private fun TypeSafeSchema.NamedSchema.asClassName() = ClassName(space ?: "", name)
 
 private fun parseJavaClassName(className: String): SerializableTypeName {
-    return getKotlinClassReplacement(className) ?: ClassName.bestGuess(className).contextual()
+    return getKotlinClassReplacement(className)?.nativelySerializable() ?: ClassName.bestGuess(className).contextual()
 }
-
-private fun getKotlinClassReplacement(className: String): SerializableTypeName? =
-    when (className) {
-        String::class.java.name -> String::class.asClassName()
-        Boolean::class.javaObjectType.name, Boolean::class.javaPrimitiveType!!.name -> Boolean::class.asClassName()
-        Char::class.javaObjectType.name, Char::class.javaPrimitiveType!!.name -> Char::class.asClassName()
-        Byte::class.javaObjectType.name, Byte::class.javaPrimitiveType!!.name -> Byte::class.asClassName()
-        Short::class.javaObjectType.name, Short::class.javaPrimitiveType!!.name -> Short::class.asClassName()
-        Int::class.javaObjectType.name, Int::class.javaPrimitiveType!!.name -> Int::class.asClassName()
-        Long::class.javaObjectType.name, Long::class.javaPrimitiveType!!.name -> Long::class.asClassName()
-        Float::class.javaObjectType.name, Float::class.javaPrimitiveType!!.name -> Float::class.asClassName()
-        Double::class.javaObjectType.name, Double::class.javaPrimitiveType!!.name -> Double::class.asClassName()
-        else -> null
-    }?.nativelySerializable()

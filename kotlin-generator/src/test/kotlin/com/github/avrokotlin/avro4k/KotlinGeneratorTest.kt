@@ -1,7 +1,8 @@
 package com.github.avrokotlin.avro4k
 
 import io.kotest.matchers.file.shouldHaveSameStructureAndContentAs
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
@@ -12,6 +13,7 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.visitFileTree
 
 class KotlinGeneratorTest {
+    @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
     @ParameterizedTest
     @MethodSource("getSchemasToTest")
     fun verifyGeneration(schemaPath: File) {
@@ -26,7 +28,7 @@ class KotlinGeneratorTest {
         actualBaseDir shouldHaveSameStructureAndContentAs expectedBaseDir
     }
 
-    @Disabled
+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
     @ParameterizedTest
     @MethodSource("getSchemasToTest")
     fun updateExpectedGeneratedSources(schemaPath: File) {

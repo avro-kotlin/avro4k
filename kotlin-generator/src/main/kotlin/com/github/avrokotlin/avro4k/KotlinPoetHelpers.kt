@@ -1,13 +1,17 @@
 package com.github.avrokotlin.avro4k
 
+import com.squareup.kotlinpoet.Annotatable
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.joinToCode
 
 /**
  * Adds a property to the class and also adds it as a parameter to the primary constructor.
@@ -80,3 +84,48 @@ internal fun TypeSpec.Builder.addEqualsHashCode(className: ClassName): TypeSpec.
     )
     return this
 }
+
+internal fun TypeSpec.withAnnotation(annotation: AnnotationSpec): TypeSpec {
+    return toBuilder()
+        .addAnnotation(annotation)
+        .build()
+}
+
+internal fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAnnotationIfNotNull(annotation: AnnotationSpec?): T {
+    if (annotation != null) {
+        addAnnotation(annotation)
+    }
+    return this
+}
+
+internal fun getMapOfCodeBlock(map: Map<String, CodeBlock>): CodeBlock =
+    if (map.isNotEmpty()) {
+        CodeBlock.of(
+            "%M(%L)",
+            MemberName("kotlin.collections", "mapOf"),
+            map.map { (key, value) -> CodeBlock.of("%S to %L", key, value) }.joinToCode()
+        )
+    } else {
+        CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyMap"))
+    }
+
+internal fun getListOfCodeBlock(list: List<CodeBlock>): CodeBlock =
+    if (list.isNotEmpty()) {
+        CodeBlock.of("%M(%L)", MemberName("kotlin.collections", "listOf"), list.joinToCode())
+    } else {
+        CodeBlock.of("%M()", MemberName("kotlin.collections", "emptyList"))
+    }
+
+internal fun getKotlinClassReplacement(className: String): ClassName? =
+    when (className) {
+        String::class.java.name -> String::class.asClassName()
+        Boolean::class.javaObjectType.name, Boolean::class.javaPrimitiveType!!.name -> Boolean::class.asClassName()
+        Char::class.javaObjectType.name, Char::class.javaPrimitiveType!!.name -> Char::class.asClassName()
+        Byte::class.javaObjectType.name, Byte::class.javaPrimitiveType!!.name -> Byte::class.asClassName()
+        Short::class.javaObjectType.name, Short::class.javaPrimitiveType!!.name -> Short::class.asClassName()
+        Int::class.javaObjectType.name, Int::class.javaPrimitiveType!!.name -> Int::class.asClassName()
+        Long::class.javaObjectType.name, Long::class.javaPrimitiveType!!.name -> Long::class.asClassName()
+        Float::class.javaObjectType.name, Float::class.javaPrimitiveType!!.name -> Float::class.asClassName()
+        Double::class.javaObjectType.name, Double::class.javaPrimitiveType!!.name -> Double::class.asClassName()
+        else -> null
+    }

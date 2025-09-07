@@ -129,7 +129,6 @@ public class KotlinGenerator(
                 ) + generateNestedKotlinClasses(schema.valueSchema, mapNameFormatter(potentialAnonymousClassName), emptyMap())
             }
 
-            // fixed type is for now set as ByteArray, so nothing to generate
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema,
             ->

@@ -1,0 +1,9 @@
+{
+    "type": "fixed",
+    "name": "IgnoredName",
+    "namespace": "ignored.namespace",
+    "size": 20,
+    "logicalType": "decimal",
+    "precision": 10,
+    "scale": 4
+}

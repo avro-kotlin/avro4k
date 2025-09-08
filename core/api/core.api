@@ -325,6 +325,11 @@ public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {
 	public abstract fun decodeShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;)S
 }
 
+public final synthetic class com/github/avrokotlin/avro4k/internal/AvroGenerated$Impl : com/github/avrokotlin/avro4k/internal/AvroGenerated {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun originalSchema ()Ljava/lang/String;
+}
+
 public final class com/github/avrokotlin/avro4k/serializer/AvroDuration {
 	public static final field Companion Lcom/github/avrokotlin/avro4k/serializer/AvroDuration$Companion;
 	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V

@@ -1,0 +1,17 @@
+import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
+import com.github.avrokotlin.avro4k.serializer.AvroDuration
+import com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer
+import kotlin.jvm.JvmInline
+import kotlinx.serialization.Serializable
+
+@JvmInline
+@Serializable
+@AvroGenerated("""{"type":"fixed","name":"IgnoredName","namespace":"ignored.namespace","size":12,"logicalType":"duration"}""")
+public value class TestSchema(
+    @AvroFixed(size = 12)
+    @AvroProp("logicalType", "duration")
+    @Serializable(with = AvroDurationSerializer::class)
+    public val `value`: AvroDuration,
+)

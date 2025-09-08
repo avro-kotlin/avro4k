@@ -1,0 +1,6 @@
+{
+    "name": "IgnoredName",
+    "namespace": "ignored.namespace",
+    "type": "fixed",
+    "size": 16
+}

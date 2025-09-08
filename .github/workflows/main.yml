@@ -27,6 +27,7 @@ jobs:
         with:
           token: ${{ github.token }}
           branch: main
+          noVersionBumpBehavior: patch # By default, bump patch if no commit matches conventional commits
       - name: Show next version
         run: echo Snapshot version ${{ steps.semver.outputs.next }}.${{ github.run_number }}-SNAPSHOT
       - name: Publish snapshot

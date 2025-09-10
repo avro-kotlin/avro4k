@@ -79,6 +79,11 @@ public abstract interface class com/github/avrokotlin/avro4k/AvroDecoder : kotli
 	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
 }
 
+public final class com/github/avrokotlin/avro4k/AvroDecoder$DefaultImpls {
+	public static fun decodeNullableSerializableValue (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public static fun decodeSerializableValue (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+}
+
 public final class com/github/avrokotlin/avro4k/AvroDecoderKt {
 	public static final fun decodeResolvingAny (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun decodeResolvingBoolean (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Z
@@ -115,6 +120,13 @@ public abstract interface class com/github/avrokotlin/avro4k/AvroEncoder : kotli
 	public abstract fun encodeFixed ([B)V
 	public abstract fun encodeUnionIndex (I)V
 	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroEncoder$DefaultImpls {
+	public static fun beginCollection (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;I)Lkotlinx/serialization/encoding/CompositeEncoder;
+	public static fun encodeNotNullMark (Lcom/github/avrokotlin/avro4k/AvroEncoder;)V
+	public static fun encodeNullableSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
+	public static fun encodeSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
 }
 
 public abstract interface annotation class com/github/avrokotlin/avro4k/AvroEnumDefault : java/lang/annotation/Annotation {

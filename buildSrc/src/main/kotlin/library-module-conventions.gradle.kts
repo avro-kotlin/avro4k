@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -25,9 +27,7 @@ kotlin {
             "com.github.avrokotlin.avro4k.InternalAvro4kApi",
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
         )
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
-        apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
-        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
+        jvmTarget = JvmTarget.fromTarget(java.sourceCompatibility.toString())
         freeCompilerArgs = listOf("-Xcontext-receivers")
     }
 }

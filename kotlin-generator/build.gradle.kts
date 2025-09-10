@@ -1,5 +1,6 @@
 plugins {
     id("library-module-conventions")
+    id("library-publish-conventions")
     id("idea")
 }
 

@@ -1,5 +1,3 @@
-group = "com.github.avro-kotlin.avro4k"
-
 tasks.register("actionsBeforeCommit") {
     group = "verification"
     val tasksToBeRun = listOf(
@@ -9,7 +7,7 @@ tasks.register("actionsBeforeCommit") {
         "spotlessApply"
     )
     subprojects {
-        tasksToBeRun.forEach {task ->
+        tasksToBeRun.forEach { task ->
             tasks.findByName(task)?.let { dependsOn(it) }
         }
     }

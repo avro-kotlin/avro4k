@@ -1,7 +1,10 @@
 plugins {
     id("library-module-conventions")
+    id("library-publish-conventions")
     kotlin("plugin.serialization")
 }
+
+description = "Avro4k's module to enable (de)serializing kotlin classes and other native types in avro, with a schema registry."
 
 dependencies {
     implementation(project(":core"))

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       forced-version:
-        description: Manually set the version following the format `v1.2.3`. If not set, the version will be determined based on conventional commits since the latest tag.
+        description: Manually set the version following the format `1.2.3`. If not set, the version will be determined based on conventional commits since the latest tag.
         required: false
         default: ''
         type: string
@@ -35,8 +35,8 @@ jobs:
           token: ${{ github.token }}
       - name: Validate manual version
         run: |
-          if [[ ! "${{github.event.inputs.forced-version}}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo Manual version not following the format v1.2.3
+          if [[ ! "${{github.event.inputs.forced-version}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo Manual version not following the format 1.2.3 without the 'v' prefix.
             exit 1
           fi
 
@@ -61,11 +61,11 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-auto-close-sonatype-staging }}
       - name: Create release
         if: ${{ github.event.inputs.is-draft == 'false' }}
-        run: gh release create "${{ github.event.inputs.forced-version || steps.semver.outputs.next }}" ./*/build/libs/*.jar --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
+        run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Create draft release
         if: ${{ github.event.inputs.is-draft == 'true' }}
-        run: gh release create "${{ github.event.inputs.forced-version || steps.semver.outputs.next }}" ./*/build/libs/*.jar --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
+        run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
         env:
           GH_TOKEN: ${{ github.token }}

@@ -30,12 +30,13 @@ jobs:
       - name: Get Next Version
         id: semver
         uses: ietf-tools/semver-action@v1
-        if: ${{ github.event.inputs.forced-version == '' }}
+        if: github.event.inputs.forced-version == ''
         with:
           token: ${{ github.token }}
       - name: Validate manual version
+        if: github.event.inputs.forced-version != ''
         run: |
-          if [[ ! "${{github.event.inputs.forced-version}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "${{ github.event.inputs.forced-version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo Manual version not following the format 1.2.3 without the 'v' prefix.
             exit 1
           fi
@@ -49,6 +50,8 @@ jobs:
         run: ./gradlew build
         env:
           ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Publish library release
         run: ./gradlew publishToMavenCentral publishPlugins

@@ -39,8 +39,8 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}.${{ github.run_number }}-SNAPSHOT
 
-      - name: Publish plugin release
-        run: ./gradlew publishPlugins --validate
+      - name: Validate plugin release
+        run: ./gradlew publishPlugins --validate-only
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}

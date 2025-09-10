@@ -23,7 +23,7 @@ jobs:
           build-scan-terms-of-use-url: https://gradle.com/terms-of-service
 
       - name: Build
-        run: ./gradlew classes
+        run: ./gradlew classes --scan
       - name: Run tests
         run: ./gradlew check --scan
 

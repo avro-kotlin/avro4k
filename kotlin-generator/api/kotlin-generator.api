@@ -1,7 +1,0 @@
-public final class com/github/avrokotlin/avro4k/KotlinGenerator {
-	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/util/Map;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun generateKotlinClasses (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
-}
-

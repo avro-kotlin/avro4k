@@ -57,7 +57,20 @@ class KotlinGeneratorTest {
     }
 
     private fun generateKotlinFiles(schemaContent: String, outputBaseDir: File) {
-        KotlinGenerator().generateKotlinClasses(schemaContent, rootAnonymousSchemaName = "TestSchema").forEach { generatedFile ->
+        KotlinGenerator(
+            logicalTypes =
+                listOf(
+                    KotlinGenerator.LogicalTypeDescriptor(
+                        logicalTypeName = "contextualLogicalType",
+                        kotlinClassName = "com.example.CustomLogicalType"
+                    ),
+                    KotlinGenerator.LogicalTypeDescriptor(
+                        logicalTypeName = "customLogicalTypeWithKSerializer",
+                        kotlinClassName = "com.example.CustomLogicalType",
+                        kSerializerClassName = "com.example.CustomLogicalType.TheNestedSerializer"
+                    )
+                )
+        ).generateKotlinClasses(schemaContent, rootAnonymousSchemaName = "TestSchema").forEach { generatedFile ->
             generatedFile
                 .toBuilder()
                 .indent("    ")

@@ -3,7 +3,13 @@ plugins {
     id("idea")
 }
 
-val commonExpectedGeneratedSources by sourceSets.creating
+val commonExpectedGeneratedSources by sourceSets.creating {
+    kotlin.srcDir(file("src/test/expected-sources-common"))
+}
+tasks.named("testClasses") {
+    dependsOn(tasks.named(commonExpectedGeneratedSources.classesTaskName))
+}
+idea.module.testSources += commonExpectedGeneratedSources.kotlin
 val commonExpectedGeneratedSourcesImplementation by configurations.getting
 
 file("src/test/expected-sources").list().forEach { testCase ->
@@ -14,15 +20,15 @@ file("src/test/expected-sources").list().forEach { testCase ->
     val implementation = configurations.getByName(sourceSet.implementationConfigurationName)
     implementation.extendsFrom(commonExpectedGeneratedSourcesImplementation)
 
-    tasks.named("testClasses") {
-        dependsOn(tasks.named(sourceSet.classesTaskName))
+    tasks.named(sourceSet.classesTaskName) {
+        dependsOn(tasks.named(commonExpectedGeneratedSources.classesTaskName))
     }
     // make them green in IntelliJ !
     idea.module.testSources += sourceSet.kotlin
 }
 
 dependencies {
-    implementation(libs.kotlinpoet) {
+    api(libs.kotlinpoet) {
         exclude(module = "kotlin-reflect")
     }
     api(project(":core"))

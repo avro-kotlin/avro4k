@@ -21,16 +21,24 @@ import org.apache.avro.Schema
  *
  * @param avro The Avro configuration to use mainly for logical types mapping.
  * @param unionNameFormatter A function to format the name of the generated sealed interface for union types. The default implementation appends "Union" to the provided base name.
- * @param logicalTypes A map of additional logical type names to their corresponding Kotlin class names to be treated as contextual types.
+ * @param logicalTypes Provides a way to specify additional logical types that should be materialized with specific Kotlin classes and serializers.
  */
+@InternalAvro4kApi
 public class KotlinGenerator(
     private val avro: Avro = Avro,
     private val unionNameFormatter: (String) -> String = { "${it}Union" },
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
     private val unionSubTypeNameFormatter: (String) -> String = { "For$it" },
-    logicalTypes: Map<String, String> = mapOf(),
+    logicalTypes: List<LogicalTypeDescriptor> = emptyList(),
 ) {
+    @InternalAvro4kApi
+    public data class LogicalTypeDescriptor(
+        val logicalTypeName: String,
+        val kotlinClassName: String,
+        val kSerializerClassName: String? = null,
+    )
+
     private val logicalTypes: Map<String, SerializableTypeName> =
         avro.configuration.logicalTypes.mapValues {
             SerializableTypeName(
@@ -40,7 +48,24 @@ public class KotlinGenerator(
                         .addMember("${Serializable::with.name} = %T::class", it.value::class.asClassName())
                         .build()
             )
-        } + logicalTypes.mapValues { parseJavaClassName(it.value) }
+        } +
+            logicalTypes.associate {
+                it.logicalTypeName to
+                    run {
+                        val typeName = parseJavaClassName(it.kotlinClassName)
+                        if (it.kSerializerClassName != null) {
+                            SerializableTypeName(
+                                typeName = typeName.typeName,
+                                serializableAnnotation =
+                                    AnnotationSpec.builder(Serializable::class)
+                                        .addMember("${Serializable::with.name} = %T::class", ClassName.bestGuess(it.kSerializerClassName))
+                                        .build()
+                            )
+                        } else {
+                            typeName
+                        }
+                    }
+            }
 
     /**
      * Generates Kotlin classes from the provided Avro schema.

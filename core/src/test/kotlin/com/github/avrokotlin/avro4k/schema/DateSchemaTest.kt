@@ -20,7 +20,7 @@ internal class DateSchemaTest : FunSpec({
         LocalDateTimeSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
         InstantSerializer to LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)),
         InstantToMicroSerializer to LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG))
-    ).forEach { (serializer: KSerializer<*>, expected) ->
+    ).forEach { (serializer: KSerializer<out Any>, expected) ->
         test("generate date logical type for $serializer") {
             AvroAssertions.assertThat(serializer)
                 .generatesSchema(expected)

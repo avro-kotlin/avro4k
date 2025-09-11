@@ -54,7 +54,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Publish library release
-        run: ./gradlew publishToMavenCentral publishPlugins
+        run: ./gradlew publishToMavenCentral
         env:
           ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}

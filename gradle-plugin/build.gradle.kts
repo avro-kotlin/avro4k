@@ -45,7 +45,7 @@ gradlePlugin {
     vcsUrl = "https://github.com/avro-kotlin/avro4k.git"
     plugins {
         create(rootProject.name) {
-            id = project.group as String
+            id = "io.github.avro4k"
             displayName = "Avro4k Gradle Plugin"
             description = project.description
             version = project.version

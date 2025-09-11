@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.10"
-    id("com.github.avro-kotlin.avro4k")
+    id("io.github.avro4k")
 }
 
 repositories {

@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.kafka.confluent
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
@@ -36,6 +37,10 @@ private class MockedDeserializer(
     props: Map<String, *> = emptyMap<String, Any>(),
 ) : AbstractAvro4kKafkaDeserializer<Any>(avro) {
     override val deserializer: DeserializationStrategy<Any> = mockk<DeserializationStrategy<Any>>()
+
+    @InternalAvro4kApi
+    override val schema: Schema?
+        get() = null
 
     init {
         every { deserializer.deserialize(any()) } returns decodedValue

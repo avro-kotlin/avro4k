@@ -53,7 +53,7 @@ class AbstractAvro4kKafkaSerializerTest : StringSpec() {
             TestData("test", 24) to Avro.schema<TestData>(),
             SomeEnum.B to Avro.schema<SomeEnum>(),
             listOf("one", "two", 3) to Schema.createArray(Schema.create(Schema.Type.STRING)),
-            setOf(1, 2.0, 3f) to Schema.createArray(Schema.create(Schema.Type.INT)),
+            setOf<Any>(1, 2L, 3L) to Schema.createArray(Schema.create(Schema.Type.INT)),
             arrayOf(1, 2, 3) to Schema.createArray(Schema.create(Schema.Type.INT)),
             Utf8("string") to Schema.create(Schema.Type.STRING),
             "string" to Schema.create(Schema.Type.STRING),
@@ -84,13 +84,14 @@ class AbstractAvro4kKafkaSerializerTest : StringSpec() {
     private infix fun Any.shouldRegisterSchema(
         expectedSchema: Schema,
     ) {
-        val serializer = MockedSerializer()
+        val schemaRegistry = MockSchemaRegistryClient()
+        val serializer = GenericAvro4kKafkaSerializer(isKey = true, schemaRegistry = schemaRegistry)
 
         serializer.serialize("topic", this)
 
-        serializer.schemaRegistry.allSubjects shouldBe listOf("topic-value")
-        serializer.schemaRegistry.getAllVersions("topic-value") shouldBe listOf(1)
-        serializer.schemaRegistry.getSchemaById(1).rawSchema() shouldBe expectedSchema
+        schemaRegistry.allSubjects shouldBe listOf("topic-key")
+        schemaRegistry.getAllVersions("topic-key") shouldBe listOf(1)
+        schemaRegistry.getSchemaById(1).rawSchema() shouldBe expectedSchema
     }
 }
 

@@ -1,10 +1,9 @@
 plugins {
     `java-gradle-plugin`
     `kotlin-dsl`
-    id("library-publish-conventions")
     id("library-module-conventions")
-    id("com.gradle.plugin-publish")
     id("com.github.gmazzo.buildconfig")
+    id("com.gradle.plugin-publish")
 }
 
 description = "Avro4k's gradle plugin, enabling kotlin code generation from avro schemas to ensure type safety in your kafka/avro apps."
@@ -33,6 +32,7 @@ tasks.test {
 
 buildConfig {
     buildConfigField("AVRO4K_VERSION", provider { rootProject.version.toString() })
+    packageName = "com.github.avrokotlin.avro4k.plugin.gradle"
 }
 
 spotless.kotlin {
@@ -46,6 +46,7 @@ gradlePlugin {
     plugins {
         create(rootProject.name) {
             id = "io.github.avro4k"
+            group = "io.github.avro4k"
             displayName = "Avro4k Gradle Plugin"
             description = project.description
             version = project.version

@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k.plugin.gradle
 
-import com.github.avro_kotlin.avro4k.gradle_plugin.BuildConfig
 import com.github.avrokotlin.avro4k.KotlinGenerator
 import com.squareup.kotlinpoet.FileSpec
 import org.gradle.api.Action

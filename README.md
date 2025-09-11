@@ -18,6 +18,7 @@ Here are the main features:
 - **Simple API** to get started quickly, also with native support of java standard classes like `UUID`, `BigDecimal`, `BigInteger` and `java.time` module :1st_place_medal:
 - **Relaxed matching** for easy schema evolution as it natively [adapts compatible types](#types-matrix) :cyclone:
 - **Kafka confluent's schema registry ready** thanks to the [confluent-kafka-serializer module](confluent-kafka-serializer/README.md), allowing to use avro4k in any kafka or spring cloud project :white_check_mark:
+- **Official gradle plugin** to generate (not only) data classes from avro schemas :wrench: (check the [gradle-plugin](gradle-plugin/README.md) documentation for more details)
 
 > [!WARNING]
 > **Important**: As of today, avro4k is **only available for JVM platform**, and theoretically for android platform (as apache avro library is already **android-ready**). <br/>If

@@ -6,6 +6,7 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
+import org.apache.avro.Schema
 import org.apache.avro.generic.GenericEnumSymbol
 import org.apache.avro.generic.GenericFixed
 import org.apache.avro.generic.GenericRecord
@@ -86,11 +87,14 @@ public class GenericAvro4kKafkaSerializer(avro: Avro = Avro) : AbstractAvro4kKaf
         initialize(schemaRegistry, props, isKey)
     }
 
-    override val serializer: SerializationStrategy<Any> = avro.serializersModule.serializer()
+    override val serializer: SerializationStrategy<Any> = super.avro.serializersModule.serializer()
 }
 
 @ExperimentalAvro4kApi
-public class GenericAvro4kKafkaDeserializer(avro: Avro = Avro) : AbstractAvro4kKafkaDeserializer<Any>(avro.withAnyKSerializer(GenericKSerializer())) {
+public class GenericAvro4kKafkaDeserializer(
+    avro: Avro = Avro,
+    override val schema: Schema? = null,
+) : AbstractAvro4kKafkaDeserializer<Any>(avro.withAnyKSerializer(GenericKSerializer())) {
     /**
      * Create a configured instance of [GenericAvro4kKafkaDeserializer].
      * You need to pass at least a non-null [schemaRegistry], or the `schema.registry.url` entry in [props].
@@ -106,5 +110,5 @@ public class GenericAvro4kKafkaDeserializer(avro: Avro = Avro) : AbstractAvro4kK
         initialize(schemaRegistry, props, isKey)
     }
 
-    override val deserializer: DeserializationStrategy<Any> = avro.serializersModule.serializer()
+    override val deserializer: DeserializationStrategy<Any> = super.avro.serializersModule.serializer()
 }

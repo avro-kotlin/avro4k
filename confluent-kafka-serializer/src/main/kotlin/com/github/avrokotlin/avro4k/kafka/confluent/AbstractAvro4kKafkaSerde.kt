@@ -25,6 +25,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
 import org.apache.avro.io.Decoder
+import org.apache.avro.io.Encoder
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.util.Utf8
 import org.apache.kafka.common.errors.InvalidConfigurationException
@@ -116,16 +117,43 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
         if (data == null) {
             return null
         }
-        val schema = AvroSchema(getSchema(data))
-        return serializeImpl(getSubjectName(topic, isKey, data, schema), topic, headers, data, schema)
+        val schema = getSchema(data)
+        val data =
+            if (schema.type == Schema.Type.BYTES) {
+                // confluent serializer expects root BYTES to be ByteArray or ByteBuffer, so it is not compatible with value classes wrapping ByteArray or ByteBuffer.
+                // We serialize the data to bytes ourselves here.
+                unwrapRootByteArray(schema, data)
+            } else {
+                data
+            }
+        val avroSchema = AvroSchema(schema)
+        return serializeImpl(getSubjectName(topic, isKey, data, avroSchema), topic, headers, data, avroSchema)
+    }
+
+    private fun unwrapRootByteArray(schema: Schema, data: T): ByteArray {
+        var bytes: ByteArray? = null
+        avro.encodeWithApacheEncoder(
+            schema,
+            serializer,
+            data,
+            object : NotImplementedEncoder() {
+                override fun writeBytes(b: ByteBuffer) {
+                    bytes = b.array()
+                }
+
+                override fun writeBytes(b: ByteArray, start: Int, len: Int) {
+                    bytes = b.copyOfRange(start, start + len)
+                }
+            }
+        )
+        return bytes ?: throw UnsupportedOperationException("avro.encodeWithApacheEncoder did not call writeBytes")
     }
 
     // TODO this will override super method when a new version of the SR is released
     @InternalAvro4kApi
-    // override
     protected open fun getDatumWriter(value: Any, rawSchema: Schema): DatumWriter<Any?> {
         return object : DatumWriter<Any?> {
-            override fun write(value: Any?, out: org.apache.avro.io.Encoder) {
+            override fun write(value: Any?, out: Encoder) {
                 @Suppress("UNCHECKED_CAST")
                 avro.encodeWithApacheEncoder(rawSchema, serializer, value as T, out)
             }
@@ -281,19 +309,17 @@ public abstract class AbstractAvro4kKafkaDeserializer<T : Any>(
     }
 
     override fun getDatumReader(writerSchema: Schema, readerSchema: Schema?): DatumReader<*> {
-        return object : DatumReader<T> {
-            override fun read(reuse: T?, `in`: Decoder): T {
-                return avro.decodeWithApacheDecoder(writerSchema, deserializer, `in`)
-            }
-
-            override fun setSchema(schema: Schema) {
-                throw UnsupportedOperationException()
-            }
-        }
+        // a non-null reader schema means that this.schema returned a schema, so the user wants to always read a specific schema.
+        // confluent takes care of schema adaptations between writer and reader schema, so it always adapt the data to the reader schema
+        // by doing migrations before giving us the data to deserialize.
+        return avro.getDatumReader<Any>(readerSchema ?: writerSchema, deserializer)
     }
 
     @InternalAvro4kApi
     protected abstract val deserializer: DeserializationStrategy<T>
+
+    @InternalAvro4kApi
+    protected abstract val schema: Schema?
 
     override fun deserialize(topic: String?, data: ByteArray?): T? {
         return deserialize(topic, null, data)
@@ -301,10 +327,68 @@ public abstract class AbstractAvro4kKafkaDeserializer<T : Any>(
 
     override fun deserialize(topic: String?, headers: Headers?, data: ByteArray?): T? {
         @Suppress("UNCHECKED_CAST") // getDatumReader is expected to deserialize to T
-        return super<AbstractKafkaAvroDeserializer>.deserialize(topic, isKey, headers, data, null) as T?
+        return super<AbstractKafkaAvroDeserializer>.deserialize(topic, isKey, headers, data, schema) as T?
     }
 
     override fun close() {
         super<AbstractKafkaAvroDeserializer>.close()
     }
+}
+
+internal fun <T> Avro.getDatumReader(readerSchema: Schema, deserializer: DeserializationStrategy<T>): DatumReader<T> {
+    return Avro4kDatumReader(this, readerSchema, deserializer)
+}
+
+internal class Avro4kDatumReader<T>(
+    private val avro: Avro,
+    private val readerSchema: Schema,
+    private val deserializer: DeserializationStrategy<T>,
+) : DatumReader<T> {
+    override fun read(reuse: T?, `in`: Decoder): T {
+        return avro.decodeWithApacheDecoder(readerSchema, deserializer, `in`)
+    }
+
+    override fun setSchema(schema: Schema) {
+        throw UnsupportedOperationException()
+    }
+}
+
+private abstract class NotImplementedEncoder : Encoder() {
+    override fun writeNull(): Unit = throw UnsupportedOperationException()
+
+    override fun writeBoolean(b: Boolean): Unit = throw UnsupportedOperationException()
+
+    override fun writeInt(i: Int): Unit = throw UnsupportedOperationException()
+
+    override fun writeLong(l: Long): Unit = throw UnsupportedOperationException()
+
+    override fun writeFloat(v: Float): Unit = throw UnsupportedOperationException()
+
+    override fun writeDouble(v: Double): Unit = throw UnsupportedOperationException()
+
+    override fun writeString(s: Utf8): Unit = throw UnsupportedOperationException()
+
+    override fun writeBytes(b: ByteBuffer): Unit = throw UnsupportedOperationException()
+
+    override fun writeBytes(b: ByteArray, start: Int, len: Int): Unit = throw UnsupportedOperationException()
+
+    override fun writeFixed(b: ByteArray, start: Int, len: Int): Unit = throw UnsupportedOperationException()
+
+    override fun writeEnum(e: Int): Unit = throw UnsupportedOperationException()
+
+    override fun writeArrayStart(): Unit = throw UnsupportedOperationException()
+
+    override fun setItemCount(itemCount: Long): Unit = throw UnsupportedOperationException()
+
+    override fun startItem(): Unit = throw UnsupportedOperationException()
+
+    override fun writeArrayEnd(): Unit = throw UnsupportedOperationException()
+
+    override fun writeMapStart(): Unit = throw UnsupportedOperationException()
+
+    override fun writeMapEnd(): Unit = throw UnsupportedOperationException()
+
+    override fun writeIndex(i: Int): Unit = throw UnsupportedOperationException()
+
+    override fun flush(): Unit = throw UnsupportedOperationException()
 }

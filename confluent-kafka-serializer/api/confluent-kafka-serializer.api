@@ -20,8 +20,8 @@ public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4
 
 public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;)V
 	public synthetic fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
@@ -47,8 +47,8 @@ public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKaf
 
 public final class com/github/avrokotlin/avro4k/kafka/confluent/ReflectAvro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {
 	public fun <init> ()V
-	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;)V
-	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;)V
 	public synthetic fun <init> (ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
@@ -78,6 +78,7 @@ public final class com/github/avrokotlin/avro4k/kafka/confluent/SpecificAvro4kKa
 	public synthetic fun <init> (Lkotlinx/serialization/DeserializationStrategy;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lkotlinx/serialization/DeserializationStrategy;ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;)V
 	public synthetic fun <init> (Lkotlinx/serialization/DeserializationStrategy;ZLcom/github/avrokotlin/avro4k/Avro;Ljava/util/Map;Lio/confluent/kafka/schemaregistry/client/SchemaRegistryClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun deserialize (Ljava/lang/String;Lorg/apache/kafka/common/header/Headers;[B)Ljava/lang/Object;
 }
 
 public class com/github/avrokotlin/avro4k/kafka/confluent/SpecificAvro4kKafkaSerde : org/apache/kafka/common/serialization/Serdes$WrapperSerde {

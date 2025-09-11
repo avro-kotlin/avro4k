@@ -19,7 +19,7 @@ mavenPublishing {
     pom {
         val projectUrl = "https://github.com/avro-kotlin/avro4k"
         name = project.name
-        description = project.description
+        description = project.description?.ifEmpty { null } ?: error("Missing ${project.name} project description")
         url = projectUrl
 
         scm {

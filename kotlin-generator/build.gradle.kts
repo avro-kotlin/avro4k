@@ -4,6 +4,8 @@ plugins {
     id("idea")
 }
 
+description = "Avro4k's compatible code generator"
+
 val commonExpectedGeneratedSources by sourceSets.creating {
     kotlin.srcDir(file("src/test/expected-sources-common"))
 }

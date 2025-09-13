@@ -19,6 +19,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
+import org.apache.avro.Conversion
 import org.apache.avro.Conversions
 import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
@@ -29,13 +30,14 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.UUID
 
-internal val JavaStdLibSerializersModule: SerializersModule get() =
-    SerializersModule {
-        contextual(URLSerializer)
-        contextual(UUIDSerializer)
-        contextual(BigIntegerSerializer)
-        contextual(BigDecimalSerializer)
-    }
+internal val JavaStdLibSerializersModule: SerializersModule
+    get() =
+        SerializersModule {
+            contextual(URLSerializer)
+            contextual(UUIDSerializer)
+            contextual(BigIntegerSerializer)
+            contextual(BigDecimalSerializer)
+        }
 
 public object URLSerializer : KSerializer<URL> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
@@ -166,21 +168,29 @@ public object BigIntegerSerializer : AvroSerializer<BigInteger>(BigInteger::clas
 }
 
 public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::class.qualifiedName!!) {
-    internal const val LOGICAL_TYPE_NAME = "decimal"
-    private val converter = Conversions.DecimalConversion()
+    internal const val DECIMAL_LOGICAL_TYPE_NAME = "decimal"
+    internal const val BIG_DECIMAL_LOGICAL_TYPE_NAME = "big-decimal"
+    private val decimalConverter: Conversion<BigDecimal> = Conversions.DecimalConversion()
+    private val bigDecimalConverter: Conversion<BigDecimal> = Conversions.BigDecimalConversion()
 
+    /**
+     * If element is stringable, use string schema.
+     * If element is fixed, use fixed schema with `decimal` logical type, and require @AvroDecimal. If @AvroDecimal is missing, throw an error.
+     * Otherwise, use bytes schema with `decimal` logical type if @AvroDecimal is present.
+     * If @AvroDecimal is missing, use bytes schema with `big-decimal` logical type.
+     */
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        val logicalType = context.inlinedElements.firstNotNullOfOrNull { it.decimal }?.logicalType
+        val decimalLogicalType = context.inlinedElements.firstNotNullOfOrNull { it.decimal }?.logicalType
 
-        fun nonNullLogicalType(): LogicalTypes.Decimal {
-            if (logicalType == null) {
-                throw AvroSchemaGenerationException("BigDecimal requires @${AvroDecimal::class.qualifiedName} to works with 'fixed' or 'bytes' schema types.")
-            }
-            return logicalType
-        }
         return context.inlinedElements.firstNotNullOfOrNull {
-            it.stringable?.createSchema() ?: it.fixed?.createSchema(it)?.copy(logicalType = nonNullLogicalType())
-        } ?: Schema.create(Schema.Type.BYTES).copy(logicalType = nonNullLogicalType())
+            it.stringable?.createSchema()
+                ?: it.fixed?.createSchema(it)?.copy(
+                    logicalType =
+                        decimalLogicalType
+                            ?: throw AvroSchemaGenerationException("BigDecimal requires @${AvroDecimal::class.qualifiedName} to works with 'fixed' or 'bytes' schema types.")
+                )
+        } ?: Schema.create(Schema.Type.BYTES)
+            .copy(logicalType = decimalLogicalType ?: LogicalType(BIG_DECIMAL_LOGICAL_TYPE_NAME))
     }
 
     override fun serializeAvro(
@@ -189,42 +199,61 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
     ) {
         with(encoder) {
             if (currentWriterSchema.isUnion) {
-                trySelectLogicalTypeFromUnion(converter.logicalTypeName, Schema.Type.BYTES, Schema.Type.FIXED) ||
+                trySelectLogicalTypeFromUnion(decimalConverter.logicalTypeName, Schema.Type.BYTES, Schema.Type.FIXED) ||
+                    trySelectLogicalTypeFromUnion(bigDecimalConverter.logicalTypeName, Schema.Type.BYTES) ||
                     trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                     trySelectTypeNameFromUnion(Schema.Type.INT) ||
                     trySelectTypeNameFromUnion(Schema.Type.LONG) ||
                     trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
                     trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
-                    throw unsupportedWriterTypeError(
-                        Schema.Type.BYTES,
-                        Schema.Type.FIXED,
-                        Schema.Type.STRING,
-                        Schema.Type.INT,
-                        Schema.Type.LONG,
-                        Schema.Type.FLOAT,
-                        Schema.Type.DOUBLE
-                    )
+                    throw unsupportedWriterTypeError()
             }
             when (currentWriterSchema.type) {
-                Schema.Type.BYTES -> encodeBytes(converter.toBytes(value, currentWriterSchema, currentWriterSchema.logicalType).array())
-                Schema.Type.FIXED -> encodeFixed(converter.toFixed(value, currentWriterSchema, currentWriterSchema.logicalType).bytes())
+                Schema.Type.BYTES ->
+                    encodeBytes(
+                        (tryGetConverter(currentWriterSchema) ?: throw unsupportedWriterTypeError()).toBytes(
+                            value,
+                            currentWriterSchema,
+                            currentWriterSchema.logicalType
+                        ).array()
+                    )
+
+                Schema.Type.FIXED ->
+                    encodeFixed(
+                        (tryGetConverter(currentWriterSchema) ?: throw unsupportedWriterTypeError()).toFixed(
+                            value,
+                            currentWriterSchema,
+                            currentWriterSchema.logicalType
+                        ).bytes()
+                    )
+
                 Schema.Type.STRING -> encodeString(value.toString())
                 Schema.Type.INT -> encodeInt(value.intValueExact())
                 Schema.Type.LONG -> encodeLong(value.longValueExact())
                 Schema.Type.FLOAT -> encodeFloat(value.toFloat())
                 Schema.Type.DOUBLE -> encodeDouble(value.toDouble())
-                else -> throw unsupportedWriterTypeError(
-                    Schema.Type.BYTES,
-                    Schema.Type.FIXED,
-                    Schema.Type.STRING,
-                    Schema.Type.INT,
-                    Schema.Type.LONG,
-                    Schema.Type.FLOAT,
-                    Schema.Type.DOUBLE
-                )
+                else -> throw unsupportedWriterTypeError()
             }
         }
     }
+
+    private fun tryGetConverter(schema: Schema): Conversion<BigDecimal>? =
+        when (schema.logicalType.name) {
+            decimalConverter.logicalTypeName -> decimalConverter
+            bigDecimalConverter.logicalTypeName -> bigDecimalConverter
+            else -> null
+        }
+
+    private fun AvroEncoder.unsupportedWriterTypeError() =
+        unsupportedWriterTypeError(
+            Schema.Type.BYTES,
+            Schema.Type.FIXED,
+            Schema.Type.STRING,
+            Schema.Type.INT,
+            Schema.Type.LONG,
+            Schema.Type.FLOAT,
+            Schema.Type.DOUBLE
+        )
 
     override fun serializeGeneric(
         encoder: Encoder,
@@ -249,21 +278,13 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
                     }
 
                     Schema.Type.BYTES ->
-                        when (schema.logicalType) {
-                            is LogicalTypes.Decimal -> {
-                                AnyValueDecoder { converter.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
-                            }
-
-                            else -> null
+                        tryGetConverter(currentWriterSchema)?.let {
+                            AnyValueDecoder { it.fromBytes(ByteBuffer.wrap(decoder.decodeBytes()), schema, schema.logicalType) }
                         }
 
                     Schema.Type.FIXED ->
-                        when (schema.logicalType) {
-                            is LogicalTypes.Decimal -> {
-                                AnyValueDecoder { converter.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
-                            }
-
-                            else -> null
+                        tryGetConverter(currentWriterSchema)?.let {
+                            AnyValueDecoder { it.fromFixed(decoder.decodeFixed(), schema, schema.logicalType) }
                         }
 
                     else -> null

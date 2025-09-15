@@ -12,15 +12,20 @@ To use the Avro4k Gradle plugin, add the following to your `build.gradle.kts` fi
 
 ```kotlin
 plugins {
-    id("io.github.avro-kotlin")
+    id("io.github.avro-kotlin") version "2.5.3"
 }
 
 // Optional: customize the plugin configuration
 avro4k {
     sourcesGeneration {
-        inputSchemas += file("your-specific-schema.avsc")
+        inputSchemas.from(file("your-specific-schema.avsc"))
         outputDir = file("src/main/generated")
     }
+}
+
+dependencies {
+    // Add confluent serde if needed
+    implementation("com.github.avro-kotlin.avro4k:avro4k-confluent-kafka-serializer") // No need to precise the version as the plugin takes care of it!
 }
 ```
 

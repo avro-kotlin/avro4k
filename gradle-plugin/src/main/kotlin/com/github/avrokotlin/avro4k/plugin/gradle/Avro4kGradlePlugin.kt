@@ -11,13 +11,12 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 import java.io.File
 
 public abstract class Avro4kPluginExtension {
@@ -72,28 +71,18 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
         project.plugins.withId("org.jetbrains.kotlin.jvm") {
             project.extensions.configure<SourceSetContainer>("sourceSets") {
-                val avroKotlin = create("avro")
-                avroKotlin.java.srcDir(task.map { it.outputDir })
+                val generatedSourcesDir = task.map { it.outputDir }
 
                 // make main source set seeing the generated classes
-                named("main") {
-                    compileClasspath += avroKotlin.output
-                    runtimeClasspath += avroKotlin.output
-                }
-                // make generated classes using main dependencies
-                val avroConfiguration = project.configurations.getByName(avroKotlin.implementationConfigurationName)
-                val mainConfiguration = project.configurations.getByName(getByName("main").implementationConfigurationName)
-                avroConfiguration.extendsFrom(mainConfiguration)
+                val mainSourceSet = getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+                mainSourceSet.java.srcDirs(project.files(generatedSourcesDir).builtBy(task))
 
                 // simplify dependency management by adding avro4k dependencies, and enforcing consistent versions across the plugin version and the library itself
+                val mainConfiguration = project.configurations.getByName(mainSourceSet.implementationConfigurationName)
                 project.dependencies {
                     mainConfiguration(enforcedPlatform("com.github.avro-kotlin.avro4k:avro4k-bom:${BuildConfig.AVRO4K_VERSION}"))
                     mainConfiguration("com.github.avro-kotlin.avro4k:avro4k-core")
                 }
-            }
-
-            project.extensions.getByType<KotlinJvmExtension>().compilerOptions {
-                optIn.add("com.github.avrokotlin.avro4k.InternalAvro4kApi")
             }
         }
     }

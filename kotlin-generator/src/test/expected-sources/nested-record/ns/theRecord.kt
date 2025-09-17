@@ -1,3 +1,8 @@
+@file:OptIn(
+    InternalAvro4kApi::class,
+    ExperimentalAvro4kApi::class,
+)
+
 package ns
 
 import com.github.avrokotlin.avro4k.AvroAlias
@@ -5,11 +10,14 @@ import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.ByteArray
 import kotlin.Int
+import kotlin.OptIn
 import kotlin.String
 import kotlin.collections.List
 import kotlin.collections.Map

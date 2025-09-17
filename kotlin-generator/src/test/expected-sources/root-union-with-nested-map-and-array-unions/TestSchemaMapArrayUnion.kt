@@ -1,5 +1,13 @@
+@file:OptIn(
+    InternalAvro4kApi::class,
+    ExperimentalAvro4kApi::class,
+)
+
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import kotlin.Boolean
 import kotlin.Long
+import kotlin.OptIn
 import kotlin.String
 import kotlin.collections.Map
 import kotlin.jvm.JvmInline

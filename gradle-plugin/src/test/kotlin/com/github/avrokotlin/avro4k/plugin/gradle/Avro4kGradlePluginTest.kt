@@ -27,8 +27,6 @@ class Avro4kGradlePluginTest {
 
         // compileKotlin should generate avro sources, and also compile them
         result.shouldHaveTaskSuccessOrUpToDate(":generateAvroKotlinSources")
-        result.shouldHaveTaskSuccessOrUpToDate(":compileAvroKotlin")
-        result.shouldHaveTaskSuccessOrUpToDate(":avroClasses")
         result.shouldHaveTaskSuccessOrUpToDate(":compileKotlin")
 
         // Check generated file exists

@@ -63,7 +63,8 @@ public data class AvroConfiguration(
         mapOf(
             AvroDurationSerializer.LOGICAL_TYPE_NAME to AvroDurationSerializer,
             UUIDSerializer.LOGICAL_TYPE_NAME to UUIDSerializer,
-            BigDecimalSerializer.LOGICAL_TYPE_NAME to BigDecimalSerializer,
+            BigDecimalSerializer.DECIMAL_LOGICAL_TYPE_NAME to BigDecimalSerializer,
+            BigDecimalSerializer.BIG_DECIMAL_LOGICAL_TYPE_NAME to BigDecimalSerializer,
             LOGICAL_TYPE_NAME_DATE to LocalDateSerializer,
             LOGICAL_TYPE_NAME_TIME_MILLIS to LocalTimeSerializer,
             LOGICAL_TYPE_NAME_TIME_MICROS to LocalTimeSerializer,

@@ -47,6 +47,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
+                BigDecimal("123.45"),
                 LocalDate.ofEpochDay(18262),
                 LocalTime.ofSecondOfDay(45296),
                 Instant.ofEpochSecond(1577889296),
@@ -71,6 +72,11 @@ internal class LogicalTypesEncodingTest : StringSpec({
                         BigDecimal("123.45"),
                         SchemaBuilder.fixed("decimalFixed").size(42),
                         org.apache.avro.LogicalTypes.decimal(8, 2)
+                    ),
+                    Conversions.BigDecimalConversion().toBytes(
+                        BigDecimal("123.45"),
+                        null,
+                        org.apache.avro.LogicalTypes.bigDecimal()
                     ),
                     "123.45",
                     18262,
@@ -104,6 +110,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 null,
                 null,
                 null,
+                null,
                 null
             )
         )
@@ -122,11 +129,13 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     null,
                     null,
                     null,
+                    null,
                     null
                 )
             )
         AvroAssertions.assertThat(
             NullableLogicalTypes(
+                BigDecimal("123.45"),
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
@@ -155,6 +164,11 @@ internal class LogicalTypesEncodingTest : StringSpec({
                         SchemaBuilder.fixed("com.github.avrokotlin.avro4k.encoding.LogicalTypesEncodingTest.decimalFixedNullable").size(42),
                         org.apache.avro.LogicalTypes.decimal(8, 2)
                     ),
+                    Conversions.BigDecimalConversion().toBytes(
+                        BigDecimal("123.45"),
+                        null,
+                        org.apache.avro.LogicalTypes.bigDecimal()
+                    ),
                     "123.45",
                     18262,
                     45296000,
@@ -176,6 +190,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
     private data class LogicalTypes(
         @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytes: BigDecimal,
         @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixed: BigDecimal,
+        @Contextual val bigDecimal: BigDecimal,
         @Contextual @AvroStringable val decimalString: BigDecimal,
         @Contextual val date: LocalDate,
         @Contextual val time: LocalTime,
@@ -194,6 +209,7 @@ internal class LogicalTypesEncodingTest : StringSpec({
     private data class NullableLogicalTypes(
         @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytesNullable: BigDecimal?,
         @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixedNullable: BigDecimal?,
+        @Contextual val bigDecimal: BigDecimal?,
         @Contextual @AvroStringable val decimalStringNullable: BigDecimal?,
         @Contextual val dateNullable: LocalDate?,
         @Contextual val timeNullable: LocalTime?,

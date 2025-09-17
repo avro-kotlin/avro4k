@@ -263,6 +263,8 @@ public class AvroBuilder internal constructor(avro: Avro) {
      * - `time-micros` as [java.time.LocalTime]
      * - `timestamp-millis` as [java.time.Instant]
      * - `timestamp-micros` as [java.time.Instant]
+     * - `decimal` as [java.math.BigDecimal] with specific scale and precision
+     * - `big-decimal` as [java.math.BigDecimal] which allows any scale or precision
      *
      * @param logicalTypeName the name of the logical type to register the serializer for.
      * @param serializer the serializer to use for the logical type.

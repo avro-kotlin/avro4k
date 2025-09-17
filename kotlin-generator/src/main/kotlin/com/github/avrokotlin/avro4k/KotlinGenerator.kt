@@ -79,6 +79,14 @@ public class KotlinGenerator(
 
     private fun TypeSpec.toFileSpec(namespace: String? = null): FileSpec {
         return FileSpec.builder(namespace?.takeIf { it.isNotEmpty() } ?: "", name!!)
+            // @file:OptIn(InternalAvro4kApi::class, ExperimentalAvro4kApi::class)
+            .addAnnotation(
+                AnnotationSpec.builder(ClassName("kotlin", "OptIn"))
+                    .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                    .addMember("%T::class", InternalAvro4kApi::class)
+                    .addMember("%T::class", ExperimentalAvro4kApi::class)
+                    .build()
+            )
             .addTypes(listOf(this))
             .build()
     }

@@ -9,12 +9,8 @@ on:
         default: ''
         type: string
       is-draft:
-        description: Create the release as a draft.
+        description: Create the release as a draft. If set to false, the release will be published immediately without draft, and the artefacts will be published automatically to Maven Central.
         default: true
-        type: boolean
-      is-auto-close-sonatype-staging:
-        description: Close the Sonatype staging repository automatically after publishing. If false, you will need to close and release the staging repository at https://central.sonatype.com/publishing/deployments.
-        default: false
         type: boolean
 
 jobs:
@@ -61,7 +57,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-auto-close-sonatype-staging }}
+          ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-draft == 'false' }}
 
       - name: Publish plugin release
         run: ./gradlew publishPlugins

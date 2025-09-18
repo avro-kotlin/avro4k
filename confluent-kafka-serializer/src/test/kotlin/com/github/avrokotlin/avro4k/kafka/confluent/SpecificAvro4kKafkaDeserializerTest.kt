@@ -49,6 +49,23 @@ class SpecificAvro4kKafkaDeserializerTest : StringSpec() {
 
             deserialized shouldBe AnEnum.B
         }
+
+        "an payload written with a different schema than the reader one should be deserializable" {
+            @Serializable
+            data class Writer(val a: Int, val b: String)
+
+            @Serializable
+            data class Reader(val b: String)
+
+            val schemaRegistry = MockSchemaRegistryClient()
+            val writerSerializer = SpecificAvro4kKafkaSerializer<Writer>(isKey = false, schemaRegistry = schemaRegistry)
+            val bytes = writerSerializer.serialize("topic", Writer(42, "test"))
+            val readerDeserializer = SpecificAvro4kKafkaDeserializer<Reader>(isKey = false, schemaRegistry = schemaRegistry)
+
+            val deserialized = readerDeserializer.deserialize("topic", bytes)
+
+            deserialized shouldBe Reader("test")
+        }
     }
 }
 

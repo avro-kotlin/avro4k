@@ -309,10 +309,8 @@ public abstract class AbstractAvro4kKafkaDeserializer<T : Any>(
     }
 
     override fun getDatumReader(writerSchema: Schema, readerSchema: Schema?): DatumReader<*> {
-        // a non-null reader schema means that this.schema returned a schema, so the user wants to always read a specific schema.
-        // confluent takes care of schema adaptations between writer and reader schema, so it always adapt the data to the reader schema
-        // by doing migrations before giving us the data to deserialize.
-        return avro.getDatumReader<Any>(readerSchema ?: writerSchema, deserializer)
+        // Avro4k natively supports schema evolution, and it needs to rely on the writer schema only to decode the data.
+        return avro.getDatumReader<Any>(writerSchema, deserializer)
     }
 
     @InternalAvro4kApi

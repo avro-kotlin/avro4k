@@ -14,6 +14,9 @@ import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.OptIn
 import kotlinx.serialization.Serializable
 
+/**
+ * doc
+ */
 @Serializable
 @AvroProp("customProp", "customValue")
 @AvroDoc("doc")

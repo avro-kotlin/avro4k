@@ -14,6 +14,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""{"type":"record","name":"NestedRecord","fields":[{"name":"field","type":"string","doc":"field doc"}]}""")
 public data class NestedRecord(
+    /**
+     * field doc
+     */
     @AvroDoc("field doc")
     public val `field`: String,
 )

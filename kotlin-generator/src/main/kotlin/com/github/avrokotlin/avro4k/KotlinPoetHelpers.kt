@@ -4,6 +4,7 @@ import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.Documentable
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
@@ -91,11 +92,12 @@ internal fun TypeSpec.withAnnotation(annotation: AnnotationSpec): TypeSpec {
         .build()
 }
 
-internal fun <T : Annotatable.Builder<B>, B : Annotatable.Builder<B>> T.addAnnotationIfNotNull(annotation: AnnotationSpec?): T {
-    if (annotation != null) {
-        addAnnotation(annotation)
-    }
-    return this
+internal fun <T : Annotatable.Builder<T>> T.addAnnotationIfNotNull(annotation: AnnotationSpec?): T {
+    return annotation?.let { addAnnotation(it) } ?: this
+}
+
+internal fun <T : Documentable.Builder<T>> T.addKDocIfNotNull(doc: String?): T {
+    return doc?.let { addKdoc(it) } ?: this
 }
 
 internal fun getMapOfCodeBlock(map: Map<String, CodeBlock>): CodeBlock =

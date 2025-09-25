@@ -33,6 +33,8 @@ internal val TypeSafeSchema.CollectionSchema.MapSchema.actualKeyClass: String?
     get() = props[SpecificData.KEY_CLASS_PROP] as? String
 
 internal sealed interface TypeSafeSchema : WithProps {
+    val originalSchema: Schema
+
     val type: SchemaType
     val isNullable: Boolean
 
@@ -61,6 +63,7 @@ internal sealed interface TypeSafeSchema : WithProps {
 
     sealed interface PrimitiveSchema : TypeSafeSchema {
         data class BooleanSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -71,6 +74,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class IntSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -81,6 +85,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class LongSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -91,6 +96,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class FloatSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -101,6 +107,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class DoubleSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -111,6 +118,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class BytesSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema, ByteArraySchema {
@@ -121,6 +129,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class StringSchema(
+            override val originalSchema: Schema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
@@ -132,6 +141,7 @@ internal sealed interface TypeSafeSchema : WithProps {
     }
 
     data class UnionSchema(
+        override val originalSchema: Schema,
         val types: List<TypeSafeSchema>,
         override val isNullable: Boolean = false,
         override val props: Map<String, Any?> = emptyMap(),
@@ -144,6 +154,7 @@ internal sealed interface TypeSafeSchema : WithProps {
 
     sealed interface CollectionSchema : TypeSafeSchema {
         data class ArraySchema(
+            override val originalSchema: Schema,
             val elementSchema: TypeSafeSchema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
@@ -155,6 +166,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class MapSchema(
+            override val originalSchema: Schema,
             val valueSchema: TypeSafeSchema,
             override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
@@ -173,6 +185,7 @@ internal sealed interface TypeSafeSchema : WithProps {
             get() = if (space != null) "$space.$name" else name
 
         data class RecordSchema(
+            override val originalSchema: Schema,
             override val name: String,
             override val space: String?,
             val fields: List<Field>,
@@ -201,6 +214,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class FixedSchema(
+            override val originalSchema: Schema,
             override val name: String,
             override val space: String?,
             val size: UInt,
@@ -218,6 +232,7 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         data class EnumSchema(
+            override val originalSchema: Schema,
             override val name: String,
             override val space: String?,
             val symbols: Set<String>,
@@ -250,6 +265,7 @@ internal sealed interface TypeSafeSchema : WithProps {
                     val fields = mutableListOf<NamedSchema.RecordSchema.Field>()
                     val recordSchema =
                         NamedSchema.RecordSchema(
+                            schema,
                             name = schema.name,
                             space = schema.namespace,
                             fields = fields,
@@ -280,6 +296,7 @@ internal sealed interface TypeSafeSchema : WithProps {
 
                 Schema.Type.ENUM ->
                     NamedSchema.EnumSchema(
+                        schema,
                         name = schema.name,
                         space = schema.namespace,
                         symbols = schema.enumSymbols.toSet(),
@@ -292,11 +309,12 @@ internal sealed interface TypeSafeSchema : WithProps {
 
                 Schema.Type.UNION -> {
                     val types = schema.types.map { from(it, seenRecords) }
-                    UnionSchema(types, isNullable, schema.objectProps)
+                    UnionSchema(schema, types, isNullable, schema.objectProps)
                 }
 
                 Schema.Type.FIXED ->
                     NamedSchema.FixedSchema(
+                        schema,
                         name = schema.name,
                         space = schema.namespace,
                         size = schema.fixedSize.toUInt(),
@@ -308,6 +326,7 @@ internal sealed interface TypeSafeSchema : WithProps {
 
                 Schema.Type.ARRAY ->
                     CollectionSchema.ArraySchema(
+                        schema,
                         elementSchema = from(schema.elementType, seenRecords),
                         isNullable = isNullable,
                         props = schema.objectProps
@@ -315,18 +334,19 @@ internal sealed interface TypeSafeSchema : WithProps {
 
                 Schema.Type.MAP ->
                     CollectionSchema.MapSchema(
+                        schema,
                         valueSchema = from(schema.valueType, seenRecords),
                         isNullable = isNullable,
                         props = schema.objectProps
                     )
 
-                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(isNullable, schema.objectProps)
-                Schema.Type.INT -> PrimitiveSchema.IntSchema(isNullable, schema.objectProps)
-                Schema.Type.LONG -> PrimitiveSchema.LongSchema(isNullable, schema.objectProps)
-                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(isNullable, schema.objectProps)
-                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(isNullable, schema.objectProps)
-                Schema.Type.STRING -> PrimitiveSchema.StringSchema(isNullable, schema.objectProps)
-                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(isNullable, schema.objectProps)
+                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.INT -> PrimitiveSchema.IntSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.LONG -> PrimitiveSchema.LongSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.STRING -> PrimitiveSchema.StringSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(schema, isNullable, schema.objectProps)
 
                 Schema.Type.NULL -> throw IllegalArgumentException("Top-level schema cannot be of NULL type")
             }

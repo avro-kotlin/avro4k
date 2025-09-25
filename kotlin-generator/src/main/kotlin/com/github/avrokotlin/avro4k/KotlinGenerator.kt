@@ -211,7 +211,9 @@ public class KotlinGenerator(
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
                 val recordTypeName = schema.asClassName()
                 if (recordTypeName !in generatedRecords) {
-                    val recordType = generateRecordClass(schema)
+                    val recordType =
+                        generateRecordClass(schema)
+                            .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
                     // generate nested types
                     listOf(recordType.toFileSpec(schema.space)) +
                         schema.fields.flatMap { field ->
@@ -228,7 +230,12 @@ public class KotlinGenerator(
                 }
             }
 
-            is TypeSafeSchema.NamedSchema.EnumSchema -> listOf(generateEnumClass(schema).toFileSpec(schema.space))
+            is TypeSafeSchema.NamedSchema.EnumSchema ->
+                listOf(
+                    generateEnumClass(schema)
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
+                        .toFileSpec(schema.space)
+                )
 
             is TypeSafeSchema.UnionSchema -> {
                 val unionType =
@@ -237,6 +244,7 @@ public class KotlinGenerator(
                         unionNameFormatter(potentialAnonymousBaseName),
                         potentialAnonymousBaseName
                     )
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
                 listOf(unionType.toFileSpec(null)) +
                     schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
             }

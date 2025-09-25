@@ -5,6 +5,7 @@
 
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.OptIn
 import kotlin.String
 import kotlin.collections.List
@@ -12,6 +13,7 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 @Serializable
+@AvroGenerated("""["string",{"type":"array","items":["long","null",{"type":"map","values":["boolean","null"]}]}]""")
 public sealed interface TestSchemaMapUnion {
     @JvmInline
     @Serializable

@@ -8,7 +8,6 @@ import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.io.writeDoubleLe
 import kotlinx.io.writeFloatLe
-import kotlinx.io.writeString
 import kotlinx.io.writeToInternalBuffer
 import org.apache.avro.io.BinaryData
 import org.apache.avro.io.BinaryEncoder
@@ -47,8 +46,9 @@ internal class KotlinxIoEncoder(
             writeZero()
             return
         }
-        writeInt(string.length)
-        sink.writeString(string)
+        val bytes = string.encodeToByteArray()
+        writeInt(bytes.size)
+        sink.write(bytes)
     }
 
     override fun writeFloat(f: Float) {

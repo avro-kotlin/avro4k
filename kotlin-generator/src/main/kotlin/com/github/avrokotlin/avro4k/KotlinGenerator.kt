@@ -403,6 +403,7 @@ public class KotlinGenerator(
             .addAnnotation(Serializable::class)
             .addAnnotations(buildAvroPropAnnotations(schema))
             .addAnnotationIfNotNull(buildAvroDocAnnotation(schema))
+            .addKDocIfNotNull(schema.doc)
             .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .apply {
                 schema.symbols.forEach { enumSymbol ->
@@ -426,6 +427,7 @@ public class KotlinGenerator(
             .addAnnotation(Serializable::class)
             .addAnnotations(buildAvroPropAnnotations(schema))
             .addAnnotationIfNotNull(buildAvroDocAnnotation(schema))
+            .addKDocIfNotNull(schema.doc)
             .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .let {
                 schema.fields.fold(it) { builder, field ->
@@ -436,6 +438,20 @@ public class KotlinGenerator(
                             .initializer(field.name)
                             .addAnnotations(buildAvroPropAnnotations(field))
                             .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
+                            .addKDocIfNotNull(field.doc)
+                            .apply {
+                                if (field.hasDefaultValue()) {
+                                    if (kdoc.isNotEmpty()) {
+                                        addKdoc("\n\n")
+                                    }
+                                    val defaultStr =
+                                        when (val default = field.defaultValue) {
+                                            is ByteArray -> default.contentToString()
+                                            else -> default.toString()
+                                        }
+                                    addKdoc("Default value: $defaultStr")
+                                }
+                            }
                             .addAnnotationIfNotNull(buildAvroAliasAnnotation(field))
                             .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
                             .addAnnotationIfNotNull(buildAvroFixedAnnotation(field.schema))

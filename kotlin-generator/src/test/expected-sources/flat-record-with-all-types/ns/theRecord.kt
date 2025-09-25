@@ -30,6 +30,9 @@ import kotlin.collections.listOf
 import kotlin.collections.mapOf
 import kotlinx.serialization.Serializable
 
+/**
+ * doc
+ */
 @Serializable
 @AvroProp("customProp", "customValue")
 @AvroDoc("doc")
@@ -39,6 +42,9 @@ import kotlinx.serialization.Serializable
 )
 @AvroGenerated("""{"type":"record","name":"theRecord","namespace":"ns","doc":"doc","fields":[{"name":"b","type":"bytes","default":"\u0001\u0002\u0003","aliases":["fieldAlias1","fieldAlias2"],"customFieldProp":"customValue"},{"name":"i","type":"int","default":42},{"name":"l","type":"long","default":4242},{"name":"f1","type":"float","default":4.2},{"name":"d","type":"double","default":8.4},{"name":"bool","type":"boolean","default":true},{"name":"str","type":"string","default":"the default"},{"name":"nullableStringField","type":["null","string"],"default":null},{"name":"nullableStringFieldButDefaulted","type":["string","null"],"default":"default value"},{"name":"f","type":{"type":"fixed","name":"Fixed","doc":"the doc","size":3},"default":"ÿ\u0004\u0007"},{"name":"map","type":{"type":"map","values":"int"},"default":{"a":1,"b":2}},{"name":"mapWithNullableValues","type":{"type":"map","values":["null","int"]}},{"name":"array","type":{"type":"array","items":"int"},"default":[17,42]},{"name":"arrayWithNullableValues","type":{"type":"array","items":["null","int"]}}],"customProp":"customValue","aliases":["alias1","toto"]}""")
 public data class theRecord(
+    /**
+     * Default value: [1, 2, 3]
+     */
     @AvroProp("customFieldProp", "customValue")
     @AvroAlias(
         "fieldAlias1",
@@ -46,28 +52,61 @@ public data class theRecord(
     )
     @AvroDefault("\u0001\u0002\u0003")
     public val b: ByteArray = byteArrayOf(1, 2, 3),
+    /**
+     * Default value: 42
+     */
     @AvroDefault("42")
     public val i: Int = 42,
+    /**
+     * Default value: 4242
+     */
     @AvroDefault("4242")
     public val l: Long = 4_242,
+    /**
+     * Default value: 4.2
+     */
     @AvroDefault("4.2")
     public val f1: Float = 4.2f,
+    /**
+     * Default value: 8.4
+     */
     @AvroDefault("8.4")
     public val d: Double = 8.4,
+    /**
+     * Default value: true
+     */
     @AvroDefault("true")
     public val bool: Boolean = true,
+    /**
+     * Default value: the default
+     */
     @AvroDefault("the default")
     public val str: String = "the default",
+    /**
+     * Default value: null
+     */
     @AvroDefault("null")
     public val nullableStringField: String? = null,
+    /**
+     * Default value: default value
+     */
     @AvroDefault("default value")
     public val nullableStringFieldButDefaulted: String? = "default value",
+    /**
+     * Default value: [-1, 4, 7]
+     */
     @AvroFixed(size = 3)
     @AvroDefault("ÿ\u0004\u0007")
     public val f: ByteArray = byteArrayOf(-1, 4, 7),
+    /**
+     * Default value: {a=1, b=2}
+     */
     @AvroDefault("{\"a\":1,\"b\":2}")
     public val map: Map<String, Int> = mapOf("a" to 1, "b" to 2),
     public val mapWithNullableValues: Map<String, Int?> = emptyMap(),
+    /**
+     * Default value: [17, 42]
+     */
     @AvroDefault("[17,42]")
     public val array: List<Int> = listOf(17, 42),
     public val arrayWithNullableValues: List<Int?> = emptyList(),

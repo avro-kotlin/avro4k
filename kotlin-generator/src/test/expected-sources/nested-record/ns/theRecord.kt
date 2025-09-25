@@ -25,6 +25,9 @@ import kotlin.collections.listOf
 import kotlin.collections.mapOf
 import kotlinx.serialization.Serializable
 
+/**
+ * doc
+ */
 @Serializable
 @AvroProp("customProp", "customValue")
 @AvroDoc("doc")
@@ -35,15 +38,30 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"record","name":"theRecord","namespace":"ns","doc":"doc","fields":[{"name":"s","type":"theRecord"},{"name":"field","type":{"type":"record","name":"theRecord2","doc":"doc","fields":[{"name":"field1","type":"string","doc":"field doc"},{"name":"field2","type":["null","int"],"default":null,"aliases":["field3","otherField"]}],"aliases":["alias2"]},"doc":"field doc"},{"name":"b","type":"bytes","default":"\u0001\u0002\u0003"},{"name":"f","type":{"type":"fixed","name":"Fixed","doc":"the doc","size":3},"default":"ÿ\u0004\u0007"},{"name":"map","type":{"type":"map","values":"int"},"default":{"a":1,"b":2}},{"name":"array","type":{"type":"array","items":"int"},"default":[17,42]}],"customProp":"customValue","aliases":["alias1","toto"]}""")
 public data class theRecord(
     public val s: theRecord,
+    /**
+     * field doc
+     */
     @AvroDoc("field doc")
     public val `field`: theRecord2,
+    /**
+     * Default value: [1, 2, 3]
+     */
     @AvroDefault("\u0001\u0002\u0003")
     public val b: ByteArray = byteArrayOf(1, 2, 3),
+    /**
+     * Default value: [-1, 4, 7]
+     */
     @AvroFixed(size = 3)
     @AvroDefault("ÿ\u0004\u0007")
     public val f: ByteArray = byteArrayOf(-1, 4, 7),
+    /**
+     * Default value: {a=1, b=2}
+     */
     @AvroDefault("{\"a\":1,\"b\":2}")
     public val map: Map<String, Int> = mapOf("a" to 1, "b" to 2),
+    /**
+     * Default value: [17, 42]
+     */
     @AvroDefault("[17,42]")
     public val array: List<Int> = listOf(17, 42),
 ) {

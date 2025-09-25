@@ -16,6 +16,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""{"type":"record","name":"ComplexUnionInRecord","fields":[{"name":"theField","type":["null",{"type":"record","name":"NestedRecord","fields":[{"name":"id","type":"string"},{"name":"value","type":"int"}]},{"type":"enum","name":"Status","symbols":["ACTIVE","INACTIVE","PENDING"]},{"type":"array","items":"string"}],"default":null}]}""")
 public data class ComplexUnionInRecord(
+    /**
+     * Default value: null
+     */
     @AvroDefault("null")
     public val theField: TheFieldUnion? = null,
 ) {

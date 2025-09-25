@@ -16,6 +16,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""{"type":"record","name":"NestedLogicalTypeDecimalBytes","fields":[{"name":"amount","type":["null",{"type":"bytes","logicalType":"decimal","precision":10,"scale":4}],"doc":"A nullable decimal field","default":null}]}""")
 public data class NestedLogicalTypeDecimalBytes(
+    /**
+     * A nullable decimal field
+     *
+     * Default value: null
+     */
     @AvroDoc("A nullable decimal field")
     @AvroDefault("null")
     @Serializable(with = BigDecimalSerializer::class)

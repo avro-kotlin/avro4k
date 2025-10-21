@@ -7,7 +7,7 @@ apache-avro = "1.11.4"
 confluent-schema-registry = "8.0.0"
 kotlinpoet = "2.2.0"
 mockk = "1.14.6"
-junit = "5.13.4"
+junit = "6.0.0"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }

@@ -9,6 +9,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSet
@@ -66,6 +67,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas.files)
                 outputDir.set(extension.sourcesGeneration.outputDir)
+                projectDir.set(project.projectDir)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
@@ -95,6 +97,9 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
+    @get:Internal
+    public abstract val projectDir: DirectoryProperty
+
 //    @get:OutputDirectory
 //    public abstract val logicalTypes: MapProperty<String, String>
 
@@ -112,14 +117,16 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             return
         }
 
+        val projectDir = projectDir.asFile.get()
+
         files.associateWith { file ->
-            logger.info("Generating kotlin sources for schema file: ${file.relativeTo(project.projectDir)}")
+            logger.info("Generating kotlin sources for schema file: ${file.relativeTo(projectDir)}")
 
             val schemaContent = file.readText()
             kotlinGenerator.generateKotlinClasses(schemaContent, file.nameWithoutExtension)
                 .also { generatedFiles ->
                     logger.lifecycle(
-                        "Schema ${file.relativeTo(project.projectDir)} generated ${generatedFiles.size} class(es):\n  " + generatedFiles.joinToString("\n  ") { it.fullName() }
+                        "Schema ${file.relativeTo(projectDir)} generated ${generatedFiles.size} class(es):\n  " + generatedFiles.joinToString("\n  ") { it.fullName() }
                     )
                 }
         }
@@ -149,6 +156,8 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         // Keep only duplicates. Allow generating identical classes from different schema files
         names.entries.removeIf { it.value.size < 2 || it.value.values.toSet().size < 2 }
 
+        val projectDir = projectDir.asFile.get()
+
         if (names.isNotEmpty()) {
             val message =
                 "Duplicate generated class names found. " +
@@ -156,7 +165,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
                     "Please check your input schema files:\n${
                         names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
                             "$generatedFullName has been generated differently from the following schemas: ${
-                                originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(project.projectDir).path }
+                                originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(projectDir).path }
                             }"
                         }
                     }."

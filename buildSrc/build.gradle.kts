@@ -23,7 +23,7 @@ dependencies {
 
     implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.34.0")
 
-    val dokkaVersion = "2.0.0"
+    val dokkaVersion = "2.1.0"
     implementation("org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:$dokkaVersion")
     implementation("org.jetbrains.dokka-javadoc:org.jetbrains.dokka-javadoc.gradle.plugin:$dokkaVersion")
 }

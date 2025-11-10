@@ -1,0 +1,23 @@
+{
+    "type": "record",
+    "name": "ns1.NestedEnum",
+    "fields": [
+        {
+            "name": "theValue",
+            "type": [
+                {
+                    "name": "ns2.TheEnum",
+                    "type": "enum",
+                    "symbols": [
+                        "A",
+                        "B",
+                        "C"
+                    ],
+                    "default": "C"
+                },
+                "null"
+            ],
+            "default": "B"
+        }
+    ]
+}

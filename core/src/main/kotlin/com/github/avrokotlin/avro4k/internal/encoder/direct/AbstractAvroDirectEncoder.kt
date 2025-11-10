@@ -99,7 +99,7 @@ internal sealed class AbstractAvroDirectEncoder(
 private fun Schema.getEnumOrdinalChecked(symbol: String): Int {
     return try {
         getEnumOrdinal(symbol)
-    } catch (e: NullPointerException) {
+    } catch (e: Exception) {
         throw SerializationException("Enum symbol $symbol not found in schema $this", e)
     }
 }

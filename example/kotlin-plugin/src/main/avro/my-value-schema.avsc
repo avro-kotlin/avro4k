@@ -1,0 +1,15 @@
+{
+    "type": "record",
+    "name": "MyValueSchema",
+    "namespace": "example.avro4k",
+    "fields": [
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "order",
+            "type": ["null", "int"]
+        }
+    ]
+}

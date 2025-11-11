@@ -1,8 +1,7 @@
 ![build-main](https://github.com/avro-kotlin/avro4k/workflows/build-main/badge.svg)
 [![Download](https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core)](https://search.maven.org/artifact/com.github.avro-kotlin.avro4k/avro4k-core)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
-[![Kotlinx serialization](https://img.shields.io/badge/kotlinx--serialization-1.7.0-blue?logo=kotlin)](https://github.com/Kotlin/kotlinx.serialization)
-[![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.3-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.3/specification/)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.2-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Avro spec](https://img.shields.io/badge/avro%20spec-1.11.4-blue.svg?logo=apache)](https://avro.apache.org/docs/1.11.4/specification/)
 
 # Introduction
 
@@ -18,6 +17,8 @@ Here are the main features:
 - **Fast** as it is reflection-less :rocket: (check the benchmarks [here](benchmark/README.md#results))
 - **Simple API** to get started quickly, also with native support of java standard classes like `UUID`, `BigDecimal`, `BigInteger` and `java.time` module :1st_place_medal:
 - **Relaxed matching** for easy schema evolution as it natively [adapts compatible types](#types-matrix) :cyclone:
+- **Kafka confluent's schema registry ready** thanks to the [confluent-kafka-serializer module](confluent-kafka-serializer/README.md), allowing to use avro4k in any kafka or spring cloud project :white_check_mark:
+- **Official gradle plugin** to generate (not only) data classes from avro schemas :wrench: (check the [gradle-plugin](gradle-plugin/README.md) documentation for more details)
 
 > [!WARNING]
 > **Important**: As of today, avro4k is **only available for JVM platform**, and theoretically for android platform (as apache avro library is already **android-ready**). <br/>If
@@ -25,7 +26,9 @@ Here are the main features:
 
 # Quick start
 
-## Basic encoding
+## Basic "pure" avro encoding
+
+In this example, we will see how to encode and decode Avro objects in their "pure" format, which means that the schema is not prefixed to the data.
 
 <details open>
 <summary>Example:</summary>
@@ -51,6 +54,132 @@ fun main() {
     // Deserializing objects
     val obj = Avro.decodeFromByteArray<Project>(bytes)
     println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+}
+```
+
+</details>
+
+### JVM stream encoding
+
+Avro4k is also able to encode and decode objects to and from any kotlinx-io `Sink` and `Source`, which means any supported bridge to kotlinx-io is supported by avro4k.
+
+As an example, for JVM streams, you can use `InputStream.asSource().buffered()` and `OutputStream.asSink().buffered()`.
+
+> [!NOTE]
+> Note the required `buffered()` call to allow avro4k accessing the `read` and `write` methods.
+
+> [!WARNING]
+> Do not use `ByteArrayInputStream` and `ByteArrayOutputStream`, prefer using `kotlinx.io.Buffer` instead as it is more efficient and allows better performance.
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import java.io.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val data = Project("kotlinx.serialization", "Kotlin")
+    val outputStream: OutputStream = TODO("Your output stream here, e.g. FileOutputStream, etc.")
+    val sink = output.asSink().buffered()
+    Avro.encodeToSink(data, sink)
+    sink.close() // Will flush the data to the output stream at the same time
+
+    // Deserializing objects
+    val inputStream: InputStream = TODO("Your input stream here, e.g. FileInputStream, etc.")
+    val source = inputStream.asSource().buffered()
+    // Be sure to read all the content from the soure, or you may lose data from the upper stream, as buffering means that the source may read more bytes to fill the buffer.
+    val obj = Avro.decodeFromSource<Project>(source)
+    println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+}
+```
+
+</details>
+
+### Encode many objects in the same stream
+
+You can use kotlinx-io's `Buffer` to encode many objects in the same stream, and then extract the whole bytes from the buffer.
+
+> [!WARNING]
+> As kotlinx-io is using an internal buffer pool, each `Buffer` instance you create must be fully consumed to allow the internal buffer segments to be returned to the pool and reused.
+> More detailsin the [kotlinx-io documentation](https://github.com/Kotlin/kotlinx-io).
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val buffer = Buffer()
+    Avro.encodeToSink(data1, buffer)
+    Avro.encodeToSink(data2, buffer)
+    Avro.encodeToSink(data3, buffer)
+    // You need to consume the whole buffer by passing the buffer to the wanted framework or read the byte-array, or you may have kotlinx-io internal buffer leaks.
+    val bytes = buffer.readByteArray()
+
+    // Deserializing objects
+    val source: Source = TODO("a Buffer, or any other source from kotlinx-io")
+    val data1 = Avro.decodeFromSource<Project>(source)
+    val data2 = Avro.decodeFromSource<Project>(source)
+    val data3 = Avro.decodeFromSource<Project>(source)
+}
+```
+
+</details>
+
+### Custom encoding with a Buffer
+
+The following example shows how to encode in a custom format using a `Buffer` to write the data. The example is going to encode like this: `<timestamp><schema><binary-length><binary-data>`.
+
+You will still encode the data in pure avro binary format, while you will be able to add some metadata before the data (or after), compress the data, and much more.
+
+<details>
+<summary>Example:</summary>
+
+```kotlin
+package myapp
+
+import com.github.avrokotlin.avro4k.*
+import kotlinx.serialization.*
+import kotlinx.io.*
+
+@Serializable
+data class Project(val name: String, val language: String)
+
+fun main() {
+    // Serializing objects
+    val buffer = Buffer()
+    buffer.writeInt(theTimestamp)
+    buffer.writeString(theSchema)
+    
+    val dataBuffer = Buffer()
+    Avro.encodeToSink(data, dataBuffer)
+    // You need to consume the whole buffer by passing the buffer to the wanted framework or read the byte-array, or you may have kotlinx-io internal buffer leaks.
+    val bytes = buffer.readByteArray()
+    buffer.writeInt()
+
+    // Deserializing objects
+    val source: Source = TODO("a Buffer, or any other source from kotlinx-io")
+    val data1 = Avro.decodeFromSource<Project>(source)
+    val data2 = Avro.decodeFromSource<Project>(source)
+    val data3 = Avro.decodeFromSource<Project>(source)
 }
 ```
 
@@ -93,7 +222,7 @@ fun main() {
 
 </details>
 
-> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.3/specification/#single-object-encoding).
+> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.4/specification/#single-object-encoding).
 
 ## Object container
 
@@ -140,12 +269,12 @@ fun main() {
 
 </details>
 
-> For more details, see the Avro spec on [object container files](https://avro.apache.org/docs/1.11.3/specification/#object-container-files).
+> For more details, see the Avro spec on [object container files](https://avro.apache.org/docs/1.11.4/specification/#object-container-files).
 
 # Important notes
 
 - **Avro4k** is highly based on apache avro library, that implies all the schema validation is done by it
-- All members annotated with `@ExperimentalSerializationApi` are **subject to changes** in future releases without any notice as they are experimental, so please
+- All members annotated with `@ExperimentalAvro4kApi` are **subject to changes** in future releases without any notice as they are experimental, so please
   check the release notes to check the needed migration. At least, given a version `A.B.C`, only the minor `B` number will be incremented, not the major `A`.
 - **Avro4k** also supports encoding and decoding generic data, mainly because of confluent schema registry compatibility as their serializers only handle generic data. When avro4k
   will support their schema registry, the generic encoding will be removed to keep this library as simple as possible.
@@ -244,8 +373,12 @@ Add the avro4k dependency:
 
 | Avro4k     | Kotlin   | Kotlin API/language | Kotlin serialization |
 |------------|----------|---------------------|----------------------|
-| `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7`             |
+| `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7.0`           |
 | `< 2.0.0`  | `>= 1.6` | `>= 1.6`            | `>= 1.3`             |
+
+> [!WARNING]
+> Starting from avro4k v2, you need to ensure that `kotlinx-serialization-core` dependency has the version at least to `1.7.0`, or you will get `NoSuchMethodError: SerialDescriptorsKt.getNonNullOriginal` by checking it using `./gradlew dependencies`. If the version is not the good one, please explicit the dependency with the version. It is generally due to dependency management plugins like spring, or other transitive constraints.
+> You can enhance your search using `./gradlew dependencies --scan` to have a web ui to search and understand the origin of the issue.
 
 # How to generate schemas
 
@@ -254,7 +387,7 @@ Writing schemas manually or using the Java based `SchemaBuilder` can be tedious.
 Also, it provides native compatibility with data classes (including open and sealed classes), inline classes, any collection, array, enums, and primitive values.
 
 > [!NOTE]
-> For more information about the avro schema, please refer to the [avro specification](https://avro.apache.org/docs/1.11.3/specification/)
+> For more information about the avro schema, please refer to the [avro specification](https://avro.apache.org/docs/1.11.4/specification/)
 
 To allow generating a schema for a specific class, you need to annotate it with `@Serializable`:
 
@@ -343,6 +476,7 @@ By default, `Avro` is configured with the following behavior:
   - If `implicitNulls` is true, it takes precedence so the empty collections are set as null if the value is missing instead of an empty collection.
 - `validateSerialization`: There is no validation of the schema when encoding or decoding data, which means that serializing using a custom serializer could lead to unexpected behavior. Be careful with your custom serializers. More details [in this section](#set-a-custom-schema).
 - `fieldNamingStrategy`: The record's field naming strategy is using the original kotlin field name. To change it, [check this section](#changing-records-field-name).
+- `logicalTypes`: Indicates how a logical type should be deserialized when decoding generically to `Any`. Check this section for more details: [generic decoding](#generic-decoding-for-decoding-a-type-that-is-not-known-at-compile-time).
 
 So each time you call a method on the `Avro` object implicitely invoke the default configuration. Example:
 
@@ -360,6 +494,7 @@ val yourAvroInstance = Avro {
     implicitNulls = false
     implicitEmptyCollections = false
     validateSerialization = true
+    setLogicalTypeSerializer("your-logical-type", YourSerializer())
 }
 yourAvroInstance.encodeToByteArray(MyData("value"))
 yourAvroInstance.decodeFromByteArray(bytes)
@@ -428,6 +563,45 @@ enum class MyEnum {
 
 > [!NOTE]
 > This impacts only the schema generation.
+
+## Generic decoding (for decoding a type that is not known at compile time)
+When decoding, you may want to specify the type `Any` when you don't know at compile time the type of the data you are decoding.
+
+To do so, just provide the type `Any` to the `decodeFromByteArray` (and the other `decodeFromX`) methods.
+
+> [!WARNING]
+> You need to provide the schema, or an error will be thrown as Avro4k is not able to infer the schema.
+
+```kotlin
+Avro.decodeFromByteArray<Any>(writerSchema, bytes)
+Avro.encodeToByteArray<Any>(writerSchema, data)
+```
+
+You can also decode `Any` type *inside* a data class, or any other type (map, list, inline type, etc.) by annotating the field:
+
+```kotlin
+@Serializable
+data class MyData(
+    // implicit serializer resolving to AnySerializer
+    @Contextual val myGenericField: Any,
+    // or explicitly
+    @Serializable(with = AnySerializer::class) val myAnotherGenericField: Any,
+)
+Avro.decodeFromByteArray<MyData>(writerSchema, bytes)
+
+// or with value classes
+@JvmInline
+@Serializable
+value class MyValue(
+    @Contextual val myData: Any
+)
+Avro.decodeFromByteArray<MyData>(writerSchema, bytes)
+
+// or with any other generic type
+Avro.decodeFromByteArray<List<Any>>(writerSchema, bytes)
+Avro.decodeFromByteArray<Map<String, Any>>(writerSchema, bytes)
+Avro.decodeFromByteArray<YourType<Any>>(writerSchema, bytes)
+```
 
 ## Support additional non-serializable types
 
@@ -598,8 +772,10 @@ val schema = myCustomizedAvroInstance.schema<MyData>() // {...,"fields":[{"name"
 While reading avro binary data, you can miss a field (a kotlin field is present but not in the avro binary data), so Avro4k fails as it is not capable of constructing the kotlin
 type without the missing field value.
 
-By default:
-- nullable fields are optional and `default: null` is automatically added to the field ([check this section](#disable-implicit-default-null-for-nullable-fields) to opt out from this default behavior).
+By default ([check this section](#customizing-the-configuration) to opt out from this default behavior):
+- nullable fields are optional and `default: null` is automatically added to the field definition.
+- array fields are optional and `default: []` is automatically added to the field definition.
+- map fields are optional and `default: {}` is automatically added to the field definition.
 
 ### @AvroDefault
 
@@ -641,7 +817,7 @@ data class MyData(
 To be able of reading from different written schemas, or able of writing to different schemas, you can add aliases to a named type (record, enum) field by annotating it
 with `@AvroAlias`. The given aliases may contain the full name of the alias type or only the name.
 
-> [Avro spec link](https://avro.apache.org/docs/1.11.3/specification/#aliases)
+> [Avro spec link](https://avro.apache.org/docs/1.11.4/specification/#aliases)
 
 > [!NOTE]
 > Aliases are not impacted by [naming strategy](#field-naming-strategy-overall-change), so you need to provide aliases directly applying the corresponding naming strategy if you
@@ -688,7 +864,7 @@ println(Avro.schema<BigQueryJson>().toString(true)) // {"type":"string","sqlType
 ```
 
 > [!NOTE]
-> This impacts only the schema generation. For more details, check the [avro specification](https://avro.apache.org/docs/1.11.3/specification/#schema_props).
+> This impacts only the schema generation. For more details, check the [avro specification](https://avro.apache.org/docs/1.11.4/specification/#schema_props).
 
 > [!WARNING]
 > Do not use `@org.apache.avro.reflect.AvroMeta` as this annotation is not visible by Avro4k.
@@ -822,7 +998,7 @@ You can force a field (or the value class' property) to have its inferred schema
 
 Compatible types visible in the [types matrix](#types-matrix), indicated by the "Other compatible writer types" column. The **writer schema compatibility is still respected**, so if the field has been written as an int, a stringified int will be deserialized as an int without the need of parsing it. It is the same for the rerverse: If an int has been written as a string, it will be deserialized as an int by parsing the string content.
 
-> [!INFO]
+> [!NOTE]
 > Note that the type must be compatible with the `string` type, otherwise it will be ignored.
 > Your custom serializer generated schema must handle this annotation, or it will be ignored.
 
@@ -864,6 +1040,7 @@ So to mark a field as optional and facilitate avro contract evolution regarding 
 
 - Kotlin 1.7.20 up to 1.8.10 cannot properly compile @SerialInfo-Annotations on enums (see https://github.com/Kotlin/kotlinx.serialization/issues/2121).
   This is fixed with kotlin 1.8.20. So if you are planning to use any of avro4k's annotations on enum types, please make sure that you are using kotlin >= 1.8.20.
+- Avro 1.12.0 introduced corruption for list of double in generic encoding, where doubles are casted to floats. Will be fixed for the next version when it will be released 
 
 # Migrating from v1 to v2
 Heads up to the [migration guide](Migrating-from-v1.md) to update your code from avro4k v1 to v2.

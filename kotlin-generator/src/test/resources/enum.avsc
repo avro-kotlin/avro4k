@@ -1,0 +1,10 @@
+{
+    "type": "enum",
+    "name": "theEnum",
+    "namespace": "ns",
+    "doc": "doc",
+    "symbols": ["A", "B", "C"],
+    "default": "B",
+    "aliases": ["alias1", "alias2"],
+    "customProp": "customValue"
+}

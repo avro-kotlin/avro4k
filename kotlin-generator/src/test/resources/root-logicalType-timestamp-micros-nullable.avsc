@@ -1,0 +1,7 @@
+[
+    {
+        "type": "long",
+        "logicalType": "timestamp-micros"
+    },
+    "null"
+]

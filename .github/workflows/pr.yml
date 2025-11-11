@@ -3,28 +3,33 @@ name: build-pr
 on:
   pull_request:
     paths-ignore:
-      - 'doc/**'
       - '*.md'
+
+permissions:
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Run tests
-        run: ./gradlew check
-
-      - name: Bundle the build report
-        if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
-
-      - name: Upload the build report
-        if: failure()
-        uses: actions/upload-artifact@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
-          name: error-report
-          path: build-reports.zip
+          add-job-summary-as-pr-comment: on-failure
+          build-scan-publish: true
+          build-scan-terms-of-use-agree: yes
+          build-scan-terms-of-use-url: https://gradle.com/terms-of-service
+
+      - name: Build
+        run: ./gradlew classes --scan
+      - name: Run tests
+        run: ./gradlew check --scan
+
+      - name: Upload build reports
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: build-reports
+          path: '**/build/reports/'

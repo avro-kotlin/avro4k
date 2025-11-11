@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-      - release/*
     paths-ignore:
-      - 'doc/**'
       - '*.md'
 
 jobs:
@@ -14,34 +12,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v5
 
+      - name: Build
+        run: ./gradlew classes
       - name: Run tests
         run: ./gradlew check
 
-      - name: Bundle the build report
-        if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
-      - name: Upload the build report
-        if: failure()
-        uses: actions/upload-artifact@v4
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
         with:
-          name: error-report
-          path: build-reports.zip
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v4
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: deploy to sonatype snapshots
-        run: ./gradlew publish
+          token: ${{ github.token }}
+          branch: main
+          noVersionBumpBehavior: patch # By default, bump patch if no commit matches conventional commits
+      - name: Show next version
+        run: echo Snapshot version ${{ steps.semver.outputs.nextStrict }}.${{ github.run_number }}-SNAPSHOT
+      - name: Publish snapshot
+        run: ./gradlew publishToMavenCentral
         env:
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}.${{ github.run_number }}-SNAPSHOT
+
+      - name: Validate plugin release
+        run: ./gradlew publishPlugins --validate-only
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_SECRET }}
+
+      - name: Upload build reports
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: build-reports
+          path: '**/build/reports/'

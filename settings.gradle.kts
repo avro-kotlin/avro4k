@@ -1,24 +1,8 @@
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
+rootProject.name = "avro4k"
 
-plugins {
-    id("com.gradle.enterprise") version ("3.16.2")
-}
-
-rootProject.name = "avro4k-core"
-
+include("core")
+include("confluent-kafka-serializer")
 include("benchmark")
-
-gradleEnterprise {
-    if (System.getenv("CI") != null) {
-        buildScan {
-            publishAlways()
-            termsOfServiceUrl = "https://gradle.com/terms-of-service"
-            termsOfServiceAgree = "yes"
-        }
-    }
-}
+include("kotlin-generator")
+include("bom")
+include("gradle-plugin")

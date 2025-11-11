@@ -1,0 +1,24 @@
+public final class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kGradlePlugin : org/gradle/api/Plugin {
+	public fun <init> ()V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/Project;)V
+}
+
+public abstract class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginExtension {
+	public fun <init> ()V
+	public abstract fun getSourcesGeneration ()Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension;
+	public final fun sourcesGeneration (Lorg/gradle/api/Action;)V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension {
+	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+}
+
+public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public final fun generateKotlinSources ()V
+	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+}
+

@@ -24,3 +24,4 @@ parquetsink.pq
 parquetrt.pq
 parquet.pq
 pizzas.avro
+.kotlin/

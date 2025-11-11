@@ -20,7 +20,6 @@ internal class JacksonAvroBenchmark : SerializationBenchmark() {
     lateinit var reader: ObjectReader
 
     lateinit var data: ByteArray
-    var writeMode = false
 
     override fun setup() {
         writer = Clients::class.java.createWriter()
@@ -33,13 +32,11 @@ internal class JacksonAvroBenchmark : SerializationBenchmark() {
 
     @Benchmark
     fun read() {
-        if (writeMode) writeMode = false
         reader.readValue<Clients>(data)
     }
 
     @Benchmark
     fun write() {
-        if (!writeMode) writeMode = true
         writer.writeValue(OutputStream.nullOutputStream(), clients)
     }
 

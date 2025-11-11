@@ -1,0 +1,548 @@
+public abstract interface class com/github/avrokotlin/avro4k/AnyValueDecoder {
+	public abstract fun decodeAny (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+}
+
+public abstract class com/github/avrokotlin/avro4k/Avro : kotlinx/serialization/BinaryFormat {
+	public static final field Default Lcom/github/avrokotlin/avro4k/Avro$Default;
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lkotlinx/serialization/modules/SerializersModule;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decodeFromByteArray (Lkotlinx/serialization/DeserializationStrategy;[B)Ljava/lang/Object;
+	public final fun decodeFromByteArray (Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;[B)Ljava/lang/Object;
+	public fun encodeToByteArray (Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
+	public final fun encodeToByteArray (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
+	public final fun getConfiguration ()Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+	public final fun schema (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lorg/apache/avro/Schema;
+}
+
+public final class com/github/avrokotlin/avro4k/Avro$Default : com/github/avrokotlin/avro4k/Avro {
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroAlias : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/avrokotlin/avro4k/AvroAlias {
+	public fun <init> ([Ljava/lang/String;)V
+	public final synthetic fun value ()[Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroBuilder {
+	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
+	public final fun getImplicitEmptyCollections ()Z
+	public final fun getImplicitNulls ()Z
+	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+	public final fun getValidateSerialization ()Z
+	public final fun setFieldNamingStrategy (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;)V
+	public final fun setImplicitEmptyCollections (Z)V
+	public final fun setImplicitNulls (Z)V
+	public final fun setLogicalTypeSerializer (Ljava/lang/String;Lkotlinx/serialization/KSerializer;)V
+	public final fun setSerializersModule (Lkotlinx/serialization/modules/SerializersModule;)V
+	public final fun setValidateSerialization (Z)V
+}
+
+public final class com/github/avrokotlin/avro4k/AvroConfiguration {
+	public fun <init> ()V
+	public fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZLjava/util/Map;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZLjava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroConfiguration;Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;ZZZLjava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
+	public final fun getImplicitEmptyCollections ()Z
+	public final fun getImplicitNulls ()Z
+	public final fun getLogicalTypes ()Ljava/util/Map;
+	public final fun getValidateSerialization ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDecimal : java/lang/annotation/Annotation {
+	public abstract fun precision ()I
+	public abstract fun scale ()I
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroDecimal$Impl : com/github/avrokotlin/avro4k/AvroDecimal {
+	public fun <init> (II)V
+	public final synthetic fun precision ()I
+	public final synthetic fun scale ()I
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/AvroDecoder : kotlinx/serialization/encoding/Decoder {
+	public abstract fun decodeBytes ()[B
+	public abstract fun decodeFixed ()Lorg/apache/avro/generic/GenericFixed;
+	public abstract fun decodeValue ()Ljava/lang/Object;
+	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroDecoder$DefaultImpls {
+	public static fun decodeNullableSerializableValue (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public static fun decodeSerializableValue (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroDecoderKt {
+	public static final fun decodeResolvingAny (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun decodeResolvingBoolean (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Z
+	public static final fun decodeResolvingByte (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)B
+	public static final fun decodeResolvingChar (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)C
+	public static final fun decodeResolvingDouble (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)D
+	public static final fun decodeResolvingFloat (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)F
+	public static final fun decodeResolvingInt (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)I
+	public static final fun decodeResolvingLong (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)J
+	public static final fun decodeResolvingShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)S
+	public static final fun findValueDecoder (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDefault : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroDefault$Impl : com/github/avrokotlin/avro4k/AvroDefault {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDoc : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroDoc$Impl : com/github/avrokotlin/avro4k/AvroDoc {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/AvroEncoder : kotlinx/serialization/encoding/Encoder {
+	public abstract fun encodeBytes ([B)V
+	public abstract fun encodeFixed ([B)V
+	public abstract fun encodeUnionIndex (I)V
+	public abstract fun getCurrentWriterSchema ()Lorg/apache/avro/Schema;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroEncoder$DefaultImpls {
+	public static fun beginCollection (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;I)Lkotlinx/serialization/encoding/CompositeEncoder;
+	public static fun encodeNotNullMark (Lcom/github/avrokotlin/avro4k/AvroEncoder;)V
+	public static fun encodeNullableSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
+	public static fun encodeSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroEnumDefault : java/lang/annotation/Annotation {
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroEnumDefault$Impl : com/github/avrokotlin/avro4k/AvroEnumDefault {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroFixed : java/lang/annotation/Annotation {
+	public abstract fun size ()I
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroFixed$Impl : com/github/avrokotlin/avro4k/AvroFixed {
+	public fun <init> (I)V
+	public final synthetic fun size ()I
+}
+
+public final class com/github/avrokotlin/avro4k/AvroGenericDataExtensionsKt {
+	public static final fun decodeFromGenericData (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/Object;)Ljava/lang/Object;
+	public static final fun encodeToGenericData (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroJVMExtensionsKt {
+	public static final fun decodeFromStream (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;)Ljava/lang/Object;
+	public static final fun encodeToStream (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Ljava/io/OutputStream;)V
+}
+
+public final class com/github/avrokotlin/avro4k/AvroKotlinxIoExtensionsKt {
+	public static final fun decodeFromSource (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Lkotlinx/io/Source;)Ljava/lang/Object;
+	public static final fun encodeToSink (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lkotlinx/io/Sink;)V
+}
+
+public final class com/github/avrokotlin/avro4k/AvroKt {
+	public static final fun Avro (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/Avro;
+	public static synthetic fun Avro$default (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/Avro;
+	public static final fun schema (Lcom/github/avrokotlin/avro4k/Avro;Lkotlinx/serialization/KSerializer;)Lorg/apache/avro/Schema;
+}
+
+public abstract class com/github/avrokotlin/avro4k/AvroObjectContainer {
+	public static final field Default Lcom/github/avrokotlin/avro4k/AvroObjectContainer$Default;
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun decodeFromStream (Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
+	public static synthetic fun decodeFromStream$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainer;Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
+	public final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
+	public final fun openWriter (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/AvroObjectContainerWriter;
+	public static synthetic fun openWriter$default (Lcom/github/avrokotlin/avro4k/AvroObjectContainer;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroObjectContainerWriter;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainer$Default : com/github/avrokotlin/avro4k/AvroObjectContainer {
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerBuilder {
+	public final fun codec (Lorg/apache/avro/file/CodecFactory;)V
+	public final fun metadata (Ljava/lang/String;J)V
+	public final fun metadata (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun metadata (Ljava/lang/String;[B)V
+	public final fun syncInterval (I)V
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerKt {
+	public static final fun AvroObjectContainer (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/AvroObjectContainer;
+	public static synthetic fun AvroObjectContainer$default (Lcom/github/avrokotlin/avro4k/Avro;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroObjectContainer;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper {
+	public final fun metadata (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper$MetadataAccessor;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper$MetadataAccessor {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/AvroObjectContainerMetadataDumper;[B)V
+	public final fun asBytes ()[B
+	public final fun asLong ()J
+	public final fun asString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroObjectContainerWriter : java/io/Closeable {
+	public fun close ()V
+	public final fun writeValue (Ljava/lang/Object;)V
+}
+
+public final class com/github/avrokotlin/avro4k/AvroOkioExtensionsKt {
+	public static final fun decodeFromSource (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/DeserializationStrategy;Lokio/BufferedSource;)Ljava/lang/Object;
+	public static final fun encodeToSink (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lokio/BufferedSink;)V
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp : java/lang/annotation/Annotation {
+	public abstract fun key ()Ljava/lang/String;
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lcom/github/avrokotlin/avro4k/AvroProp;
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/github/avrokotlin/avro4k/AvroProp {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final synthetic fun key ()Ljava/lang/String;
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSingleObject : kotlinx/serialization/BinaryFormat {
+	public fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decodeFromByteArray (Lkotlinx/serialization/DeserializationStrategy;[B)Ljava/lang/Object;
+	public final fun decodeFromSource (Lkotlinx/serialization/DeserializationStrategy;Lkotlinx/io/Source;)Ljava/lang/Object;
+	public final fun decodeFromStream (Lkotlinx/serialization/DeserializationStrategy;Ljava/io/InputStream;)Ljava/lang/Object;
+	public fun encodeToByteArray (Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
+	public final fun encodeToSink (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lkotlinx/io/Sink;)V
+	public final fun encodeToStream (Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Ljava/io/OutputStream;)V
+	public final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
+	public fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
+	public static final fun encodeToByteArray (Lcom/github/avrokotlin/avro4k/AvroSingleObject;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroStringable : java/lang/annotation/Annotation {
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/AvroStringable$Impl : com/github/avrokotlin/avro4k/AvroStringable {
+	public fun <init> ()V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/BooleanValueDecoder {
+	public abstract fun decodeBoolean (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Z
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/ByteValueDecoder {
+	public abstract fun decodeByte (Lcom/github/avrokotlin/avro4k/AvroDecoder;)B
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/CharValueDecoder {
+	public abstract fun decodeChar (Lcom/github/avrokotlin/avro4k/AvroDecoder;)C
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/DoubleValueDecoder {
+	public abstract fun decodeDouble (Lcom/github/avrokotlin/avro4k/AvroDecoder;)D
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/ExperimentalAvro4kApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/FieldNamingStrategy {
+	public static final field Builtins Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins;
+	public abstract fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins {
+}
+
+public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$OriginalElementName : com/github/avrokotlin/avro4k/FieldNamingStrategy {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$OriginalElementName;
+	public fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$PascalCase : com/github/avrokotlin/avro4k/FieldNamingStrategy {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$PascalCase;
+	public fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$SnakeCase : com/github/avrokotlin/avro4k/FieldNamingStrategy {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Builtins$SnakeCase;
+	public fun resolve (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Ljava/lang/String;
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/FloatValueDecoder {
+	public abstract fun decodeFloat (Lcom/github/avrokotlin/avro4k/AvroDecoder;)F
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/IntValueDecoder {
+	public abstract fun decodeInt (Lcom/github/avrokotlin/avro4k/AvroDecoder;)I
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/InternalAvro4kApi : java/lang/annotation/Annotation {
+}
+
+public final class com/github/avrokotlin/avro4k/ListRecord : com/github/avrokotlin/avro4k/Record {
+	public fun <init> (Lorg/apache/avro/Schema;Ljava/util/List;)V
+	public fun <init> (Lorg/apache/avro/Schema;[Ljava/lang/Object;)V
+	public final fun copy (Lorg/apache/avro/Schema;Ljava/util/List;)Lcom/github/avrokotlin/avro4k/ListRecord;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/ListRecord;Lorg/apache/avro/Schema;Ljava/util/List;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/ListRecord;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun get (I)Ljava/lang/Object;
+	public fun get (Ljava/lang/String;)Ljava/lang/Object;
+	public fun getSchema ()Lorg/apache/avro/Schema;
+	public fun hashCode ()I
+	public fun put (ILjava/lang/Object;)V
+	public fun put (Ljava/lang/String;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/LongValueDecoder {
+	public abstract fun decodeLong (Lcom/github/avrokotlin/avro4k/AvroDecoder;)J
+}
+
+public final class com/github/avrokotlin/avro4k/MissingFieldsEncodingException : kotlinx/serialization/SerializationException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/util/List;Lorg/apache/avro/Schema;)V
+	public fun <init> (Ljava/util/List;Lorg/apache/avro/Schema;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/Record : org/apache/avro/generic/GenericRecord, org/apache/avro/specific/SpecificRecord {
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {
+	public abstract fun decodeShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;)S
+}
+
+public final synthetic class com/github/avrokotlin/avro4k/internal/AvroGenerated$Impl : com/github/avrokotlin/avro4k/internal/AvroGenerated {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun originalSchema ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/AvroDuration {
+	public static final field Companion Lcom/github/avrokotlin/avro4k/serializer/AvroDuration$Companion;
+	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-pVg5ArA ()I
+	public final fun component2-pVg5ArA ()I
+	public final fun component3-pVg5ArA ()I
+	public final fun copy-zly0blg (III)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+	public static synthetic fun copy-zly0blg$default (Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;IIIILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDays-pVg5ArA ()I
+	public final fun getMillis-pVg5ArA ()I
+	public final fun getMonths-pVg5ArA ()I
+	public fun hashCode ()I
+	public static final fun parse (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+	public fun toString ()Ljava/lang/String;
+	public static final fun tryParse (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/AvroDuration$Companion {
+	public final fun parse (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public final fun tryParse (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/serializer/AvroDuration;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/AvroDurationParseException : kotlinx/serialization/SerializationException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public abstract class com/github/avrokotlin/avro4k/serializer/AvroSerializer : com/github/avrokotlin/avro4k/serializer/AvroSchemaSupplier, kotlinx/serialization/KSerializer {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public abstract fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun getSupportsNull ()Z
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public abstract fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/AvroSerializerKt {
+	public static final fun createSchema (Lcom/github/avrokotlin/avro4k/AvroFixed;Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lorg/apache/avro/Schema;
+	public static final fun createSchema (Lcom/github/avrokotlin/avro4k/AvroStringable;)Lorg/apache/avro/Schema;
+	public static final fun getDecimal (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroDecimal;
+	public static final fun getFixed (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroFixed;
+	public static final fun getStringable (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;)Lcom/github/avrokotlin/avro4k/AvroStringable;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/BigDecimalSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/BigDecimalSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/math/BigDecimal;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/math/BigDecimal;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/math/BigDecimal;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/math/BigDecimal;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/BigIntegerSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/BigIntegerSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/math/BigInteger;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/math/BigInteger;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/math/BigInteger;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/math/BigInteger;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/ElementLocation {
+	public final fun component1 ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun component2 ()I
+	public final fun copy (Lkotlinx/serialization/descriptors/SerialDescriptor;I)Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;Lkotlinx/serialization/descriptors/SerialDescriptor;IILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/serializer/ElementLocation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun getElementIndex ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/InstantSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/InstantSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/Instant;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/Instant;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/Instant;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/Instant;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/InstantToMicroSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/InstantToMicroSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/Instant;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/Instant;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/Instant;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/Instant;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/JavaDurationSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/JavaDurationSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/Duration;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/Duration;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/Duration;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/Duration;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/JavaPeriodSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/JavaPeriodSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/Period;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/Period;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/Period;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/Period;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/LocalDateSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/LocalDateSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/LocalDate;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/LocalDate;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/LocalDate;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/LocalDate;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/LocalDateTimeSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/LocalDateTimeSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/LocalDateTime;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/LocalDateTime;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/LocalDateTime;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/LocalDateTime;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/LocalTimeSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/LocalTimeSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/time/LocalTime;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/time/LocalTime;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/time/LocalTime;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/time/LocalTime;)V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/serializer/SchemaSupplierContext {
+	public abstract fun getConfiguration ()Lcom/github/avrokotlin/avro4k/AvroConfiguration;
+	public abstract fun getInlinedElements ()Ljava/util/List;
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/URLSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/URLSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/net/URL;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/net/URL;)V
+}
+
+public final class com/github/avrokotlin/avro4k/serializer/UUIDSerializer : com/github/avrokotlin/avro4k/serializer/AvroSerializer {
+	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/serializer/UUIDSerializer;
+	public synthetic fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/lang/Object;
+	public fun deserializeAvro (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Ljava/util/UUID;
+	public synthetic fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserializeGeneric (Lkotlinx/serialization/encoding/Decoder;)Ljava/util/UUID;
+	public fun getSchema (Lcom/github/avrokotlin/avro4k/serializer/SchemaSupplierContext;)Lorg/apache/avro/Schema;
+	public synthetic fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/lang/Object;)V
+	public fun serializeAvro (Lcom/github/avrokotlin/avro4k/AvroEncoder;Ljava/util/UUID;)V
+	public synthetic fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serializeGeneric (Lkotlinx/serialization/encoding/Encoder;Ljava/util/UUID;)V
+}
+

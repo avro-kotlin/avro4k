@@ -3,34 +3,78 @@ name: release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "The release version (e.g., '1.9.0')."
-        required: true
+      forced-version:
+        description: Manually set the version following the format `1.2.3`. If not set, the version will be determined based on conventional commits since the latest tag.
+        required: false
+        default: ''
+        type: string
+      is-draft:
+        description: Create the release as a draft. If set to false, the release will be published immediately without draft, and the artefacts will be published automatically to Maven Central.
+        default: true
+        type: boolean
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - name: Fail if branch is not main
-        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/main-v2'
+        if: github.ref != 'refs/heads/main'
         run: |
-          echo "This workflow should only be triggered on main and main-v2 branch.
+          echo "This workflow should only be triggered on main branch.
           exit 1
-      - name: Checkout the repo
-        uses: actions/checkout@v4
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
 
-      - name: publish release
-        run: ./gradlew publishToSonatype closeAndReleaseStagingRepositories
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        if: github.event.inputs.forced-version == ''
+        with:
+          token: ${{ github.token }}
+      - name: Validate manual version
+        if: github.event.inputs.forced-version != ''
+        run: |
+          if [[ ! "${{ github.event.inputs.forced-version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo Manual version not following the format 1.2.3 without the 'v' prefix.
+            exit 1
+          fi
+
+      - name: Checkout the repo
+        uses: actions/checkout@v5
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build
+        run: ./gradlew build
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-      - name: create release
-        run: gh release create "v${RELEASE_VERSION}" --generate-notes --target "${GITHUB_REF}"
+          ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+
+      - name: Publish library release
+        run: ./gradlew publishToMavenCentral
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_SONATYPE_AUTOMATIC_RELEASE: ${{ github.event.inputs.is-draft == 'false' }}
+
+      - name: Publish plugin release
+        run: ./gradlew publishPlugins
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_SECRET }}
+
+      - name: Create release
+        if: ${{ github.event.inputs.is-draft == 'false' }}
+        run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Create draft release
+        if: ${{ github.event.inputs.is-draft == 'true' }}
+        run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
+        env:
           GH_TOKEN: ${{ github.token }}

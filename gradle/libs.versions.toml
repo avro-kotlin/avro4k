@@ -1,26 +1,23 @@
 [versions]
-kotlin = "2.0.0"
-jvm = "21"
-kotlinxSerialization = "1.7.0"
-kotestVersion = "5.9.1"
-okio = "3.9.0"
+kotlinx-serialization = "1.9.0"
+kotlinx-io = "0.8.0"
+kotest = "5.9.1"
+okio = "3.16.2"
 apache-avro = "1.11.4"
+confluent-schema-registry = "8.0.0"
+kotlinpoet = "2.2.0"
+mockk = "1.14.6"
+junit = "5.13.4"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
+confluent-kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent-schema-registry" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotestVersion" }
-kotest-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotestVersion" }
-kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotestVersion" }
-kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotestVersion" }
-
-[plugins]
-dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
-kotest = { id = "io.kotest", version = "0.4.11" }
-github-versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
-spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
-kover = { id = "org.jetbrains.kotlinx.kover", version = "0.8.1" }
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.14.0" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
+kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }

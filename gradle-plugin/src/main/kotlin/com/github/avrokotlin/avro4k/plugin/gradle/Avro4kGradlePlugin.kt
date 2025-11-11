@@ -8,10 +8,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
@@ -65,9 +69,8 @@ public class Avro4kGradlePlugin : Plugin<Project> {
                 group = "build"
                 description = "Generates Avro Kotlin source files from avro schemas"
 
-                inputFiles.setFrom(extension.sourcesGeneration.inputSchemas.files)
+                inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
-                projectDir.set(project.projectDir)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
@@ -90,17 +93,18 @@ public class Avro4kGradlePlugin : Plugin<Project> {
     }
 }
 
+@CacheableTask
 public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:SkipWhenEmpty
+    @get:IgnoreEmptyDirectories
     public abstract val inputFiles: ConfigurableFileCollection
 
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
-    @get:Internal
-    public abstract val projectDir: DirectoryProperty
-
-//    @get:OutputDirectory
+//    @get:Input
 //    public abstract val logicalTypes: MapProperty<String, String>
 
     @TaskAction
@@ -117,16 +121,14 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             return
         }
 
-        val projectDir = projectDir.asFile.get()
-
         files.associateWith { file ->
-            logger.info("Generating kotlin sources for schema file: ${file.relativeTo(projectDir)}")
+            logger.info("Generating kotlin sources for schema file: $file")
 
             val schemaContent = file.readText()
             kotlinGenerator.generateKotlinClasses(schemaContent, file.nameWithoutExtension)
                 .also { generatedFiles ->
                     logger.lifecycle(
-                        "Schema ${file.relativeTo(projectDir)} generated ${generatedFiles.size} class(es):\n  " + generatedFiles.joinToString("\n  ") { it.fullName() }
+                        "Schema $file generated ${generatedFiles.size} class(es):\n  " + generatedFiles.joinToString("\n  ") { it.fullName() }
                     )
                 }
         }
@@ -140,7 +142,12 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             }
     }
 
-    private fun getInputAvroSchemaFiles(): List<File> = inputFiles.flatMap { it.walk() }.filter { it.isFile && it.extension == "avsc" }
+    private fun getInputAvroSchemaFiles(): List<File> =
+        inputFiles
+            .asFileTree
+            .matching { include("**/*.avsc") }
+            .files
+            .sorted()
 
     private fun FileSpec.fullName() = if (packageName.isEmpty()) name else "$packageName.$name"
 
@@ -156,8 +163,6 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         // Keep only duplicates. Allow generating identical classes from different schema files
         names.entries.removeIf { it.value.size < 2 || it.value.values.toSet().size < 2 }
 
-        val projectDir = projectDir.asFile.get()
-
         if (names.isNotEmpty()) {
             val message =
                 "Duplicate generated class names found. " +
@@ -165,7 +170,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
                     "Please check your input schema files:\n${
                         names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
                             "$generatedFullName has been generated differently from the following schemas: ${
-                                originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(projectDir).path }
+                                originalSchemaLocation.keys.joinToString(", ") { it.path }
                             }"
                         }
                     }."

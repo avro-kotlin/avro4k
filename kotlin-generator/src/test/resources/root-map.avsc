@@ -1,5 +1,9 @@
 {
     "type": "map",
-    "values": ["double", "null", "int"],
+    "values": [
+        "double",
+        "null",
+        "int"
+    ],
     "java-key-class": "java.lang.Integer"
 }

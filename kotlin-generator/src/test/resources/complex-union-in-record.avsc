@@ -23,7 +23,11 @@
                 {
                     "type": "enum",
                     "name": "Status",
-                    "symbols": ["ACTIVE", "INACTIVE", "PENDING"]
+                    "symbols": [
+                        "ACTIVE",
+                        "INACTIVE",
+                        "PENDING"
+                    ]
                 },
                 {
                     "type": "array",

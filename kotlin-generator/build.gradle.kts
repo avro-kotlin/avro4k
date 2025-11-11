@@ -50,10 +50,6 @@ spotless {
     }
     json {
         target("src/test/resources/**.avsc")
-        prettier().config(
-            mapOf(
-                "tabWidth" to 4
-            )
-        )
+        gson()
     }
 }

@@ -206,8 +206,8 @@ data class Project(val name: String, val language: String)
 
 fun main() {
     val schema = Avro.schema<Project>()
-    val schemasByFingerprint = mapOf(SchemaNormalization.parsingFingerprint64(schema), schema)
-    val singleObjectInstance = AvroSingleObject { schemasByFingerprint[it] }
+    val schemasByFingerprint = mapOf(SchemaNormalization.parsingFingerprint64(schema) to schema)
+    val singleObjectInstance = AvroSingleObject(schemasByFingerprint::get)
 
     // Serializing objects
     val data = Project("kotlinx.serialization", "Kotlin")
@@ -268,7 +268,7 @@ fun main() {
 
 </details>
 
-> For more details, check in the avro spec the [single object encoding](https://avro.apache.org/docs/1.11.4/specification/#single-object-encoding).
+> For more details, see the Avro spec on [object container files](https://avro.apache.org/docs/1.11.4/specification/#object-container-files).
 
 # Important notes
 
@@ -773,7 +773,8 @@ type without the missing field value.
 
 By default ([check this section](#customizing-the-configuration) to opt out from this default behavior):
 - nullable fields are optional and `default: null` is automatically added to the field definition.
-- arrays and maps fields are optional and `default: []` is automatically added to the field definition.
+- array fields are optional and `default: []` is automatically added to the field definition.
+- map fields are optional and `default: {}` is automatically added to the field definition.
 
 ### @AvroDefault
 

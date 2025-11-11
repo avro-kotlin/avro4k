@@ -12,3 +12,8 @@ tasks.register("actionsBeforeCommit") {
         }
     }
 }
+
+repositories {
+    // Need maven central here and not into a buildSrc module to allow IntelliJ downloading sources
+    mavenCentral()
+}

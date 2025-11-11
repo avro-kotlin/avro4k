@@ -44,10 +44,6 @@ dependencies {
     commonExpectedGeneratedSourcesImplementation(project(":core"))
 }
 
-repositories {
-    mavenCentral()
-}
-
 spotless {
     kotlin {
         targetExclude("src/test/expected-sources/**")

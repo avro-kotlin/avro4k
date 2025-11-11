@@ -23,12 +23,20 @@
                     },
                     {
                         "name": "field2",
-                        "type": ["null", "int"],
+                        "type": [
+                            "null",
+                            "int"
+                        ],
                         "default": null,
-                        "aliases": ["field3", "otherField"]
+                        "aliases": [
+                            "field3",
+                            "otherField"
+                        ]
                     }
                 ],
-                "aliases": ["alias2"]
+                "aliases": [
+                    "alias2"
+                ]
             },
             "doc": "field doc"
         },
@@ -64,8 +72,14 @@
                 "type": "array",
                 "items": "int"
             },
-            "default": [17, 42]
+            "default": [
+                17,
+                42
+            ]
         }
     ],
-    "aliases": ["alias1", "toto"]
+    "aliases": [
+        "alias1",
+        "toto"
+    ]
 }

@@ -207,7 +207,6 @@ data class Project(val name: String, val language: String)
 fun main() {
     val schema = Avro.schema<Project>()
     val schemasByFingerprint = mapOf(SchemaNormalization.parsingFingerprint64(schema) to schema)
-    @OptIn(ExperimentalSerializationApi::class)
     val singleObjectInstance = AvroSingleObject(schemasByFingerprint::get)
 
     // Serializing objects

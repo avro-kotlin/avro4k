@@ -494,10 +494,8 @@ public class KotlinGenerator(
             is TypeSafeSchema.PrimitiveSchema.BytesSchema,
             -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault as ByteArray).joinToString(", "))
 
-            is TypeSafeSchema.NamedSchema.EnumSchema,
-            is TypeSafeSchema.PrimitiveSchema.StringSchema,
-            -> CodeBlock.of("%S", fieldDefault)
-
+            is TypeSafeSchema.NamedSchema.EnumSchema -> CodeBlock.of("%T.%L", schema.asClassName(), fieldDefault)
+            is TypeSafeSchema.PrimitiveSchema.StringSchema -> CodeBlock.of("%S", fieldDefault)
             is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> CodeBlock.of("%L", fieldDefault as Boolean)
             is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> CodeBlock.of("%L", fieldDefault as Double)
             is TypeSafeSchema.PrimitiveSchema.FloatSchema -> CodeBlock.of("%L", "${fieldDefault}f")

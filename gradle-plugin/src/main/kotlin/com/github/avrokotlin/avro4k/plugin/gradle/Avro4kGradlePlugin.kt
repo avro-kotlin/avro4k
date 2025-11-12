@@ -8,9 +8,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
@@ -64,7 +69,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
                 group = "build"
                 description = "Generates Avro Kotlin source files from avro schemas"
 
-                inputFiles.setFrom(extension.sourcesGeneration.inputSchemas.files)
+                inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
@@ -88,14 +93,18 @@ public class Avro4kGradlePlugin : Plugin<Project> {
     }
 }
 
+@CacheableTask
 public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:SkipWhenEmpty
+    @get:IgnoreEmptyDirectories
     public abstract val inputFiles: ConfigurableFileCollection
 
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
-//    @get:OutputDirectory
+//    @get:Input
 //    public abstract val logicalTypes: MapProperty<String, String>
 
     @TaskAction
@@ -133,7 +142,12 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             }
     }
 
-    private fun getInputAvroSchemaFiles(): List<File> = inputFiles.flatMap { it.walk() }.filter { it.isFile && it.extension == "avsc" }
+    private fun getInputAvroSchemaFiles(): List<File> =
+        inputFiles
+            .asFileTree
+            .matching { include("**/*.avsc") }
+            .files
+            .sortedBy { it.relativeTo(project.projectDir).invariantSeparatorsPath }
 
     private fun FileSpec.fullName() = if (packageName.isEmpty()) name else "$packageName.$name"
 

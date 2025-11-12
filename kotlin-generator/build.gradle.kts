@@ -44,20 +44,12 @@ dependencies {
     commonExpectedGeneratedSourcesImplementation(project(":core"))
 }
 
-repositories {
-    mavenCentral()
-}
-
 spotless {
     kotlin {
         targetExclude("src/test/expected-sources/**")
     }
     json {
         target("src/test/resources/**.avsc")
-        prettier().config(
-            mapOf(
-                "tabWidth" to 4
-            )
-        )
+        gson()
     }
 }

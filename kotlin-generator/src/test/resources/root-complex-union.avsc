@@ -16,7 +16,11 @@
     {
         "type": "enum",
         "name": "AnEnum",
-        "symbols": ["A", "B", "C"]
+        "symbols": [
+            "A",
+            "B",
+            "C"
+        ]
     },
     {
         "type": "fixed",
@@ -29,6 +33,9 @@
     },
     {
         "type": "map",
-        "values": ["null", "double"]
+        "values": [
+            "null",
+            "double"
+        ]
     }
 ]

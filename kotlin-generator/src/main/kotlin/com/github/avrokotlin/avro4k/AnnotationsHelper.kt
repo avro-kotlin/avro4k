@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k
 
+import com.fasterxml.jackson.databind.node.BinaryNode
 import com.github.avrokotlin.avro4k.internal.AvroGenerated
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.CodeBlock
@@ -78,6 +79,8 @@ private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue()
         ?.let {
             if (it.isTextual) {
                 it.asText()
+            } else if (it is BinaryNode) {
+                it.binaryValue().toString(Charsets.ISO_8859_1)
             } else {
                 it.toString()
             }

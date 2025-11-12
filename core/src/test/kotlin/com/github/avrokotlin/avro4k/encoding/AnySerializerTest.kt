@@ -385,8 +385,15 @@ class AnySerializerTest : StringSpec() {
 
             Avro.decodeFromByteArray(schema, AnySerializer(), bytes) shouldBe value
         }
-        "deserializing a schema with the logicalType 'decimal' should return an BigDecimal" {
+        "deserializing a schema with the logicalType 'decimal' should return a BigDecimal" {
             val schema = Schema.create(Schema.Type.BYTES).copy(logicalType = LogicalTypes.decimal(4, 2))
+            val value = BigDecimal("12.12")
+            val bytes = Avro.encodeToByteArray(schema, value)
+
+            Avro.decodeFromByteArray(schema, AnySerializer(), bytes) shouldBe value
+        }
+        "deserializing a schema with the logicalType 'big-decimal' should return a BigDecimal" {
+            val schema = Schema.create(Schema.Type.BYTES).copy(logicalType = LogicalTypes.bigDecimal())
             val value = BigDecimal("12.12")
             val bytes = Avro.encodeToByteArray(schema, value)
 

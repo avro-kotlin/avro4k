@@ -3,6 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
+import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
@@ -22,6 +23,10 @@ public data class NestedLogicalTypeDecimalBytes(
      * Default value: null
      */
     @AvroDoc("A nullable decimal field")
+    @AvroDecimal(
+        scale = 4,
+        precision = 10,
+    )
     @AvroDefault("null")
     @Serializable(with = BigDecimalSerializer::class)
     public val amount: BigDecimal?,

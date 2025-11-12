@@ -42,17 +42,17 @@ internal fun buildAvroAliasAnnotation(carrier: WithAliases): AnnotationSpec? {
 }
 
 internal fun buildAvroDecimalAnnotation(schema: TypeSafeSchema): AnnotationSpec? {
-    if (schema !is TypeSafeSchema.NamedSchema.FixedSchema || schema.logicalTypeName != "decimal") {
-        return null
-    }
-    val scale: Int? by schema.props
-    val precision: Int? by schema.props
-    precision ?: error("Missing 'precision' prop for 'decimal' logical type of schema $schema")
+    if ((schema is TypeSafeSchema.NamedSchema.FixedSchema || schema is TypeSafeSchema.PrimitiveSchema.BytesSchema) && schema.logicalTypeName == "decimal") {
+        val scale: Int? by schema.props
+        val precision: Int? by schema.props
+        precision ?: error("Missing 'precision' prop for 'decimal' logical type of schema $schema")
 
-    return AnnotationSpec.builder(AvroDecimal::class.asClassName())
-        .addMember(CodeBlock.of("${AvroDecimal::scale.name} = %L", scale ?: 0))
-        .addMember(CodeBlock.of("${AvroDecimal::precision.name} = %L", precision))
-        .build()
+        return AnnotationSpec.builder(AvroDecimal::class.asClassName())
+            .addMember(CodeBlock.of("${AvroDecimal::scale.name} = %L", scale ?: 0))
+            .addMember(CodeBlock.of("${AvroDecimal::precision.name} = %L", precision))
+            .build()
+    }
+    return null
 }
 
 internal fun buildAvroGeneratedAnnotation(schemaStr: String): AnnotationSpec {

@@ -1,0 +1,7 @@
+{
+    "type": "fixed",
+    "name": "TheUuid",
+    "namespace": "ns",
+    "size": 16,
+    "logicalType": "uuid"
+}

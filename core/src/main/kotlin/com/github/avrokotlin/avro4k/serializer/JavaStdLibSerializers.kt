@@ -4,14 +4,17 @@ import com.github.avrokotlin.avro4k.AnyValueDecoder
 import com.github.avrokotlin.avro4k.AvroDecimal
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
+import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.decodeResolvingAny
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import com.github.avrokotlin.avro4k.internal.UnexpectedDecodeSchemaError
 import com.github.avrokotlin.avro4k.internal.copy
+import com.github.avrokotlin.avro4k.trySelectFixedSchemaForSize
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -29,13 +32,14 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.UUID
 
-internal val JavaStdLibSerializersModule: SerializersModule get() =
-    SerializersModule {
-        contextual(URLSerializer)
-        contextual(UUIDSerializer)
-        contextual(BigIntegerSerializer)
-        contextual(BigDecimalSerializer)
-    }
+internal val JavaStdLibSerializersModule: SerializersModule
+    get() =
+        SerializersModule {
+            contextual(URLSerializer)
+            contextual(UUIDSerializer)
+            contextual(BigIntegerSerializer)
+            contextual(BigDecimalSerializer)
+        }
 
 public object URLSerializer : KSerializer<URL> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(URL::class.qualifiedName!!, PrimitiveKind.STRING)
@@ -59,25 +63,87 @@ public object UUIDSerializer : AvroSerializer<UUID>(UUID::class.qualifiedName!!)
     internal const val LOGICAL_TYPE_NAME = "uuid"
 
     override fun getSchema(context: SchemaSupplierContext): Schema {
-        return Schema.create(Schema.Type.STRING).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME))
+        return context.inlinedElements.firstNotNullOfOrNull { element ->
+            element.stringable?.createSchema()
+                ?: element.fixed?.createSchema(element)
+                    ?.copy(logicalType = LogicalType(LOGICAL_TYPE_NAME))
+                    ?.also {
+                        if (it.fixedSize != 16) {
+                            throw SerializationException(
+                                "UUID's @${AvroFixed::class.simpleName} must have bytes size of 16. Got ${it.fixedSize}."
+                            )
+                        }
+                    }
+        } ?: Schema.create(Schema.Type.STRING).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME))
     }
 
     override fun serializeAvro(
         encoder: AvroEncoder,
         value: UUID,
     ) {
-        serializeGeneric(encoder, value)
+        with(encoder) {
+            if (currentWriterSchema.isUnion) {
+                trySelectLogicalTypeFromUnion(LOGICAL_TYPE_NAME, Schema.Type.FIXED) ||
+                    trySelectTypeNameFromUnion(Schema.Type.STRING) ||
+                    trySelectFixedSchemaForSize(16) ||
+                    throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.FIXED)
+            }
+            when (currentWriterSchema.type) {
+                Schema.Type.STRING -> encodeString(value.toString())
+                Schema.Type.FIXED -> encodeFixed(value.toByteArray())
+                else -> throw unsupportedWriterTypeError(Schema.Type.STRING, Schema.Type.FIXED)
+            }
+        }
     }
 
-    override fun deserializeAvro(decoder: AvroDecoder): UUID {
-        return deserializeGeneric(decoder)
-    }
+    private fun UUID.toByteArray(): ByteArray =
+        ByteBuffer.allocate(16)
+            .putLong(mostSignificantBits)
+            .putLong(leastSignificantBits)
+            .array()
 
     override fun serializeGeneric(
         encoder: Encoder,
         value: UUID,
     ) {
         encoder.encodeString(value.toString())
+    }
+
+    override fun deserializeAvro(decoder: AvroDecoder): UUID {
+        with(decoder) {
+            return decodeResolvingAny({
+                UnexpectedDecodeSchemaError(
+                    "UUID",
+                    Schema.Type.STRING,
+                    Schema.Type.FIXED
+                )
+            }) { schema ->
+                when (schema.type) {
+                    Schema.Type.STRING -> {
+                        AnyValueDecoder { UUID.fromString(decoder.decodeString()) }
+                    }
+
+                    Schema.Type.FIXED -> {
+                        if (schema.fixedSize == 16) {
+                            AnyValueDecoder { parseUuid(decoder.decodeBytes()) }
+                        } else {
+                            null
+                        }
+                    }
+
+                    else -> null
+                }
+            }
+        }
+    }
+
+    private fun parseUuid(bytes: ByteArray): UUID {
+        return ByteBuffer.wrap(bytes).let {
+            UUID(
+                it.getLong(),
+                it.getLong()
+            )
+        }
     }
 
     override fun deserializeGeneric(decoder: Decoder): UUID {

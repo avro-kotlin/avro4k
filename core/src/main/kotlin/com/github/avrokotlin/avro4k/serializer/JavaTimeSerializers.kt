@@ -434,7 +434,7 @@ private fun Instant.toEpochMicros() = ChronoUnit.MICROS.between(Instant.EPOCH, t
 /**
  * Serializes an [Duration] as a fixed logical type of `duration`.
  *
- * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
+ * [avro spec](https://avro.apache.org/docs/1.12.1/specification/#duration)
  */
 public object JavaDurationSerializer : AvroSerializer<Duration>(Duration::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {
@@ -488,7 +488,7 @@ public object JavaDurationSerializer : AvroSerializer<Duration>(Duration::class.
 /**
  * Serializes an [Period] as a fixed logical type of `duration`.
  *
- * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
+ * [avro spec](https://avro.apache.org/docs/1.12.1/specification/#duration)
  */
 public object JavaPeriodSerializer : AvroSerializer<Period>(Period::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {

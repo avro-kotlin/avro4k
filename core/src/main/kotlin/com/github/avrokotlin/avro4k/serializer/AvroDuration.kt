@@ -30,7 +30,7 @@ import java.nio.ByteOrder
  *
  * This is the exact representation of the Avro `duration` logical type.
  *
- * [avro spec](https://avro.apache.org/docs/1.11.1/specification/#duration)
+ * [avro spec](https://avro.apache.org/docs/1.12.1/specification/#duration)
  */
 @SerialName("time.Duration")
 @Serializable(with = AvroDurationSerializer::class)

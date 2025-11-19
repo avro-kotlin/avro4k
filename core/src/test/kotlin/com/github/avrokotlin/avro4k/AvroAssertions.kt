@@ -3,7 +3,7 @@ package com.github.avrokotlin.avro4k
 import com.github.avrokotlin.avro4k.internal.nullable
 import io.kotest.assertions.Actual
 import io.kotest.assertions.Expected
-import io.kotest.assertions.failure
+import io.kotest.assertions.createAssertionError
 import io.kotest.assertions.print.Printed
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.scopes.StringSpecRootScope
@@ -57,12 +57,10 @@ internal class AvroEncodingAssertions<T>(
     ): AvroEncodingAssertions<T> {
         val actualEncodedBytes = avro4kEncode(valueToEncode, writerSchema)
         val apacheEncodedBytes = avroApacheEncode(expectedEncodedGenericValue, writerSchema)
-        withClue("Encoded bytes are not the same as apache avro library.") {
-            if (!actualEncodedBytes.contentEquals(apacheEncodedBytes)) {
-                val expectedAvroJson = bytesToAvroJson(apacheEncodedBytes, writerSchema)
-                val actualAvroJson = bytesToAvroJson(actualEncodedBytes, writerSchema)
-                throw failure(Expected(Printed(expectedAvroJson)), Actual(Printed(actualAvroJson)))
-            }
+        if (!actualEncodedBytes.contentEquals(apacheEncodedBytes)) {
+            val expectedAvroJson = bytesToAvroJson(apacheEncodedBytes, writerSchema)
+            val actualAvroJson = bytesToAvroJson(actualEncodedBytes, writerSchema)
+            throw createAssertionError("Encoded bytes are not the same as apache avro library.", null, Expected(Printed(expectedAvroJson)), Actual(Printed(actualAvroJson)))
         }
 
         val actualGenericData = normalizeGenericData(avro4kGenericEncode(valueToEncode, writerSchema))

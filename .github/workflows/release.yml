@@ -57,7 +57,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_SONATYPE_AUTOMATIC_RELEASE: ${{ github.event.inputs.is-draft == 'false' }}
+          ORG_GRADLE_PROJECT_mavenCentralAutomaticPublishing: ${{ github.event.inputs.is-draft == 'false' }}
 
       - name: Publish plugin release
         run: ./gradlew publishPlugins

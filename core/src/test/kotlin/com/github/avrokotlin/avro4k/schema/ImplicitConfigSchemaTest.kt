@@ -12,7 +12,6 @@ import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder

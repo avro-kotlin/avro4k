@@ -68,7 +68,7 @@ class KotlinGeneratorTest {
         outputBaseDir.deleteRecursively()
         val generator =
             KotlinGenerator(
-                logicalTypes =
+                additionalLogicalTypes =
                     listOf(
                         KotlinGenerator.LogicalTypeDescriptor(
                             logicalTypeName = "contextualLogicalType",

@@ -86,10 +86,10 @@ private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue()
             }
         } ?: "null"
 
-internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, configuration: AvroConfiguration): AnnotationSpec? {
-    if (configuration.implicitNulls && schema.isNullable) {
+internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): AnnotationSpec? {
+    if (implicitNulls && schema.isNullable) {
         return buildAvroDefaultAnnotation("null")
-    } else if (configuration.implicitEmptyCollections) {
+    } else if (implicitEmptyCollections) {
         if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
             return buildAvroDefaultAnnotation("[]")
         } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
@@ -99,10 +99,10 @@ internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, configur
     return null
 }
 
-internal fun buildImplicitAvroDefaultCodeBlock(schema: TypeSafeSchema, configuration: AvroConfiguration): CodeBlock? {
-    if (configuration.implicitNulls && schema.isNullable) {
+internal fun buildImplicitAvroDefaultCodeBlock(schema: TypeSafeSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): CodeBlock? {
+    if (implicitNulls && schema.isNullable) {
         return CodeBlock.of("null")
-    } else if (configuration.implicitEmptyCollections) {
+    } else if (implicitEmptyCollections) {
         if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
             return getListOfCodeBlock(emptyList())
         } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {

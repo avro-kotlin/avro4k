@@ -6,5 +6,6 @@ plugins {
 description = "Contains only the annotations of avro4k to allow other components to depend on them without pulling in the whole avro4k library."
 
 dependencies {
-    implementation(libs.kotlinx.serialization.core)
+    // Only used for @SerialInfo on annotations
+    compileOnly(libs.kotlinx.serialization.core)
 }

@@ -19,7 +19,6 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
-
 public interface Avro4kPluginSourcesGenerationExtension {
     /**
      * Indicates the avro schema files or directories containing schema files.
@@ -257,14 +256,14 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         if (names.isNotEmpty()) {
             val message =
                 "Duplicate generated class names found with different schema files. " +
-                        "This usually indicates that the same full-name is used across multiple avro schema files but with different content. " +
-                        "Please check your input schema files:\n${
-                            names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
-                                "$generatedFullName has been generated differently from the following schemas: ${
-                                    originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(project.projectDir).path }
-                                }"
-                            }
-                        }."
+                    "This usually indicates that the same full-name is used across multiple avro schema files but with different content. " +
+                    "Please check your input schema files:\n${
+                        names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
+                            "$generatedFullName has been generated differently from the following schemas: ${
+                                originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(project.projectDir).path }
+                            }"
+                        }
+                    }."
             logger.error(message)
             error(message)
         }

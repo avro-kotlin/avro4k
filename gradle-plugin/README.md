@@ -20,8 +20,10 @@ avro4k {
     sourcesGeneration {
         inputSchemas.from(file("your-specific-schema.avsc"))
         outputDir = file("src/main/generated")
-        logicalTypes += logicalType("uuid").asType("kotlin.uuid.Uuid").contextual()
-        logicalTypes += logicalType("custom").asType("your.own.Type").withSerializer("your.own.CustomKSerializer")
+        logicalTypes {
+            register("uuid").asType("kotlin.uuid.Uuid").contextual()
+            register("custom").asType("your.own.Type").withSerializer("your.own.CustomKSerializer")
+        }
     }
 }
 
@@ -84,9 +86,9 @@ Example: to override the native `uuid` to use the brand new kotlin's uuid `kotli
 ```kotlin
 avro4k {
     sourcesGeneration {
-        logicalTypes += logicalType("uuid").asType("kotlin.uuid.Uuid").withSerializer("your.own.KotlinUuidSerializer")
-        // you can also use the concrete types if present in the build classpath
-        logicalTypes += logicalType("uuid").asType<Uuid>().withSerializer<KotlinUuidSerializer>()
+        logicalTypes {
+            register("uuid").asType("kotlin.uuid.Uuid").withSerializer("your.own.KotlinUuidSerializer")
+        }
     }
 }
 ```
@@ -96,13 +98,13 @@ it allows you to have different serializers depending on the context (Json, Avro
 ```kotlin
 avro4k {
     sourcesGeneration {
-        logicalTypes += logicalType("uuid").asType("kotlin.uuid.Uuid").contextual()
-        // you can also use the concrete type if present in the build classpath
-        logicalTypes += logicalType("uuid").asType<Uuid>().contextual()
+        logicalTypes {
+            register("uuid").asType("kotlin.uuid.Uuid").contextual()
+        }
     }
 }
 ```
-Then you will have to give the serializer at runtime:
+Then you will have to give the serializer at runtime for contextual types:
 ```kotlin
 val yourConfiguredInstance = Avro {
     serializersModule = SerializersModule {

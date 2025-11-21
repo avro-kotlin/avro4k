@@ -20,8 +20,6 @@ public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension {
 	public abstract fun getRegisteredMappings ()Lorg/gradle/api/provider/SetProperty;
 	public fun register (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder1;
-	public fun useKotlinTime ([Ljava/lang/String;)V
-	public fun useKotlinUuid ()V
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {

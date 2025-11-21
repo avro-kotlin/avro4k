@@ -20,9 +20,26 @@ class Avro4kGradlePluginIntegrationTest {
     private val generatedSourceFile by lazy { projectDir.resolve("build/generated/sources/avro/main/Schema.kt") }
 
     @Test
-    fun `plugin generates kotlin classes and compiles`() {
+    fun `sources generation can be configured with custom logical types`() {
         settingsFile.writeText("")
-        schemaFile.writeText("""{"type":"string", "logicalType":"uuid"}""")
+        schemaFile.writeText(
+            """
+            {
+                "type" : "record",
+                "name" : "Schema",
+                "fields" : [
+                    {
+                        "name" : "uuid",
+                        "type" : {"type":"string", "logicalType":"uuid"}
+                    },
+                    {
+                        "name" : "customType",
+                        "type" : {"type":"string", "logicalType":"custom-logical-type"}
+                    }
+                ]
+            }
+            """.trimIndent()
+        )
         buildFile.writeText(
             """
             plugins {
@@ -32,12 +49,7 @@ class Avro4kGradlePluginIntegrationTest {
                 sourcesGeneration {
                     inputSchemas.from(file("schema.avsc"))
                     logicalTypes {
-                        @OptIn(kotlin.time.ExperimentalTime::class)
-                        useKotlinTime()
-                        @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
-                        useKotlinUuid()
-            
-                        register("cutom-type").asType("your.OwnType").withSerializer("your.own.CustomKSerializer")
+                        register("uuid").asType("kotlin.uuid.Uuid").withSerializer("your.own.CustomUuidKSerializer")
                         register("custom-logical-type").asType("your.OwnType").contextual()
                     }
                 }
@@ -57,8 +69,13 @@ class Avro4kGradlePluginIntegrationTest {
 
         result.shouldHaveTaskSuccess(":generateAvroKotlinSources")
 
-        // Check the generated file exists
-        generatedSourceFile.readText().also { println("Genrated file:\n$it") } shouldContain "kotlin.uuid.Uuid"
+        // Check the generated file contains our custom type. For deeper tests, all is done in kotlin-generator module
+        val generatedContent = generatedSourceFile.readText()
+        println("Generated file:\n$generatedContent")
+        generatedContent shouldContain "kotlin.uuid.Uuid"
+        generatedContent shouldContain "your.OwnType"
+        generatedContent shouldContain "kotlinx.serialization.Contextual"
+        generatedContent shouldContain "your.own.CustomUuidKSerializer"
     }
 
     fun BuildResult.shouldHaveTaskSuccess(taskPath: String) {

@@ -17,15 +17,6 @@ public abstract class com/github/avrokotlin/avro4k/Avro : kotlinx/serialization/
 public final class com/github/avrokotlin/avro4k/Avro$Default : com/github/avrokotlin/avro4k/Avro {
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroAlias : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroAlias$Impl : com/github/avrokotlin/avro4k/AvroAlias {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
 public final class com/github/avrokotlin/avro4k/AvroBuilder {
 	public final fun getFieldNamingStrategy ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
 	public final fun getImplicitEmptyCollections ()Z
@@ -61,17 +52,6 @@ public final class com/github/avrokotlin/avro4k/AvroConfiguration {
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDecimal : java/lang/annotation/Annotation {
-	public abstract fun precision ()I
-	public abstract fun scale ()I
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroDecimal$Impl : com/github/avrokotlin/avro4k/AvroDecimal {
-	public fun <init> (II)V
-	public final synthetic fun precision ()I
-	public final synthetic fun scale ()I
-}
-
 public abstract interface class com/github/avrokotlin/avro4k/AvroDecoder : kotlinx/serialization/encoding/Decoder {
 	public abstract fun decodeBytes ()[B
 	public abstract fun decodeFixed ()Lorg/apache/avro/generic/GenericFixed;
@@ -97,24 +77,6 @@ public final class com/github/avrokotlin/avro4k/AvroDecoderKt {
 	public static final fun findValueDecoder (Lcom/github/avrokotlin/avro4k/AvroDecoder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDefault : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroDefault$Impl : com/github/avrokotlin/avro4k/AvroDefault {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDoc : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroDoc$Impl : com/github/avrokotlin/avro4k/AvroDoc {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
 public abstract interface class com/github/avrokotlin/avro4k/AvroEncoder : kotlinx/serialization/encoding/Encoder {
 	public abstract fun encodeBytes ([B)V
 	public abstract fun encodeFixed ([B)V
@@ -127,22 +89,6 @@ public final class com/github/avrokotlin/avro4k/AvroEncoder$DefaultImpls {
 	public static fun encodeNotNullMark (Lcom/github/avrokotlin/avro4k/AvroEncoder;)V
 	public static fun encodeNullableSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
 	public static fun encodeSerializableValue (Lcom/github/avrokotlin/avro4k/AvroEncoder;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)V
-}
-
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroEnumDefault : java/lang/annotation/Annotation {
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroEnumDefault$Impl : com/github/avrokotlin/avro4k/AvroEnumDefault {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroFixed : java/lang/annotation/Annotation {
-	public abstract fun size ()I
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroFixed$Impl : com/github/avrokotlin/avro4k/AvroFixed {
-	public fun <init> (I)V
-	public final synthetic fun size ()I
 }
 
 public final class com/github/avrokotlin/avro4k/AvroGenericDataExtensionsKt {
@@ -213,21 +159,6 @@ public final class com/github/avrokotlin/avro4k/AvroOkioExtensionsKt {
 	public static final fun encodeToSink (Lcom/github/avrokotlin/avro4k/Avro;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;Lokio/BufferedSink;)V
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp : java/lang/annotation/Annotation {
-	public abstract fun key ()Ljava/lang/String;
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp$Container : java/lang/annotation/Annotation {
-	public abstract fun value ()[Lcom/github/avrokotlin/avro4k/AvroProp;
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/github/avrokotlin/avro4k/AvroProp {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final synthetic fun key ()Ljava/lang/String;
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
 public final class com/github/avrokotlin/avro4k/AvroSingleObject : kotlinx/serialization/BinaryFormat {
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -245,13 +176,6 @@ public final class com/github/avrokotlin/avro4k/AvroSingleObjectKt {
 	public static final fun encodeToByteArray (Lcom/github/avrokotlin/avro4k/AvroSingleObject;Lorg/apache/avro/Schema;Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)[B
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/AvroStringable : java/lang/annotation/Annotation {
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/AvroStringable$Impl : com/github/avrokotlin/avro4k/AvroStringable {
-	public fun <init> ()V
-}
-
 public abstract interface class com/github/avrokotlin/avro4k/BooleanValueDecoder {
 	public abstract fun decodeBoolean (Lcom/github/avrokotlin/avro4k/AvroDecoder;)Z
 }
@@ -266,9 +190,6 @@ public abstract interface class com/github/avrokotlin/avro4k/CharValueDecoder {
 
 public abstract interface class com/github/avrokotlin/avro4k/DoubleValueDecoder {
 	public abstract fun decodeDouble (Lcom/github/avrokotlin/avro4k/AvroDecoder;)D
-}
-
-public abstract interface annotation class com/github/avrokotlin/avro4k/ExperimentalAvro4kApi : java/lang/annotation/Annotation {
 }
 
 public abstract interface class com/github/avrokotlin/avro4k/FieldNamingStrategy {
@@ -302,9 +223,6 @@ public abstract interface class com/github/avrokotlin/avro4k/IntValueDecoder {
 	public abstract fun decodeInt (Lcom/github/avrokotlin/avro4k/AvroDecoder;)I
 }
 
-public abstract interface annotation class com/github/avrokotlin/avro4k/InternalAvro4kApi : java/lang/annotation/Annotation {
-}
-
 public final class com/github/avrokotlin/avro4k/ListRecord : com/github/avrokotlin/avro4k/Record {
 	public fun <init> (Lorg/apache/avro/Schema;Ljava/util/List;)V
 	public fun <init> (Lorg/apache/avro/Schema;[Ljava/lang/Object;)V
@@ -335,11 +253,6 @@ public abstract interface class com/github/avrokotlin/avro4k/Record : org/apache
 
 public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {
 	public abstract fun decodeShort (Lcom/github/avrokotlin/avro4k/AvroDecoder;)S
-}
-
-public final synthetic class com/github/avrokotlin/avro4k/internal/AvroGenerated$Impl : com/github/avrokotlin/avro4k/internal/AvroGenerated {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun originalSchema ()Ljava/lang/String;
 }
 
 public final class com/github/avrokotlin/avro4k/serializer/AvroDuration {

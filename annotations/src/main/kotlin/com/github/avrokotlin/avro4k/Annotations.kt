@@ -2,8 +2,6 @@
 
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.serializer.AvroSerializer
-import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import org.intellij.lang.annotations.Language

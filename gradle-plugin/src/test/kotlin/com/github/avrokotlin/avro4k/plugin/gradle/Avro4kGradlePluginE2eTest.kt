@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.File
 
-class Avro4kGradlePluginTest {
+class Avro4kGradlePluginE2eTest {
     @Test
     fun `plugin generates kotlin classes and compiles`() {
         val projectDir = File("../example/kotlin-plugin").canonicalFile

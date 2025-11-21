@@ -16,16 +16,65 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 
+private val defaultLogicalTypes =
+    listOf(
+        KotlinGenerator.LogicalTypeDescriptor(
+            "duration",
+            "com.github.avrokotlin.avro4k.serializer.AvroDuration",
+            "com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "uuid",
+            "java.util.UUID",
+            "com.github.avrokotlin.avro4k.serializer.UUIDSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "decimal",
+            "java.math.BigDecimal",
+            "com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "big-decimal",
+            "java.math.BigDecimal",
+            "com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "date",
+            "java.time.LocalDate",
+            "com.github.avrokotlin.avro4k.serializer.LocalDateSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "timestamp-millis",
+            "java.time.Instant",
+            "com.github.avrokotlin.avro4k.serializer.InstantSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "timestamp-micros",
+            "java.time.Instant",
+            "com.github.avrokotlin.avro4k.serializer.InstantSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "time-millis",
+            "java.time.LocalTime",
+            "com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer"
+        ),
+        KotlinGenerator.LogicalTypeDescriptor(
+            "time-micros",
+            "java.time.LocalTime",
+            "com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer"
+        )
+    )
+
 /**
  * Generates Kotlin classes from Avro schemas, fully compatible with avro4k.
  *
- * @param avro The Avro configuration to use mainly for logical types mapping.
  * @param unionNameFormatter A function to format the name of the generated sealed interface for union types. The default implementation appends "Union" to the provided base name.
  * @param logicalTypes Provides a way to specify additional logical types that should be materialized with specific Kotlin classes and serializers.
  */
 @InternalAvro4kApi
 public class KotlinGenerator(
-    private val avro: Avro = Avro,
+    private val implicitNulls: Boolean = true,
+    private val implicitEmptyCollections: Boolean = true,
     private val unionNameFormatter: (String) -> String = { "${it}Union" },
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
@@ -40,32 +89,23 @@ public class KotlinGenerator(
     )
 
     private val logicalTypes: Map<String, SerializableTypeName> =
-        avro.configuration.logicalTypes.mapValues {
-            SerializableTypeName(
-                typeName = ClassName.bestGuess(it.value.descriptor.serialName),
-                serializableAnnotation =
-                    AnnotationSpec.builder(Serializable::class)
-                        .addMember("${Serializable::with.name} = %T::class", it.value::class.asClassName())
-                        .build()
-            )
-        } +
-            logicalTypes.associate {
-                it.logicalTypeName to
-                    run {
-                        val typeName = parseJavaClassName(it.kotlinClassName)
-                        if (it.kSerializerClassName != null) {
-                            SerializableTypeName(
-                                typeName = typeName.typeName,
-                                serializableAnnotation =
-                                    AnnotationSpec.builder(Serializable::class)
-                                        .addMember("${Serializable::with.name} = %T::class", ClassName.bestGuess(it.kSerializerClassName))
-                                        .build()
-                            )
-                        } else {
-                            typeName
-                        }
+        (defaultLogicalTypes + logicalTypes).associate {
+            it.logicalTypeName to
+                run {
+                    val typeName = parseJavaClassName(it.kotlinClassName)
+                    if (it.kSerializerClassName != null) {
+                        SerializableTypeName(
+                            typeName = typeName.typeName,
+                            serializableAnnotation =
+                                AnnotationSpec.builder(Serializable::class)
+                                    .addMember("${Serializable::with.name} = %T::class", ClassName.bestGuess(it.kSerializerClassName))
+                                    .build()
+                        )
+                    } else {
+                        typeName
                     }
-            }
+                }
+        }
 
     /**
      * Generates Kotlin classes from the provided Avro schema.
@@ -185,10 +225,10 @@ public class KotlinGenerator(
                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
                     .addAnnotationIfNotNull(buildAvroFixedAnnotation(schema))
                     .addAnnotations(buildAvroPropAnnotations(schema))
-                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, avro.configuration))
+                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections))
                     .addSerializableAnnotation(wrappedType)
                     .build(),
-                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, avro.configuration)
+                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
             )
             .addAnnotation(buildAvroGeneratedAnnotation(schemaStr))
             .build()
@@ -468,7 +508,7 @@ public class KotlinGenerator(
                                     null
                                 }
                             } else {
-                                buildImplicitAvroDefaultCodeBlock(field.schema, avro.configuration)
+                                buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
                             }
                     )
                 }

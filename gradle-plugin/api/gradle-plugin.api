@@ -12,13 +12,44 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginExt
 
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension {
 	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getLogicalTypes ()Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public fun logicalTypes (Lorg/gradle/api/Action;)V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension {
+	public abstract fun getRegisteredMappings ()Lorg/gradle/api/provider/SetProperty;
+	public fun register (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder1;
+	public fun useKotlinTime ([Ljava/lang/String;)V
+	public fun useKotlinUuid ()V
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
 	public final fun generateKotlinSources ()V
 	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getLogicalTypes ()Lorg/gradle/api/provider/SetProperty;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalType : java/lang/Record, java/io/Serializable {
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun logicalTypeName ()Ljava/lang/String;
+	public final fun serializerType ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public final fun type ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder1 {
+	public final fun asType (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder2;
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder2 {
+	public final fun contextual ()V
+	public final fun withSerializer (Ljava/lang/String;)V
 }
 

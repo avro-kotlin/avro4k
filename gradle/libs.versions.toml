@@ -1,6 +1,6 @@
 [versions]
 kotlinx-serialization = "1.9.0"
-kotlinx-io = "0.8.0"
+kotlinx-io = "0.8.2"
 kotest = "5.9.1"
 okio = "3.16.4"
 apache-avro = "1.12.1"

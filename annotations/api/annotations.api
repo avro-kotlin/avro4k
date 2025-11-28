@@ -1,0 +1,42 @@
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroAlias : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDecimal : java/lang/annotation/Annotation {
+	public abstract fun precision ()I
+	public abstract fun scale ()I
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDefault : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroDoc : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroEnumDefault : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroFixed : java/lang/annotation/Annotation {
+	public abstract fun size ()I
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp : java/lang/annotation/Annotation {
+	public abstract fun key ()Ljava/lang/String;
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroProp$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lcom/github/avrokotlin/avro4k/AvroProp;
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/AvroStringable : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/ExperimentalAvro4kApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class com/github/avrokotlin/avro4k/InternalAvro4kApi : java/lang/annotation/Annotation {
+}
+

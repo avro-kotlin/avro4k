@@ -7,6 +7,7 @@ plugins {
 description = "Core module of avro4k. Avro4k is the avro binary format support for kotlin, built on top of kotlinx-serialization."
 
 dependencies {
+    api(project(":annotations"))
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     api(libs.kotlinx.io)

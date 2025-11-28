@@ -27,6 +27,7 @@ tasks.test {
     useJUnitPlatform()
     // The plugin also injects project's bom & core modules, so we need to publish them first to mavenLocal
     dependsOn(":bom:publishToMavenLocal")
+    dependsOn(":annotations:publishToMavenLocal")
     dependsOn(":core:publishToMavenLocal")
 }
 

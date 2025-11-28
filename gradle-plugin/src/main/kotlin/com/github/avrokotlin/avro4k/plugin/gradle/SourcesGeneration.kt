@@ -6,7 +6,7 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.SetProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
@@ -49,12 +49,8 @@ public interface Avro4kPluginSourcesGenerationExtension {
      * avro4k {
      *   sourcesGeneration {
      *     logicalTypes {
-     *       register("uuid")
-     *           .asType("kotlin.uuid.Uuid")
-     *           .withSerializer("your.own.UuidSerializer")
-     *       register("custom-type")
-     *           .asType("your.FieldType")
-     *           .contextual()
+     *       register("uuid").asType("kotlin.uuid.Uuid", "your.own.UuidSerializer")
+     *       register("custom-type").asContextualType("your.FieldType")
      *     }
      *   }
      * }
@@ -98,48 +94,40 @@ public interface Avro4kPluginSourcesGenerationExtension {
 }
 
 public interface Avro4kPluginSourcesGenerationLogicalTypesExtension {
-    public fun register(logicalTypeName: String): LogicalTypeBuilder1 {
-        return LogicalTypeBuilder1(logicalTypeName) { registeredMappings.add(it) }
+    public fun register(logicalTypeName: String): LogicalTypeBuilder {
+        return LogicalTypeBuilder(logicalTypeName) { k, mapping -> mappings.put(k, mapping) }
     }
 
-    public val registeredMappings: SetProperty<LogicalType>
+    @get:Input
+    public val mappings: MapProperty<String, LogicalTypeMapping>
 }
 
 @ConsistentCopyVisibility
 @JvmRecord
-public data class LogicalType internal constructor(
-    val logicalTypeName: String,
+public data class LogicalTypeMapping internal constructor(
     val type: String,
     val serializerType: String?,
 ) : java.io.Serializable
 
-public class LogicalTypeBuilder1 internal constructor(
+public class LogicalTypeBuilder internal constructor(
     private val logicalTypeName: String,
-    private val whenBuilt: (LogicalType) -> Unit,
+    private val whenBuilt: (String, LogicalTypeMapping) -> Unit,
 ) {
     /**
-     * Specifies the type of the being-built logical type, to be used as the class' field type.
+     * Maps the logical type to a given class with a serializer set at compile-time for better performances (no lookup at runtime).
+     * The fields generated from a logical type will be annotated with `@kotlinx.serialization.Serializable(with = serializerTypeName)`.
      *
-     * @param classFullName the fully qualified class name, which must be in the main classpath to compile properly.
-     * @return A builder instance to further configure the logical type.
+     * To specify the serializer at runtime, use [asContextualType] instead (for more advanced users).
+     *
+     * @param serializerTypeName the fully qualified name of the serializer to be used
      */
-    public fun asType(classFullName: String): LogicalTypeBuilder2 {
-        return LogicalTypeBuilder2(
-            logicalTypeName = logicalTypeName,
-            typeName = classFullName,
-            whenBuilt = whenBuilt
-        )
+    public fun asType(className: String, serializerTypeName: String) {
+        whenBuilt(logicalTypeName, LogicalTypeMapping(className, serializerTypeName))
     }
-}
 
-public class LogicalTypeBuilder2 internal constructor(
-    private val logicalTypeName: String,
-    private val typeName: String,
-    private val whenBuilt: (LogicalType) -> Unit,
-) {
     /**
      * Creates the logical type without compile-time serializer.
-     * The serializer have to be passed at runtime, as the logical type generated fields will be annotated with `@kotlinx.serialization.Contextual`:
+     * The serializer have to be passed at runtime, as the generated fields from a logical type will be annotated with `@kotlinx.serialization.Contextual`:
      *
      * ```
      * Avro {
@@ -149,22 +137,12 @@ public class LogicalTypeBuilder2 internal constructor(
      * }
      * ```
      *
-     * To specify the serializer at compile-time (recommended), use [withSerializer] instead.
-     */
-    public fun contextual() {
-        whenBuilt(LogicalType(logicalTypeName, typeName, null))
-    }
-
-    /**
-     * Creates the logical type with a serializer set at compile-time for better performances (no lookup at runtime).
-     * The logical type generated fields will be annotated with `@kotlinx.serialization.Serializable` including the given serializer type.
+     * It can enable different serializers depending on the context (one for json, one for avro, ...).
      *
-     * To specify the serializer at runtime, use [contextual] instead (for more advanced users).
-     *
-     * @param serializerTypeName the fully qualified name of the serializer to be used
+     * To specify the serializer at compile-time (recommended), use [asType] instead.
      */
-    public fun withSerializer(serializerTypeName: String) {
-        whenBuilt(LogicalType(logicalTypeName, typeName, serializerTypeName))
+    public fun asContextualType(className: String) {
+        whenBuilt(logicalTypeName, LogicalTypeMapping(className, null))
     }
 }
 
@@ -180,25 +158,20 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     public abstract val outputDir: DirectoryProperty
 
     @get:Input
-    public abstract val logicalTypes: SetProperty<LogicalType>
+    public abstract val logicalTypes: MapProperty<String, LogicalTypeMapping>
 
     @TaskAction
     public fun generateKotlinSources() {
         val logicalTypes = logicalTypes.get()
-        if (logicalTypes.distinctBy { it.logicalTypeName }.size != logicalTypes.size) {
-            val msg = "Duplicate logical type names found. Please ensure having only one entry per logical type name."
-            logger.error(msg)
-            error(msg)
-        }
 
         val kotlinGenerator =
             KotlinGenerator(
                 logicalTypes =
                     logicalTypes.map {
                         KotlinGenerator.LogicalTypeDescriptor(
-                            logicalTypeName = it.logicalTypeName,
-                            kotlinClassName = it.type,
-                            kSerializerClassName = it.serializerType
+                            logicalTypeName = it.key,
+                            kotlinClassName = it.value.type,
+                            kSerializerClassName = it.value.serializerType
                         )
                     }
             )

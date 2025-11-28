@@ -21,8 +21,10 @@ avro4k {
         inputSchemas.from(file("your-specific-schema.avsc"))
         outputDir = file("src/main/generated")
         logicalTypes {
-            register("uuid").asType("kotlin.uuid.Uuid").contextual()
-            register("custom").asType("your.own.Type").withSerializer("your.own.CustomKSerializer")
+            register("custom").asType("your.own.Type", "your.own.CustomKSerializer")
+            
+            // for advanced users or specific use cases
+            register("uuid").asContextualType("kotlin.uuid.Uuid")
         }
     }
 }
@@ -87,7 +89,7 @@ Example: to override the native `uuid` to use the brand new kotlin's uuid `kotli
 avro4k {
     sourcesGeneration {
         logicalTypes {
-            register("uuid").asType("kotlin.uuid.Uuid").withSerializer("your.own.KotlinUuidSerializer")
+            register("uuid").asType("kotlin.uuid.Uuid", "your.own.KotlinUuidSerializer")
         }
     }
 }
@@ -99,7 +101,7 @@ it allows you to have different serializers depending on the context (Json, Avro
 avro4k {
     sourcesGeneration {
         logicalTypes {
-            register("uuid").asType("kotlin.uuid.Uuid").contextual()
+            register("uuid").asContextualType("kotlin.uuid.Uuid")
         }
     }
 }

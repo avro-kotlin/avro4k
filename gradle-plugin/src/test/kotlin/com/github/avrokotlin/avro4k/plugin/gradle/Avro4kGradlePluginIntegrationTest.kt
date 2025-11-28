@@ -35,6 +35,10 @@ class Avro4kGradlePluginIntegrationTest {
                     {
                         "name" : "customType",
                         "type" : {"type":"string", "logicalType":"custom-logical-type"}
+                    },
+                    {
+                        "name" : "ignoredType",
+                        "type" : {"type":"string", "logicalType":"another-logical-type"}
                     }
                 ]
             }
@@ -49,8 +53,11 @@ class Avro4kGradlePluginIntegrationTest {
                 sourcesGeneration {
                     inputSchemas.from(file("schema.avsc"))
                     logicalTypes {
-                        register("uuid").asType("kotlin.uuid.Uuid").withSerializer("your.own.CustomUuidKSerializer")
-                        register("custom-logical-type").asType("your.OwnType").contextual()
+                        register("uuid").asType("kotlin.uuid.Uuid", "your.own.CustomUuidKSerializer")
+                        register("custom-logical-type").asContextualType("your.OwnType")
+                        
+                        // Partial mappings are ignored as incomplete
+                        register("another-logical-type")
                     }
                 }
             }
@@ -76,6 +83,7 @@ class Avro4kGradlePluginIntegrationTest {
         generatedContent shouldContain "your.OwnType"
         generatedContent shouldContain "kotlinx.serialization.Contextual"
         generatedContent shouldContain "your.own.CustomUuidKSerializer"
+        generatedContent shouldContain "ignoredType: String"
     }
 
     fun BuildResult.shouldHaveTaskSuccess(taskPath: String) {

@@ -24,7 +24,6 @@ public class Avro4kGradlePlugin : Plugin<Project> {
         extension.sourcesGeneration.outputDir.convention(project.layout.buildDirectory.dir("generated/sources/avro/main"))
         @Suppress("UnstableApiUsage")
         extension.sourcesGeneration.inputSchemas.convention(project.layout.projectDirectory.dir("src/main/avro"))
-        extension.sourcesGeneration.logicalTypes.registeredMappings.convention(emptySet())
 
         val task =
             project.tasks.register<GenerateKotlinAvroSourcesTask>("generateAvroKotlinSources") {
@@ -33,7 +32,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
-                logicalTypes.set(extension.sourcesGeneration.logicalTypes.registeredMappings)
+                logicalTypes.set(extension.sourcesGeneration.logicalTypes.mappings)
             }
 
         project.plugins.withId("org.jetbrains.kotlin.jvm") {

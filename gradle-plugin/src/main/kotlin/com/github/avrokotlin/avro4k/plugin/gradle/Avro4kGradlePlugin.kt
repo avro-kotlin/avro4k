@@ -122,13 +122,13 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         }
 
         files.associateWith { file ->
-            logger.info("Generating kotlin sources for schema file: ${file.relativeTo(project.projectDir)}")
+            logger.info("Generating kotlin sources for schema file: $file")
 
             val schemaContent = file.readText()
             kotlinGenerator.generateKotlinClasses(schemaContent, file.nameWithoutExtension)
                 .also { generatedFiles ->
                     logger.lifecycle(
-                        "Schema ${file.relativeTo(project.projectDir)} generated ${generatedFiles.size} class(es):\n  " + generatedFiles.joinToString("\n  ") { it.fullName() }
+                        "Schema $file generated ${generatedFiles.size} class(es):\n " + generatedFiles.joinToString("\n ") { it.fullName() }
                     )
                 }
         }
@@ -147,7 +147,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             .asFileTree
             .matching { include("**/*.avsc") }
             .files
-            .sortedBy { it.relativeTo(project.projectDir).invariantSeparatorsPath }
+            .sorted()
 
     private fun FileSpec.fullName() = if (packageName.isEmpty()) name else "$packageName.$name"
 
@@ -170,7 +170,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
                     "Please check your input schema files:\n${
                         names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
                             "$generatedFullName has been generated differently from the following schemas: ${
-                                originalSchemaLocation.keys.joinToString(", ") { it.relativeTo(project.projectDir).path }
+                                originalSchemaLocation.keys.joinToString(", ") { it.path }
                             }"
                         }
                     }."

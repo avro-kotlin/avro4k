@@ -3,7 +3,7 @@ import kotlinx.benchmark.gradle.JvmBenchmarkTarget
 plugins {
     java
     kotlin("jvm")
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.14"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.15"
     kotlin("plugin.allopen")
     kotlin("plugin.serialization")
     kotlin("plugin.noarg")

@@ -1,0 +1,18 @@
+public abstract interface class com/github/avrokotlin/avro4k/NameStrategy : java/io/Serializable {
+	public static final field Companion Lcom/github/avrokotlin/avro4k/NameStrategy$Companion;
+	public abstract fun format (Ljava/lang/String;)Ljava/lang/String;
+	public fun getIdentifier ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/NameStrategy$Companion {
+	public final fun custom (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/github/avrokotlin/avro4k/NameStrategy;
+	public final fun getCAMEL_CASE ()Lcom/github/avrokotlin/avro4k/NameStrategy;
+	public final fun getIDENTITY ()Lcom/github/avrokotlin/avro4k/NameStrategy;
+	public final fun getPASCAL_CASE ()Lcom/github/avrokotlin/avro4k/NameStrategy;
+	public final fun getSNAKE_CASE ()Lcom/github/avrokotlin/avro4k/NameStrategy;
+}
+
+public final class com/github/avrokotlin/avro4k/NameStrategy$DefaultImpls {
+	public static fun getIdentifier (Lcom/github/avrokotlin/avro4k/NameStrategy;)Ljava/lang/String;
+}
+

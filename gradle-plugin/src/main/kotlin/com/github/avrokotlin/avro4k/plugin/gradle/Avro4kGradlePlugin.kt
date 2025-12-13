@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.plugin.gradle
 
 import com.github.avrokotlin.avro4k.KotlinGenerator
+import com.github.avrokotlin.avro4k.NameStrategy
 import com.squareup.kotlinpoet.FileSpec
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -8,9 +9,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -47,6 +51,27 @@ public interface Avro4kPluginSourcesGenerationExtension {
      */
     public val outputDir: DirectoryProperty
 
+    /**
+     * Strategy to map Avro field names to Kotlin property names. Defaults to identity to keep backward compatibility.
+     */
+    public val nameStrategy: Property<NameStrategy>
+
+    /**
+     * Identifier used for task cache invalidation when the [nameStrategy] changes.
+     */
+    public val nameStrategyIdentifier: Property<String>
+
+    public fun nameStrategy(strategy: NameStrategy) {
+        nameStrategy.set(strategy)
+        nameStrategyIdentifier.set(strategy.identifier)
+    }
+
+    public fun nameStrategy(identifier: String, strategy: (String) -> String) {
+        val namedStrategy = NameStrategy.custom(identifier, strategy)
+        nameStrategy.set(namedStrategy)
+        nameStrategyIdentifier.set(namedStrategy.identifier)
+    }
+
 //    /**
 //     * A map of logical type names to their corresponding fully qualified class names.
 //     * This allows custom handling of Avro logical types during code generation.
@@ -62,6 +87,8 @@ public class Avro4kGradlePlugin : Plugin<Project> {
         val extension = project.extensions.create<Avro4kPluginExtension>("avro4k")
         extension.sourcesGeneration.outputDir.convention(project.layout.buildDirectory.dir("generated/sources/avro/main"))
         extension.sourcesGeneration.inputSchemas.convention(project.layout.projectDirectory.dir("src/main/avro"))
+        extension.sourcesGeneration.nameStrategy.convention(NameStrategy.IDENTITY)
+        extension.sourcesGeneration.nameStrategyIdentifier.convention(NameStrategy.IDENTITY.identifier)
 //        extension.sourcesGeneration.logicalTypes.convention(emptyMap())
 
         val task =
@@ -71,6 +98,8 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
+                nameStrategy.set(extension.sourcesGeneration.nameStrategy)
+                nameStrategyIdentifier.set(extension.sourcesGeneration.nameStrategyIdentifier)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
@@ -104,6 +133,12 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
+    @get:Internal
+    public abstract val nameStrategy: Property<NameStrategy>
+
+    @get:Input
+    public abstract val nameStrategyIdentifier: Property<String>
+
 //    @get:Input
 //    public abstract val logicalTypes: MapProperty<String, String>
 
@@ -111,6 +146,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     public fun generateKotlinSources() {
         val kotlinGenerator =
             KotlinGenerator(
+                nameStrategy = nameStrategy.orNull ?: NameStrategy.IDENTITY
 //                logicalTypes = logicalTypes.get()
             )
         val outputDir = outputDir.asFile.get()

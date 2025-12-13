@@ -55,9 +55,10 @@ class NameStrategyTest : StringSpec({
     }
 
     "custom strategy uses provided identifier and formatter" {
-        val custom = NameStrategy.custom("strip-x-camel") { original ->
-            NameStrategy.CAMEL_CASE.format(original.removePrefix("x_"))
-        }
+        val custom =
+            NameStrategy.custom("strip-x-camel") { original ->
+                NameStrategy.CAMEL_CASE.format(original.removePrefix("x_"))
+            }
 
         custom.identifier shouldBe "strip-x-camel"
         custom.format("x_street_line") shouldBe "streetLine"

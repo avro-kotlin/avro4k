@@ -23,7 +23,7 @@ class KotlinGeneratorTest {
         val actualBaseDir = Path("build/generated-sources/$testName/").toFile()
 
         actualBaseDir.deleteRecursively()
-        generateKotlinFiles(schemaPath.readText(), actualBaseDir)
+        generateKotlinFiles(testName, schemaPath.readText(), actualBaseDir)
 
         actualBaseDir shouldHaveSameStructureAndContentAs expectedBaseDir
     }
@@ -36,7 +36,7 @@ class KotlinGeneratorTest {
         val baseDir = Path("src/test/expected-sources/$testName/").toFile()
 
         baseDir.deleteRecursively()
-        generateKotlinFiles(schemaPath.readText(), baseDir)
+        generateKotlinFiles(testName, schemaPath.readText(), baseDir)
     }
 
     companion object {
@@ -56,8 +56,10 @@ class KotlinGeneratorTest {
         }
     }
 
-    private fun generateKotlinFiles(schemaContent: String, outputBaseDir: File) {
+    private fun generateKotlinFiles(testName: String, schemaContent: String, outputBaseDir: File) {
+        val nameStrategy = resolveNameStrategy(testName)
         KotlinGenerator(
+            nameStrategy = nameStrategy,
             logicalTypes =
                 listOf(
                     KotlinGenerator.LogicalTypeDescriptor(
@@ -78,4 +80,18 @@ class KotlinGeneratorTest {
                 .writeTo(outputBaseDir)
         }
     }
+
+    private fun resolveNameStrategy(testName: String): NameStrategy =
+        when (testName) {
+            "field_naming_identity" -> NameStrategy.IDENTITY
+            "field_naming_snake" -> NameStrategy.SNAKE_CASE
+            "field_naming_pascal" -> NameStrategy.PASCAL_CASE
+
+            "field_naming_custom" ->
+                NameStrategy.custom("strip-x-prefix-lower-camel") { original ->
+                    NameStrategy.CAMEL_CASE.format(original.removePrefix("x_"))
+                }
+
+            else -> NameStrategy.IDENTITY
+        }
 }

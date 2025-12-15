@@ -49,7 +49,7 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_SECRET }}
 
       - name: Upload build reports
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: build-reports

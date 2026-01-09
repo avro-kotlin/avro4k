@@ -3,7 +3,7 @@ import kotlinx.benchmark.gradle.JvmBenchmarkTarget
 plugins {
     java
     kotlin("jvm")
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.14"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.15"
     kotlin("plugin.allopen")
     kotlin("plugin.serialization")
     kotlin("plugin.noarg")
@@ -51,15 +51,12 @@ benchmark {
         }
     }
     targets {
-        register("main") {
-            this as JvmBenchmarkTarget
-            jmhVersion = "1.37"
-        }
+        register("main")
     }
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.14")
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.15")
 
     val jacksonVersion = "2.20.1"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")

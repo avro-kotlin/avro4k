@@ -1,4 +1,4 @@
-import com.github.avrokotlin.avro4k.NameStrategy
+import com.github.avrokotlin.avro4k.plugin.gradle.FieldNamingStrategyType
 
 plugins {
     kotlin("jvm") version "2.2.10"
@@ -13,23 +13,11 @@ repositories {
 avro4k {
     sourcesGeneration {
         // Demonstrate camelCase Avro fields becoming snake_cased Kotlin properties.
-        nameStrategy(NameStrategy.SNAKE_CASE)
+        fieldNamingStrategy = FieldNamingStrategyType.SNAKE_CASE
 
-
-        /* Other naming strategies
-         nameStrategy(NameStrategy.IDENTITY) // default
-         nameStrategy(NameStrategy.CAMEL_CASE)
-         nameStrategy(NameStrategy.PASCAL_CASE)
-        */
-
-        /* When using a lambda-based custom naming strategy,
-         Gradle cannot detect changes in the lambda implementation.
-         If the lambda logic is modified, the key must be updated manually
-         to invalidate incremental builds and build cache correctly.
-         nameStrategy("key-for-gradle-up-to-date") {
-             original -> original.reversed()
-         }
-        */
-
+        // Other available strategies:
+        // fieldNamingStrategy = FieldNamingStrategyType.IDENTITY   // default - keeps original names
+        // fieldNamingStrategy = FieldNamingStrategyType.CAMEL_CASE // converts to camelCase
+        // fieldNamingStrategy = FieldNamingStrategyType.PASCAL_CASE // converts to PascalCase
     }
 }

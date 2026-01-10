@@ -8,10 +8,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
@@ -49,21 +47,14 @@ public interface Avro4kPluginSourcesGenerationExtension {
      */
     public val outputDir: DirectoryProperty
 
-    /**
-     * A map of logical type names to their corresponding fully qualified class names.
-     * This allows custom handling of Avro logical types during code generation.
-     *
-     * Any schema matching a logical type in this map will be represented using the specified class in the generated code, annotated with `@Contextual`.
-     * So you must configure accordingly the used [com.github.avrokotlin.avro4k.Avro] instance with [com.github.avrokotlin.avro4k.AvroBuilder.setLogicalTypeSerializer] to handle these types.
-     */
-    public val logicalTypes: MapProperty<String, String>
-
-    /**
-     * convenience method to register the use of `kotlin.uuid.Uuid` for the `uuid` logical type.
-     */
-    public fun useKotlinUuid() {
-        logicalTypes.put("uuid", "kotlin.uuid.Uuid")
-    }
+//    /**
+//     * A map of logical type names to their corresponding fully qualified class names.
+//     * This allows custom handling of Avro logical types during code generation.
+//     *
+//     * Any schema matching a logical type in this map will be represented using the specified class in the generated code, annotated with `@Contextual`.
+//     * So you must configure accordingly the used [com.github.avrokotlin.avro4k.Avro] instance with [com.github.avrokotlin.avro4k.AvroBuilder.setLogicalTypeSerializer] to handle these types.
+//     */
+//    public val logicalTypes: MapProperty<String, String>
 }
 
 public class Avro4kGradlePlugin : Plugin<Project> {
@@ -71,7 +62,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
         val extension = project.extensions.create<Avro4kPluginExtension>("avro4k")
         extension.sourcesGeneration.outputDir.convention(project.layout.buildDirectory.dir("generated/sources/avro/main"))
         extension.sourcesGeneration.inputSchemas.convention(project.layout.projectDirectory.dir("src/main/avro"))
-        extension.sourcesGeneration.logicalTypes.convention(emptyMap())
+//        extension.sourcesGeneration.logicalTypes.convention(emptyMap())
 
         val task =
             project.tasks.register<GenerateKotlinAvroSourcesTask>("generateAvroKotlinSources") {
@@ -80,7 +71,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
-                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
+//                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
         project.plugins.withId("org.jetbrains.kotlin.jvm") {
@@ -113,21 +104,14 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
-    @get:Input
-    public abstract val logicalTypes: MapProperty<String, String>
+//    @get:Input
+//    public abstract val logicalTypes: MapProperty<String, String>
 
     @TaskAction
     public fun generateKotlinSources() {
-        val logicalTypeDescriptors = logicalTypes.get().map { (logicalTypeName, kotlinClassName) ->
-            KotlinGenerator.LogicalTypeDescriptor(
-                logicalTypeName,
-                kotlinClassName,
-                getWellKnownSerializer(logicalTypeName, kotlinClassName),
-            )
-        }
         val kotlinGenerator =
             KotlinGenerator(
-                logicalTypes = logicalTypeDescriptors
+//                logicalTypes = logicalTypes.get()
             )
         val outputDir = outputDir.asFile.get()
         val files = getInputAvroSchemaFiles()
@@ -158,16 +142,6 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             }
     }
 
-    private fun getWellKnownSerializer(logicalTypeName: String, className: String): String? {
-        return when {
-            logicalTypeName == "uuid" && className == "kotlin.uuid.Uuid"
-                -> "com.github.avrokotlin.avro4k.serializer.KotlinUuidSerializer"
-            logicalTypeName == "uuid" && className == "java.util.UUID"
-                -> "com.github.avrokotlin.avro4k.serializer.UUIDSerializer"
-            else -> null // @Contextual
-        }
-    }
-
     private fun getInputAvroSchemaFiles(): List<File> =
         inputFiles
             .asFileTree
@@ -192,14 +166,14 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         if (names.isNotEmpty()) {
             val message =
                 "Duplicate generated class names found. " +
-                        "This usually indicates that the same schema is defined across multiple avsc files. " +
-                        "Please check your input schema files:\n${
-                            names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
-                                "$generatedFullName has been generated differently from the following schemas: ${
-                                    originalSchemaLocation.keys.joinToString(", ") { it.path }
-                                }"
-                            }
-                        }."
+                    "This usually indicates that the same schema is defined across multiple avsc files. " +
+                    "Please check your input schema files:\n${
+                        names.entries.joinToString("\n  ") { (generatedFullName, originalSchemaLocation) ->
+                            "$generatedFullName has been generated differently from the following schemas: ${
+                                originalSchemaLocation.keys.joinToString(", ") { it.path }
+                            }"
+                        }
+                    }."
             logger.error(message)
             error(message)
         }

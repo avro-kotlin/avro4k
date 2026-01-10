@@ -15,6 +15,7 @@ import kotlin.Int
 import kotlin.OptIn
 import kotlin.String
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,6 +26,7 @@ public data class PascalCaseRecord(
      *
      * Default value: 0
      */
+    @SerialName("user_id")
     @AvroDoc("User identifier")
     @AvroAlias("user_identifier")
     @AvroDefault("0")
@@ -32,11 +34,13 @@ public data class PascalCaseRecord(
     /**
      * Full billing address
      */
+    @SerialName("billing_address")
     @AvroDoc("Full billing address")
     public val BillingAddress: BillingAddress,
     /**
      * Status wrapper
      */
+    @SerialName("account_status")
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
     public val AccountStatus: AccountStatusUnion? = null,

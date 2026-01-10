@@ -57,9 +57,9 @@ class KotlinGeneratorTest {
     }
 
     private fun generateKotlinFiles(testName: String, schemaContent: String, outputBaseDir: File) {
-        val nameStrategy = resolveNameStrategy(testName)
+        val fieldNamingStrategy = resolveFieldNamingStrategy(testName)
         KotlinGenerator(
-            nameStrategy = nameStrategy,
+            fieldNamingStrategy = fieldNamingStrategy,
             logicalTypes =
                 listOf(
                     KotlinGenerator.LogicalTypeDescriptor(
@@ -81,17 +81,12 @@ class KotlinGeneratorTest {
         }
     }
 
-    private fun resolveNameStrategy(testName: String): NameStrategy =
+    private fun resolveFieldNamingStrategy(testName: String): FieldNamingStrategy =
         when (testName) {
-            "field_naming_identity" -> NameStrategy.IDENTITY
-            "field_naming_snake" -> NameStrategy.SNAKE_CASE
-            "field_naming_pascal" -> NameStrategy.PASCAL_CASE
-
-            "field_naming_custom" ->
-                NameStrategy.custom("strip-x-prefix-lower-camel") { original ->
-                    NameStrategy.CAMEL_CASE.format(original.removePrefix("x_"))
-                }
-
-            else -> NameStrategy.IDENTITY
+            "field_naming_identity" -> FieldNamingStrategy.IDENTITY
+            "field_naming_snake" -> FieldNamingStrategy.SNAKE_CASE
+            "field_naming_pascal" -> FieldNamingStrategy.PASCAL_CASE
+            "field_naming_camel" -> FieldNamingStrategy.CAMEL_CASE
+            else -> FieldNamingStrategy.IDENTITY
         }
 }

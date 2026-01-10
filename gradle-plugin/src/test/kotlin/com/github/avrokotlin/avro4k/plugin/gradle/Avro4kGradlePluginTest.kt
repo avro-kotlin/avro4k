@@ -62,7 +62,7 @@ class Avro4kGradlePluginTest {
 
     @Test
     fun `useKotlinUuid generates code with kotlin native UUID`() {
-        val projectDir = createTempDirectory(prefix = "avro4k-test-").toFile().also { it.deleteOnExit() }
+        val projectDir = createTempDirectory(prefix = "avro4k-test-").toFile()
 
         try {
             // Create test project structure
@@ -99,7 +99,7 @@ class Avro4kGradlePluginTest {
 
     @Test
     fun `logicalTypes map can be configured directly`() {
-        val projectDir = createTempDirectory(prefix = "avro4k-test-").toFile().also { it.deleteOnExit() }
+        val projectDir = createTempDirectory(prefix = "avro4k-test-").toFile()
 
         try {
             // Create test project with direct logicalTypes configuration

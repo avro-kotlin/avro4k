@@ -40,3 +40,44 @@ Then, just use your generated classes in your code (the main sourceSet includes 
 import com.example.yourpackage.YourGeneratedClass
 Avro.encodeToByteArray(YourGeneratedClass(...))
 ```
+
+## Field Naming Strategy
+
+The plugin provides built-in field naming strategies to convert Avro field names to Kotlin property names.
+This is useful when your Avro schemas use naming conventions that differ from Kotlin conventions.
+
+### Available Strategies
+
+| Strategy | Description | Example: `user_id` → |
+|----------|-------------|---------------------|
+| `IDENTITY` | Keeps original names (default) | `user_id` |
+| `CAMEL_CASE` | Converts to camelCase | `userId` |
+| `SNAKE_CASE` | Converts to snake_case | `user_id` |
+| `PASCAL_CASE` | Converts to PascalCase | `UserId` |
+
+### Usage
+
+```kotlin
+import com.github.avrokotlin.avro4k.plugin.gradle.FieldNamingStrategyType
+
+avro4k {
+    sourcesGeneration {
+        fieldNamingStrategy = FieldNamingStrategyType.IDENTITY    // default
+        fieldNamingStrategy = FieldNamingStrategyType.CAMEL_CASE
+        fieldNamingStrategy = FieldNamingStrategyType.SNAKE_CASE
+        fieldNamingStrategy = FieldNamingStrategyType.PASCAL_CASE
+    }
+}
+```
+
+### Serialization Compatibility
+
+When using a non-identity strategy, `@SerialName` annotations are automatically added to all generated record properties with the original Avro field name. This ensures serialization and deserialization work correctly without any additional configuration.
+
+For example, with `CAMEL_CASE` strategy and an Avro field named `user_id`:
+
+```kotlin
+@SerialName("user_id")
+public val userId: Int
+```
+

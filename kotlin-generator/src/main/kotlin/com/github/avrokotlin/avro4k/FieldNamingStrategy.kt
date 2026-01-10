@@ -34,36 +34,40 @@ public sealed interface FieldNamingStrategy {
 private fun splitWords(input: String): List<String> {
     val words = mutableListOf<String>()
     val current = StringBuilder()
+    var upperCount = 0
+
+    fun flush() {
+        if (current.isNotEmpty()) {
+            words.add(current.toString())
+            current.clear()
+        }
+        upperCount = 0
+    }
 
     for (i in input.indices) {
         val c = input[i]
         when {
-            c == '_' || c == '-' || !c.isLetterOrDigit() -> {
-                if (current.isNotEmpty()) {
-                    words.add(current.toString())
-                    current.clear()
-                }
-            }
-            c.isUpperCase() && current.isNotEmpty() && !current.last().isUpperCase() -> {
-                words.add(current.toString())
-                current.clear()
-                current.append(c)
-            }
-            c.isUpperCase() && current.isNotEmpty() && current.last().isUpperCase() -> {
-                val nextIndex = i + 1
-                if (nextIndex < input.length && input[nextIndex].isLowerCase()) {
-                    words.add(current.toString())
-                    current.clear()
+            c == '_' || c == '-' || !c.isLetterOrDigit() -> flush()
+            c.isUpperCase() -> {
+                val nextIsLower = i + 1 < input.length && input[i + 1].isLowerCase()
+                if (upperCount == 0 && current.isNotEmpty()) {
+                    // camelCase boundary: "myXml" -> ["my", "Xml"]
+                    flush()
+                } else if (upperCount > 0 && nextIsLower) {
+                    // acronym end: "XMLParser" -> ["XML", "Parser"]
+                    flush()
                 }
                 current.append(c)
+                upperCount++
             }
-            else -> current.append(c)
+            else -> {
+                current.append(c)
+                upperCount = 0
+            }
         }
     }
-    if (current.isNotEmpty()) {
-        words.add(current.toString())
-    }
-    return words.filter { it.isNotEmpty() }
+    flush()
+    return words
 }
 
 private fun List<String>.joinToPascalCase(): String =

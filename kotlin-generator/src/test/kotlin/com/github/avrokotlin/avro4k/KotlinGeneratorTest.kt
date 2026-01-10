@@ -23,7 +23,7 @@ class KotlinGeneratorTest {
         val actualBaseDir = Path("build/generated-sources/$testName/").toFile()
 
         actualBaseDir.deleteRecursively()
-        generateKotlinFiles(schemaPath.readText(), actualBaseDir)
+        generateKotlinFiles(testName, schemaPath.readText(), actualBaseDir)
 
         actualBaseDir shouldHaveSameStructureAndContentAs expectedBaseDir
     }
@@ -36,7 +36,7 @@ class KotlinGeneratorTest {
         val baseDir = Path("src/test/expected-sources/$testName/").toFile()
 
         baseDir.deleteRecursively()
-        generateKotlinFiles(schemaPath.readText(), baseDir)
+        generateKotlinFiles(testName, schemaPath.readText(), baseDir)
     }
 
     companion object {
@@ -56,8 +56,10 @@ class KotlinGeneratorTest {
         }
     }
 
-    private fun generateKotlinFiles(schemaContent: String, outputBaseDir: File) {
+    private fun generateKotlinFiles(testName: String, schemaContent: String, outputBaseDir: File) {
+        val fieldNamingStrategy = resolveFieldNamingStrategy(testName)
         KotlinGenerator(
+            fieldNamingStrategy = fieldNamingStrategy,
             logicalTypes =
                 listOf(
                     KotlinGenerator.LogicalTypeDescriptor(
@@ -78,4 +80,13 @@ class KotlinGeneratorTest {
                 .writeTo(outputBaseDir)
         }
     }
+
+    private fun resolveFieldNamingStrategy(testName: String): FieldNamingStrategy =
+        when (testName) {
+            "field_naming_identity" -> FieldNamingStrategy.IDENTITY
+            "field_naming_snake" -> FieldNamingStrategy.SNAKE_CASE
+            "field_naming_pascal" -> FieldNamingStrategy.PASCAL_CASE
+            "field_naming_camel" -> FieldNamingStrategy.CAMEL_CASE
+            else -> FieldNamingStrategy.IDENTITY
+        }
 }

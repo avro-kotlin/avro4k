@@ -8,8 +8,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
@@ -47,6 +49,12 @@ public interface Avro4kPluginSourcesGenerationExtension {
      */
     public val outputDir: DirectoryProperty
 
+    /**
+     * Strategy to map Avro field names to Kotlin property names.
+     * Defaults to [FieldNamingStrategyType.IDENTITY].
+     */
+    public val fieldNamingStrategy: Property<FieldNamingStrategyType>
+
 //    /**
 //     * A map of logical type names to their corresponding fully qualified class names.
 //     * This allows custom handling of Avro logical types during code generation.
@@ -62,6 +70,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
         val extension = project.extensions.create<Avro4kPluginExtension>("avro4k")
         extension.sourcesGeneration.outputDir.convention(project.layout.buildDirectory.dir("generated/sources/avro/main"))
         extension.sourcesGeneration.inputSchemas.convention(project.layout.projectDirectory.dir("src/main/avro"))
+        extension.sourcesGeneration.fieldNamingStrategy.convention(FieldNamingStrategyType.IDENTITY)
 //        extension.sourcesGeneration.logicalTypes.convention(emptyMap())
 
         val task =
@@ -71,6 +80,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
+                fieldNamingStrategy.set(extension.sourcesGeneration.fieldNamingStrategy)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
@@ -104,6 +114,9 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:OutputDirectory
     public abstract val outputDir: DirectoryProperty
 
+    @get:Input
+    public abstract val fieldNamingStrategy: Property<FieldNamingStrategyType>
+
 //    @get:Input
 //    public abstract val logicalTypes: MapProperty<String, String>
 
@@ -111,6 +124,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     public fun generateKotlinSources() {
         val kotlinGenerator =
             KotlinGenerator(
+                fieldNamingStrategy = fieldNamingStrategy.getOrElse(FieldNamingStrategyType.IDENTITY).toGeneratorStrategy()
 //                logicalTypes = logicalTypes.get()
             )
         val outputDir = outputDir.asFile.get()

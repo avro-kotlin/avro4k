@@ -12,6 +12,7 @@ import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
 import kotlin.OptIn
 import kotlin.String
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,6 +23,7 @@ public data class BillingAddress(
      *
      * Default value: unknown
      */
+    @SerialName("streetLine")
     @AvroDoc("Street line")
     @AvroDefault("unknown")
     public val street_line: String = "unknown",

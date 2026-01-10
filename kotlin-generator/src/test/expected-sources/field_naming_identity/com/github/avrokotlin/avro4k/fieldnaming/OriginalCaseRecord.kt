@@ -39,20 +39,20 @@ public data class OriginalCaseRecord(
      */
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
-    public val account_status: Account_statusUnion? = null,
+    public val account_status: AccountStatusUnion? = null,
 ) {
     @Serializable
-    public sealed interface Account_statusUnion {
+    public sealed interface AccountStatusUnion {
         @JvmInline
         @Serializable
         public value class ForString(
             public val `value`: String,
-        ) : Account_statusUnion
+        ) : AccountStatusUnion
 
         @JvmInline
         @Serializable
         public value class ForStatusFlag(
             public val `value`: StatusFlag,
-        ) : Account_statusUnion
+        ) : AccountStatusUnion
     }
 }

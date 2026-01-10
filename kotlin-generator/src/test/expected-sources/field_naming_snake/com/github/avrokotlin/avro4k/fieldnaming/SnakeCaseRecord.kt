@@ -15,6 +15,7 @@ import kotlin.Int
 import kotlin.OptIn
 import kotlin.String
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,6 +26,7 @@ public data class SnakeCaseRecord(
      *
      * Default value: 0
      */
+    @SerialName("userId")
     @AvroDoc("User identifier")
     @AvroAlias("user_identifier")
     @AvroDefault("0")
@@ -32,27 +34,29 @@ public data class SnakeCaseRecord(
     /**
      * Full billing address
      */
+    @SerialName("billingAddress")
     @AvroDoc("Full billing address")
     public val billing_address: BillingAddress,
     /**
      * Status wrapper
      */
+    @SerialName("accountStatus")
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
-    public val account_status: Account_statusUnion? = null,
+    public val account_status: AccountStatusUnion? = null,
 ) {
     @Serializable
-    public sealed interface Account_statusUnion {
+    public sealed interface AccountStatusUnion {
         @JvmInline
         @Serializable
         public value class ForString(
             public val `value`: String,
-        ) : Account_statusUnion
+        ) : AccountStatusUnion
 
         @JvmInline
         @Serializable
         public value class ForStatusFlag(
             public val `value`: StatusFlag,
-        ) : Account_statusUnion
+        ) : AccountStatusUnion
     }
 }

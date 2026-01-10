@@ -448,15 +448,6 @@ public class KotlinGenerator(
                     builder.addPrimaryProperty(
                         PropertySpec.builder(kotlinFieldName, typeName.typeName)
                             .initializer(kotlinFieldName)
-                            .apply {
-                                if (fieldNamingStrategy != FieldNamingStrategy.Identity) {
-                                    addAnnotation(
-                                        AnnotationSpec.builder(SerialName::class)
-                                            .addMember("%S", field.name)
-                                            .build()
-                                    )
-                                }
-                            }
                             .addAnnotations(buildAvroPropAnnotations(field))
                             .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
                             .addKDocIfNotNull(field.doc)
@@ -477,6 +468,15 @@ public class KotlinGenerator(
                             .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
                             .addAnnotationIfNotNull(buildAvroFixedAnnotation(field.schema))
                             .addAnnotationIfNotNull(buildAvroDefaultAnnotation(field))
+                            .apply {
+                                if (fieldNamingStrategy != FieldNamingStrategy.Identity) {
+                                    addAnnotation(
+                                        AnnotationSpec.builder(SerialName::class)
+                                            .addMember("%S", field.name)
+                                            .build()
+                                    )
+                                }
+                            }
                             .addSerializableAnnotation(typeName)
                             .build(),
                         defaultValue =

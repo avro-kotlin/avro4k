@@ -26,23 +26,23 @@ public data class PascalCaseRecord(
      *
      * Default value: 0
      */
-    @SerialName("user_id")
     @AvroDoc("User identifier")
     @AvroAlias("user_identifier")
     @AvroDefault("0")
+    @SerialName("user_id")
     public val UserId: Int = 0,
     /**
      * Full billing address
      */
-    @SerialName("billing_address")
     @AvroDoc("Full billing address")
+    @SerialName("billing_address")
     public val BillingAddress: BillingAddress,
     /**
      * Status wrapper
      */
-    @SerialName("account_status")
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
+    @SerialName("account_status")
     public val AccountStatus: AccountStatusUnion? = null,
 ) {
     @Serializable

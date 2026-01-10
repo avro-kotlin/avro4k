@@ -26,23 +26,23 @@ public data class SnakeCaseRecord(
      *
      * Default value: 0
      */
-    @SerialName("userId")
     @AvroDoc("User identifier")
     @AvroAlias("user_identifier")
     @AvroDefault("0")
+    @SerialName("userId")
     public val user_id: Int = 0,
     /**
      * Full billing address
      */
-    @SerialName("billingAddress")
     @AvroDoc("Full billing address")
+    @SerialName("billingAddress")
     public val billing_address: BillingAddress,
     /**
      * Status wrapper
      */
-    @SerialName("accountStatus")
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
+    @SerialName("accountStatus")
     public val account_status: AccountStatusUnion? = null,
 ) {
     @Serializable

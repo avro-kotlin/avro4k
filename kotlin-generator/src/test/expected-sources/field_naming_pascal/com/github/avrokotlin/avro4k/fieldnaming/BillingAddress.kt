@@ -23,8 +23,8 @@ public data class BillingAddress(
      *
      * Default value: unknown
      */
-    @SerialName("street_line")
     @AvroDoc("Street line")
     @AvroDefault("unknown")
+    @SerialName("street_line")
     public val StreetLine: String = "unknown",
 )

@@ -8,6 +8,7 @@ import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.AnyTypeSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import com.github.avrokotlin.avro4k.serializer.KotlinStdLibSerializersModule
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
@@ -47,6 +48,7 @@ public sealed class Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
             JavaTimeSerializersModule +
+            KotlinStdLibSerializersModule +
             AnyTypeSerializersModule
     )
 

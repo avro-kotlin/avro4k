@@ -116,11 +116,7 @@ public class KotlinGenerator(
                         if (field.schema is TypeSafeSchema.UnionSchema) {
                             field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousClassName, emptyMap()) }
                         } else {
-                            generateNestedKotlinClasses(
-                                field.schema,
-                                field.name.toPascalCase(),
-                                mapOf(schema.asClassName() to recordType)
-                            )
+                            generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), mapOf(schema.asClassName() to recordType))
                         }
                     }
             }
@@ -227,11 +223,7 @@ public class KotlinGenerator(
                             if (field.schema is TypeSafeSchema.UnionSchema) {
                                 field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
                             } else {
-                                generateNestedKotlinClasses(
-                                    field.schema,
-                                    field.name.toPascalCase(),
-                                    generatedRecords + (schema.asClassName() to recordType)
-                                )
+                                generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
                             }
                         }
                 } else {

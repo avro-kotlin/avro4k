@@ -12,15 +12,15 @@ public sealed interface FieldNamingStrategy {
     }
 
     public data object CamelCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).toCamelCase()
+        override fun format(original: String): String = splitWords(original).joinToCamelCase()
     }
 
     public data object SnakeCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).toSnakeCase()
+        override fun format(original: String): String = splitWords(original).joinToSnakeCase()
     }
 
     public data object PascalCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).toPascalCase()
+        override fun format(original: String): String = splitWords(original).joinToPascalCase()
     }
 
     public companion object {
@@ -66,15 +66,15 @@ private fun splitWords(input: String): List<String> {
     return words.filter { it.isNotEmpty() }
 }
 
-private fun List<String>.toPascalCase(): String =
+private fun List<String>.joinToPascalCase(): String =
     joinToString("") { it.lowercase().replaceFirstChar { c -> c.uppercaseChar() } }
 
-private fun List<String>.toCamelCase(): String =
+private fun List<String>.joinToCamelCase(): String =
     mapIndexed { index, word ->
         if (index == 0) word.lowercase() else word.lowercase().replaceFirstChar { it.uppercaseChar() }
     }.joinToString("")
 
-private fun List<String>.toSnakeCase(): String =
+private fun List<String>.joinToSnakeCase(): String =
     joinToString("_") { it.lowercase() }
 
-internal fun String.toPascalCase(): String = splitWords(this).toPascalCase()
+internal fun String.toPascalCase(): String = splitWords(this).joinToPascalCase()

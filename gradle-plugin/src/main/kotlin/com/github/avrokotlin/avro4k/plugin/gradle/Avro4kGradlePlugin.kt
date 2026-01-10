@@ -51,10 +51,7 @@ public interface Avro4kPluginSourcesGenerationExtension {
 
     /**
      * Strategy to map Avro field names to Kotlin property names.
-     * Defaults to [FieldNamingStrategyType.IDENTITY] to keep backward compatibility.
-     *
-     * When using a non-identity strategy, `@SerialName` annotations are automatically added
-     * to generated properties to ensure serialization compatibility with the original Avro field names.
+     * Defaults to [FieldNamingStrategyType.IDENTITY].
      */
     public val fieldNamingStrategy: Property<FieldNamingStrategyType>
 

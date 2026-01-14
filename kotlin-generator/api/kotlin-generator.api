@@ -1,5 +1,4 @@
 public abstract interface class com/github/avrokotlin/avro4k/FieldNamingStrategy {
-	public static final field Companion Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$Companion;
 	public abstract fun format (Ljava/lang/String;)Ljava/lang/String;
 }
 
@@ -9,13 +8,6 @@ public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$CamelCase : 
 	public fun format (Ljava/lang/String;)Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Companion {
-	public final fun getCAMEL_CASE ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
-	public final fun getIDENTITY ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
-	public final fun getPASCAL_CASE ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
-	public final fun getSNAKE_CASE ()Lcom/github/avrokotlin/avro4k/FieldNamingStrategy;
 }
 
 public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Identity : com/github/avrokotlin/avro4k/FieldNamingStrategy {

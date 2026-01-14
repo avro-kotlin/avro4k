@@ -31,7 +31,7 @@ public class KotlinGenerator(
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
     private val unionSubTypeNameFormatter: (String) -> String = { "For$it" },
-    private val fieldNamingStrategy: FieldNamingStrategy = FieldNamingStrategy.IDENTITY,
+    private val fieldNamingStrategy: FieldNamingStrategy = FieldNamingStrategy.Identity,
     logicalTypes: List<LogicalTypeDescriptor> = emptyList(),
 ) {
     @InternalAvro4kApi

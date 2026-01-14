@@ -4,7 +4,7 @@ package com.github.avrokotlin.avro4k
  * Strategy for converting Avro field names to Kotlin property names.
  * Only applies to record fields, not to class/enum/union names.
  */
-public sealed interface FieldNamingStrategy {
+public interface FieldNamingStrategy {
     public fun format(original: String): String
 
     public data object Identity : FieldNamingStrategy {
@@ -21,13 +21,6 @@ public sealed interface FieldNamingStrategy {
 
     public data object PascalCase : FieldNamingStrategy {
         override fun format(original: String): String = splitWords(original).joinToPascalCase()
-    }
-
-    public companion object {
-        public val IDENTITY: FieldNamingStrategy = Identity
-        public val CAMEL_CASE: FieldNamingStrategy = CamelCase
-        public val SNAKE_CASE: FieldNamingStrategy = SnakeCase
-        public val PASCAL_CASE: FieldNamingStrategy = PascalCase
     }
 }
 

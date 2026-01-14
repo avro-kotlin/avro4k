@@ -11,7 +11,7 @@ class FieldNamingStrategyTest : StringSpec({
             "user-id" to "user-id",
             "___user_id__" to "___user_id__"
         ).forEach { (input, expected) ->
-            FieldNamingStrategy.IDENTITY.format(input) shouldBe expected
+            FieldNamingStrategy.Identity.format(input) shouldBe expected
         }
     }
 
@@ -29,7 +29,7 @@ class FieldNamingStrategyTest : StringSpec({
             "StreetLine" to "streetLine",
             "user_id" to "userId"
         ).forEach { (input, expected) ->
-            FieldNamingStrategy.CAMEL_CASE.format(input) shouldBe expected
+            FieldNamingStrategy.CamelCase.format(input) shouldBe expected
         }
     }
 
@@ -46,7 +46,7 @@ class FieldNamingStrategyTest : StringSpec({
             "streetLine" to "street_line",
             "UserId" to "user_id"
         ).forEach { (input, expected) ->
-            FieldNamingStrategy.SNAKE_CASE.format(input) shouldBe expected
+            FieldNamingStrategy.SnakeCase.format(input) shouldBe expected
         }
     }
 
@@ -64,7 +64,7 @@ class FieldNamingStrategyTest : StringSpec({
             "streetLine" to "StreetLine",
             "user_id" to "UserId"
         ).forEach { (input, expected) ->
-            FieldNamingStrategy.PASCAL_CASE.format(input) shouldBe expected
+            FieldNamingStrategy.PascalCase.format(input) shouldBe expected
         }
     }
 })

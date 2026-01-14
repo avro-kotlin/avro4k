@@ -18,40 +18,48 @@ public interface FieldNamingStrategy {
 
 private fun splitWords(input: String): List<String> {
     val words = mutableListOf<String>()
-    val current = StringBuilder()
-    var upperCount = 0
+    var wordStart = -1
 
-    fun flush() {
-        if (current.isNotEmpty()) {
-            words.add(current.toString())
-            current.clear()
+    fun flush(endExclusive: Int) {
+        if (wordStart >= 0) {
+            words.add(input.substring(wordStart, endExclusive))
+            wordStart = -1
         }
-        upperCount = 0
     }
 
     for (i in input.indices) {
         val c = input[i]
         when {
-            c == '_' || c == '-' || !c.isLetterOrDigit() -> flush()
+            c == '_' || c == '-' || !c.isLetterOrDigit() -> flush(i)
             c.isUpperCase() -> {
-                val nextIsLower = i + 1 < input.length && input[i + 1].isLowerCase()
-                if (upperCount == 0 && current.isNotEmpty()) {
-                    // camelCase boundary: "myXml" -> ["my", "Xml"]
-                    flush()
-                } else if (upperCount > 0 && nextIsLower) {
-                    // acronym end: "XMLParser" -> ["XML", "Parser"]
-                    flush()
+                if (wordStart == -1) {
+                    wordStart = i
+                } else {
+                    val prevIsUpper = input[i - 1].isUpperCase()
+                    if (!prevIsUpper) {
+                        // camelCase boundary: "myXml" -> ["my", "Xml"]
+                        flush(i)
+                        wordStart = i
+                    } else {
+                        val nextIsLower = i + 1 < input.length && input[i + 1].isLowerCase()
+                        if (nextIsLower) {
+                            // acronym end: "XMLParser" -> ["XML", "Parser"]
+                            flush(i)
+                            wordStart = i
+                        }
+                    }
                 }
-                current.append(c)
-                upperCount++
             }
-            else -> {
-                current.append(c)
-                upperCount = 0
-            }
+            else ->
+                if (wordStart == -1) {
+                    wordStart = i
+                }
         }
     }
-    flush()
+
+    if (wordStart >= 0) {
+        words.add(input.substring(wordStart))
+    }
     return words
 }
 

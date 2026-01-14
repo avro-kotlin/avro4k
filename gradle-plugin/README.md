@@ -68,7 +68,7 @@ avro4k {
 
 ### Serialization Compatibility
 
-When using a non-identity strategy, `@SerialName` annotations are automatically added to all generated record properties with the original Avro field name. This ensures serialization and deserialization work correctly without any additional configuration.
+Since non-identity strategies alter property names, the generator adds `@SerialName("original_avro_field")` to maintain serialization compatibility. This explicitly maps the Kotlin property back to the original Avro field name, overriding the default naming behavior.
 
 For example, with `CAMEL_CASE` strategy and an Avro field named `user_id`:
 

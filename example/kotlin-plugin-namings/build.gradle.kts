@@ -12,6 +12,6 @@ repositories {
 
 avro4k {
     sourcesGeneration {
-        fieldNamingStrategy = FieldNamingStrategyType.SNAKE_CASE
+        fieldNamingStrategy = FieldNamingStrategyType.CAMEL_CASE
     }
 }

@@ -14,14 +14,6 @@ public interface FieldNamingStrategy {
     public data object CamelCase : FieldNamingStrategy {
         override fun format(original: String): String = splitWords(original).joinToCamelCase()
     }
-
-    public data object SnakeCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).joinToSnakeCase()
-    }
-
-    public data object PascalCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).joinToPascalCase()
-    }
 }
 
 private fun splitWords(input: String): List<String> {
@@ -70,8 +62,5 @@ private fun List<String>.joinToCamelCase(): String =
     mapIndexed { index, word ->
         if (index == 0) word.lowercase() else word.lowercase().replaceFirstChar { it.uppercaseChar() }
     }.joinToString("")
-
-private fun List<String>.joinToSnakeCase(): String =
-    joinToString("_") { it.lowercase() }
 
 internal fun String.toPascalCase(): String = splitWords(this).joinToPascalCase()

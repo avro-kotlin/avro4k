@@ -19,8 +19,6 @@ public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4
 public final class com/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType : java/lang/Enum {
 	public static final field CAMEL_CASE Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
 	public static final field IDENTITY Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
-	public static final field PASCAL_CASE Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
-	public static final field SNAKE_CASE Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
 	public static fun values ()[Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;

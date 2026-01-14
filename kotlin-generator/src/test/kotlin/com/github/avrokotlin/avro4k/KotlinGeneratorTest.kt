@@ -84,8 +84,6 @@ class KotlinGeneratorTest {
     private fun resolveFieldNamingStrategy(testName: String): FieldNamingStrategy =
         when (testName) {
             "field_naming_identity" -> FieldNamingStrategy.Identity
-            "field_naming_snake" -> FieldNamingStrategy.SnakeCase
-            "field_naming_pascal" -> FieldNamingStrategy.PascalCase
             "field_naming_camel" -> FieldNamingStrategy.CamelCase
             else -> FieldNamingStrategy.Identity
         }

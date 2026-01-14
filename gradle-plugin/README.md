@@ -52,8 +52,6 @@ This is useful when your Avro schemas use naming conventions that differ from Ko
 |----------|-------------|---------------------|
 | `IDENTITY` | Keeps original names (default) | `user_id` |
 | `CAMEL_CASE` | Converts to camelCase | `userId` |
-| `SNAKE_CASE` | Converts to snake_case | `user_id` |
-| `PASCAL_CASE` | Converts to PascalCase | `UserId` |
 
 ### Usage
 
@@ -64,8 +62,6 @@ avro4k {
     sourcesGeneration {
         fieldNamingStrategy = FieldNamingStrategyType.IDENTITY    // default
         fieldNamingStrategy = FieldNamingStrategyType.CAMEL_CASE
-        fieldNamingStrategy = FieldNamingStrategyType.SNAKE_CASE
-        fieldNamingStrategy = FieldNamingStrategyType.PASCAL_CASE
     }
 }
 ```
@@ -80,4 +76,3 @@ For example, with `CAMEL_CASE` strategy and an Avro field named `user_id`:
 @SerialName("user_id")
 public val userId: Int
 ```
-

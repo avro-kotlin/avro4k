@@ -18,19 +18,3 @@ public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$Identity : c
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$PascalCase : com/github/avrokotlin/avro4k/FieldNamingStrategy {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$PascalCase;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun format (Ljava/lang/String;)Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$SnakeCase : com/github/avrokotlin/avro4k/FieldNamingStrategy {
-	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$SnakeCase;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun format (Ljava/lang/String;)Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-

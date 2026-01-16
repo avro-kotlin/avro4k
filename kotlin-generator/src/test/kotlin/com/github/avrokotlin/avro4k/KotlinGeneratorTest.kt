@@ -58,7 +58,7 @@ class KotlinGeneratorTest {
 
     private fun generateKotlinFiles(schemaContent: String, outputBaseDir: File) {
         KotlinGenerator(
-            logicalTypes =
+            additionalLogicalTypes =
                 listOf(
                     KotlinGenerator.LogicalTypeDescriptor(
                         logicalTypeName = "contextualLogicalType",

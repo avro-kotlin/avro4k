@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.plugin.gradle
 
 import com.github.avrokotlin.avro4k.KotlinGenerator
+import com.github.avrokotlin.avro4k.generateKotlinClassesFromFiles
 import com.squareup.kotlinpoet.FileSpec
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -121,17 +122,11 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
             return
         }
 
-        files.associateWith { file ->
-            logger.info("Generating kotlin sources for schema file: $file")
-
-            val schemaContent = file.readText()
-            kotlinGenerator.generateKotlinClasses(schemaContent, file.nameWithoutExtension)
-                .also { generatedFiles ->
-                    logger.lifecycle(
-                        "Schema $file generated ${generatedFiles.size} class(es):\n " + generatedFiles.joinToString("\n ") { it.fullName() }
-                    )
-                }
-        }
+        kotlinGenerator.generateKotlinClassesFromFiles(files)
+            .associate { (file, generatedFiles) ->
+                logger.lifecycle("Schema $file generated ${generatedFiles.size} class(es):\n " + generatedFiles.joinToString("\n ") { it.fullName() })
+                file to generatedFiles
+            }
             .also { it.verifyNoDuplicates() }
             .values.flatten().forEach { generatedFile ->
                 generatedFile

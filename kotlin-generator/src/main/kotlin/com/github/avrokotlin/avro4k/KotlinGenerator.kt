@@ -14,7 +14,35 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import org.apache.avro.JsonSchemaFormatter
+import org.apache.avro.ParseContext
 import org.apache.avro.Schema
+import java.io.File
+
+/**
+ * Generates Kotlin classes from the given list of schema files. It allows having types split across multiple files (generally done to reuse types).
+ *
+ * This function parses and resolves schemas for the provided files (assuming they are in json format), then generates Kotlin code for the parsed schemas.
+ *
+ * @param files A list of files representing the schema definitions to be parsed and converted to Kotlin code. Needs to be only files, in json avro format (no idl yet).
+ * @return A list of FileSpec objects representing the generated Kotlin source code for the provided schemas.
+ */
+@InternalAvro4kApi
+public fun KotlinGenerator.generateKotlinClassesFromFiles(files: List<File>): List<Pair<File, List<FileSpec>>> {
+    // First, load all the schemas to the context to be able to resolve them
+    val context = ParseContext()
+    val parser = Schema.Parser(context)
+    files.forEach { it to parser.parseInternal(it.readText()) }
+    context.commit()
+    // we cannot use the output of resolveAllSchemas, as each input file may contain multiple type, but the root anonymous name is based on the file name
+    context.resolveAllSchemas()
+
+    // Then, make a second pass to parse resolved schemas, based on the context previously loaded
+    // Not perfect as it is loading twice each schema, but the schemas loaded in the context are replaced when resolved.
+    return files.map { file ->
+        file to generateKotlinClasses(parser.parse(file), file.nameWithoutExtension)
+    }
+}
 
 /**
  * Generates Kotlin classes from Avro schemas, fully compatible with avro4k.
@@ -70,11 +98,15 @@ public class KotlinGenerator(
     /**
      * Generates Kotlin classes from the provided Avro schema.
      *
-     * @param schema The Avro schema as a JSON string.
+     * @param schema The *resolved* Avro schema. Unresolved schemas or schemas containing unresolved types will fail as it needs to know the content of the type.
      * @param rootAnonymousSchemaName The base name to use for the root schema if it does not have a name (any schema except record, enum or fixed).
      */
-    public fun generateKotlinClasses(schema: String, rootAnonymousSchemaName: String): List<FileSpec> {
-        return generateRootKotlinClasses(TypeSafeSchema.from(schema), Schema.Parser().parse(schema).toString(false), rootAnonymousSchemaName.toPascalCase())
+    public fun generateKotlinClasses(schema: Schema, rootAnonymousSchemaName: String): List<FileSpec> {
+        return generateRootKotlinClasses(
+            TypeSafeSchema.from(schema),
+            JsonSchemaFormatter(false).format(schema),
+            potentialAnonymousClassName = rootAnonymousSchemaName.toPascalCase()
+        )
     }
 
     private fun TypeSpec.toFileSpec(namespace: String? = null): FileSpec {

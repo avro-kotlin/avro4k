@@ -5,83 +5,62 @@ package com.github.avrokotlin.avro4k.encoding
 import com.github.avrokotlin.avro4k.Avro
 import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
+import com.github.avrokotlin.avro4k.encodeToBytesUsingApacheLib
 import com.github.avrokotlin.avro4k.record
+import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlin.uuid.Uuid
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToByteArray
 
 internal class KotlinUuidEncodingTest : StringSpec({
-    "encode and decode kotlin.uuid.Uuid as string" {
-        val uuid = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
-        val data = KotlinUuidAsString(uuid)
+    val uuid = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
+    val uuidString = "123e4567-e89b-12d3-a456-426614174000"
 
-        val encoded = Avro.encodeToByteArray(KotlinUuidAsString.serializer(), data)
-        val decoded = Avro.decodeFromByteArray(KotlinUuidAsString.serializer(), encoded)
+    "encode kotlin.uuid.Uuid as string" {
+        val schema = Avro.schema<Uuid>()
+        val encoded = Avro.encodeToByteArray(uuid)
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, uuidString)
 
-        decoded shouldBe data
+        encoded shouldBe expectedBytes
     }
 
-    "encode and decode kotlin.uuid.Uuid as fixed" {
-        val uuid = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
-        val data = KotlinUuidAsFixed(uuid)
+    "encode nullable kotlin.uuid.Uuid" {
+        val schema = Avro.schema<Uuid?>()
 
-        val encoded = Avro.encodeToByteArray(KotlinUuidAsFixed.serializer(), data)
-        val decoded = Avro.decodeFromByteArray(KotlinUuidAsFixed.serializer(), encoded)
+        // With value
+        val encodedWithValue = Avro.encodeToByteArray(uuid as Uuid?)
+        val expectedWithValue = encodeToBytesUsingApacheLib(schema, uuidString)
+        encodedWithValue shouldBe expectedWithValue
 
-        decoded shouldBe data
+        // With null
+        val encodedWithNull = Avro.encodeToByteArray(null as Uuid?)
+        val expectedWithNull = encodeToBytesUsingApacheLib(schema, null)
+        encodedWithNull shouldBe expectedWithNull
     }
 
-    "encode and decode nullable kotlin.uuid.Uuid" {
-        val uuid = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
-        val dataWithValue = KotlinUuidNullable(uuid)
-        val dataWithNull = KotlinUuidNullable(null)
+    "encode kotlin.uuid.Uuid in array" {
+        val uuid2 = Uuid.parse("123e4567-e89b-12d3-a456-426614174001")
+        val data = listOf(uuid, uuid2)
 
-        val encodedWithValue = Avro.encodeToByteArray(KotlinUuidNullable.serializer(), dataWithValue)
-        val decodedWithValue = Avro.decodeFromByteArray(KotlinUuidNullable.serializer(), encodedWithValue)
-        decodedWithValue shouldBe dataWithValue
+        val schema = Avro.schema<List<Uuid>>()
+        val encoded = Avro.encodeToByteArray(data)
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, listOf(uuidString, uuid2.toString()))
 
-        val encodedWithNull = Avro.encodeToByteArray(KotlinUuidNullable.serializer(), dataWithNull)
-        val decodedWithNull = Avro.decodeFromByteArray(KotlinUuidNullable.serializer(), encodedWithNull)
-        decodedWithNull shouldBe dataWithNull
+        encoded shouldBe expectedBytes
     }
 
-    "support kotlin.uuid.Uuid in records" {
-        val uuid1 = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
+    "encode kotlin.uuid.Uuid in record" {
         val uuid2 = Uuid.parse("123e4567-e89b-12d3-a456-426614174001")
 
-        AvroAssertions.assertThat(
-            KotlinUuidRecord(uuid1, uuid2)
-        ).isEncodedAs(
-            record(
-                "123e4567-e89b-12d3-a456-426614174000",
-                uuid2.toByteArray()
-            )
-        )
+        AvroAssertions.assertThat(KotlinUuidRecord(uuid, uuid2))
+            .isEncodedAs(record(uuidString, uuid2.toByteArray()))
     }
 }) {
-    @JvmInline
-    @Serializable
-    private value class KotlinUuidAsString(
-        @Contextual val uuid: Uuid,
-    )
-
-    @JvmInline
-    @Serializable
-    private value class KotlinUuidAsFixed(
-        @Contextual @AvroFixed(16) val uuid: Uuid,
-    )
-
-    @JvmInline
-    @Serializable
-    private value class KotlinUuidNullable(
-        @Contextual val uuid: Uuid?,
-    )
-
     @Serializable
     private data class KotlinUuidRecord(
-        @Contextual val uuidString: Uuid,
-        @Contextual @AvroFixed(16) val uuidFixed: Uuid,
+        val uuidString: Uuid,
+        @AvroFixed(16) val uuidFixed: Uuid,
     )
 }

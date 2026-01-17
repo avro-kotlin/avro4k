@@ -51,10 +51,10 @@ public interface Avro4kPluginSourcesGenerationExtension {
     public val outputDir: DirectoryProperty
 
     /**
-     * Strategy to map Avro field names to Kotlin property names.
-     * Defaults to [FieldNamingStrategyType.IDENTITY] not changing the generated field name.
+     * When true, uses Kotlin naming conventions for generated field names (camelCase).
+     * Defaults to false, keeping original avro field names.
      */
-    public val fieldNamingStrategy: Property<FieldNamingStrategyType>
+    public val useKotlinConventionForFieldNames: Property<Boolean>
 
 //    /**
 //     * A map of logical type names to their corresponding fully qualified class names.
@@ -71,7 +71,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
         val extension = project.extensions.create<Avro4kPluginExtension>("avro4k")
         extension.sourcesGeneration.outputDir.convention(project.layout.buildDirectory.dir("generated/sources/avro/main"))
         extension.sourcesGeneration.inputSchemas.convention(project.layout.projectDirectory.dir("src/main/avro"))
-        extension.sourcesGeneration.fieldNamingStrategy.convention(FieldNamingStrategyType.IDENTITY)
+        extension.sourcesGeneration.useKotlinConventionForFieldNames.convention(false)
 //        extension.sourcesGeneration.logicalTypes.convention(emptyMap())
 
         val task =
@@ -81,7 +81,7 @@ public class Avro4kGradlePlugin : Plugin<Project> {
 
                 inputFiles.setFrom(extension.sourcesGeneration.inputSchemas)
                 outputDir.set(extension.sourcesGeneration.outputDir)
-                fieldNamingStrategy.set(extension.sourcesGeneration.fieldNamingStrategy)
+                useKotlinConventionForFieldNames.set(extension.sourcesGeneration.useKotlinConventionForFieldNames)
 //                logicalTypes.set(extension.sourcesGeneration.logicalTypes)
             }
 
@@ -116,7 +116,7 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     public abstract val outputDir: DirectoryProperty
 
     @get:Input
-    public abstract val fieldNamingStrategy: Property<FieldNamingStrategyType>
+    public abstract val useKotlinConventionForFieldNames: Property<Boolean>
 
 //    @get:Input
 //    public abstract val logicalTypes: MapProperty<String, String>
@@ -125,7 +125,12 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     public fun generateKotlinSources() {
         val kotlinGenerator =
             KotlinGenerator(
-                fieldNamingStrategy = fieldNamingStrategy.getOrElse(FieldNamingStrategyType.IDENTITY).toGeneratorStrategy()
+                fieldNamingStrategy =
+                    if (useKotlinConventionForFieldNames.getOrElse(false)) {
+                        FieldNamingStrategy.CamelCase
+                    } else {
+                        FieldNamingStrategy.Identity
+                    }
 //                logicalTypes = logicalTypes.get()
             )
         val outputDir = outputDir.asFile.get()
@@ -194,9 +199,3 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         }
     }
 }
-
-private fun FieldNamingStrategyType.toGeneratorStrategy(): FieldNamingStrategy =
-    when (this) {
-        FieldNamingStrategyType.IDENTITY -> FieldNamingStrategy.Identity
-        FieldNamingStrategyType.CAMEL_CASE -> FieldNamingStrategy.CamelCase
-    }

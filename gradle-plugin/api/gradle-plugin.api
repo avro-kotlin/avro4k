@@ -11,24 +11,16 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginExt
 }
 
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension {
-	public abstract fun getFieldNamingStrategy ()Lorg/gradle/api/provider/Property;
 	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
-}
-
-public final class com/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType : java/lang/Enum {
-	public static final field CAMEL_CASE Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
-	public static final field IDENTITY Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
-	public static fun values ()[Lcom/github/avrokotlin/avro4k/plugin/gradle/FieldNamingStrategyType;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
 	public final fun generateKotlinSources ()V
-	public abstract fun getFieldNamingStrategy ()Lorg/gradle/api/provider/Property;
 	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 }
 

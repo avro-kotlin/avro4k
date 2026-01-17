@@ -41,36 +41,26 @@ import com.example.yourpackage.YourGeneratedClass
 Avro.encodeToByteArray(YourGeneratedClass(...))
 ```
 
-## Field Naming Strategy
+## Kotlin Field Name Convention
 
-The plugin provides built-in field naming strategies to convert Avro field names to Kotlin property names.
+The plugin provides a flag to convert Avro field names to Kotlin property names.
 This is useful when your Avro schemas use naming conventions that differ from Kotlin conventions.
-
-### Available Strategies
-
-| Strategy | Description | Example: `user_id` → |
-|----------|-------------|---------------------|
-| `IDENTITY` | Keeps original names (default) | `user_id` |
-| `CAMEL_CASE` | Converts to camelCase | `userId` |
 
 ### Usage
 
 ```kotlin
-import com.github.avrokotlin.avro4k.plugin.gradle.FieldNamingStrategyType
-
 avro4k {
     sourcesGeneration {
-        fieldNamingStrategy = FieldNamingStrategyType.IDENTITY    // default
-        fieldNamingStrategy = FieldNamingStrategyType.CAMEL_CASE
+        useKotlinConventionForFieldNames.set(true)
     }
 }
 ```
 
 ### Serialization Compatibility
 
-Since changing the naming strategy only changes the kotlin property name but not the avro's record field name, the generator adds `@SerialName("original_avro_field")` to keep the serialized name. This annotation explicitly maps the Kotlin property back to the original Avro field name.
+When this flag is enabled, the generator adds `@SerialName("original_avro_field")` to keep the serialized name. This annotation explicitly maps the Kotlin property back to the original Avro field name.
 
-For example, with `CAMEL_CASE` strategy and an Avro field named `user_id`:
+For example, with Kotlin conventions enabled and an Avro field named `user_id`:
 
 ```kotlin
 @SerialName("user_id")

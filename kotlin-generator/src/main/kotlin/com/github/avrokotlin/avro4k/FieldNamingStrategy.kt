@@ -31,6 +31,10 @@ private fun splitWords(input: String): List<String> {
         val c = input[i]
         when {
             c == '_' || c == '-' || !c.isLetterOrDigit() -> flush(i)
+            c.isLetter() && i > 0 && input[i - 1].isDigit() -> {
+                flush(i)
+                wordStart = i
+            }
             c.isUpperCase() -> {
                 if (wordStart == -1) {
                     wordStart = i

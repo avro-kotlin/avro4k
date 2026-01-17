@@ -12,67 +12,69 @@ public interface FieldNamingStrategy {
     }
 
     public data object CamelCase : FieldNamingStrategy {
-        override fun format(original: String): String = splitWords(original).joinToCamelCase()
+        override fun format(original: String): String = toCamelCase(original)
     }
 }
 
-private fun splitWords(input: String): List<String> {
-    val words = mutableListOf<String>()
-    var wordStart = -1
+private fun toCamelCase(input: String, doUppercaseFirstChar: Boolean = false) =
+    StringBuilder(input.length).apply {
+        var wordStart = -1
 
-    fun flush(endExclusive: Int) {
-        if (wordStart >= 0) {
-            words.add(input.substring(wordStart, endExclusive))
+        fun startWord(startInclusive: Int) {
+            wordStart = startInclusive
+        }
+
+        fun isWordStarted(): Boolean {
+            return wordStart != -1
+        }
+
+        fun endWord(endExclusive: Int) {
+            if (!doUppercaseFirstChar && isEmpty()) {
+                append(input.substring(wordStart, endExclusive).lowercase())
+            } else {
+                append(input[wordStart].uppercaseChar())
+                append(input.substring(wordStart + 1, endExclusive).lowercase())
+            }
             wordStart = -1
         }
-    }
 
-    for (i in input.indices) {
-        val c = input[i]
-        when {
-            c == '_' || c == '-' || !c.isLetterOrDigit() -> flush(i)
-            c.isLetter() && i > 0 && input[i - 1].isDigit() -> {
-                flush(i)
-                wordStart = i
-            }
-            c.isUpperCase() -> {
-                if (wordStart == -1) {
-                    wordStart = i
-                } else {
-                    val prevIsUpper = input[i - 1].isUpperCase()
-                    if (!prevIsUpper) {
-                        // camelCase boundary: "myXml" -> ["my", "Xml"]
-                        flush(i)
-                        wordStart = i
-                    } else {
-                        val nextIsLower = i + 1 < input.length && input[i + 1].isLowerCase()
-                        if (nextIsLower) {
-                            // acronym end: "XMLParser" -> ["XML", "Parser"]
-                            flush(i)
-                            wordStart = i
-                        }
+        for (i in input.indices) {
+            val c = input[i]
+            when {
+                !c.isLetterOrDigit() -> {
+                    if (isWordStarted()) {
+                        endWord(i)
+                    }
+                }
+
+                !isWordStarted() -> startWord(i)
+
+                !c.isDigit() && input[i - 1].isDigit() -> {
+                    // "abc123" -> ["abc", "123"]
+                    endWord(i)
+                    startWord(i)
+                }
+
+                c.isUpperCase() -> {
+                    if (!input[i - 1].isUpperCase()) {
+                        // "myXml" -> ["my", "Xml"]
+                        endWord(i)
+                        startWord(i)
+                    } else if (i + 1 < input.length && input[i + 1].isLowerCase()) {
+                        // acronym present: "testXMLParser" -> ["test", "XML", "Parser"]
+                        endWord(i)
+                        startWord(i)
                     }
                 }
             }
-            else ->
-                if (wordStart == -1) {
-                    wordStart = i
-                }
         }
-    }
 
-    if (wordStart >= 0) {
-        words.add(input.substring(wordStart))
-    }
-    return words
-}
+        if (isWordStarted()) {
+            endWord(input.length)
+        }
+        if (isEmpty()) {
+            throw IllegalArgumentException("Input string does not contain any valid letter or digit (a-zA-Z0-9)")
+        }
+    }.toString()
 
-private fun List<String>.joinToPascalCase(): String =
-    joinToString("") { it.lowercase().replaceFirstChar { c -> c.uppercaseChar() } }
-
-private fun List<String>.joinToCamelCase(): String =
-    mapIndexed { index, word ->
-        if (index == 0) word.lowercase() else word.lowercase().replaceFirstChar { it.uppercaseChar() }
-    }.joinToString("")
-
-internal fun String.toPascalCase(): String = splitWords(this).joinToPascalCase()
+internal fun String.toPascalCase(): String = toCamelCase(this, doUppercaseFirstChar = true)

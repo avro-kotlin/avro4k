@@ -51,7 +51,7 @@ public interface Avro4kPluginSourcesGenerationExtension {
 
     /**
      * Strategy to map Avro field names to Kotlin property names.
-     * Defaults to [FieldNamingStrategyType.IDENTITY].
+     * Defaults to [FieldNamingStrategyType.IDENTITY] not changing the generated field name.
      */
     public val fieldNamingStrategy: Property<FieldNamingStrategyType>
 

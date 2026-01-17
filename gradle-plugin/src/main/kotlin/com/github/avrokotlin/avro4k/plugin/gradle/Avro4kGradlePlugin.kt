@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k.plugin.gradle
 
+import com.github.avrokotlin.avro4k.FieldNamingStrategy
 import com.github.avrokotlin.avro4k.KotlinGenerator
 import com.squareup.kotlinpoet.FileSpec
 import org.gradle.api.Action
@@ -193,3 +194,9 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
         }
     }
 }
+
+private fun FieldNamingStrategyType.toGeneratorStrategy(): FieldNamingStrategy =
+    when (this) {
+        FieldNamingStrategyType.IDENTITY -> FieldNamingStrategy.Identity
+        FieldNamingStrategyType.CAMEL_CASE -> FieldNamingStrategy.CamelCase
+    }

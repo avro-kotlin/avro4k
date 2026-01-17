@@ -12,6 +12,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.joinToCode
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -554,8 +555,36 @@ public class KotlinGenerator(
                     .takeIf { it.all { it.key is String && it.value != null } }
                     ?.let { getMapOfCodeBlock(it as Map<String, CodeBlock>) }
 
-            // TODO records' defaults are Maps, which needs to be converted to the actual record class instance
-            is TypeSafeSchema.NamedSchema.RecordSchema -> null
+            is TypeSafeSchema.NamedSchema.RecordSchema -> {
+                @Suppress("UNCHECKED_CAST")
+                val defaultMap = (fieldDefault as? Map<*, *>)?.entries?.associate { it.key as String to it.value }
+                    ?: return null
+
+                val args = buildList {
+                    schema.fields.forEach { field ->
+                        val isPresentInDefault = defaultMap.containsKey(field.name)
+                        val valueFromDefault = defaultMap[field.name]
+
+                        val arg =
+                            if (isPresentInDefault) {
+                                // explicit value provided in default (may be null if nullable)
+                                getRecordFieldDefault(field.schema, valueFromDefault)
+                            } else if (field.hasDefaultValue()) {
+                                // field not present in parent default record; fall back to field's own default
+                                getRecordFieldDefault(field.schema, field.defaultValue)
+                            } else {
+                                // field not present and has no explicit default; fall back to implicit defaults if configured
+                                buildImplicitAvroDefaultCodeBlock(field.schema, avro.configuration)
+                            }
+
+                        // if we can't materialize a default for one of the fields, we can't build the record default
+                        if (arg == null) return null
+                        add(arg)
+                    }
+                }
+
+                CodeBlock.of("%T(%L)", schema.asClassName(), args.joinToCode())
+            }
         }
     }
 }

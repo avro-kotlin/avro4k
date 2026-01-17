@@ -10,23 +10,25 @@ import com.github.avrokotlin.avro4k.record
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToByteArray
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
+import kotlin.uuid.Uuid
 
 internal class KotlinUuidEncodingTest : StringSpec({
     val uuid = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
     val uuidString = "123e4567-e89b-12d3-a456-426614174000"
 
     "encode kotlin.uuid.Uuid as string" {
-        val schema = Avro.schema<Uuid>()
+        val schema = Schema.create(Schema.Type.STRING)
         val encoded = Avro.encodeToByteArray(uuid)
         val expectedBytes = encodeToBytesUsingApacheLib(schema, uuidString)
 
         encoded shouldBe expectedBytes
     }
 
-    "encode nullable kotlin.uuid.Uuid" {
+    "encode nullable kotlin.uuid.Uuid as string" {
         val schema = Avro.schema<Uuid?>()
 
         // With value
@@ -38,6 +40,14 @@ internal class KotlinUuidEncodingTest : StringSpec({
         val encodedWithNull = Avro.encodeToByteArray(null as Uuid?)
         val expectedWithNull = encodeToBytesUsingApacheLib(schema, null)
         encodedWithNull shouldBe expectedWithNull
+    }
+
+    "encode kotlin.uuid.Uuid as fixed" {
+        val schema = Schema.createFixed("uuid", null, null, 16)
+        val encoded = Avro.encodeToByteArray(KotlinUuidFixed(uuid))
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, GenericData.Fixed(schema, uuid.toByteArray()))
+
+        encoded shouldBe expectedBytes
     }
 
     "encode kotlin.uuid.Uuid in array" {
@@ -58,6 +68,12 @@ internal class KotlinUuidEncodingTest : StringSpec({
             .isEncodedAs(record(uuidString, uuid2.toByteArray()))
     }
 }) {
+    @JvmInline
+    @Serializable
+    private value class KotlinUuidFixed(
+        @AvroFixed(16) val uuid: Uuid,
+    )
+
     @Serializable
     private data class KotlinUuidRecord(
         val uuidString: Uuid,

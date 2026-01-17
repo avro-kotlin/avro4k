@@ -56,7 +56,7 @@ public fun KotlinGenerator.generateKotlinClassesFromFiles(files: List<File>): Li
  * @param unionNameFormatter A function to format the name of the generated sealed interface for union types.
  *                           The default implementation appends "Union" to the provided base name.
  * @param additionalLogicalTypes Provides a way to specify additional logical types that should be materialized with specific Kotlin classes and serializers.
- *                     All the logical types registered in the built-in [AvroConfiguration] will be present if not overridden by this parameter.
+ *                               All the logical types registered in the built-in [AvroConfiguration] will be present if not overridden by this parameter.
  */
 @InternalAvro4kApi
 public class KotlinGenerator(
@@ -596,15 +596,6 @@ private fun parseJavaClassName(className: String): SerializableTypeName {
     return getKotlinClassReplacement(className)?.nativelySerializable() ?: ClassName.bestGuess(className).contextual()
 }
 
-private fun getBuiltinLogicalTypes() =
-    Avro.configuration.logicalTypes.map {
-        KotlinGenerator.LogicalTypeDescriptor(
-            logicalTypeName = it.key,
-            kotlinClassName = it.value.descriptor.serialName,
-            kSerializerClassName = it.value::class.qualifiedName!!
-        )
-    }
-
 private fun buildLogicalTypesMap(logicalTypes: List<KotlinGenerator.LogicalTypeDescriptor>): Map<String, SerializableTypeName> =
     (getBuiltinLogicalTypes() + logicalTypes).associate { logicalType ->
         val serializedTypeName = parseJavaClassName(logicalType.kotlinClassName)
@@ -613,4 +604,13 @@ private fun buildLogicalTypesMap(logicalTypes: List<KotlinGenerator.LogicalTypeD
         } else {
             logicalType.logicalTypeName to serializedTypeName
         }
+    }
+
+private fun getBuiltinLogicalTypes() =
+    Avro.configuration.logicalTypes.map {
+        KotlinGenerator.LogicalTypeDescriptor(
+            logicalTypeName = it.key,
+            kotlinClassName = it.value.descriptor.serialName,
+            kSerializerClassName = it.value::class.qualifiedName!!
+        )
     }

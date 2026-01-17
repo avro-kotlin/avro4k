@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "Test",
+  "fields": [
+    {
+      "name": "id",
+      "type": {
+        "type": "record",
+        "name": "Id",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "default": ""
+          },
+          {
+            "name": "age",
+            "type": "int",
+            "default": -1
+          }
+        ]
+      },
+      "default": {
+        "name": "",
+        "age": -1
+      }
+    }
+  ]
+}

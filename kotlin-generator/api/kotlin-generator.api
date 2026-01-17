@@ -1,7 +1,3 @@
-public abstract interface class com/github/avrokotlin/avro4k/FieldNamingStrategy {
-	public abstract fun format (Ljava/lang/String;)Ljava/lang/String;
-}
-
 public final class com/github/avrokotlin/avro4k/FieldNamingStrategy$CamelCase : com/github/avrokotlin/avro4k/FieldNamingStrategy {
 	public static final field INSTANCE Lcom/github/avrokotlin/avro4k/FieldNamingStrategy$CamelCase;
 	public fun equals (Ljava/lang/Object;)Z

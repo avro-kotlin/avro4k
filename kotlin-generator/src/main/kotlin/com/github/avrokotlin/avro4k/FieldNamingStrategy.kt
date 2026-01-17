@@ -4,6 +4,7 @@ package com.github.avrokotlin.avro4k
  * Strategy for converting Avro field names to Kotlin property names.
  * Only applies to record fields, not to class/enum/union names.
  */
+@InternalAvro4kApi
 public interface FieldNamingStrategy {
     public fun format(original: String): String
 

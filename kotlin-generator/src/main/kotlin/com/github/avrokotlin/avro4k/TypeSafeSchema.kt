@@ -252,8 +252,8 @@ internal sealed interface TypeSafeSchema : WithProps {
     }
 
     companion object {
-        fun from(schema: String): TypeSafeSchema {
-            return from(Schema.Parser().parse(schema), ReferenceContainer())
+        fun from(schema: Schema): TypeSafeSchema {
+            return from(schema, ReferenceContainer())
         }
 
         private fun from(schema: Schema, seenRecords: ReferenceContainer): TypeSafeSchema {

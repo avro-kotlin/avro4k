@@ -434,8 +434,7 @@ public class KotlinGenerator(
             .let {
                 schema.fields.fold(it) { builder, field ->
                     val kotlinFieldName = fieldNamingStrategy.format(field.name)
-                    val fieldBaseName = field.name.toPascalCase()
-                    val typeName = getTypeName(field.schema, fieldBaseName)
+                    val typeName = getTypeName(field.schema, field.name.toPascalCase())
 
                     builder.addPrimaryProperty(
                         PropertySpec.builder(kotlinFieldName, typeName.typeName)

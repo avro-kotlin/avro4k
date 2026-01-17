@@ -11,6 +11,7 @@ public enum class FieldNamingStrategyType {
      * This is the default strategy.
      */
     IDENTITY,
+
     /**
      * Naming strategy that formats the original avro field name to its camel-case counterpart.
      *

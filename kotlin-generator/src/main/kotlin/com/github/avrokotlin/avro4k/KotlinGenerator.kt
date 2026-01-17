@@ -13,6 +13,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 
@@ -30,6 +31,7 @@ public class KotlinGenerator(
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
     private val unionSubTypeNameFormatter: (String) -> String = { "For$it" },
+    private val fieldNamingStrategy: FieldNamingStrategy = FieldNamingStrategy.Identity,
     logicalTypes: List<LogicalTypeDescriptor> = emptyList(),
 ) {
     @InternalAvro4kApi
@@ -431,11 +433,12 @@ public class KotlinGenerator(
             .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .let {
                 schema.fields.fold(it) { builder, field ->
-                    val typeName = getTypeName(field.schema, field.name.uppercaseFirstChar())
+                    val kotlinFieldName = fieldNamingStrategy.format(field.name)
+                    val typeName = getTypeName(field.schema, field.name.toPascalCase())
 
                     builder.addPrimaryProperty(
-                        PropertySpec.builder(field.name, typeName.typeName)
-                            .initializer(field.name)
+                        PropertySpec.builder(kotlinFieldName, typeName.typeName)
+                            .initializer(kotlinFieldName)
                             .addAnnotations(buildAvroPropAnnotations(field))
                             .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
                             .addKDocIfNotNull(field.doc)
@@ -456,6 +459,15 @@ public class KotlinGenerator(
                             .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
                             .addAnnotationIfNotNull(buildAvroFixedAnnotation(field.schema))
                             .addAnnotationIfNotNull(buildAvroDefaultAnnotation(field))
+                            .apply {
+                                if (fieldNamingStrategy != FieldNamingStrategy.Identity) {
+                                    addAnnotation(
+                                        AnnotationSpec.builder(SerialName::class)
+                                            .addMember("%S", field.name)
+                                            .build()
+                                    )
+                                }
+                            }
                             .addSerializableAnnotation(typeName)
                             .build(),
                         defaultValue =
@@ -476,7 +488,8 @@ public class KotlinGenerator(
             .addTypes(
                 schema.fields.mapNotNull { field ->
                     if (field.schema is TypeSafeSchema.UnionSchema) {
-                        generateSealedInterface(field.schema, unionNameFormatter(field.name.uppercaseFirstChar()), field.name.uppercaseFirstChar())
+                        val unionBaseName = field.name.toPascalCase()
+                        generateSealedInterface(field.schema, unionNameFormatter(unionBaseName), unionBaseName)
                     } else {
                         null
                     }
@@ -559,14 +572,6 @@ private fun TypeName.contextual() = SerializableTypeName(this, serializableAnnot
 /**
  * Any non word character is considered as a separator, and the next character is capitalized.
  */
-private fun String.toPascalCase(): String {
-    return split(Regex("\\W")).joinToString("") { it.uppercaseFirstChar() }
-}
-
-private fun String.uppercaseFirstChar(): String {
-    return replaceFirstChar { it.uppercaseChar() }
-}
-
 private fun TypeSafeSchema.NamedSchema.asClassName() = ClassName(space ?: "", name)
 
 private fun parseJavaClassName(className: String): SerializableTypeName {

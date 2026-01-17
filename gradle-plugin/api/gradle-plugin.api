@@ -13,6 +13,7 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginExt
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension {
 	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {
@@ -20,5 +21,6 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinA
 	public final fun generateKotlinSources ()V
 	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 }
 

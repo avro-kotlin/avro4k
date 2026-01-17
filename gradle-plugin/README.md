@@ -40,3 +40,29 @@ Then, just use your generated classes in your code (the main sourceSet includes 
 import com.example.yourpackage.YourGeneratedClass
 Avro.encodeToByteArray(YourGeneratedClass(...))
 ```
+
+## Kotlin Field Name Convention
+
+The plugin provides a flag to convert Avro field names to Kotlin property names.
+This is useful when your Avro schemas use naming conventions that differ from Kotlin conventions.
+
+### Usage
+
+```kotlin
+avro4k {
+    sourcesGeneration {
+        useKotlinConventionForFieldNames.set(true)
+    }
+}
+```
+
+### Serialization Compatibility
+
+When this flag is enabled, the generator adds `@SerialName("original_avro_field")` to keep the serialized name. This annotation explicitly maps the Kotlin property back to the original Avro field name.
+
+For example, with Kotlin conventions enabled and an Avro field named `user_id`:
+
+```kotlin
+@SerialName("user_id")
+public val userId: Int
+```

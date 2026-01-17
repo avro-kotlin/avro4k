@@ -38,6 +38,7 @@ dependencies {
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.kotest.core)
+    testImplementation(libs.kotest.junit5)
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

@@ -532,6 +532,7 @@ yourAvroInstance.schema<MyData>()
 | `java.time.Duration`         | `fixed(12)`                                 | `string` (ISO8601)                                           | `duration`               | To use it, just annotate the field with `@Contextual`                                                                                               |
 | `java.time.Period`           | `fixed(12)`                                 | `string` (ISO8601)                                           | `duration`               | To use it, just annotate the field with `@Contextual`                                                                                               |
 | `kotlin.time.Duration`       | `fixed(12)`                                 | `string` (ISO8601)                                           | `duration`               |                                                                                                                                                     |
+| `kotlin.uuid.Uuid`           | `string`, `fixed(16)` with `@AvroFixed(16)` |                                                              | `uuid`                   | Native support, no annotation required                                                                                                              |
 
 > [!NOTE]
 > For more details, check the [built-in classes in kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/builtin-classes.md)

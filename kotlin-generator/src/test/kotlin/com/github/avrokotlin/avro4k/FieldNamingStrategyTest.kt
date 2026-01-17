@@ -51,7 +51,8 @@ class FieldNamingStrategyTest : StringSpec({
         "user_id" to "userId",
         "HTTP2Server" to "http2Server",
         "v2_test3Case" to "v2Test3Case",
-        "Version2Number" to "version2Number"
+        "Version2Number" to "version2Number",
+        "version_2_number" to "version2Number",
     ).forEach { (input, expected) ->
         "camel case: $input should produce $expected" {
             FieldNamingStrategy.CamelCase.format(input) shouldBe expected

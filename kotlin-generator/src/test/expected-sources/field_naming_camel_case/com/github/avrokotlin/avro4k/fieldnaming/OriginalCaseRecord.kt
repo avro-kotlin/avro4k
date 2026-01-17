@@ -15,6 +15,7 @@ import kotlin.Int
 import kotlin.OptIn
 import kotlin.String
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -28,18 +29,21 @@ public data class OriginalCaseRecord(
     @AvroDoc("User identifier")
     @AvroAlias("user_identifier")
     @AvroDefault("0")
-    public val user_id: Int = 0,
+    @SerialName("user_id")
+    public val userId: Int = 0,
     /**
      * Full billing address
      */
     @AvroDoc("Full billing address")
-    public val billing_address: BillingAddress,
+    @SerialName("billing_address")
+    public val billingAddress: BillingAddress,
     /**
      * Status wrapper
      */
     @AvroDoc("Status wrapper")
     @AvroAlias("status_alias")
-    public val account_status: AccountStatusUnion? = null,
+    @SerialName("account_status")
+    public val accountStatus: AccountStatusUnion? = null,
 ) {
     @Serializable
     public sealed interface AccountStatusUnion {

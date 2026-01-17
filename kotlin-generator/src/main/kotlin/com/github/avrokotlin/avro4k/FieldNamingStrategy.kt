@@ -8,10 +8,12 @@ package com.github.avrokotlin.avro4k
 public interface FieldNamingStrategy {
     public fun format(original: String): String
 
+    @InternalAvro4kApi
     public data object Identity : FieldNamingStrategy {
         override fun format(original: String): String = original
     }
 
+    @InternalAvro4kApi
     public data object CamelCase : FieldNamingStrategy {
         override fun format(original: String): String = toCamelCase(original)
     }

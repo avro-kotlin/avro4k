@@ -34,7 +34,7 @@ dependencies {
     api(libs.kotlinpoet) {
         exclude(module = "kotlin-reflect")
     }
-    api(project(":core"))
+    implementation(project(":core"))
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.kotest.core)

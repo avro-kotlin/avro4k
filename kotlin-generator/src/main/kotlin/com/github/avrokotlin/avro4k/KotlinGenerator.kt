@@ -15,24 +15,60 @@ import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.apache.avro.JsonSchemaFormatter
+import org.apache.avro.ParseContext
 import org.apache.avro.Schema
+import java.io.File
+
+/**
+ * Generates Kotlin classes from the given list of schema files. It allows having types split across multiple files (generally done to reuse types).
+ *
+ * This function parses and resolves schemas for the provided files (assuming they are in json format), then generates Kotlin code for the parsed schemas.
+ *
+ * @param files A list of files representing the schema definitions to be parsed and converted to Kotlin code. Needs to be only files, in json avro format (no idl yet).
+ * @return A list of FileSpec objects representing the generated Kotlin source code for the provided schemas.
+ */
+@InternalAvro4kApi
+public fun KotlinGenerator.generateKotlinClassesFromFiles(files: List<File>): List<Pair<File, List<FileSpec>>> {
+    // First, load all the schemas to the context to be able to resolve them
+    val context = ParseContext()
+    val parser = Schema.Parser(context)
+    files.forEach { it to parser.parseInternal(it.readText()) }
+    context.commit()
+    // we cannot use the output of resolveAllSchemas, as each input file may contain multiple type, but the root anonymous name is based on the file name
+    context.resolveAllSchemas()
+
+    // Then, make a second pass to parse resolved schemas, based on the context previously loaded
+    // Not perfect as it is loading twice each schema, but the schemas loaded in the context are replaced when resolved.
+    return files.map { file ->
+        file to generateKotlinClasses(parser.parse(file), file.nameWithoutExtension)
+    }
+}
 
 /**
  * Generates Kotlin classes from Avro schemas, fully compatible with avro4k.
  *
- * @param avro The Avro configuration to use mainly for logical types mapping.
- * @param unionNameFormatter A function to format the name of the generated sealed interface for union types. The default implementation appends "Union" to the provided base name.
- * @param logicalTypes Provides a way to specify additional logical types that should be materialized with specific Kotlin classes and serializers.
+ * @param implicitNulls nullable fields that do not have an avro default value will make generated kotlin properties as
+ *                      optional with `null` default and will be decoded as null if missing from the written payload.
+ *                      Defaults to true.
+ * @param implicitEmptyCollections map and array fields that do not have an avro default value will make generated kotlin properties as optional
+ *  *                              with `emptyList()` or `emptyMap()` default and will be decoded as an empty collection if missing from the written payload.
+ *                                 Defaults to true.
+ * @param unionNameFormatter A function to format the name of the generated sealed interface for union types.
+ *                           The default implementation appends "Union" to the provided base name.
+ * @param additionalLogicalTypes Provides a way to specify additional logical types that should be materialized with specific Kotlin classes and serializers.
+ *                               All the logical types registered in the built-in [AvroConfiguration] will be present if not overridden by this parameter.
  */
 @InternalAvro4kApi
 public class KotlinGenerator(
-    private val avro: Avro = Avro,
+    private val implicitNulls: Boolean = true,
+    private val implicitEmptyCollections: Boolean = true,
     private val unionNameFormatter: (String) -> String = { "${it}Union" },
     private val mapNameFormatter: (String) -> String = { "${it}Map" },
     private val arrayNameFormatter: (String) -> String = { "${it}Array" },
     private val unionSubTypeNameFormatter: (String) -> String = { "For$it" },
     private val fieldNamingStrategy: FieldNamingStrategy = FieldNamingStrategy.Identity,
-    logicalTypes: List<LogicalTypeDescriptor> = emptyList(),
+    additionalLogicalTypes: List<LogicalTypeDescriptor> = emptyList(),
 ) {
     @InternalAvro4kApi
     public data class LogicalTypeDescriptor(
@@ -41,42 +77,20 @@ public class KotlinGenerator(
         val kSerializerClassName: String? = null,
     )
 
-    private val logicalTypes: Map<String, SerializableTypeName> =
-        avro.configuration.logicalTypes.mapValues {
-            SerializableTypeName(
-                typeName = ClassName.bestGuess(it.value.descriptor.serialName),
-                serializableAnnotation =
-                    AnnotationSpec.builder(Serializable::class)
-                        .addMember("${Serializable::with.name} = %T::class", it.value::class.asClassName())
-                        .build()
-            )
-        } +
-            logicalTypes.associate {
-                it.logicalTypeName to
-                    run {
-                        val typeName = parseJavaClassName(it.kotlinClassName)
-                        if (it.kSerializerClassName != null) {
-                            SerializableTypeName(
-                                typeName = typeName.typeName,
-                                serializableAnnotation =
-                                    AnnotationSpec.builder(Serializable::class)
-                                        .addMember("${Serializable::with.name} = %T::class", ClassName.bestGuess(it.kSerializerClassName))
-                                        .build()
-                            )
-                        } else {
-                            typeName
-                        }
-                    }
-            }
+    private val logicalTypes: Map<String, SerializableTypeName> = buildLogicalTypesMap(additionalLogicalTypes)
 
     /**
      * Generates Kotlin classes from the provided Avro schema.
      *
-     * @param schema The Avro schema as a JSON string.
+     * @param schema The *resolved* Avro schema. Unresolved schemas or schemas containing unresolved types will fail as it needs to know the content of the type.
      * @param rootAnonymousSchemaName The base name to use for the root schema if it does not have a name (any schema except record, enum or fixed).
      */
-    public fun generateKotlinClasses(schema: String, rootAnonymousSchemaName: String): List<FileSpec> {
-        return generateRootKotlinClasses(TypeSafeSchema.from(schema), Schema.Parser().parse(schema).toString(false), rootAnonymousSchemaName.toPascalCase())
+    public fun generateKotlinClasses(schema: Schema, rootAnonymousSchemaName: String): List<FileSpec> {
+        return generateRootKotlinClasses(
+            TypeSafeSchema.from(schema),
+            JsonSchemaFormatter(false).format(schema),
+            potentialAnonymousClassName = rootAnonymousSchemaName.toPascalCase()
+        )
     }
 
     private fun TypeSpec.toFileSpec(namespace: String? = null): FileSpec {
@@ -101,7 +115,7 @@ public class KotlinGenerator(
         schema.actualJavaClassName?.let {
             return listOf(generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, parseJavaClassName(it).nullableIf(schema.isNullable)).toFileSpec(null))
         }
-        schema.getLogicalTypeName()?.let {
+        schema.findLogicalTypeName()?.let {
             return listOf(generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, it).toFileSpec(null))
         }
         return when (schema) {
@@ -187,10 +201,10 @@ public class KotlinGenerator(
                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
                     .addAnnotationIfNotNull(buildAvroFixedAnnotation(schema))
                     .addAnnotations(buildAvroPropAnnotations(schema))
-                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, avro.configuration))
+                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections))
                     .addSerializableAnnotation(wrappedType)
                     .build(),
-                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, avro.configuration)
+                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
             )
             .addAnnotation(buildAvroGeneratedAnnotation(schemaStr))
             .build()
@@ -205,7 +219,7 @@ public class KotlinGenerator(
             // nothing to generate except the root value class wrapping the already existing logical type
             return emptyList()
         }
-        schema.getLogicalTypeName()?.let {
+        schema.findLogicalTypeName()?.let {
             // nothing to generate except the root value class wrapping the already existing logical type
             return emptyList()
         }
@@ -270,7 +284,7 @@ public class KotlinGenerator(
         }
     }
 
-    private fun TypeSafeSchema.getLogicalTypeName(): SerializableTypeName? {
+    private fun TypeSafeSchema.findLogicalTypeName(): SerializableTypeName? {
         return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this.isNullable)
     }
 
@@ -278,7 +292,7 @@ public class KotlinGenerator(
         schema.actualJavaClassName?.let {
             return parseJavaClassName(it).nullableIf(schema.isNullable)
         }
-        schema.getLogicalTypeName()?.let {
+        schema.findLogicalTypeName()?.let {
             return it
         }
         return when (schema) {
@@ -480,7 +494,7 @@ public class KotlinGenerator(
                                     null
                                 }
                             } else {
-                                buildImplicitAvroDefaultCodeBlock(field.schema, avro.configuration)
+                                buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
                             }
                     )
                 }
@@ -569,6 +583,15 @@ private fun TypeName.nativelySerializable() = SerializableTypeName(this, seriali
 
 private fun TypeName.contextual() = SerializableTypeName(this, serializableAnnotation = AnnotationSpec.builder(Contextual::class.asClassName()).build())
 
+private fun TypeName.withCustomSerializer(kSerializerType: ClassName) =
+    SerializableTypeName(
+        typeName = this,
+        serializableAnnotation =
+            AnnotationSpec.builder(Serializable::class)
+                .addMember("${Serializable::with.name} = %T::class", kSerializerType)
+                .build()
+    )
+
 /**
  * Any non word character is considered as a separator, and the next character is capitalized.
  */
@@ -577,3 +600,22 @@ private fun TypeSafeSchema.NamedSchema.asClassName() = ClassName(space ?: "", na
 private fun parseJavaClassName(className: String): SerializableTypeName {
     return getKotlinClassReplacement(className)?.nativelySerializable() ?: ClassName.bestGuess(className).contextual()
 }
+
+private fun buildLogicalTypesMap(logicalTypes: List<KotlinGenerator.LogicalTypeDescriptor>): Map<String, SerializableTypeName> =
+    (getBuiltinLogicalTypes() + logicalTypes).associate { logicalType ->
+        val serializedTypeName = parseJavaClassName(logicalType.kotlinClassName)
+        if (logicalType.kSerializerClassName != null) {
+            logicalType.logicalTypeName to serializedTypeName.typeName.withCustomSerializer(ClassName.bestGuess(logicalType.kSerializerClassName))
+        } else {
+            logicalType.logicalTypeName to serializedTypeName
+        }
+    }
+
+private fun getBuiltinLogicalTypes() =
+    Avro.configuration.logicalTypes.map {
+        KotlinGenerator.LogicalTypeDescriptor(
+            logicalTypeName = it.key,
+            kotlinClassName = it.value.descriptor.serialName,
+            kSerializerClassName = it.value::class.qualifiedName!!
+        )
+    }

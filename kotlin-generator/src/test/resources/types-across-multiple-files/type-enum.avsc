@@ -1,0 +1,9 @@
+{
+    "type": "enum",
+    "namespace": "ns2",
+    "name": "Enum",
+    "symbols": [
+        "FIRST",
+        "SECOND"
+    ]
+}

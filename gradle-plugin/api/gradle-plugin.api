@@ -12,15 +12,38 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginExt
 
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension {
 	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getLogicalTypes ()Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
+	public fun logicalTypes (Lorg/gradle/api/Action;)V
+}
+
+public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension {
+	public abstract fun getMappings ()Lorg/gradle/api/provider/MapProperty;
+	public fun register (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder;
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
 	public final fun generateKotlinSources ()V
 	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getLogicalTypes ()Lorg/gradle/api/provider/MapProperty;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder {
+	public final fun asContextualType (Ljava/lang/String;)V
+	public final fun asType (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeMapping : java/lang/Record, java/io/Serializable {
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun serializerType ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public final fun type ()Ljava/lang/String;
 }
 

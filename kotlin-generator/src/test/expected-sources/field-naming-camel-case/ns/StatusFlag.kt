@@ -3,7 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
-package com.github.avrokotlin.avro4k.fieldnaming
+package ns
 
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
@@ -12,7 +12,7 @@ import kotlin.OptIn
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""{"type":"enum","name":"StatusFlag","namespace":"com.github.avrokotlin.avro4k.fieldnaming","symbols":["ACTIVE","INACTIVE"]}""")
+@AvroGenerated("""{"type":"enum","name":"StatusFlag","namespace":"ns","symbols":["ACTIVE","INACTIVE"]}""")
 public enum class StatusFlag {
     ACTIVE,
     INACTIVE,

@@ -1,7 +1,7 @@
 {
     "type": "record",
     "name": "OriginalCaseRecord",
-    "namespace": "com.github.avrokotlin.avro4k.fieldnaming",
+    "namespace": "ns",
     "fields": [
         {
             "name": "user_id",

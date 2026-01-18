@@ -3,7 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
-package com.github.avrokotlin.avro4k.fieldnaming
+package ns
 
 import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
@@ -19,7 +19,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""{"type":"record","name":"OriginalCaseRecord","namespace":"com.github.avrokotlin.avro4k.fieldnaming","fields":[{"name":"user_id","type":"int","doc":"User identifier","default":0,"aliases":["user_identifier"]},{"name":"billing_address","type":{"type":"record","name":"BillingAddress","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]},"doc":"Full billing address"},{"name":"account_status","type":["string",{"type":"enum","name":"StatusFlag","symbols":["ACTIVE","INACTIVE"]},"null"],"doc":"Status wrapper","aliases":["status_alias"]}]}""")
+@AvroGenerated("""{"type":"record","name":"OriginalCaseRecord","namespace":"ns","fields":[{"name":"user_id","type":"int","doc":"User identifier","default":0,"aliases":["user_identifier"]},{"name":"billing_address","type":{"type":"record","name":"BillingAddress","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]},"doc":"Full billing address"},{"name":"account_status","type":["string",{"type":"enum","name":"StatusFlag","symbols":["ACTIVE","INACTIVE"]},"null"],"doc":"Status wrapper","aliases":["status_alias"]}]}""")
 public data class OriginalCaseRecord(
     /**
      * User identifier

@@ -3,7 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
-package com.github.avrokotlin.avro4k.fieldnaming
+package ns
 
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
@@ -16,7 +16,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""{"type":"record","name":"BillingAddress","namespace":"com.github.avrokotlin.avro4k.fieldnaming","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]}""")
+@AvroGenerated("""{"type":"record","name":"BillingAddress","namespace":"ns","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]}""")
 public data class BillingAddress(
     /**
      * Street line

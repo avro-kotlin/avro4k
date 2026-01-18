@@ -1,6 +1,6 @@
 {
     "type": "record",
-    "name": "OriginalCaseRecord",
+    "name": "CamelCaseRecord",
     "namespace": "ns",
     "fields": [
         {

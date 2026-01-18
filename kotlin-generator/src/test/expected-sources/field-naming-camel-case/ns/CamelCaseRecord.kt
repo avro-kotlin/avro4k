@@ -19,8 +19,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""{"type":"record","name":"OriginalCaseRecord","namespace":"ns","fields":[{"name":"user_id","type":"int","doc":"User identifier","default":0,"aliases":["user_identifier"]},{"name":"billing_address","type":{"type":"record","name":"BillingAddress","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]},"doc":"Full billing address"},{"name":"account_status","type":["string",{"type":"enum","name":"StatusFlag","symbols":["ACTIVE","INACTIVE"]},"null"],"doc":"Status wrapper","aliases":["status_alias"]}]}""")
-public data class OriginalCaseRecord(
+@AvroGenerated("""{"type":"record","name":"CamelCaseRecord","namespace":"ns","fields":[{"name":"user_id","type":"int","doc":"User identifier","default":0,"aliases":["user_identifier"]},{"name":"billing_address","type":{"type":"record","name":"BillingAddress","fields":[{"name":"street_line","type":"string","doc":"Street line","default":"unknown"}]},"doc":"Full billing address"},{"name":"account_status","type":["string",{"type":"enum","name":"StatusFlag","symbols":["ACTIVE","INACTIVE"]},"null"],"doc":"Status wrapper","aliases":["status_alias"]}]}""")
+public data class CamelCaseRecord(
     /**
      * User identifier
      *

@@ -84,13 +84,11 @@ class KotlinGeneratorTest {
                         )
                     )
             )
-        val generatedFiles =
-            if (schemaFile.isDirectory) {
-                generator.generateKotlinClassesFromFiles(schemaFile.listFiles()!!.toList()).flatMap { it.second }
-            } else {
-                generator.generateKotlinClasses(Schema.Parser().parse(schemaFile), rootAnonymousSchemaName = "TestSchema")
-            }
-        generatedFiles.forEach { generatedFile ->
+        if (schemaFile.isDirectory) {
+            generator.generateKotlinClassesFromFiles(schemaFile.listFiles()!!.toList()).flatMap { it.second }
+        } else {
+            generator.generateKotlinClasses(Schema.Parser().parse(schemaFile), rootAnonymousSchemaName = "TestSchema")
+        }.forEach { generatedFile ->
             generatedFile
                 .toBuilder()
                 .indent("    ")

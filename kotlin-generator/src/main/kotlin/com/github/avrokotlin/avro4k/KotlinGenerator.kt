@@ -450,6 +450,12 @@ public class KotlinGenerator(
                     val kotlinFieldName = fieldNamingStrategy.format(field.name)
                     val typeName = getTypeName(field.schema, field.name.toPascalCase())
 
+                    require(it.propertySpecs.none { it.name == kotlinFieldName }) {
+                        "The record ${schema.fullName} contains duplicated fields when applying custom naming strategy. " +
+                            "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
+                            "Schema: $schema"
+                    }
+
                     builder.addPrimaryProperty(
                         PropertySpec.builder(kotlinFieldName, typeName.typeName)
                             .initializer(kotlinFieldName)

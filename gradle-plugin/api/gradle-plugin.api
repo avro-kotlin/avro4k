@@ -14,6 +14,7 @@ public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4
 	public abstract fun getInputSchemas ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getLogicalTypes ()Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 	public fun logicalTypes (Lorg/gradle/api/Action;)V
 }
 
@@ -28,6 +29,7 @@ public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinA
 	public abstract fun getInputFiles ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getLogicalTypes ()Lorg/gradle/api/provider/MapProperty;
 	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getUseKotlinConventionForFieldNames ()Lorg/gradle/api/provider/Property;
 }
 
 public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder {

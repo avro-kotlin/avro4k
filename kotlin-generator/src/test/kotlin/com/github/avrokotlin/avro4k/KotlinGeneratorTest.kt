@@ -65,9 +65,12 @@ class KotlinGeneratorTest {
     }
 
     private fun generateKotlinFiles(schemaFile: File, outputBaseDir: File) {
+        val testName = schemaFile.nameWithoutExtension
+        val fieldNamingStrategy = resolveFieldNamingStrategy(testName)
         outputBaseDir.deleteRecursively()
         val generator =
             KotlinGenerator(
+                fieldNamingStrategy = fieldNamingStrategy,
                 additionalLogicalTypes =
                     listOf(
                         KotlinGenerator.LogicalTypeDescriptor(
@@ -93,4 +96,10 @@ class KotlinGeneratorTest {
                 .writeTo(outputBaseDir)
         }
     }
+
+    private fun resolveFieldNamingStrategy(testName: String): FieldNamingStrategy =
+        when {
+            testName.startsWith("field-naming-camel-case") -> FieldNamingStrategy.CamelCase
+            else -> FieldNamingStrategy.Identity
+        }
 }

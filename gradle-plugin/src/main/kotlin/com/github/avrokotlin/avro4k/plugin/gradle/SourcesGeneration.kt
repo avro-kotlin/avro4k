@@ -1,5 +1,6 @@
 package com.github.avrokotlin.avro4k.plugin.gradle
 
+import com.github.avrokotlin.avro4k.FieldNamingStrategy
 import com.github.avrokotlin.avro4k.KotlinGenerator
 import com.github.avrokotlin.avro4k.generateKotlinClassesFromFiles
 import com.squareup.kotlinpoet.FileSpec
@@ -8,6 +9,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
@@ -35,6 +37,12 @@ public interface Avro4kPluginSourcesGenerationExtension {
      * By default, this is set to `build/generated/sources/avro/main` directory in the project.
      */
     public val outputDir: DirectoryProperty
+
+    /**
+     * When true, uses Kotlin naming conventions for generated field names (camelCase).
+     * Defaults to false, keeping original avro field names.
+     */
+    public val useKotlinConventionForFieldNames: Property<Boolean>
 
     @get:Nested
     public val logicalTypes: Avro4kPluginSourcesGenerationLogicalTypesExtension
@@ -161,12 +169,22 @@ public abstract class GenerateKotlinAvroSourcesTask : DefaultTask() {
     @get:Input
     public abstract val logicalTypes: MapProperty<String, LogicalTypeMapping>
 
+    @get:Input
+    public abstract val useKotlinConventionForFieldNames: Property<Boolean>
+
     @TaskAction
     public fun generateKotlinSources() {
         val logicalTypes = logicalTypes.get()
+        val fieldNamingStrategy =
+            if (useKotlinConventionForFieldNames.getOrElse(false)) {
+                FieldNamingStrategy.CamelCase
+            } else {
+                FieldNamingStrategy.Identity
+            }
 
         val kotlinGenerator =
             KotlinGenerator(
+                fieldNamingStrategy = fieldNamingStrategy,
                 additionalLogicalTypes =
                     logicalTypes.map {
                         KotlinGenerator.LogicalTypeDescriptor(

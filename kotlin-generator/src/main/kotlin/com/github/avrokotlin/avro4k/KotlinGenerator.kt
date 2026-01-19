@@ -20,6 +20,7 @@ import org.apache.avro.JsonSchemaFormatter
 import org.apache.avro.ParseContext
 import org.apache.avro.Schema
 import java.io.File
+import kotlin.text.format
 
 /**
  * Generates Kotlin classes from the given list of schema files. It allows having types split across multiple files (generally done to reuse types).
@@ -562,26 +563,20 @@ public class KotlinGenerator(
 
                 val args = buildList {
                     schema.fields.forEach { field ->
-                        val arg =
+                        val valueBlock =
                             if (defaultMap.containsKey(field.name)) {
-                                // explicit value provided in default (may be null if nullable)
                                 getRecordFieldDefault(field.schema, defaultMap[field.name])
                             } else if (field.hasDefaultValue()) {
-                                // field not present in parent default record; fall back to field's own default
                                 getRecordFieldDefault(field.schema, field.defaultValue)
                             } else {
-                                // field not present and has no explicit default; fall back to implicit defaults if configured
-                                buildImplicitAvroDefaultCodeBlock(field.schema, avro.configuration)
-                            }
+                                buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)                            }
 
-                        // if we can't materialize a default for one of the fields, we can't build the record default
-                        if (arg == null) return null
-                        add(arg)
+                        if (valueBlock == null) return null
+
+                        add(CodeBlock.of("%N = %L", fieldNamingStrategy.format(field.name), valueBlock))
                     }
                 }
-
-                CodeBlock.of("%T(%L)", schema.asClassName(), args.joinToCode())
-            }
+                CodeBlock.of("%T(%L)", schema.asClassName(), args.joinToCode())            }
         }
     }
 }

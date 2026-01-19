@@ -20,7 +20,6 @@ import org.apache.avro.JsonSchemaFormatter
 import org.apache.avro.ParseContext
 import org.apache.avro.Schema
 import java.io.File
-import kotlin.text.format
 
 /**
  * Generates Kotlin classes from the given list of schema files. It allows having types split across multiple files (generally done to reuse types).

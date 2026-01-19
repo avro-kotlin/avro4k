@@ -562,13 +562,10 @@ public class KotlinGenerator(
 
                 val args = buildList {
                     schema.fields.forEach { field ->
-                        val isPresentInDefault = defaultMap.containsKey(field.name)
-                        val valueFromDefault = defaultMap[field.name]
-
                         val arg =
-                            if (isPresentInDefault) {
+                            if (defaultMap.containsKey(field.name)) {
                                 // explicit value provided in default (may be null if nullable)
-                                getRecordFieldDefault(field.schema, valueFromDefault)
+                                getRecordFieldDefault(field.schema, defaultMap[field.name])
                             } else if (field.hasDefaultValue()) {
                                 // field not present in parent default record; fall back to field's own default
                                 getRecordFieldDefault(field.schema, field.defaultValue)

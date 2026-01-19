@@ -18,6 +18,7 @@ plugins {
 // Optional: customize the plugin configuration
 avro4k {
     sourcesGeneration {
+        useKotlinConventionForFieldNames.set(true)
         inputSchemas.from(file("your-specific-schema.avsc"))
         outputDir = file("src/main/generated")
         logicalTypes {

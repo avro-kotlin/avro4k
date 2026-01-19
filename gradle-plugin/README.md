@@ -229,7 +229,7 @@ avro4k {
 }
 ```
 
-### Serialization Compatibility
+- Serialization Compatibility
 
 When this flag is enabled, the generator adds `@SerialName("original_avro_field")` to keep the serialized name. This annotation explicitly maps the Kotlin property back to the original Avro field name.
 

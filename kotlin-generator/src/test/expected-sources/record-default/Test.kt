@@ -17,5 +17,5 @@ public data class Test(
      * Default value: {name=, age=-1}
      */
     @AvroDefault("{\"name\":\"\",\"age\":-1}")
-    public val id: Id = Id("", -1),
+    public val id: Id = Id(name = "", age = -1),
 )

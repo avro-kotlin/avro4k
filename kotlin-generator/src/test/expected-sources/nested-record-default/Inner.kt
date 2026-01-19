@@ -17,5 +17,5 @@ public data class Inner(
      * Default value: {x=}
      */
     @AvroDefault("{\"x\":\"\"}")
-    public val deep: Deep = Deep(""),
+    public val deep: Deep = Deep(x = ""),
 )

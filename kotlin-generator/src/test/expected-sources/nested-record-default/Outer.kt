@@ -17,5 +17,5 @@ public data class Outer(
      * Default value: {deep={x=}}
      */
     @AvroDefault("{\"deep\":{\"x\":\"\"}}")
-    public val `inner`: Inner = Inner(Deep("")),
+    public val `inner`: Inner = Inner(deep = Deep(x = "")),
 )

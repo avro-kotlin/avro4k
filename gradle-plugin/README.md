@@ -219,7 +219,7 @@ Here is an example of the schema definition:
 The plugin provides a flag to convert Avro field names to Kotlin property names.
 This is useful when your Avro schemas use naming conventions that differ from Kotlin conventions.
 
-### Usage
+Usage:
 
 ```kotlin
 avro4k {

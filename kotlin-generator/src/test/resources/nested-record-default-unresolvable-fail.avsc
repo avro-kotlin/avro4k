@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "OuterUnresolvableFail",
+  "fields": [
+    {
+      "name": "inner",
+      "type": {
+        "type": "record",
+        "name": "InnerUnresolvableFail",
+        "fields": [
+          { "name": "arr", "type": {"type": "array", "items": "string"} }
+        ]
+      },
+      "default": {}
+    }
+  ]
+}

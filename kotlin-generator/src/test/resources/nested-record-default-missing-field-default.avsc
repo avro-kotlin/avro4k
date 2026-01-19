@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "OuterMissingFieldDefault",
+  "fields": [
+    {
+      "name": "inner",
+      "type": {
+        "type": "record",
+        "name": "InnerMissingFieldDefault",
+        "fields": [
+          { "name": "x", "type": "string", "default": "" },
+          { "name": "y", "type": "int", "default": 42 }
+        ]
+      },
+      "default": { "x": "" }
+    }
+  ]
+}

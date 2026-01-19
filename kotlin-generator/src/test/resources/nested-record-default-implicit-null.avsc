@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "OuterImplicitNull",
+  "fields": [
+    {
+      "name": "inner",
+      "type": {
+        "type": "record",
+        "name": "InnerImplicitNull",
+        "fields": [
+          {
+            "name": "deep",
+            "type": ["null", {
+              "type": "record",
+              "name": "DeepImplicitNull",
+              "fields": [
+                { "name": "x", "type": "string" }
+              ]
+            }],
+            "default": null
+          }
+        ]
+      },
+      "default": { "deep": null }
+    }
+  ]
+}

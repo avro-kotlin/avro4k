@@ -1,0 +1,33 @@
+{
+    "type": "record",
+    "name": "OuterImplicitEmptyCollections",
+    "fields": [
+        {
+            "name": "inner",
+            "type": {
+                "type": "record",
+                "name": "InnerImplicitEmptyCollections",
+                "fields": [
+                    {
+                        "name": "items",
+                        "type": {
+                            "type": "array",
+                            "items": "string"
+                        }
+                    },
+                    {
+                        "name": "props",
+                        "type": {
+                            "type": "map",
+                            "values": "string"
+                        }
+                    }
+                ]
+            },
+            "default": {
+                "items": [],
+                "props": {}
+            }
+        }
+    ]
+}

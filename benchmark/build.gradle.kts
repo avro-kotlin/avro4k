@@ -58,7 +58,7 @@ benchmark {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.15")
 
-    val jacksonVersion = "2.20.1"
+    val jacksonVersion = "2.21.0"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-avro:$jacksonVersion")

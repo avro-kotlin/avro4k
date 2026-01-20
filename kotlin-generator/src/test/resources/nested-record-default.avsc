@@ -1,27 +1,37 @@
 {
-  "type": "record",
-  "name": "Outer",
-  "fields": [
-    {
-      "name": "inner",
-      "type": {
-        "type": "record",
-        "name": "Inner",
-        "fields": [
-          {
-            "name": "deep",
+    "type": "record",
+    "name": "Outer",
+    "fields": [
+        {
+            "name": "inner",
             "type": {
-              "type": "record",
-              "name": "Deep",
-              "fields": [
-                { "name": "x", "type": "string", "default": "" }
-              ]
+                "type": "record",
+                "name": "Inner",
+                "fields": [
+                    {
+                        "name": "deep",
+                        "type": {
+                            "type": "record",
+                            "name": "Deep",
+                            "fields": [
+                                {
+                                    "name": "x",
+                                    "type": "string",
+                                    "default": ""
+                                }
+                            ]
+                        },
+                        "default": {
+                            "x": ""
+                        }
+                    }
+                ]
             },
-            "default": { "x": "" }
-          }
-        ]
-      },
-      "default": { "deep": { "x": "" } }
-    }
-  ]
+            "default": {
+                "deep": {
+                    "x": ""
+                }
+            }
+        }
+    ]
 }

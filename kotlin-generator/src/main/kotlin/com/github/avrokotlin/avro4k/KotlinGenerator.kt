@@ -125,15 +125,15 @@ public class KotlinGenerator(
                     generateRecordClass(schema)
                         .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
                 listOf(recordType.toFileSpec(schema.space)) +
-                        // generate nested types
-                        schema.fields.flatMap { field ->
-                            // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
-                            if (field.schema is TypeSafeSchema.UnionSchema) {
-                                field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousClassName, emptyMap()) }
-                            } else {
-                                generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), mapOf(schema.asClassName() to recordType))
-                            }
+                    // generate nested types
+                    schema.fields.flatMap { field ->
+                        // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
+                        if (field.schema is TypeSafeSchema.UnionSchema) {
+                            field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousClassName, emptyMap()) }
+                        } else {
+                            generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), mapOf(schema.asClassName() to recordType))
                         }
+                    }
             }
 
             is TypeSafeSchema.NamedSchema.EnumSchema ->
@@ -159,10 +159,10 @@ public class KotlinGenerator(
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
                 val valueClass = generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, getTypeName(schema, potentialAnonymousClassName))
                 listOf(valueClass.toFileSpec(null)) +
-                        (
-                                schema.actualElementClass?.let { emptyList() }
-                                    ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousClassName), emptyMap())
-                                )
+                    (
+                        schema.actualElementClass?.let { emptyList() }
+                            ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousClassName), emptyMap())
+                    )
             }
 
             is TypeSafeSchema.CollectionSchema.MapSchema -> {
@@ -180,7 +180,7 @@ public class KotlinGenerator(
 
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema,
-                ->
+            ->
                 listOf(
                     generateRootValueClass(
                         schema,
@@ -233,14 +233,14 @@ public class KotlinGenerator(
                             .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
                     // generate nested types
                     listOf(recordType.toFileSpec(schema.space)) +
-                            schema.fields.flatMap { field ->
-                                // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
-                                if (field.schema is TypeSafeSchema.UnionSchema) {
-                                    field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
-                                } else {
-                                    generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
-                                }
+                        schema.fields.flatMap { field ->
+                            // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
+                            if (field.schema is TypeSafeSchema.UnionSchema) {
+                                field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
+                            } else {
+                                generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
                             }
+                        }
                 } else {
                     // recursive schema
                     emptyList()
@@ -263,15 +263,15 @@ public class KotlinGenerator(
                     )
                         .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
                 listOf(unionType.toFileSpec(null)) +
-                        schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
+                    schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
             }
 
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
                 // assuming the class already exists, nothing to generate
                 (
-                        schema.actualElementClass?.let { emptyList() }
-                            ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName), generatedRecords)
-                        )
+                    schema.actualElementClass?.let { emptyList() }
+                        ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName), generatedRecords)
+                )
             }
 
             is TypeSafeSchema.CollectionSchema.MapSchema -> {
@@ -281,7 +281,7 @@ public class KotlinGenerator(
             // fixed type is for now set as ByteArray, so nothing to generate
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema,
-                -> emptyList()
+            -> emptyList()
         }
     }
 
@@ -299,7 +299,7 @@ public class KotlinGenerator(
         return when (schema) {
             is TypeSafeSchema.NamedSchema.RecordSchema,
             is TypeSafeSchema.NamedSchema.EnumSchema,
-                -> {
+            -> {
                 @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
                 (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
             }
@@ -312,7 +312,7 @@ public class KotlinGenerator(
             is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
             is TypeSafeSchema.PrimitiveSchema.BytesSchema,
             is TypeSafeSchema.NamedSchema.FixedSchema,
-                -> ByteArray::class.asClassName().nativelySerializable()
+            -> ByteArray::class.asClassName().nativelySerializable()
 
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
                 val itemType: SerializableTypeName =
@@ -453,8 +453,8 @@ public class KotlinGenerator(
 
                     require(it.propertySpecs.none { it.name == kotlinFieldName }) {
                         "The record ${schema.fullName} contains duplicated fields when applying custom naming strategy. " +
-                                "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
-                                "Schema: $schema"
+                            "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
+                            "Schema: $schema"
                     }
 
                     builder.addPrimaryProperty(
@@ -526,7 +526,7 @@ public class KotlinGenerator(
         return when (schema) {
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema.BytesSchema,
-                -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault as ByteArray).joinToString(", "))
+            -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault as ByteArray).joinToString(", "))
 
             is TypeSafeSchema.NamedSchema.EnumSchema -> CodeBlock.of("%T.%L", schema.asClassName(), fieldDefault)
             is TypeSafeSchema.PrimitiveSchema.StringSchema -> CodeBlock.of("%S", fieldDefault)
@@ -557,20 +557,21 @@ public class KotlinGenerator(
 
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
                 val rawDefaultMap = fieldDefault as? Map<*, *> ?: return null
-                val args = buildList {
-                    schema.fields.forEach { field ->
-                        val valueBlock =
-                            if (rawDefaultMap.containsKey(field.name)) {
-                                getRecordFieldDefault(field.schema, rawDefaultMap[field.name])
-                            } else if (field.hasDefaultValue()) {
-                                getRecordFieldDefault(field.schema, field.defaultValue)
-                            } else {
-                                buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
-                            }
-                        if (valueBlock == null) return null
-                        add(CodeBlock.of("%N = %L", fieldNamingStrategy.format(field.name), valueBlock))
+                val args =
+                    buildList {
+                        schema.fields.forEach { field ->
+                            val valueBlock =
+                                if (rawDefaultMap.containsKey(field.name)) {
+                                    getRecordFieldDefault(field.schema, rawDefaultMap[field.name])
+                                } else if (field.hasDefaultValue()) {
+                                    getRecordFieldDefault(field.schema, field.defaultValue)
+                                } else {
+                                    buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
+                                }
+                            if (valueBlock == null) return null
+                            add(CodeBlock.of("%N = %L", fieldNamingStrategy.format(field.name), valueBlock))
+                        }
                     }
-                }
                 CodeBlock.of("%T(%L)", schema.asClassName(), args.joinToCode())
             }
         }

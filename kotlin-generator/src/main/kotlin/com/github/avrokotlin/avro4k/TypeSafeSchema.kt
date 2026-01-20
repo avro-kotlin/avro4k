@@ -258,7 +258,10 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         private fun from(schema: Schema, seenRecords: ReferenceContainer): TypeSafeSchema {
             val (schema, isNullable) = adaptIfNullable(schema)
-            seenRecords[schema.fullName]?.let { return it }
+            seenRecords[schema.fullName]?.let {
+                if (isNullable) return it.copy(isNullable = true)
+                return it
+            }
 
             return when (schema.type) {
                 Schema.Type.RECORD -> {
@@ -269,7 +272,7 @@ internal sealed interface TypeSafeSchema : WithProps {
                             name = schema.name,
                             space = schema.namespace,
                             fields = fields,
-                            isNullable = isNullable,
+                            isNullable = false,
                             doc = schema.doc,
                             aliases = schema.aliases,
                             props = schema.objectProps
@@ -291,7 +294,11 @@ internal sealed interface TypeSafeSchema : WithProps {
                             props = field.objectProps
                         )
                     }.forEach { fields += it }
-                    recordSchema
+                    if (isNullable) {
+                        recordSchema.copy(isNullable = true)
+                    } else {
+                        recordSchema
+                    }
                 }
 
                 Schema.Type.ENUM ->

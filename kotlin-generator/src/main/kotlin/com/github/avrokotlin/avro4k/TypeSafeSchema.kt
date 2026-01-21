@@ -257,28 +257,28 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         private fun from(schema: Schema, seenRecords: ReferenceContainer): TypeSafeSchema {
-            val (schema, isNullable) = adaptIfNullable(schema)
-            seenRecords[schema.fullName]?.let {
+            val (nonNullSchema, isNullable) = adaptIfNullable(schema)
+            seenRecords[nonNullSchema.fullName]?.let {
                 if (isNullable) return it.copy(isNullable = true)
                 return it
             }
 
-            return when (schema.type) {
+            return when (nonNullSchema.type) {
                 Schema.Type.RECORD -> {
                     val fields = mutableListOf<NamedSchema.RecordSchema.Field>()
                     val recordSchema =
                         NamedSchema.RecordSchema(
-                            schema,
-                            name = schema.name,
-                            space = schema.namespace,
+                            nonNullSchema,
+                            name = nonNullSchema.name,
+                            space = nonNullSchema.namespace,
                             fields = fields,
                             isNullable = false,
-                            doc = schema.doc,
-                            aliases = schema.aliases,
-                            props = schema.objectProps
+                            doc = nonNullSchema.doc,
+                            aliases = nonNullSchema.aliases,
+                            props = nonNullSchema.objectProps
                         )
                     seenRecords.add(recordSchema)
-                    schema.fields.map { field ->
+                    nonNullSchema.fields.map { field ->
                         NamedSchema.RecordSchema.Field(
                             name = field.name(),
                             schema = from(field.schema(), seenRecords),
@@ -303,57 +303,57 @@ internal sealed interface TypeSafeSchema : WithProps {
 
                 Schema.Type.ENUM ->
                     NamedSchema.EnumSchema(
-                        schema,
-                        name = schema.name,
-                        space = schema.namespace,
-                        symbols = schema.enumSymbols.toSet(),
-                        defaultSymbol = schema.enumDefault,
+                        nonNullSchema,
+                        name = nonNullSchema.name,
+                        space = nonNullSchema.namespace,
+                        symbols = nonNullSchema.enumSymbols.toSet(),
+                        defaultSymbol = nonNullSchema.enumDefault,
                         isNullable = isNullable,
-                        doc = schema.doc,
-                        aliases = schema.aliases,
-                        props = schema.objectProps
+                        doc = nonNullSchema.doc,
+                        aliases = nonNullSchema.aliases,
+                        props = nonNullSchema.objectProps
                     )
 
                 Schema.Type.UNION -> {
-                    val types = schema.types.map { from(it, seenRecords) }
-                    UnionSchema(schema, types, isNullable, schema.objectProps)
+                    val types = nonNullSchema.types.map { from(it, seenRecords) }
+                    UnionSchema(nonNullSchema, types, isNullable, nonNullSchema.objectProps)
                 }
 
                 Schema.Type.FIXED ->
                     NamedSchema.FixedSchema(
-                        schema,
-                        name = schema.name,
-                        space = schema.namespace,
-                        size = schema.fixedSize.toUInt(),
+                        nonNullSchema,
+                        name = nonNullSchema.name,
+                        space = nonNullSchema.namespace,
+                        size = nonNullSchema.fixedSize.toUInt(),
                         isNullable = isNullable,
-                        doc = schema.doc,
-                        aliases = schema.aliases,
-                        props = schema.objectProps
+                        doc = nonNullSchema.doc,
+                        aliases = nonNullSchema.aliases,
+                        props = nonNullSchema.objectProps
                     )
 
                 Schema.Type.ARRAY ->
                     CollectionSchema.ArraySchema(
-                        schema,
-                        elementSchema = from(schema.elementType, seenRecords),
+                        nonNullSchema,
+                        elementSchema = from(nonNullSchema.elementType, seenRecords),
                         isNullable = isNullable,
-                        props = schema.objectProps
+                        props = nonNullSchema.objectProps
                     )
 
                 Schema.Type.MAP ->
                     CollectionSchema.MapSchema(
-                        schema,
-                        valueSchema = from(schema.valueType, seenRecords),
+                        nonNullSchema,
+                        valueSchema = from(nonNullSchema.valueType, seenRecords),
                         isNullable = isNullable,
-                        props = schema.objectProps
+                        props = nonNullSchema.objectProps
                     )
 
-                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.INT -> PrimitiveSchema.IntSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.LONG -> PrimitiveSchema.LongSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.STRING -> PrimitiveSchema.StringSchema(schema, isNullable, schema.objectProps)
-                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(schema, isNullable, schema.objectProps)
+                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.INT -> PrimitiveSchema.IntSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.LONG -> PrimitiveSchema.LongSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.STRING -> PrimitiveSchema.StringSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
+                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
 
                 Schema.Type.NULL -> throw IllegalArgumentException("Top-level schema cannot be of NULL type")
             }
@@ -379,6 +379,7 @@ internal sealed interface TypeSafeSchema : WithProps {
             operator fun get(name: String) = references[name]
 
             fun add(reference: NamedSchema.RecordSchema) {
+                require(!reference.isNullable) { "The record reference must not be nullable, as nullability is handled by a union which wraps a non-null record schema" }
                 references[reference.fullName] = reference
             }
         }

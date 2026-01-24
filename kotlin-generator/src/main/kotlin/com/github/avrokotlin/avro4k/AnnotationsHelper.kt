@@ -55,9 +55,9 @@ internal fun buildAvroDecimalAnnotation(schema: TypeSafeSchema): AnnotationSpec?
     return null
 }
 
-internal fun buildAvroGeneratedAnnotation(schemaStr: String): AnnotationSpec {
+internal fun buildAvroGeneratedAnnotation(schema: TypeSafeSchema): AnnotationSpec {
     return AnnotationSpec.builder(AvroGenerated::class.asClassName())
-        .addMember("%P", schemaStr)
+        .addMember("%P", schema.originalSchema.toString())
         .build()
 }
 
@@ -87,7 +87,7 @@ private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue()
         } ?: "null"
 
 internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): AnnotationSpec? {
-    if (implicitNulls && schema.isNullable) {
+    if (implicitNulls && (schema is TypeSafeSchema.NullSchema || schema is TypeSafeSchema.UnionSchema && schema.isNullable)) {
         return buildAvroDefaultAnnotation("null")
     } else if (implicitEmptyCollections) {
         if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
@@ -100,7 +100,7 @@ internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, implicit
 }
 
 internal fun buildImplicitAvroDefaultCodeBlock(schema: TypeSafeSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): CodeBlock? {
-    if (implicitNulls && schema.isNullable) {
+    if (implicitNulls && (schema is TypeSafeSchema.NullSchema || schema is TypeSafeSchema.UnionSchema && schema.isNullable)) {
         return CodeBlock.of("null")
     } else if (implicitEmptyCollections) {
         if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {

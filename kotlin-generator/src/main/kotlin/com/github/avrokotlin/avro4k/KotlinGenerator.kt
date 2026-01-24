@@ -15,7 +15,6 @@ import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.apache.avro.JsonSchemaFormatter
 import org.apache.avro.ParseContext
 import org.apache.avro.Schema
 import java.io.File
@@ -88,7 +87,6 @@ public class KotlinGenerator(
     public fun generateKotlinClasses(schema: Schema, rootAnonymousSchemaName: String): List<FileSpec> {
         return generateRootKotlinClasses(
             TypeSafeSchema.from(schema),
-            JsonSchemaFormatter(false).format(schema),
             potentialAnonymousClassName = rootAnonymousSchemaName.toPascalCase()
         )
     }
@@ -109,66 +107,66 @@ public class KotlinGenerator(
 
     private fun generateRootKotlinClasses(
         schema: TypeSafeSchema,
-        schemaStr: String,
         potentialAnonymousClassName: String,
     ): List<FileSpec> {
         schema.actualJavaClassName?.let {
-            return listOf(generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, parseJavaClassName(it).nullableIf(schema.isNullable)).toFileSpec(null))
+            return listOf(generateRootValueClass(schema, potentialAnonymousClassName, parseJavaClassName(it)).toFileSpec(null))
         }
         schema.findLogicalTypeName()?.let {
-            return listOf(generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, it).toFileSpec(null))
+            return listOf(generateRootValueClass(schema, potentialAnonymousClassName, it).toFileSpec(null))
         }
         return when (schema) {
             is TypeSafeSchema.NamedSchema.RecordSchema -> {
                 val recordType =
                     generateRecordClass(schema)
-                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema))
                 listOf(recordType.toFileSpec(schema.space)) +
-                    // generate nested types
-                    schema.fields.flatMap { field ->
-                        // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
-                        if (field.schema is TypeSafeSchema.UnionSchema) {
-                            field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousClassName, emptyMap()) }
-                        } else {
-                            generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), mapOf(schema.asClassName() to recordType))
+                        // generate nested types
+                        schema.fields.flatMap { field ->
+                            // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
+                            if (field.schema is TypeSafeSchema.UnionSchema) {
+                                field.schema.nonNullTypes.flatMap { generateNestedKotlinClasses(it, potentialAnonymousClassName, emptyMap()) }.toList()
+                            } else {
+                                generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), mapOf(schema.asClassName() to recordType))
+                            }
                         }
-                    }
             }
 
             is TypeSafeSchema.NamedSchema.EnumSchema ->
                 listOf(
                     generateEnumClass(schema)
-                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema))
                         .toFileSpec(schema.space)
                 )
 
             is TypeSafeSchema.UnionSchema -> {
-                val unionType =
+                val type = if (schema.isSimpleNullableType) {
+                    generateRootValueClass(schema, potentialAnonymousClassName, getTypeName(schema, potentialAnonymousClassName)).toFileSpec(null)
+                } else {
                     generateSealedInterface(
                         schema,
                         potentialAnonymousClassName,
                         potentialAnonymousClassName
                     )
-                        .withAnnotation(buildAvroGeneratedAnnotation(schemaStr))
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema))
                         .toFileSpec(null)
-
-                listOf(unionType) + schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousClassName, emptyMap()) }
+                }
+                listOf(type) + schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousClassName, emptyMap()) }
             }
 
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
-                val valueClass = generateRootValueClass(schema, schemaStr, potentialAnonymousClassName, getTypeName(schema, potentialAnonymousClassName))
+                val valueClass = generateRootValueClass(schema, potentialAnonymousClassName, getTypeName(schema, potentialAnonymousClassName))
                 listOf(valueClass.toFileSpec(null)) +
-                    (
-                        schema.actualElementClass?.let { emptyList() }
-                            ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousClassName), emptyMap())
-                    )
+                        (
+                                schema.actualElementClass?.let { emptyList() }
+                                    ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousClassName), emptyMap())
+                                )
             }
 
             is TypeSafeSchema.CollectionSchema.MapSchema -> {
                 val mapType =
                     generateRootValueClass(
                         schema,
-                        schemaStr,
                         potentialAnonymousClassName,
                         getTypeName(schema, potentialAnonymousClassName)
                     )
@@ -179,34 +177,36 @@ public class KotlinGenerator(
 
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema,
-            ->
+                ->
                 listOf(
                     generateRootValueClass(
                         schema,
-                        schemaStr,
                         potentialAnonymousClassName,
                         getTypeName(schema, "<primitive does not have nested type>")
                     ).toFileSpec(null)
                 )
+
+            is TypeSafeSchema.NullSchema -> emptyList()
         }
     }
 
-    private fun generateRootValueClass(schema: TypeSafeSchema, schemaStr: String, className: String, wrappedType: SerializableTypeName): TypeSpec {
+    private fun generateRootValueClass(schema: TypeSafeSchema, className: String, wrappedType: SerializableTypeName): TypeSpec {
+        val nonNullSchema = (schema as? TypeSafeSchema.UnionSchema)?.asNonNullType ?: schema
         return TypeSpec.classBuilder(className)
             .addModifiers(KModifier.VALUE)
             .addAnnotation(JvmInline::class)
             .addAnnotation(Serializable::class)
             .addPrimaryProperty(
                 PropertySpec.builder("value", wrappedType.typeName)
-                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
-                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(schema))
-                    .addAnnotations(buildAvroPropAnnotations(schema))
+                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(nonNullSchema))
+                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(nonNullSchema))
+                    .addAnnotations(buildAvroPropAnnotations(nonNullSchema))
                     .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections))
                     .addSerializableAnnotation(wrappedType)
                     .build(),
                 defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
             )
-            .addAnnotation(buildAvroGeneratedAnnotation(schemaStr))
+            .addAnnotation(buildAvroGeneratedAnnotation(schema))
             .build()
     }
 
@@ -229,17 +229,17 @@ public class KotlinGenerator(
                 if (recordTypeName !in generatedRecords) {
                     val recordType =
                         generateRecordClass(schema)
-                            .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
+                            .withAnnotation(buildAvroGeneratedAnnotation(schema))
                     // generate nested types
                     listOf(recordType.toFileSpec(schema.space)) +
-                        schema.fields.flatMap { field ->
-                            // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
-                            if (field.schema is TypeSafeSchema.UnionSchema) {
-                                field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
-                            } else {
-                                generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
+                            schema.fields.flatMap { field ->
+                                // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
+                                if (field.schema is TypeSafeSchema.UnionSchema) {
+                                    field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
+                                } else {
+                                    generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
+                                }
                             }
-                        }
                 } else {
                     // recursive schema
                     emptyList()
@@ -249,28 +249,31 @@ public class KotlinGenerator(
             is TypeSafeSchema.NamedSchema.EnumSchema ->
                 listOf(
                     generateEnumClass(schema)
-                        .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
+                        .withAnnotation(buildAvroGeneratedAnnotation(schema))
                         .toFileSpec(schema.space)
                 )
 
             is TypeSafeSchema.UnionSchema -> {
                 val unionType =
-                    generateSealedInterface(
-                        schema,
-                        unionNameFormatter(potentialAnonymousBaseName),
-                        potentialAnonymousBaseName
-                    )
-                        .withAnnotation(buildAvroGeneratedAnnotation(schema.originalSchema.toString()))
-                listOf(unionType.toFileSpec(null)) +
-                    schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
+                    if (!schema.isSimpleNullableType) {
+                        generateSealedInterface(
+                            schema,
+                            unionNameFormatter(potentialAnonymousBaseName),
+                            potentialAnonymousBaseName
+                        )
+                            .withAnnotation(buildAvroGeneratedAnnotation(schema))
+                            .toFileSpec(null)
+                            .let { listOf(it) }
+                    } else emptyList()
+                unionType + schema.types.flatMap { subType -> generateNestedKotlinClasses(subType, potentialAnonymousBaseName, generatedRecords) }
             }
 
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
                 // assuming the class already exists, nothing to generate
                 (
-                    schema.actualElementClass?.let { emptyList() }
-                        ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName), generatedRecords)
-                )
+                        schema.actualElementClass?.let { emptyList() }
+                            ?: generateNestedKotlinClasses(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName), generatedRecords)
+                        )
             }
 
             is TypeSafeSchema.CollectionSchema.MapSchema -> {
@@ -280,77 +283,80 @@ public class KotlinGenerator(
             // fixed type is for now set as ByteArray, so nothing to generate
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema,
-            -> emptyList()
+            is TypeSafeSchema.NullSchema,
+                -> emptyList()
         }
     }
 
     private fun TypeSafeSchema.findLogicalTypeName(): SerializableTypeName? {
-        return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this.isNullable)
+        return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this is TypeSafeSchema.UnionSchema && this.isNullable)
     }
 
     private fun getTypeName(schema: TypeSafeSchema, potentialAnonymousBaseName: String): SerializableTypeName {
-        schema.actualJavaClassName?.let {
-            return parseJavaClassName(it).nullableIf(schema.isNullable)
-        }
-        schema.findLogicalTypeName()?.let {
-            return it
-        }
-        return when (schema) {
-            is TypeSafeSchema.NamedSchema.RecordSchema,
-            is TypeSafeSchema.NamedSchema.EnumSchema,
-            -> {
-                @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
-                (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
-            }
-
-            is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.BytesSchema,
-            is TypeSafeSchema.NamedSchema.FixedSchema,
-            -> ByteArray::class.asClassName().nativelySerializable()
-
-            is TypeSafeSchema.CollectionSchema.ArraySchema -> {
-                val itemType: SerializableTypeName =
-                    schema.actualElementClass?.let { parseJavaClassName(it).nullableIf(schema.elementSchema.isNullable) }
-                        ?: getTypeName(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName))
-
-                val wrapperType = List::class.asClassName().parameterizedBy(itemType.typeName)
-                if (!itemType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a List, so we let the whole List be contextual
-                    wrapperType.contextual()
-                } else {
-                    wrapperType.nativelySerializable()
+        return schema.actualJavaClassName?.let { parseJavaClassName(it) }
+            ?: schema.findLogicalTypeName()
+            ?: when (schema) {
+                is TypeSafeSchema.NamedSchema.RecordSchema,
+                is TypeSafeSchema.NamedSchema.EnumSchema,
+                    -> {
+                    @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
+                    (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
                 }
-            }
 
-            is TypeSafeSchema.CollectionSchema.MapSchema -> {
-                val keyType =
-                    schema.actualKeyClass?.let { parseJavaClassName(it) }
-                        ?: String::class.asClassName().nativelySerializable()
-                val valueType = getTypeName(schema.valueSchema, mapNameFormatter(potentialAnonymousBaseName))
+                is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
+                is TypeSafeSchema.PrimitiveSchema.BytesSchema,
+                is TypeSafeSchema.NamedSchema.FixedSchema,
+                    -> ByteArray::class.asClassName().nativelySerializable()
 
-                val wrappedType =
-                    Map::class.asClassName().parameterizedBy(
-                        keyType.typeName,
-                        valueType.typeName
-                    )
-                if (!keyType.isNativelySerializable() || !valueType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a Map, so we let the whole Map be contextual
-                    wrappedType.contextual()
-                } else {
-                    wrappedType.nativelySerializable()
+                is TypeSafeSchema.CollectionSchema.ArraySchema -> {
+                    val itemType: SerializableTypeName =
+                        schema.actualElementClass?.let { parseJavaClassName(it).nullableIf(schema.elementSchema is TypeSafeSchema.UnionSchema && schema.elementSchema.isNullable) }
+                            ?: getTypeName(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName))
+
+                    val wrapperType = List::class.asClassName().parameterizedBy(itemType.typeName)
+                    if (!itemType.isNativelySerializable()) {
+                        // There is no way to annotate the type argument of a List, so we let the whole List be contextual
+                        wrapperType.contextual()
+                    } else {
+                        wrapperType.nativelySerializable()
+                    }
                 }
-            }
 
-            is TypeSafeSchema.UnionSchema -> {
-                // This union will be generated, so it will be natively serializable
-                ClassName("", unionNameFormatter(potentialAnonymousBaseName)).nativelySerializable()
+                is TypeSafeSchema.CollectionSchema.MapSchema -> {
+                    val keyType =
+                        schema.actualKeyClass?.let { parseJavaClassName(it) }
+                            ?: String::class.asClassName().nativelySerializable()
+                    val valueType = getTypeName(schema.valueSchema, mapNameFormatter(potentialAnonymousBaseName))
+
+                    val wrappedType =
+                        Map::class.asClassName().parameterizedBy(
+                            keyType.typeName,
+                            valueType.typeName
+                        )
+                    if (!keyType.isNativelySerializable() || !valueType.isNativelySerializable()) {
+                        // There is no way to annotate the type argument of a Map, so we let the whole Map be contextual
+                        wrappedType.contextual()
+                    } else {
+                        wrappedType.nativelySerializable()
+                    }
+                }
+
+                is TypeSafeSchema.UnionSchema -> {
+                    if (schema.isSimpleNullableType) {
+                        getTypeName(schema.asNonNullType, unionNameFormatter(potentialAnonymousBaseName))
+                    } else {
+                        // This union will be generated, so it will be natively serializable
+                        ClassName("", unionNameFormatter(potentialAnonymousBaseName)).nativelySerializable()
+                    }.nullableIf(schema.isNullable)
+                }
+
+                is TypeSafeSchema.NullSchema -> TODO("null schema typeName")
             }
-        }.nullableIf(schema.isNullable)
     }
 
     /**
@@ -377,7 +383,7 @@ public class KotlinGenerator(
             .addTypes(
                 run {
                     val hasSimilarNames = schema.types.groupBy { it.name }.any { it.value.size > 1 }
-                    schema.types.map { subSchema ->
+                    schema.nonNullTypes.map { subSchema ->
                         val typeName = getTypeName(subSchema, potentialAnonymousBaseName)
                         TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.name.toPascalCase()))
                             .addSuperinterface(ClassName("", className))
@@ -392,7 +398,7 @@ public class KotlinGenerator(
                                     .build()
                             )
                             .build()
-                    }
+                    }.toList()
                 }
             )
             .build()
@@ -452,9 +458,11 @@ public class KotlinGenerator(
 
                     require(it.propertySpecs.none { it.name == kotlinFieldName }) {
                         "The record ${schema.fullName} contains duplicated fields when applying custom naming strategy. " +
-                            "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
-                            "Schema: $schema"
+                                "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
+                                "Schema: $schema"
                     }
+
+                    val nonNullFieldSchema = (field.schema as? TypeSafeSchema.UnionSchema)?.asNonNullType ?: field.schema
 
                     builder.addPrimaryProperty(
                         PropertySpec.builder(kotlinFieldName, typeName.typeName)
@@ -476,8 +484,8 @@ public class KotlinGenerator(
                                 }
                             }
                             .addAnnotationIfNotNull(buildAvroAliasAnnotation(field))
-                            .addAnnotationIfNotNull(buildAvroDecimalAnnotation(field.schema))
-                            .addAnnotationIfNotNull(buildAvroFixedAnnotation(field.schema))
+                            .addAnnotationIfNotNull(buildAvroDecimalAnnotation(nonNullFieldSchema))
+                            .addAnnotationIfNotNull(buildAvroFixedAnnotation(nonNullFieldSchema))
                             .addAnnotationIfNotNull(buildAvroDefaultAnnotation(field))
                             .apply {
                                 if (fieldNamingStrategy != FieldNamingStrategy.Identity) {
@@ -507,7 +515,7 @@ public class KotlinGenerator(
             }
             .addTypes(
                 schema.fields.mapNotNull { field ->
-                    if (field.schema is TypeSafeSchema.UnionSchema) {
+                    if (field.schema is TypeSafeSchema.UnionSchema && !field.schema.isSimpleNullableType) {
                         val unionBaseName = field.name.toPascalCase()
                         generateSealedInterface(field.schema, unionNameFormatter(unionBaseName), unionBaseName)
                     } else {
@@ -520,12 +528,12 @@ public class KotlinGenerator(
     }
 
     private fun getRecordFieldDefault(schema: TypeSafeSchema, fieldDefault: Any?): CodeBlock? {
-        if (fieldDefault == null && schema.isNullable) return CodeBlock.of("null")
+        if (fieldDefault == null && schema is TypeSafeSchema.UnionSchema && schema.isNullable) return CodeBlock.of("null")
 
         return when (schema) {
             is TypeSafeSchema.NamedSchema.FixedSchema,
             is TypeSafeSchema.PrimitiveSchema.BytesSchema,
-            -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault as ByteArray).joinToString(", "))
+                -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault as ByteArray).joinToString(", "))
 
             is TypeSafeSchema.NamedSchema.EnumSchema -> CodeBlock.of("%T.%L", schema.asClassName(), fieldDefault)
             is TypeSafeSchema.PrimitiveSchema.StringSchema -> CodeBlock.of("%S", fieldDefault)
@@ -555,7 +563,9 @@ public class KotlinGenerator(
                     ?.let { getMapOfCodeBlock(it as Map<String, CodeBlock>) }
 
             // TODO records' defaults are Maps, which needs to be converted to the actual record class instance
-            is TypeSafeSchema.NamedSchema.RecordSchema -> null
+            is TypeSafeSchema.NamedSchema.RecordSchema,
+            is TypeSafeSchema.NullSchema,
+                -> null
         }
     }
 }

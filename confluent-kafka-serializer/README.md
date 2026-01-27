@@ -58,7 +58,7 @@ For reflection deserialization, it will be a little bit more specific:
 
 Add the dependency to your project:
 ```kotlin
-implementation("com.github.avro-kotlin.avro4k:confluent-kafka-serializer:<latest-version>")
+implementation("com.github.avro-kotlin.avro4k:avro4k-confluent-kafka-serializer:<latest-version>")
 ```
 
 There are 3 types of serialization:

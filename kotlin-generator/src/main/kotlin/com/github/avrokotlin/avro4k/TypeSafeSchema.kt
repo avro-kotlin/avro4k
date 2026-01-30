@@ -36,7 +36,6 @@ internal sealed interface TypeSafeSchema : WithProps {
     val originalSchema: Schema
 
     val type: SchemaType
-    val isNullable: Boolean
 
     val name: String
     val fullName: String
@@ -59,12 +58,12 @@ internal sealed interface TypeSafeSchema : WithProps {
         MAP,
 
         UNION,
+        NULL,
     }
 
     sealed interface PrimitiveSchema : TypeSafeSchema {
         data class BooleanSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -75,7 +74,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class IntSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -86,7 +84,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class LongSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -97,7 +94,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class FloatSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -108,7 +104,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class DoubleSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -119,7 +114,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class BytesSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema, ByteArraySchema {
             override val type: SchemaType
@@ -130,7 +124,6 @@ internal sealed interface TypeSafeSchema : WithProps {
 
         data class StringSchema(
             override val originalSchema: Schema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : PrimitiveSchema {
             override val type: SchemaType
@@ -140,12 +133,38 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
     }
 
+    data class NullSchema(
+        override val originalSchema: Schema,
+        override val props: Map<String, Any?> = emptyMap(),
+    ) : TypeSafeSchema {
+        override val name: String
+            get() = "null"
+        override val type: SchemaType
+            get() = SchemaType.NULL
+    }
+
     data class UnionSchema(
         override val originalSchema: Schema,
         val types: List<TypeSafeSchema>,
-        override val isNullable: Boolean = false,
         override val props: Map<String, Any?> = emptyMap(),
     ) : TypeSafeSchema {
+        val isNullable by lazy { types.any { it is NullSchema } }
+        val isSimpleNullableType by lazy {
+            types.size == 2 && (types[0] is NullSchema || types[1] is NullSchema)
+        }
+        val asNonNullType by lazy {
+            if (isNullable) {
+                if (types.size == 2) {
+                    types.first { it !is NullSchema }
+                } else {
+                    this.copy(types = types.filter { it !is NullSchema })
+                }
+            } else {
+                this
+            }
+        }
+        val nonNullTypes get() = types.asSequence().filter { it !is NullSchema }
+
         override val type: SchemaType
             get() = SchemaType.UNION
         override val name: String
@@ -156,7 +175,6 @@ internal sealed interface TypeSafeSchema : WithProps {
         data class ArraySchema(
             override val originalSchema: Schema,
             val elementSchema: TypeSafeSchema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : CollectionSchema {
             override val type: SchemaType
@@ -168,7 +186,6 @@ internal sealed interface TypeSafeSchema : WithProps {
         data class MapSchema(
             override val originalSchema: Schema,
             val valueSchema: TypeSafeSchema,
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : CollectionSchema {
             override val type: SchemaType
@@ -191,7 +208,6 @@ internal sealed interface TypeSafeSchema : WithProps {
             val fields: List<Field>,
             override val doc: String? = null,
             override val aliases: Set<String> = emptySet(),
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : NamedSchema {
             override val type: SchemaType
@@ -220,7 +236,6 @@ internal sealed interface TypeSafeSchema : WithProps {
             val size: UInt,
             override val doc: String? = null,
             override val aliases: Set<String> = emptySet(),
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : NamedSchema, ByteArraySchema {
             init {
@@ -239,7 +254,6 @@ internal sealed interface TypeSafeSchema : WithProps {
             val defaultSymbol: String? = null,
             override val doc: String? = null,
             override val aliases: Set<String> = emptySet(),
-            override val isNullable: Boolean = false,
             override val props: Map<String, Any?> = emptyMap(),
         ) : NamedSchema {
             init {
@@ -257,28 +271,25 @@ internal sealed interface TypeSafeSchema : WithProps {
         }
 
         private fun from(schema: Schema, seenRecords: ReferenceContainer): TypeSafeSchema {
-            val (nonNullSchema, isNullable) = adaptIfNullable(schema)
-            seenRecords[nonNullSchema.fullName]?.let {
-                if (isNullable) return it.copy(isNullable = true)
+            seenRecords[schema.fullName]?.let {
                 return it
             }
 
-            return when (nonNullSchema.type) {
+            return when (schema.type) {
                 Schema.Type.RECORD -> {
                     val fields = mutableListOf<NamedSchema.RecordSchema.Field>()
                     val recordSchema =
                         NamedSchema.RecordSchema(
-                            nonNullSchema,
-                            name = nonNullSchema.name,
-                            space = nonNullSchema.namespace,
+                            schema,
+                            name = schema.name,
+                            space = schema.namespace,
                             fields = fields,
-                            isNullable = false,
-                            doc = nonNullSchema.doc,
-                            aliases = nonNullSchema.aliases,
-                            props = nonNullSchema.objectProps
+                            doc = schema.doc,
+                            aliases = schema.aliases,
+                            props = schema.objectProps
                         )
                     seenRecords.add(recordSchema)
-                    nonNullSchema.fields.map { field ->
+                    schema.fields.map { field ->
                         NamedSchema.RecordSchema.Field(
                             name = field.name(),
                             schema = from(field.schema(), seenRecords),
@@ -294,80 +305,59 @@ internal sealed interface TypeSafeSchema : WithProps {
                             props = field.objectProps
                         )
                     }.forEach { fields += it }
-                    if (isNullable) {
-                        recordSchema.copy(isNullable = true)
-                    } else {
-                        recordSchema
-                    }
+                    recordSchema
                 }
 
                 Schema.Type.ENUM ->
                     NamedSchema.EnumSchema(
-                        nonNullSchema,
-                        name = nonNullSchema.name,
-                        space = nonNullSchema.namespace,
-                        symbols = nonNullSchema.enumSymbols.toSet(),
-                        defaultSymbol = nonNullSchema.enumDefault,
-                        isNullable = isNullable,
-                        doc = nonNullSchema.doc,
-                        aliases = nonNullSchema.aliases,
-                        props = nonNullSchema.objectProps
+                        schema,
+                        name = schema.name,
+                        space = schema.namespace,
+                        symbols = schema.enumSymbols.toSet(),
+                        defaultSymbol = schema.enumDefault,
+                        doc = schema.doc,
+                        aliases = schema.aliases,
+                        props = schema.objectProps
                     )
 
                 Schema.Type.UNION -> {
-                    val types = nonNullSchema.types.map { from(it, seenRecords) }
-                    UnionSchema(nonNullSchema, types, isNullable, nonNullSchema.objectProps)
+                    val types = schema.types.map { from(it, seenRecords) }
+                    UnionSchema(schema, types, schema.objectProps)
                 }
 
                 Schema.Type.FIXED ->
                     NamedSchema.FixedSchema(
-                        nonNullSchema,
-                        name = nonNullSchema.name,
-                        space = nonNullSchema.namespace,
-                        size = nonNullSchema.fixedSize.toUInt(),
-                        isNullable = isNullable,
-                        doc = nonNullSchema.doc,
-                        aliases = nonNullSchema.aliases,
-                        props = nonNullSchema.objectProps
+                        schema,
+                        name = schema.name,
+                        space = schema.namespace,
+                        size = schema.fixedSize.toUInt(),
+                        doc = schema.doc,
+                        aliases = schema.aliases,
+                        props = schema.objectProps
                     )
 
                 Schema.Type.ARRAY ->
                     CollectionSchema.ArraySchema(
-                        nonNullSchema,
-                        elementSchema = from(nonNullSchema.elementType, seenRecords),
-                        isNullable = isNullable,
-                        props = nonNullSchema.objectProps
+                        schema,
+                        elementSchema = from(schema.elementType, seenRecords),
+                        props = schema.objectProps
                     )
 
                 Schema.Type.MAP ->
                     CollectionSchema.MapSchema(
-                        nonNullSchema,
-                        valueSchema = from(nonNullSchema.valueType, seenRecords),
-                        isNullable = isNullable,
-                        props = nonNullSchema.objectProps
+                        schema,
+                        valueSchema = from(schema.valueType, seenRecords),
+                        props = schema.objectProps
                     )
 
-                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.INT -> PrimitiveSchema.IntSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.LONG -> PrimitiveSchema.LongSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.STRING -> PrimitiveSchema.StringSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(nonNullSchema, isNullable, nonNullSchema.objectProps)
-
-                Schema.Type.NULL -> throw IllegalArgumentException("Top-level schema cannot be of NULL type")
-            }
-        }
-
-        private fun adaptIfNullable(schema: Schema): Pair<Schema, Boolean> {
-            return if (schema.isNullable) {
-                if (schema.types.size == 2) {
-                    schema.types.first { it.type != Schema.Type.NULL } to true
-                } else {
-                    Schema.createUnion(schema.types.filter { it.type != Schema.Type.NULL }) to true
-                }
-            } else {
-                schema to false
+                Schema.Type.BOOLEAN -> PrimitiveSchema.BooleanSchema(schema, schema.objectProps)
+                Schema.Type.INT -> PrimitiveSchema.IntSchema(schema, schema.objectProps)
+                Schema.Type.LONG -> PrimitiveSchema.LongSchema(schema, schema.objectProps)
+                Schema.Type.FLOAT -> PrimitiveSchema.FloatSchema(schema, schema.objectProps)
+                Schema.Type.DOUBLE -> PrimitiveSchema.DoubleSchema(schema, schema.objectProps)
+                Schema.Type.STRING -> PrimitiveSchema.StringSchema(schema, schema.objectProps)
+                Schema.Type.BYTES -> PrimitiveSchema.BytesSchema(schema, schema.objectProps)
+                Schema.Type.NULL -> NullSchema(schema, schema.objectProps)
             }
         }
 
@@ -379,7 +369,6 @@ internal sealed interface TypeSafeSchema : WithProps {
             operator fun get(name: String) = references[name]
 
             fun add(reference: NamedSchema.RecordSchema) {
-                require(!reference.isNullable) { "The record reference must not be nullable, as nullability is handled by a union which wraps a non-null record schema" }
                 references[reference.fullName] = reference
             }
         }

@@ -10,6 +10,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.joinToCode
@@ -131,3 +132,11 @@ internal fun getKotlinClassReplacement(className: String): ClassName? =
         Double::class.javaObjectType.name, Double::class.javaPrimitiveType!!.name -> Double::class.asClassName()
         else -> null
     }
+
+internal fun ClassName.Companion.fromFullName(fullName: String) =
+    ClassName.bestGuess(fullName)
+
+internal fun TypeName.nullableIf(toBeNullable: Boolean): TypeName {
+    if (toBeNullable == isNullable) return this
+    return copy(nullable = toBeNullable)
+}

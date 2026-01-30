@@ -20,6 +20,5 @@ import kotlinx.serialization.Serializable
 public value class TestSchema(
     @AvroProp("logicalType", "timestamp-micros")
     @AvroDefault("null")
-    @Serializable(with = InstantSerializer::class)
-    public val `value`: Instant? = null,
+    public val `value`: @Serializable(with = InstantSerializer::class) Instant? = null,
 )

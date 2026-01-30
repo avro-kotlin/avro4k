@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"int","logicalType":"time-millis"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "time-millis")
-    @Serializable(with = LocalTimeSerializer::class)
-    public val `value`: LocalTime,
+    public val `value`: @Serializable(with = LocalTimeSerializer::class) LocalTime,
 )

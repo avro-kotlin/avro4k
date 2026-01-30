@@ -25,6 +25,5 @@ public value class TestSchema(
     @AvroProp("logicalType", "decimal")
     @AvroProp("precision", "10")
     @AvroProp("scale", "4")
-    @Serializable(with = BigDecimalSerializer::class)
-    public val `value`: BigDecimal,
+    public val `value`: @Serializable(with = BigDecimalSerializer::class) BigDecimal,
 )

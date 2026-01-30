@@ -17,6 +17,6 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"string","logicalType":"customLogicalTypeWithKSerializer"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "customLogicalTypeWithKSerializer")
-    @Serializable(with = CustomLogicalType.TheNestedSerializer::class)
-    public val `value`: CustomLogicalType,
+    public val `value`:
+            @Serializable(with = CustomLogicalType.TheNestedSerializer::class) CustomLogicalType,
 )

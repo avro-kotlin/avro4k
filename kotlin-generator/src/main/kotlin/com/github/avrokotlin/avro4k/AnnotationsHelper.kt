@@ -3,8 +3,11 @@ package com.github.avrokotlin.avro4k
 import com.fasterxml.jackson.databind.node.BinaryNode
 import com.github.avrokotlin.avro4k.internal.AvroGenerated
 import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.asClassName
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.apache.avro.util.internal.JacksonUtils
 
 internal fun buildAvroFixedAnnotation(schema: TypeSafeSchema): AnnotationSpec? {
@@ -120,3 +123,11 @@ internal fun buildAvroDocAnnotation(carrier: WithDoc): AnnotationSpec? {
     }
     return null
 }
+
+internal fun buildSerializableAnnotation(kSerializerType: ClassName): AnnotationSpec =
+    AnnotationSpec.builder(Serializable::class)
+        .addMember("${Serializable::with.name} = %T::class", kSerializerType)
+        .build()
+
+internal fun buildContextualAnnotation(): AnnotationSpec =
+    AnnotationSpec.builder(Contextual::class.asClassName()).build()

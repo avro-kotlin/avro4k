@@ -28,6 +28,5 @@ public data class NestedLogicalTypeDecimalBytes(
         precision = 10,
     )
     @AvroDefault("null")
-    @Serializable(with = BigDecimalSerializer::class)
-    public val amount: BigDecimal?,
+    public val amount: @Serializable(with = BigDecimalSerializer::class) BigDecimal?,
 )

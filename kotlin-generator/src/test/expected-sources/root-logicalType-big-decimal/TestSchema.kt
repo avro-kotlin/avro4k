@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"bytes","logicalType":"big-decimal"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "big-decimal")
-    @Serializable(with = BigDecimalSerializer::class)
-    public val `value`: BigDecimal,
+    public val `value`: @Serializable(with = BigDecimalSerializer::class) BigDecimal,
 )

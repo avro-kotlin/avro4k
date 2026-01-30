@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"string","logicalType":"uuid"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "uuid")
-    @Serializable(with = UUIDSerializer::class)
-    public val `value`: UUID,
+    public val `value`: @Serializable(with = UUIDSerializer::class) UUID,
 )

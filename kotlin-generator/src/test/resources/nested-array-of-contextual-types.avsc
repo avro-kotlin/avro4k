@@ -1,0 +1,17 @@
+{
+    "type": "record",
+    "name": "NestedArrayOfLogicalType",
+    "fields": [
+        {
+            "name": "amounts",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "java-class": "java.time.Instant"
+                }
+            },
+            "doc": "An array of types that are not serializable natively, so it requires @Contextual annotation of the parameterized list's type and not the field"
+        }
+    ]
+}

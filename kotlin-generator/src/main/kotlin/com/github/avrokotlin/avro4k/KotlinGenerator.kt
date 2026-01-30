@@ -1,12 +1,11 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.SerializableTypeName.Companion.addSerializableAnnotation
-import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
@@ -77,7 +76,7 @@ public class KotlinGenerator(
         val kSerializerClassName: String? = null,
     )
 
-    private val logicalTypes: Map<String, SerializableTypeName> = buildLogicalTypesMap(additionalLogicalTypes)
+    private val logicalTypes: Map<String, TypeName> = buildLogicalTypesMap(additionalLogicalTypes)
 
     /**
      * Generates Kotlin classes from the provided Avro schema.
@@ -191,18 +190,17 @@ public class KotlinGenerator(
         }
     }
 
-    private fun generateRootValueClass(schema: TypeSafeSchema, schemaStr: String, className: String, wrappedType: SerializableTypeName): TypeSpec {
+    private fun generateRootValueClass(schema: TypeSafeSchema, schemaStr: String, className: String, wrappedType: TypeName): TypeSpec {
         return TypeSpec.classBuilder(className)
             .addModifiers(KModifier.VALUE)
             .addAnnotation(JvmInline::class)
             .addAnnotation(Serializable::class)
             .addPrimaryProperty(
-                PropertySpec.builder("value", wrappedType.typeName)
+                PropertySpec.builder("value", wrappedType)
                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(schema))
                     .addAnnotationIfNotNull(buildAvroFixedAnnotation(schema))
                     .addAnnotations(buildAvroPropAnnotations(schema))
                     .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections))
-                    .addSerializableAnnotation(wrappedType)
                     .build(),
                 defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
             )
@@ -284,11 +282,11 @@ public class KotlinGenerator(
         }
     }
 
-    private fun TypeSafeSchema.findLogicalTypeName(): SerializableTypeName? {
-        return logicalTypeName?.let { this@KotlinGenerator.logicalTypes[it] }?.nullableIf(this.isNullable)
+    private fun TypeSafeSchema.findLogicalTypeName(): TypeName? {
+        return logicalTypeName?.let { logicalTypes[it] }?.nullableIf(isNullable)
     }
 
-    private fun getTypeName(schema: TypeSafeSchema, potentialAnonymousBaseName: String): SerializableTypeName {
+    private fun getTypeName(schema: TypeSafeSchema, potentialAnonymousBaseName: String): TypeName {
         schema.actualJavaClassName?.let {
             return parseJavaClassName(it).nullableIf(schema.isNullable)
         }
@@ -298,58 +296,37 @@ public class KotlinGenerator(
         return when (schema) {
             is TypeSafeSchema.NamedSchema.RecordSchema,
             is TypeSafeSchema.NamedSchema.EnumSchema,
-            -> {
-                @Suppress("USELESS_CAST") // this is an obvious cast, but needed to convince the compiler
-                (schema as TypeSafeSchema.NamedSchema).asClassName().nativelySerializable()
-            }
+            -> schema.asClassName()
 
-            is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName().nativelySerializable()
-            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName().nativelySerializable()
+            is TypeSafeSchema.PrimitiveSchema.StringSchema -> String::class.asClassName()
+            is TypeSafeSchema.PrimitiveSchema.IntSchema -> Int::class.asClassName()
+            is TypeSafeSchema.PrimitiveSchema.LongSchema -> Long::class.asClassName()
+            is TypeSafeSchema.PrimitiveSchema.BooleanSchema -> Boolean::class.asClassName()
+            is TypeSafeSchema.PrimitiveSchema.FloatSchema -> Float::class.asClassName()
+            is TypeSafeSchema.PrimitiveSchema.DoubleSchema -> Double::class.asClassName()
+
             is TypeSafeSchema.PrimitiveSchema.BytesSchema,
             is TypeSafeSchema.NamedSchema.FixedSchema,
-            -> ByteArray::class.asClassName().nativelySerializable()
+            // To have anything else than a ByteArray for fixed type, the user needs to provide a logical type or a java-class property
+            -> ByteArray::class.asClassName()
 
             is TypeSafeSchema.CollectionSchema.ArraySchema -> {
-                val itemType: SerializableTypeName =
+                val itemType =
                     schema.actualElementClass?.let { parseJavaClassName(it).nullableIf(schema.elementSchema.isNullable) }
                         ?: getTypeName(schema.elementSchema, arrayNameFormatter(potentialAnonymousBaseName))
 
-                val wrapperType = List::class.asClassName().parameterizedBy(itemType.typeName)
-                if (!itemType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a List, so we let the whole List be contextual
-                    wrapperType.contextual()
-                } else {
-                    wrapperType.nativelySerializable()
-                }
+                List::class.asClassName().parameterizedBy(itemType)
             }
 
             is TypeSafeSchema.CollectionSchema.MapSchema -> {
-                val keyType =
-                    schema.actualKeyClass?.let { parseJavaClassName(it) }
-                        ?: String::class.asClassName().nativelySerializable()
+                val keyType = schema.actualKeyClass?.let { parseJavaClassName(it) } ?: String::class.asClassName()
                 val valueType = getTypeName(schema.valueSchema, mapNameFormatter(potentialAnonymousBaseName))
 
-                val wrappedType =
-                    Map::class.asClassName().parameterizedBy(
-                        keyType.typeName,
-                        valueType.typeName
-                    )
-                if (!keyType.isNativelySerializable() || !valueType.isNativelySerializable()) {
-                    // There is no way to annotate the type argument of a Map, so we let the whole Map be contextual
-                    wrappedType.contextual()
-                } else {
-                    wrappedType.nativelySerializable()
-                }
+                Map::class.asClassName().parameterizedBy(keyType, valueType)
             }
 
-            is TypeSafeSchema.UnionSchema -> {
-                // This union will be generated, so it will be natively serializable
-                ClassName("", unionNameFormatter(potentialAnonymousBaseName)).nativelySerializable()
-            }
+            is TypeSafeSchema.UnionSchema ->
+                ClassName.fromFullName(unionNameFormatter(potentialAnonymousBaseName))
         }.nullableIf(schema.isNullable)
     }
 
@@ -380,15 +357,14 @@ public class KotlinGenerator(
                     schema.types.map { subSchema ->
                         val typeName = getTypeName(subSchema, potentialAnonymousBaseName)
                         TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.name.toPascalCase()))
-                            .addSuperinterface(ClassName("", className))
+                            .addSuperinterface(ClassName.fromFullName(className))
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(JvmInline::class)
                             .addAnnotation(Serializable::class)
                             .addPrimaryProperty(
-                                PropertySpec.builder("value", typeName.typeName)
+                                PropertySpec.builder("value", typeName)
                                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(subSchema))
                                     .addAnnotationIfNotNull(buildAvroFixedAnnotation(subSchema))
-                                    .addSerializableAnnotation(typeName)
                                     .build()
                             )
                             .build()
@@ -457,7 +433,7 @@ public class KotlinGenerator(
                     }
 
                     builder.addPrimaryProperty(
-                        PropertySpec.builder(kotlinFieldName, typeName.typeName)
+                        PropertySpec.builder(kotlinFieldName, typeName)
                             .initializer(kotlinFieldName)
                             .addAnnotations(buildAvroPropAnnotations(field))
                             .addAnnotationIfNotNull(buildAvroDocAnnotation(field))
@@ -488,7 +464,6 @@ public class KotlinGenerator(
                                     )
                                 }
                             }
-                            .addSerializableAnnotation(typeName)
                             .build(),
                         defaultValue =
                             if (field.hasDefaultValue()) {
@@ -496,7 +471,7 @@ public class KotlinGenerator(
                                     // TODO recursive types needs to have a default value, or it's not possible to instantiate them
                                     getRecordFieldDefault(field.schema, field.defaultValue)
                                 } else {
-                                    // TODO contextual types needs to be converted to match well the default value
+                                    // Non-natively serializable types are from user code, so they also need custom code to instantiate them
                                     null
                                 }
                             } else {
@@ -554,67 +529,44 @@ public class KotlinGenerator(
                     .takeIf { it.all { it.key is String && it.value != null } }
                     ?.let { getMapOfCodeBlock(it as Map<String, CodeBlock>) }
 
-            // TODO records' defaults are Maps, which needs to be converted to the actual record class instance
+            // TODO records' defaults are Maps, which needs to be converted to the actual record class instance, taking into account potential contextual types or custom serializers
             is TypeSafeSchema.NamedSchema.RecordSchema -> null
         }
     }
 }
 
-private data class SerializableTypeName(
-    val typeName: TypeName,
-    private val serializableAnnotation: AnnotationSpec?,
-) {
-    fun isNativelySerializable() = serializableAnnotation == null
-
-    fun nullableIf(toBeNullable: Boolean): SerializableTypeName {
-        if (toBeNullable == typeName.isNullable) return this
-        return SerializableTypeName(
-            typeName = typeName.copy(nullable = toBeNullable),
-            serializableAnnotation = serializableAnnotation
-        )
-    }
-
-    companion object {
-        fun <T : Annotatable.Builder<T>> T.addSerializableAnnotation(type: SerializableTypeName): T {
-            return if (type.serializableAnnotation != null) {
-                addAnnotation(type.serializableAnnotation)
-            } else {
-                this
-            }
-        }
-    }
-}
-
-private fun TypeName.nativelySerializable() = SerializableTypeName(this, serializableAnnotation = null)
-
-private fun TypeName.contextual() = SerializableTypeName(this, serializableAnnotation = AnnotationSpec.builder(Contextual::class.asClassName()).build())
-
-private fun TypeName.withCustomSerializer(kSerializerType: ClassName) =
-    SerializableTypeName(
-        typeName = this,
-        serializableAnnotation =
-            AnnotationSpec.builder(Serializable::class)
-                .addMember("${Serializable::with.name} = %T::class", kSerializerType)
-                .build()
-    )
-
 /**
- * Any non word character is considered as a separator, and the next character is capitalized.
+ * Checks if the type is natively serializable, i.e. it can be serialized without an explicit serializer or contextual annotation.
  */
+private fun TypeName.isNativelySerializable(): Boolean =
+    annotations.none { it.typeName == Contextual::class.asClassName() || it.typeName == Serializable::class.asClassName() } &&
+        (this !is ParameterizedTypeName || typeArguments.any { it.isNativelySerializable() })
+
 private fun TypeSafeSchema.NamedSchema.asClassName() = ClassName(space ?: "", name)
 
-private fun parseJavaClassName(className: String): SerializableTypeName {
-    return getKotlinClassReplacement(className)?.nativelySerializable() ?: ClassName.bestGuess(className).contextual()
+private fun parseJavaClassName(className: String, kSerializerType: ClassName? = null): TypeName {
+    var shouldBeContextual = false
+
+    val type =
+        getKotlinClassReplacement(className)
+            ?: ClassName.fromFullName(className).also { shouldBeContextual = true }
+
+    return if (shouldBeContextual && kSerializerType == null) {
+        type.withAnnotation(buildContextualAnnotation())
+    } else if (kSerializerType != null) {
+        type.withAnnotation(buildSerializableAnnotation(kSerializerType))
+    } else {
+        type
+    }
 }
 
-private fun buildLogicalTypesMap(logicalTypes: List<KotlinGenerator.LogicalTypeDescriptor>): Map<String, SerializableTypeName> =
+private fun TypeName.withAnnotation(annotation: AnnotationSpec): TypeName =
+    copy(annotations = annotations + annotation)
+
+private fun buildLogicalTypesMap(logicalTypes: List<KotlinGenerator.LogicalTypeDescriptor>): Map<String, TypeName> =
     (getBuiltinLogicalTypes() + logicalTypes).associate { logicalType ->
-        val serializedTypeName = parseJavaClassName(logicalType.kotlinClassName)
-        if (logicalType.kSerializerClassName != null) {
-            logicalType.logicalTypeName to serializedTypeName.typeName.withCustomSerializer(ClassName.bestGuess(logicalType.kSerializerClassName))
-        } else {
-            logicalType.logicalTypeName to serializedTypeName
-        }
+        val kSerializerType = logicalType.kSerializerClassName?.let { ClassName.fromFullName(it) }
+        logicalType.logicalTypeName to parseJavaClassName(logicalType.kotlinClassName, kSerializerType)
     }
 
 private fun getBuiltinLogicalTypes() =

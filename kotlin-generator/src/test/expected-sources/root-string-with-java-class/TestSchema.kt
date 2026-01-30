@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"string","java-class":"java.time.Instant"}""")
 public value class TestSchema(
     @AvroProp("java-class", "java.time.Instant")
-    @Contextual
-    public val `value`: Instant,
+    public val `value`: @Contextual Instant,
 )

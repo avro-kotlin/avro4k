@@ -23,6 +23,5 @@ public data class NestedLogicalTypeBigDecimal(
      */
     @AvroDoc("A nullable big-decimal field")
     @AvroDefault("null")
-    @Serializable(with = BigDecimalSerializer::class)
-    public val amount: BigDecimal?,
+    public val amount: @Serializable(with = BigDecimalSerializer::class) BigDecimal?,
 )

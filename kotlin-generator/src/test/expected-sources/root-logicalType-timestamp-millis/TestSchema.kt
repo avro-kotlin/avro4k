@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"long","logicalType":"timestamp-millis"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "timestamp-millis")
-    @Serializable(with = InstantSerializer::class)
-    public val `value`: Instant,
+    public val `value`: @Serializable(with = InstantSerializer::class) Instant,
 )

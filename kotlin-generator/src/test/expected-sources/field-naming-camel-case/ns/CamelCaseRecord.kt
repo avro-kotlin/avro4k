@@ -46,6 +46,7 @@ public data class CamelCaseRecord(
     public val accountStatus: AccountStatusUnion? = null,
 ) {
     @Serializable
+    @AvroGenerated("""["string",{"type":"enum","name":"StatusFlag","namespace":"ns","symbols":["ACTIVE","INACTIVE"]},"null"]""")
     public sealed interface AccountStatusUnion {
         @JvmInline
         @Serializable

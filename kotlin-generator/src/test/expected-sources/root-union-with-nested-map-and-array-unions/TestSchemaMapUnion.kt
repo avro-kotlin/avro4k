@@ -13,7 +13,7 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""["string",{"type":"array","items":["long","null",{"type":"map","values":["boolean","null"]}]}]""")
+@AvroGenerated("""["string","null",{"type":"array","items":["long","null",{"type":"map","values":["boolean","null"]}]}]""")
 public sealed interface TestSchemaMapUnion {
     @JvmInline
     @Serializable

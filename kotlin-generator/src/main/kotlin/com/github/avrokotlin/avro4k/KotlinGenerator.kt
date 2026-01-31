@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.joinToCode
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -418,7 +419,6 @@ public class KotlinGenerator(
             .let {
                 schema.fields.fold(it) { builder, field ->
                     val kotlinFieldName = fieldNamingStrategy.format(field.name)
-                    val typeName = getTypeName(field.schema, field.name.toPascalCase())
 
                     require(it.propertySpecs.none { it.name == kotlinFieldName }) {
                         "The record ${schema.fullName} contains duplicated fields when applying custom naming strategy. " +
@@ -426,6 +426,7 @@ public class KotlinGenerator(
                             "Schema: $schema"
                     }
 
+                    val typeName = getTypeName(field.schema, kotlinFieldName.toPascalCase())
                     val nonNullFieldSchema = (field.schema as? AvroSchema.UnionSchema)?.unwrapIfSimpleNullableType ?: field.schema
 
                     builder.addPrimaryProperty(
@@ -528,8 +529,32 @@ public class KotlinGenerator(
                 CodeBlock.of("null")
             }
 
-            // TODO records' defaults are Maps, which needs to be converted to the actual record class instance
-            is AvroSchema.RecordSchema -> null
+            is AvroSchema.RecordSchema -> {
+                fieldDefault.jsonObject
+                    .also { fieldDefault ->
+                        // ensure to have no missing field in default map
+                        if (fieldDefault.keys != schema.fields.map { it.name }.toSet()) {
+                            return null
+                        }
+                    }
+                    .map { (fieldName, fieldValue) ->
+                        val field = schema.getFieldByName(fieldName)
+                        if (!getTypeName(field.schema, fieldNamingStrategy.format(fieldName).toPascalCase()).isNativelySerializable()) {
+                            return null
+                        }
+                        val valueBlock = getRecordFieldDefault(field.schema, fieldValue) ?: return null
+                        CodeBlock.of("%N = %L", fieldNamingStrategy.format(field.name), valueBlock)
+                    }
+                    .let {
+                        val typeName = getTypeName(schema, "<ignored>")
+                        if (!typeName.isNativelySerializable()) return null
+                        if (it.isEmpty()) {
+                            CodeBlock.of("%T", typeName)
+                        } else {
+                            CodeBlock.of("%T(%L)", typeName, it.joinToCode())
+                        }
+                    }
+            }
         }
     }
 }

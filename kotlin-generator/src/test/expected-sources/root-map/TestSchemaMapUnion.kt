@@ -13,7 +13,7 @@ import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 @Serializable
-@AvroGenerated("""["double","int"]""")
+@AvroGenerated("""["double","null","int"]""")
 public sealed interface TestSchemaMapUnion {
     @JvmInline
     @Serializable

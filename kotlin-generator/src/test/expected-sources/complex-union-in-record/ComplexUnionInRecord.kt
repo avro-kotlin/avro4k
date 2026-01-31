@@ -23,6 +23,7 @@ public data class ComplexUnionInRecord(
     public val theField: TheFieldUnion? = null,
 ) {
     @Serializable
+    @AvroGenerated("""["null",{"type":"record","name":"NestedRecord","fields":[{"name":"id","type":"string"},{"name":"value","type":"int"}]},{"type":"enum","name":"Status","symbols":["ACTIVE","INACTIVE","PENDING"]},{"type":"array","items":"string"}]""")
     public sealed interface TheFieldUnion {
         @JvmInline
         @Serializable

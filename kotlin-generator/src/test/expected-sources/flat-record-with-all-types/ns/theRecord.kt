@@ -99,13 +99,13 @@ public data class theRecord(
     @AvroDefault("ÿ\u0004\u0007")
     public val f: ByteArray = byteArrayOf(-1, 4, 7),
     /**
-     * Default value: {a=1, b=2}
+     * Default value: {"a":1,"b":2}
      */
     @AvroDefault("{\"a\":1,\"b\":2}")
     public val map: Map<String, Int> = mapOf("a" to 1, "b" to 2),
     public val mapWithNullableValues: Map<String, Int?> = emptyMap(),
     /**
-     * Default value: [17, 42]
+     * Default value: [17,42]
      */
     @AvroDefault("[17,42]")
     public val array: List<Int> = listOf(17, 42),

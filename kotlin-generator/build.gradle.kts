@@ -33,7 +33,6 @@ val allExpectedSourceSets =
         idea.module.testSources += sourceSet.kotlin
         sourceSet
     }
-// TODO fix it to compile expected sources
 val testExpectedSourcesClasses by tasks.registering {
     group = "build"
     description = "Compile all expected-sources source sets at once"
@@ -52,6 +51,7 @@ dependencies {
         exclude(module = "kotlin-reflect")
     }
     implementation(project(":core"))
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.kotest.core)

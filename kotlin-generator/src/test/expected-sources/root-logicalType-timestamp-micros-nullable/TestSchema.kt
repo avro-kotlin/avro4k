@@ -3,7 +3,6 @@
     ExperimentalAvro4kApi::class,
 )
 
-import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
@@ -19,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""[{"type":"long","logicalType":"timestamp-micros"},"null"]""")
 public value class TestSchema(
     @AvroProp("logicalType", "timestamp-micros")
-    @AvroDefault("null")
     public val `value`: @Serializable(with = InstantSerializer::class) Instant? = null,
 )

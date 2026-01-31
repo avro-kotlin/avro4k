@@ -74,26 +74,9 @@ internal fun buildAvroDefaultAnnotation(field: AvroSchema.RecordSchema.Field): A
     if (field.defaultValue == null) {
         return null
     }
-    return buildAvroDefaultAnnotation(field.defaultValue.contentUnquoted)
-}
-
-private fun buildAvroDefaultAnnotation(unquotedDefaultValue: String): AnnotationSpec {
     return AnnotationSpec.builder(AvroDefault::class.asClassName())
-        .addMember("%S", unquotedDefaultValue)
+        .addMember("%S", field.defaultValue.contentUnquoted)
         .build()
-}
-
-internal fun buildImplicitAvroDefaultAnnotation(schema: AvroSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): AnnotationSpec? {
-    if (implicitNulls && schema.isNullable) {
-        return buildAvroDefaultAnnotation("null")
-    } else if (implicitEmptyCollections) {
-        if (schema is AvroSchema.ArraySchema) {
-            return buildAvroDefaultAnnotation("[]")
-        } else if (schema is AvroSchema.MapSchema) {
-            return buildAvroDefaultAnnotation("{}")
-        }
-    }
-    return null
 }
 
 internal fun buildImplicitAvroDefaultCodeBlock(schema: AvroSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): CodeBlock? {

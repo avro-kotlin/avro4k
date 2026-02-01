@@ -201,7 +201,6 @@ public class KotlinGenerator(
                     .addAnnotationIfNotNull(buildAvroDecimalAnnotation(nonNullSchema))
                     .addAnnotationIfNotNull(buildAvroFixedAnnotation(nonNullSchema))
                     .addAnnotations((nonNullSchema as? WithProps)?.let { buildAvroPropAnnotations(it) } ?: emptyList())
-                    .addAnnotationIfNotNull(buildImplicitAvroDefaultAnnotation(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections))
                     .build(),
                 defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
             )

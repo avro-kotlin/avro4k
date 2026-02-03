@@ -1,7 +1,7 @@
 [versions]
 kotlinx-serialization = "1.10.0"
 kotlinx-io = "0.8.2"
-kotest = "5.9.1"
+kotest = "6.1.2"
 okio = "3.16.4"
 apache-avro = "1.12.1"
 confluent-schema-registry = "8.1.1"

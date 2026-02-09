@@ -106,6 +106,7 @@ private fun fromJsonElement(element: JsonElement, currentSpace: String?, knownNa
                                     schema = fromJsonElement(fieldProps.removeMandatory("type"), name.space, knownNamedTypes),
                                     doc = fieldProps.remove("doc")?.stringPrimitive,
                                     aliases = fieldProps.remove("aliases")?.jsonArray?.map { it.stringPrimitive }?.toSet() ?: emptySet(),
+                                    // TODO validate record's default, requiring all the fields to be present, and fixed default to be of expected size
                                     defaultValue = fieldProps.remove("default"),
                                     props = fieldProps
                                 )

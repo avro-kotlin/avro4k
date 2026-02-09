@@ -182,8 +182,15 @@ internal sealed interface AvroSchema {
         override val aliases: Set<Name> = emptySet(),
         override val props: Map<String, JsonElement> = emptyMap(),
     ) : NamedSchema {
+        // set as lazy as records are created first with an empty fields list, then only the list is populated, so this map has to be calculated after it is populated
+        private val fieldsByName by lazy { fields.associateBy { it.name } }
+
         init {
             ensureNotProhibitedProp("type", "fields", "name", "namespace", "aliases", "doc")
+        }
+
+        fun getFieldByName(fieldName: String): Field {
+            return fieldsByName.getValue(fieldName)
         }
 
         data class Field(

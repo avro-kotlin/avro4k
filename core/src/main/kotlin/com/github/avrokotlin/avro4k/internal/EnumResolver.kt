@@ -2,10 +2,9 @@ package com.github.avrokotlin.avro4k.internal
 
 import com.github.avrokotlin.avro4k.AvroEnumDefault
 import kotlinx.serialization.descriptors.SerialDescriptor
-import java.util.WeakHashMap
 
 internal class EnumResolver {
-    private val defaultIndexCache: MutableMap<SerialDescriptor, EnumDefault> = WeakHashMap()
+    private val defaultIndexCache: Cache<SerialDescriptor, EnumDefault> = WeakKeyCache()
 
     private data class EnumDefault(val index: Int?)
 

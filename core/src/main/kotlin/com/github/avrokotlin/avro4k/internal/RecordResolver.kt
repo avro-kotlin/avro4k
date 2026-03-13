@@ -19,7 +19,6 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import java.util.WeakHashMap
 
 internal class RecordResolver(
     private val avro: Avro,
@@ -29,7 +28,7 @@ internal class RecordResolver(
      *
      * Note: We use the descriptor in the key as we could have multiple descriptors for the same record schema, and multiple record schemas for the same descriptor.
      */
-    private val fieldCache: MutableMap<Pair<SerialDescriptor, Schema>, SerializationWorkflow> = WeakHashMap()
+    private val fieldCache: Cache<Schema, Cache<SerialDescriptor, SerializationWorkflow>> = WeakKeyCache()
 
     /**
      * Maps the class fields to the schema fields.
@@ -47,7 +46,9 @@ internal class RecordResolver(
         writerSchema: Schema,
         classDescriptor: SerialDescriptor,
     ): SerializationWorkflow {
-        return fieldCache.getOrPut(classDescriptor to writerSchema) {
+        return fieldCache.getOrPut(writerSchema) {
+            WeakKeyCache()
+        }.getOrPut(classDescriptor) {
             loadCache(classDescriptor, writerSchema)
         }
     }
@@ -87,7 +88,7 @@ internal class RecordResolver(
             if (writerFieldIndexToElementIndex[writerField.pos()] != null) {
                 throw IllegalStateException(
                     "The descriptor $classDescriptor has multiple elements matching to the same writer field '$writerField'. " +
-                        "This is not allowed as it would lead to ambiguous decoding."
+                            "This is not allowed as it would lead to ambiguous decoding."
                 )
             }
             writerFieldIndexToElementIndex[writerField.pos()] = elementIndex
@@ -180,7 +181,7 @@ internal class RecordResolver(
             if (visitedWriterFields[writerField.pos()]) {
                 throw IllegalStateException(
                     "The descriptor $classDescriptor has multiple elements matching to the same writer field '$writerField'. " +
-                        "This is not allowed as it would lead to ambiguous encoding."
+                            "This is not allowed as it would lead to ambiguous encoding."
                 )
             }
             visitedWriterFields[writerField.pos()] = true

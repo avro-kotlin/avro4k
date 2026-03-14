@@ -44,10 +44,9 @@ public class WeakKeyCache<K : Any, V : Any> : Cache<K, V> {
     }
 
     private sealed interface Key<K : Any> {
-        class Stored<K : Any>(val hash: Int, value: K, queue: ReferenceQueue<K>) : Key<K>, WeakReference<K>(
-            value, queue
-        ) {
+        class Stored<K : Any>(val hash: Int, value: K, queue: ReferenceQueue<K>) : Key<K>, WeakReference<K>(value, queue) {
             override fun hashCode(): Int = hash
+
             override fun equals(other: Any?): Boolean {
                 // The stale entries removed in removeStaleEntries() should be the same instance
                 if (this === other) return true
@@ -70,6 +69,7 @@ public class WeakKeyCache<K : Any, V : Any> : Cache<K, V> {
          */
         class Lookup<K : Any>(val hash: Int, val value: K) : Key<K> {
             override fun hashCode(): Int = hash
+
             override fun equals(other: Any?): Boolean {
                 // Lookup keys are only compared against Stored keys during the "get" phase of getOrPut()
                 other as Stored<*>

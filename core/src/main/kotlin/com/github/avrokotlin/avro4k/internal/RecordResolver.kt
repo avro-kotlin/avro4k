@@ -88,7 +88,7 @@ internal class RecordResolver(
             if (writerFieldIndexToElementIndex[writerField.pos()] != null) {
                 throw IllegalStateException(
                     "The descriptor $classDescriptor has multiple elements matching to the same writer field '$writerField'. " +
-                            "This is not allowed as it would lead to ambiguous decoding."
+                        "This is not allowed as it would lead to ambiguous decoding."
                 )
             }
             writerFieldIndexToElementIndex[writerField.pos()] = elementIndex
@@ -181,7 +181,7 @@ internal class RecordResolver(
             if (visitedWriterFields[writerField.pos()]) {
                 throw IllegalStateException(
                     "The descriptor $classDescriptor has multiple elements matching to the same writer field '$writerField'. " +
-                            "This is not allowed as it would lead to ambiguous encoding."
+                        "This is not allowed as it would lead to ambiguous encoding."
                 )
             }
             visitedWriterFields[writerField.pos()] = true

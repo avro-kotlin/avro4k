@@ -2,6 +2,7 @@ package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
+import com.github.avrokotlin.avro4k.internal.WeakKeyCache
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -24,7 +25,7 @@ import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.Schema
-import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
 
 internal val AnyTypeSerializersModule: SerializersModule
     get() =
@@ -43,8 +44,8 @@ internal val AnyTypeSerializersModule: SerializersModule
 @InternalAvro4kApi
 public open class AnySerializer : KSerializer<Any> {
     // No need to use a WeakHashMap with class keys
-    private val encodingCache = HashMap<Class<out Any>, SerializationStrategy<Any>>()
-    private val decodingCache = WeakHashMap<Schema, DeserializationStrategy<Any>>()
+    private val encodingCache = ConcurrentHashMap<Class<out Any>, SerializationStrategy<Any>>()
+    private val decodingCache = WeakKeyCache<Schema, DeserializationStrategy<Any>>()
 
     /**
      * Provides the nullable version of this [AnySerializer].
@@ -112,7 +113,7 @@ public open class AnySerializer : KSerializer<Any> {
     override fun deserialize(decoder: Decoder): Any {
         decoder as AbstractAvroDirectDecoder
         val serializer =
-            decodingCache.computeIfAbsent(decoder.currentWriterSchema) {
+            decodingCache.getOrPut(decoder.currentWriterSchema) {
                 decoder.serializersModule.resolveDeserializationStrategy(decoder.currentWriterSchema, decoder.avro.configuration)
             }
         return decoder.decodeSerializableValue(serializer)

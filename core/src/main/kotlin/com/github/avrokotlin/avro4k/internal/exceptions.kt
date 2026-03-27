@@ -12,10 +12,10 @@ import kotlin.reflect.KClass
 
 internal class AvroSchemaGenerationException(message: String) : SerializationException(message)
 
-context(Decoder)
+context(_: Decoder)
 internal fun DecodedNullError() = SerializationException("Unexpected null value, Decoder.decodeTaggedNotNullMark should be called first")
 
-context(Decoder)
+context(_: Decoder)
 internal fun DecodedNullError(
     descriptor: SerialDescriptor,
     elementIndex: Int,
@@ -25,7 +25,7 @@ internal fun DecodedNullError(
 
 internal fun Decoder.IllegalIndexedAccessError() = UnsupportedOperationException("${this::class.qualifiedName} does not support indexed access")
 
-context(Decoder)
+context(_: Decoder)
 internal inline fun <reified ExpectedType> BadDecodedValueError(
     value: Any?,
     firstExpectedType: KClass<*>,
@@ -44,7 +44,7 @@ internal inline fun <reified ExpectedType> BadDecodedValueError(
     }
 }
 
-context(Decoder)
+context(_: Decoder)
 internal fun BadDecodedValueError(
     value: Any?,
     expectedKind: SerialKind,

@@ -213,7 +213,7 @@ public inline fun AvroDecoder.decodeResolvingChar(
  */
 @ExperimentalAvro4kApi
 public fun interface AnyValueDecoder<T> {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeAny(): T
 }
 
@@ -222,7 +222,7 @@ public fun interface AnyValueDecoder<T> {
  */
 @ExperimentalAvro4kApi
 public fun interface BooleanValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeBoolean(): Boolean
 }
 
@@ -231,7 +231,7 @@ public fun interface BooleanValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface ByteValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeByte(): Byte
 }
 
@@ -240,7 +240,7 @@ public fun interface ByteValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface ShortValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeShort(): Short
 }
 
@@ -249,7 +249,7 @@ public fun interface ShortValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface IntValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeInt(): Int
 }
 
@@ -258,7 +258,7 @@ public fun interface IntValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface LongValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeLong(): Long
 }
 
@@ -267,7 +267,7 @@ public fun interface LongValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface FloatValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeFloat(): Float
 }
 
@@ -276,7 +276,7 @@ public fun interface FloatValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface DoubleValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeDouble(): Double
 }
 
@@ -285,7 +285,7 @@ public fun interface DoubleValueDecoder {
  */
 @ExperimentalAvro4kApi
 public fun interface CharValueDecoder {
-    context(AvroDecoder)
+    context(_: AvroDecoder)
     public fun decodeChar(): Char
 }
 

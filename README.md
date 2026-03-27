@@ -1,6 +1,6 @@
 ![build-main](https://github.com/avro-kotlin/avro4k/workflows/build-main/badge.svg)
 [![Download](https://img.shields.io/maven-central/v/com.github.avro-kotlin.avro4k/avro4k-core)](https://search.maven.org/artifact/com.github.avro-kotlin.avro4k/avro4k-core)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.2-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Avro spec](https://img.shields.io/badge/avro%20spec-1.12.1-blue.svg?logo=apache)](https://avro.apache.org/docs/1.12.1/specification/)
 
 # Introduction

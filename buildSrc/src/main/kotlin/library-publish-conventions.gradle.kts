@@ -5,7 +5,7 @@ plugins {
 group = "com.github.avro-kotlin.avro4k"
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     // do not sign local builds
     if (version != "local-SNAPSHOT") {
         signAllPublications()

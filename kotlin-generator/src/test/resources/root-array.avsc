@@ -1,5 +1,9 @@
 {
     "type": "array",
-    "items": ["double", "null", "int"],
+    "items": [
+        "double",
+        "null",
+        "int"
+    ],
     "java-element-class": "java.lang.Double"
 }

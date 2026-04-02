@@ -1,0 +1,11 @@
+{
+    "type": "record",
+    "name": "SharedRecord",
+    "namespace": "shared",
+    "fields": [
+        {
+            "name": "field",
+            "type": "string"
+        }
+    ]
+}

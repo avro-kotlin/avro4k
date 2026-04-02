@@ -20,6 +20,5 @@ import kotlinx.serialization.Serializable
 public value class TestSchema(
     @AvroFixed(size = 12)
     @AvroProp("logicalType", "duration")
-    @Serializable(with = AvroDurationSerializer::class)
-    public val `value`: AvroDuration,
+    public val `value`: @Serializable(with = AvroDurationSerializer::class) AvroDuration,
 )

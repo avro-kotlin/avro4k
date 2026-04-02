@@ -14,8 +14,6 @@ apiValidation {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
 }
 
@@ -27,8 +25,8 @@ kotlin {
             "com.github.avrokotlin.avro4k.InternalAvro4kApi",
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
         )
-        jvmTarget = JvmTarget.fromTarget(java.sourceCompatibility.toString())
         freeCompilerArgs = listOf("-Xcontext-receivers")
+        jvmToolchain(11)
     }
 }
 

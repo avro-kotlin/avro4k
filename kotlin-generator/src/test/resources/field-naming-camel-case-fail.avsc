@@ -1,0 +1,60 @@
+{
+    "type": "record",
+    "name": "CamelCaseRecord",
+    "namespace": "ns",
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "int",
+            "doc": "User identifier",
+            "aliases": [
+                "user_identifier"
+            ],
+            "default": 0
+        },
+        {
+            "name": "userId",
+            "type": "int",
+            "doc": "User identifier - camelCased",
+            "aliases": [
+                "user_identifier_camelCased"
+            ],
+            "default": 0
+        },
+        {
+            "name": "billing_address",
+            "type": {
+                "type": "record",
+                "name": "BillingAddress",
+                "fields": [
+                    {
+                        "name": "street_line",
+                        "type": "string",
+                        "doc": "Street line",
+                        "default": "unknown"
+                    }
+                ]
+            },
+            "doc": "Full billing address"
+        },
+        {
+            "name": "account_status",
+            "doc": "Status wrapper",
+            "aliases": [
+                "status_alias"
+            ],
+            "type": [
+                "string",
+                {
+                    "type": "enum",
+                    "name": "StatusFlag",
+                    "symbols": [
+                        "ACTIVE",
+                        "INACTIVE"
+                    ]
+                },
+                "null"
+            ]
+        }
+    ]
+}

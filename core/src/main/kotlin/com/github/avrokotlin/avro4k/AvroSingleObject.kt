@@ -26,7 +26,7 @@ import java.io.OutputStream
  * - The 8-byte little-endian CRC-64-AVRO fingerprint of the object’s schema.
  * - The Avro object encoded using Avro’s binary encoding.
  *
- * [spec](https://avro.apache.org/docs/1.11.1/specification/#single-object-encoding)
+ * [spec](https://avro.apache.org/docs/1.12.1/specification/#single-object-encoding)
  *
  * @param schemaRegistry a function to find a schema by its fingerprint, and returns null when not found. You should use [SchemaNormalization.parsingFingerprint64] to generate the fingerprint.
  */

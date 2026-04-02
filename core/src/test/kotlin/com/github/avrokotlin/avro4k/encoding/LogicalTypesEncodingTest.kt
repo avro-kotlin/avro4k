@@ -47,11 +47,14 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
+                BigDecimal("123.45"),
                 LocalDate.ofEpochDay(18262),
                 LocalTime.ofSecondOfDay(45296),
                 Instant.ofEpochSecond(1577889296),
                 Instant.ofEpochSecond(1577889296, 424000),
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174001"),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174002"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
                 LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
@@ -72,12 +75,23 @@ internal class LogicalTypesEncodingTest : StringSpec({
                         SchemaBuilder.fixed("decimalFixed").size(42),
                         org.apache.avro.LogicalTypes.decimal(8, 2)
                     ),
+                    Conversions.BigDecimalConversion().toBytes(
+                        BigDecimal("123.45"),
+                        null,
+                        org.apache.avro.LogicalTypes.bigDecimal()
+                    ),
                     "123.45",
                     18262,
                     45296000,
                     1577889296000,
                     1577889296000424,
                     "123e4567-e89b-12d3-a456-426614174000",
+                    Conversions.UUIDConversion().toFixed(
+                        UUID.fromString("123e4567-e89b-12d3-a456-426614174001"),
+                        SchemaBuilder.fixed("uuid").size(16),
+                        org.apache.avro.LogicalTypes.uuid()
+                    ),
+                    "123e4567-e89b-12d3-a456-426614174002",
                     "http://example.com",
                     "1234567890",
                     1577889296424,
@@ -91,6 +105,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
     "support nullable logical types" {
         AvroAssertions.assertThat(
             NullableLogicalTypes(
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -122,6 +139,9 @@ internal class LogicalTypesEncodingTest : StringSpec({
                     null,
                     null,
                     null,
+                    null,
+                    null,
+                    null,
                     null
                 )
             )
@@ -130,11 +150,14 @@ internal class LogicalTypesEncodingTest : StringSpec({
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
                 BigDecimal("123.45"),
+                BigDecimal("123.45"),
                 LocalDate.ofEpochDay(18262),
                 LocalTime.ofSecondOfDay(45296),
                 Instant.ofEpochSecond(1577889296),
                 Instant.ofEpochSecond(1577889296, 424000),
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174001"),
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174002"),
                 URL("http://example.com"),
                 BigInteger("1234567890"),
                 LocalDateTime.ofEpochSecond(1577889296, 424000000, java.time.ZoneOffset.UTC),
@@ -155,12 +178,23 @@ internal class LogicalTypesEncodingTest : StringSpec({
                         SchemaBuilder.fixed("com.github.avrokotlin.avro4k.encoding.LogicalTypesEncodingTest.decimalFixedNullable").size(42),
                         org.apache.avro.LogicalTypes.decimal(8, 2)
                     ),
+                    Conversions.BigDecimalConversion().toBytes(
+                        BigDecimal("123.45"),
+                        null,
+                        org.apache.avro.LogicalTypes.bigDecimal()
+                    ),
                     "123.45",
                     18262,
                     45296000,
                     1577889296000,
                     1577889296000424,
                     "123e4567-e89b-12d3-a456-426614174000",
+                    Conversions.UUIDConversion().toFixed(
+                        UUID.fromString("123e4567-e89b-12d3-a456-426614174001"),
+                        SchemaBuilder.fixed("uuidFixed").namespace("com.github.avrokotlin.avro4k.encoding.LogicalTypesEncodingTest").size(16),
+                        org.apache.avro.LogicalTypes.uuid()
+                    ),
+                    "123e4567-e89b-12d3-a456-426614174002",
                     "http://example.com",
                     "1234567890",
                     1577889296424,
@@ -176,12 +210,15 @@ internal class LogicalTypesEncodingTest : StringSpec({
     private data class LogicalTypes(
         @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytes: BigDecimal,
         @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixed: BigDecimal,
+        @Contextual val bigDecimal: BigDecimal,
         @Contextual @AvroStringable val decimalString: BigDecimal,
         @Contextual val date: LocalDate,
         @Contextual val time: LocalTime,
         @Contextual val instant: Instant,
         @Serializable(InstantToMicroSerializer::class) val instantMicros: Instant,
-        @Contextual val uuid: UUID,
+        @Contextual val uuidImplicit: UUID,
+        @Contextual @AvroFixed(16) val uuidFixed: UUID,
+        @Contextual @AvroStringable val uuidString: UUID,
         @Contextual val url: URL,
         @Contextual val bigInteger: BigInteger,
         @Contextual val dateTime: LocalDateTime,
@@ -194,12 +231,15 @@ internal class LogicalTypesEncodingTest : StringSpec({
     private data class NullableLogicalTypes(
         @Contextual @AvroDecimal(scale = 2, precision = 8) val decimalBytesNullable: BigDecimal?,
         @Contextual @AvroDecimal(scale = 2, precision = 8) @AvroFixed(42) val decimalFixedNullable: BigDecimal?,
+        @Contextual val bigDecimal: BigDecimal?,
         @Contextual @AvroStringable val decimalStringNullable: BigDecimal?,
         @Contextual val dateNullable: LocalDate?,
         @Contextual val timeNullable: LocalTime?,
         @Contextual val instantNullable: Instant?,
         @Serializable(InstantToMicroSerializer::class) val instantMicrosNullable: Instant?,
-        @Contextual val uuidNullable: UUID?,
+        @Contextual val uuidImplicit: UUID?,
+        @Contextual @AvroFixed(16) val uuidFixed: UUID?,
+        @Contextual @AvroStringable val uuidString: UUID?,
         @Contextual val urlNullable: URL?,
         @Contextual val bigIntegerNullable: BigInteger?,
         @Contextual val dateTimeNullable: LocalDateTime?,

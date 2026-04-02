@@ -1,0 +1,17 @@
+{
+    "type": "record",
+    "name": "NestedArrayOfLogicalType",
+    "fields": [
+        {
+            "name": "amounts",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "logicalType": "customLogicalTypeWithKSerializer"
+                }
+            },
+            "doc": "An array of types having a registered serializer, so needs to add @Serializable(with = CustomLogicalTypeWithKSerializer::class) annotation on the parameterized list's type and not the field"
+        }
+    ]
+}

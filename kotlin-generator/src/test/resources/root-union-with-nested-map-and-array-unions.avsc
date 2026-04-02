@@ -13,7 +13,10 @@
                     "null",
                     {
                         "type": "map",
-                        "values": ["boolean", "null"]
+                        "values": [
+                            "boolean",
+                            "null"
+                        ]
                     }
                 ]
             }
@@ -21,6 +24,10 @@
     },
     {
         "type": "array",
-        "items": ["long", "null", "double"]
+        "items": [
+            "long",
+            "null",
+            "double"
+        ]
     }
 ]

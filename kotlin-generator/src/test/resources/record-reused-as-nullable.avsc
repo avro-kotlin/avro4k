@@ -1,0 +1,27 @@
+{
+    "type": "record",
+    "name": "Test",
+    "fields": [
+        {
+            "name": "nullableId",
+            "type": [
+                "null",
+                {
+                    "type": "record",
+                    "name": "Id",
+                    "fields": [
+                        {
+                            "name": "value",
+                            "type": "string"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "nonNullId",
+            "type": "Id",
+            "doc": "a previous bug made this field nullable"
+        }
+    ]
+}

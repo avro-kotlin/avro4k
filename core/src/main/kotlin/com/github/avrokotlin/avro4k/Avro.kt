@@ -1,13 +1,16 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.Buffer
+import com.github.avrokotlin.avro4k.internal.Cache
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
+import com.github.avrokotlin.avro4k.internal.WeakKeyCache
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.AnyTypeSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaTimeSerializersModule
+import com.github.avrokotlin.avro4k.serializer.KotlinStdLibSerializersModule
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
@@ -22,7 +25,6 @@ import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.modules.plus
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import java.util.WeakHashMap
 
 /**
  * The goal of this class is to serialize and deserialize in avro binary format.
@@ -37,7 +39,7 @@ public sealed class Avro(
     public val configuration: AvroConfiguration,
     public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
-    private val schemaCache: MutableMap<SerialDescriptor, Schema> = WeakHashMap()
+    private val schemaCache: Cache<SerialDescriptor, Schema> = WeakKeyCache()
 
     internal val recordResolver = RecordResolver(this)
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)
@@ -47,6 +49,7 @@ public sealed class Avro(
         AvroConfiguration(),
         JavaStdLibSerializersModule +
             JavaTimeSerializersModule +
+            KotlinStdLibSerializersModule +
             AnyTypeSerializersModule
     )
 
@@ -263,6 +266,8 @@ public class AvroBuilder internal constructor(avro: Avro) {
      * - `time-micros` as [java.time.LocalTime]
      * - `timestamp-millis` as [java.time.Instant]
      * - `timestamp-micros` as [java.time.Instant]
+     * - `decimal` as [java.math.BigDecimal] with specific scale and precision
+     * - `big-decimal` as [java.math.BigDecimal] which allows any scale or precision
      *
      * @param logicalTypeName the name of the logical type to register the serializer for.
      * @param serializer the serializer to use for the logical type.

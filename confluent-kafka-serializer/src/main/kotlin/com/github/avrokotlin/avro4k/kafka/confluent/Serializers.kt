@@ -5,6 +5,8 @@ import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.MissingFieldsEncodingException
+import com.github.avrokotlin.avro4k.internal.Cache
+import com.github.avrokotlin.avro4k.internal.WeakKeyCache
 import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.isNamedSchema
 import com.github.avrokotlin.avro4k.namedSchemaNotFoundInUnionError
@@ -36,7 +38,6 @@ import org.apache.avro.generic.IndexedRecord
 import org.apache.avro.specific.SpecificData
 import org.apache.avro.util.Utf8
 import java.nio.ByteBuffer
-import java.util.WeakHashMap
 import kotlin.reflect.KClass
 
 internal fun Avro.withAnyKSerializer(kSerializer: AnySerializer): Avro =
@@ -202,7 +203,7 @@ internal object GenericFixedKSerializer : AvroSerializer<GenericFixed>(GenericFi
 internal class GenericRecordKSerializer(
     private val anySerializer: AnySerializer,
 ) : AvroSerializer<IndexedRecord>(IndexedRecord::class.qualifiedName!!) {
-    private val cache = WeakHashMap<Schema, SerialDescriptor>()
+    private val cache: Cache<Schema, SerialDescriptor> = WeakKeyCache()
 
     override fun serializeAvro(encoder: AvroEncoder, value: IndexedRecord) {
         with(encoder) {
@@ -245,7 +246,7 @@ internal class GenericRecordKSerializer(
     }
 
     private fun Schema.toGenericDescriptor(): SerialDescriptor =
-        cache.computeIfAbsent(this) {
+        cache.getOrPut(this) {
             buildClassSerialDescriptor(fullName) {
                 fields.forEach { field ->
                     // Let kotlinx serialization know about the field's nullability.

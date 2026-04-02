@@ -9,7 +9,10 @@
             "name": "b",
             "type": "bytes",
             "default": "\u0001\u0002\u0003",
-            "aliases": ["fieldAlias1", "fieldAlias2"],
+            "aliases": [
+                "fieldAlias1",
+                "fieldAlias2"
+            ],
             "customFieldProp": "customValue"
         },
         {
@@ -44,12 +47,18 @@
         },
         {
             "name": "nullableStringField",
-            "type": ["null", "string"],
+            "type": [
+                "null",
+                "string"
+            ],
             "default": null
         },
         {
             "name": "nullableStringFieldButDefaulted",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "default": "default value"
         },
         {
@@ -77,7 +86,10 @@
             "name": "mapWithNullableValues",
             "type": {
                 "type": "map",
-                "values": ["null", "int"]
+                "values": [
+                    "null",
+                    "int"
+                ]
             }
         },
         {
@@ -86,15 +98,24 @@
                 "type": "array",
                 "items": "int"
             },
-            "default": [17, 42]
+            "default": [
+                17,
+                42
+            ]
         },
         {
             "name": "arrayWithNullableValues",
             "type": {
                 "type": "array",
-                "items": ["null", "int"]
+                "items": [
+                    "null",
+                    "int"
+                ]
             }
         }
     ],
-    "aliases": ["alias1", "toto"]
+    "aliases": [
+        "alias1",
+        "toto"
+    ]
 }

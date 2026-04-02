@@ -2,12 +2,18 @@ package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.AvroGenerated
 import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.asClassName
-import org.apache.avro.util.internal.JacksonUtils
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
-internal fun buildAvroFixedAnnotation(schema: TypeSafeSchema): AnnotationSpec? {
-    if (schema !is TypeSafeSchema.NamedSchema.FixedSchema) {
+internal fun buildAvroFixedAnnotation(schema: AvroSchema): AnnotationSpec? {
+    if (schema !is AvroSchema.FixedSchema) {
         return null
     }
     return AnnotationSpec.builder(AvroFixed::class.asClassName())
@@ -20,18 +26,22 @@ internal fun buildAvroPropAnnotations(carrier: WithProps): List<AnnotationSpec> 
         carrier.props.forEach { (key, value) ->
             add(
                 AnnotationSpec.builder(AvroProp::class.asClassName())
-                    .addMember(CodeBlock.of("%S, %S", key, value.toString()))
+                    .addMember(CodeBlock.of("%S, %S", key, value.contentUnquoted))
                     .build()
             )
         }
     }
 }
 
-internal fun buildAvroAliasAnnotation(carrier: WithAliases): AnnotationSpec? {
-    if (carrier.aliases.isNotEmpty()) {
+internal fun buildAvroAliasAnnotation(carrier: AvroSchema.NamedSchema): AnnotationSpec? {
+    return buildAvroAliasAnnotation(carrier.aliases.map { it.fullName })
+}
+
+internal fun buildAvroAliasAnnotation(aliases: Collection<String>): AnnotationSpec? {
+    if (aliases.isNotEmpty()) {
         return AnnotationSpec.builder(AvroAlias::class.asClassName())
             .apply {
-                carrier.aliases.forEach { alias ->
+                aliases.forEach { alias ->
                     addMember(CodeBlock.of("%S", alias))
                 }
             }
@@ -40,69 +50,42 @@ internal fun buildAvroAliasAnnotation(carrier: WithAliases): AnnotationSpec? {
     return null
 }
 
-internal fun buildAvroDecimalAnnotation(schema: TypeSafeSchema): AnnotationSpec? {
-    if (schema !is TypeSafeSchema.NamedSchema.FixedSchema || schema.logicalTypeName != "decimal") {
-        return null
-    }
-    val scale: Int? by schema.props
-    val precision: Int? by schema.props
-    precision ?: error("Missing 'precision' prop for 'decimal' logical type of schema $schema")
+internal fun buildAvroDecimalAnnotation(schema: AvroSchema): AnnotationSpec? {
+    if ((schema is AvroSchema.FixedSchema || schema is AvroSchema.BytesSchema) && schema.logicalTypeName == "decimal") {
+        val scale = schema.props["scale"]?.jsonPrimitive?.intOrNull
+        val precision = schema.props["precision"]?.jsonPrimitive?.intOrNull
+        precision ?: error("Missing 'precision' prop for 'decimal' logical type of schema $schema")
 
-    return AnnotationSpec.builder(AvroDecimal::class.asClassName())
-        .addMember(CodeBlock.of("${AvroDecimal::scale.name} = %L", scale ?: 0))
-        .addMember(CodeBlock.of("${AvroDecimal::precision.name} = %L", precision))
-        .build()
-}
-
-internal fun buildAvroGeneratedAnnotation(schemaStr: String): AnnotationSpec {
-    return AnnotationSpec.builder(AvroGenerated::class.asClassName())
-        .addMember("%P", schemaStr)
-        .build()
-}
-
-internal fun buildAvroDefaultAnnotation(field: TypeSafeSchema.NamedSchema.RecordSchema.Field): AnnotationSpec? {
-    if (!field.hasDefaultValue()) {
-        return null
-    }
-    return buildAvroDefaultAnnotation(field.unquotedDefaultValue())
-}
-
-private fun buildAvroDefaultAnnotation(unquotedDefaultValue: String): AnnotationSpec {
-    return AnnotationSpec.builder(AvroDefault::class.asClassName())
-        .addMember("%S", unquotedDefaultValue)
-        .build()
-}
-
-private fun TypeSafeSchema.NamedSchema.RecordSchema.Field.unquotedDefaultValue(): String =
-    JacksonUtils.toJsonNode(defaultValue)
-        ?.let {
-            if (it.isTextual) {
-                it.asText()
-            } else {
-                it.toString()
-            }
-        } ?: "null"
-
-internal fun buildImplicitAvroDefaultAnnotation(schema: TypeSafeSchema, configuration: AvroConfiguration): AnnotationSpec? {
-    if (configuration.implicitNulls && schema.isNullable) {
-        return buildAvroDefaultAnnotation("null")
-    } else if (configuration.implicitEmptyCollections) {
-        if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
-            return buildAvroDefaultAnnotation("[]")
-        } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
-            return buildAvroDefaultAnnotation("{}")
-        }
+        return AnnotationSpec.builder(AvroDecimal::class.asClassName())
+            .addMember(CodeBlock.of("${AvroDecimal::scale.name} = %L", scale ?: 0))
+            .addMember(CodeBlock.of("${AvroDecimal::precision.name} = %L", precision))
+            .build()
     }
     return null
 }
 
-internal fun buildImplicitAvroDefaultCodeBlock(schema: TypeSafeSchema, configuration: AvroConfiguration): CodeBlock? {
-    if (configuration.implicitNulls && schema.isNullable) {
+internal fun buildAvroGeneratedAnnotation(schema: AvroSchema): AnnotationSpec {
+    return AnnotationSpec.builder(AvroGenerated::class.asClassName())
+        .addMember("%P", schema.toJsonElement().toString())
+        .build()
+}
+
+internal fun buildAvroDefaultAnnotation(field: AvroSchema.RecordSchema.Field): AnnotationSpec? {
+    if (field.defaultValue == null) {
+        return null
+    }
+    return AnnotationSpec.builder(AvroDefault::class.asClassName())
+        .addMember("%S", field.defaultValue.contentUnquoted)
+        .build()
+}
+
+internal fun buildImplicitAvroDefaultCodeBlock(schema: AvroSchema, implicitNulls: Boolean, implicitEmptyCollections: Boolean): CodeBlock? {
+    if (implicitNulls && schema.isNullable) {
         return CodeBlock.of("null")
-    } else if (configuration.implicitEmptyCollections) {
-        if (schema is TypeSafeSchema.CollectionSchema.ArraySchema) {
+    } else if (implicitEmptyCollections) {
+        if (schema is AvroSchema.ArraySchema) {
             return getListOfCodeBlock(emptyList())
-        } else if (schema is TypeSafeSchema.CollectionSchema.MapSchema) {
+        } else if (schema is AvroSchema.MapSchema) {
             return getMapOfCodeBlock(emptyMap())
         }
     }
@@ -117,3 +100,13 @@ internal fun buildAvroDocAnnotation(carrier: WithDoc): AnnotationSpec? {
     }
     return null
 }
+
+internal fun buildSerializableAnnotation(kSerializerType: ClassName): AnnotationSpec =
+    AnnotationSpec.builder(Serializable::class)
+        .addMember("${Serializable::with.name} = %T::class", kSerializerType)
+        .build()
+
+internal fun buildContextualAnnotation(): AnnotationSpec =
+    AnnotationSpec.builder(Contextual::class.asClassName()).build()
+
+private val JsonElement.contentUnquoted: String get() = if (this is JsonPrimitive && isString) content else toString()

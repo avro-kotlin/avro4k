@@ -3,7 +3,6 @@
     ExperimentalAvro4kApi::class,
 )
 
-import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
@@ -16,6 +15,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""["long","null"]""")
 public value class TestSchema(
-    @AvroDefault("null")
     public val `value`: Long? = null,
 )

@@ -1,0 +1,8 @@
+[
+    "ns.Record",
+    "RecordWithoutNamespace",
+    "ns2.Enum",
+    "FixedType",
+    "string",
+    "bytes"
+]

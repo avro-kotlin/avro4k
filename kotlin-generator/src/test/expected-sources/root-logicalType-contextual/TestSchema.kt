@@ -18,6 +18,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"string","logicalType":"contextualLogicalType"}""")
 public value class TestSchema(
     @AvroProp("logicalType", "contextualLogicalType")
-    @Contextual
-    public val `value`: CustomLogicalType,
+    public val `value`: @Contextual CustomLogicalType,
 )

@@ -8,10 +8,6 @@ on:
         required: false
         default: ''
         type: string
-      is-draft:
-        description: Create the release as a draft. If set to false, the release will be published immediately without draft, and the artefacts will be published automatically to Maven Central.
-        default: true
-        type: boolean
 
 jobs:
   publish:
@@ -38,9 +34,9 @@ jobs:
           fi
 
       - name: Checkout the repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         run: ./gradlew build
@@ -49,7 +45,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
-      - name: Publish library release
+      - name: Publish library to maven central and release it
         run: ./gradlew publishToMavenCentral
         env:
           ORG_GRADLE_PROJECT_version: ${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}
@@ -57,7 +53,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_SONATYPE_AUTOMATIC_RELEASE: ${{ github.event.inputs.is-draft == 'false' }}
 
       - name: Publish plugin release
         run: ./gradlew publishPlugins
@@ -69,12 +64,6 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PLUGIN_PORTAL_API_SECRET }}
 
       - name: Create release
-        if: ${{ github.event.inputs.is-draft == 'false' }}
         run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --fail-on-no-commits --target "${GITHUB_REF}"
-        env:
-          GH_TOKEN: ${{ github.token }}
-      - name: Create draft release
-        if: ${{ github.event.inputs.is-draft == 'true' }}
-        run: gh release create "v${{ github.event.inputs.forced-version || steps.semver.outputs.nextStrict }}" ./*/build/libs/*.jar --generate-notes --draft --fail-on-no-commits --target "${GITHUB_REF}"
         env:
           GH_TOKEN: ${{ github.token }}

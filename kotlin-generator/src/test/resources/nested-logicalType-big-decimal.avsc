@@ -1,0 +1,18 @@
+{
+    "type": "record",
+    "name": "NestedLogicalTypeBigDecimal",
+    "fields": [
+        {
+            "name": "amount",
+            "type": [
+                "null",
+                {
+                    "type": "bytes",
+                    "logicalType": "big-decimal"
+                }
+            ],
+            "doc": "A nullable big-decimal field",
+            "default": null
+        }
+    ]
+}

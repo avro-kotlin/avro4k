@@ -19,7 +19,6 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import java.util.WeakHashMap
 
 internal class RecordResolver(
     private val avro: Avro,
@@ -29,7 +28,7 @@ internal class RecordResolver(
      *
      * Note: We use the descriptor in the key as we could have multiple descriptors for the same record schema, and multiple record schemas for the same descriptor.
      */
-    private val fieldCache: MutableMap<Pair<SerialDescriptor, Schema>, SerializationWorkflow> = WeakHashMap()
+    private val fieldCache: Cache<Schema, Cache<SerialDescriptor, SerializationWorkflow>> = WeakKeyCache()
 
     /**
      * Maps the class fields to the schema fields.
@@ -47,7 +46,9 @@ internal class RecordResolver(
         writerSchema: Schema,
         classDescriptor: SerialDescriptor,
     ): SerializationWorkflow {
-        return fieldCache.getOrPut(classDescriptor to writerSchema) {
+        return fieldCache.getOrPut(writerSchema) {
+            WeakKeyCache()
+        }.getOrPut(classDescriptor) {
             loadCache(classDescriptor, writerSchema)
         }
     }

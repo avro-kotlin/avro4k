@@ -18,7 +18,7 @@ import java.io.OutputStream
 /**
  * Encode and decode values in object container files, also known as avro data file format.
  *
- * [spec](https://avro.apache.org/docs/1.11.1/specification/#object-container-files)
+ * [spec](https://avro.apache.org/docs/1.12.1/specification/#object-container-files)
  */
 @ExperimentalAvro4kApi
 public sealed class AvroObjectContainer(

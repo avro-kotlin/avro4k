@@ -3,7 +3,6 @@
     ExperimentalAvro4kApi::class,
 )
 
-import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
@@ -20,6 +19,5 @@ import kotlinx.serialization.Serializable
 @AvroGenerated("""{"type":"map","values":["double","null","int"],"java-key-class":"java.lang.Integer"}""")
 public value class TestSchema(
     @AvroProp("java-key-class", "java.lang.Integer")
-    @AvroDefault("{}")
     public val `value`: Map<Int, TestSchemaMapUnion?> = emptyMap(),
 )

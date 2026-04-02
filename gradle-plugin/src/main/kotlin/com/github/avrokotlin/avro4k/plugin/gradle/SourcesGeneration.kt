@@ -112,7 +112,6 @@ public interface Avro4kPluginSourcesGenerationLogicalTypesExtension {
 }
 
 @ConsistentCopyVisibility
-@JvmRecord
 public data class LogicalTypeMapping internal constructor(
     val type: String,
     val serializerType: String?,

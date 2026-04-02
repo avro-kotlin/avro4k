@@ -19,15 +19,17 @@ dependencies {
     testImplementation(libs.kotest.core)
 }
 
-kotlin {
-    explicitApi()
-}
-
 tasks.test {
     useJUnitPlatform()
     // The plugin also injects project's bom & core modules, so we need to publish them first to mavenLocal
     dependsOn(":bom:publishToMavenLocal")
     dependsOn(":core:publishToMavenLocal")
+    // Gradle 9.x requires Java 17+, so override the toolchain for tests (compilation target stays at Java 11)
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    )
 }
 
 buildConfig {

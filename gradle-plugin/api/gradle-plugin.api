@@ -37,13 +37,13 @@ public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder
 	public final fun asType (Ljava/lang/String;Ljava/lang/String;)V
 }
 
-public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeMapping : java/lang/Record, java/io/Serializable {
+public final class com/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeMapping : java/io/Serializable {
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSerializerType ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
 	public fun hashCode ()I
-	public final fun serializerType ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
-	public final fun type ()Ljava/lang/String;
 }
 

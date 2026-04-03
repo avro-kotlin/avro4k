@@ -79,9 +79,7 @@ internal fun Schema.isFullNameOrAliasMatch(
 }
 
 internal fun Schema.isFullNameMatch(fullNameToMatch: String): Boolean {
-    return fullName == fullNameToMatch ||
-        (type == Schema.Type.RECORD || type == Schema.Type.ENUM || type == Schema.Type.FIXED) &&
-        aliases.any { it == fullNameToMatch }
+    return fullName == fullNameToMatch || (isNamedSchema() && aliases.any { it == fullNameToMatch })
 }
 
 @InternalAvro4kApi
@@ -116,12 +114,17 @@ public fun Schema.copy(
     @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
     return when (type) {
         Schema.Type.RECORD -> if (hasFields()) Schema.createRecord(name, doc, namespace, isError, fields) else Schema.createRecord(name, doc, namespace, isError)
+
         Schema.Type.ENUM -> Schema.createEnum(name, doc, namespace, enumSymbols, enumDefault)
+
         Schema.Type.FIXED -> Schema.createFixed(name, doc, namespace, fixedSize)
 
         Schema.Type.UNION -> Schema.createUnion(types)
+
         Schema.Type.MAP -> Schema.createMap(valueType)
+
         Schema.Type.ARRAY -> Schema.createArray(elementType)
+
         Schema.Type.BYTES,
         Schema.Type.STRING,
         Schema.Type.INT,

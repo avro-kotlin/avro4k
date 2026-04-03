@@ -127,18 +127,28 @@ public open class AnySerializer : KSerializer<Any> {
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         return when (writerSchema.type) {
             Schema.Type.BOOLEAN -> Boolean.serializer()
+
             Schema.Type.INT -> Int.serializer()
+
             Schema.Type.LONG -> Long.serializer()
+
             Schema.Type.FLOAT -> Float.serializer()
+
             Schema.Type.DOUBLE -> Double.serializer()
+
             Schema.Type.STRING -> String.serializer()
+
             Schema.Type.BYTES -> ByteArraySerializer()
 
             // Named types and collections can be decoded differently depending on the needs
             Schema.Type.ARRAY -> resolveArrayDeserializationStrategy(writerSchema)
+
             Schema.Type.MAP -> resolveMapDeserializationStrategy(writerSchema)
+
             Schema.Type.FIXED -> resolveFixedDeserializationStrategy(writerSchema)
+
             Schema.Type.ENUM -> resolveEnumDeserializationStrategy(writerSchema)
+
             Schema.Type.RECORD -> resolveRecordDeserializationStrategy(writerSchema)
 
             // Having an union here is an avro4k error, or a wrong usage of this serializer

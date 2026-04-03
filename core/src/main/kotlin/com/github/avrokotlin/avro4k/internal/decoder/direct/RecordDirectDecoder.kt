@@ -40,6 +40,7 @@ internal class RecordDirectDecoder(
                 }
 
                 is DecodingStep.SkipWriterField -> binaryDecoder.skip(field.schema)
+
                 is DecodingStep.MissingElementValueFailure -> {
                     throw SerializationException(
                         "Reader field '${descriptor.nonNullSerialName}.${descriptor.getElementName(
@@ -81,6 +82,7 @@ internal class RecordDirectDecoder(
     override fun decodeNull(): Nothing? {
         return when (val element = currentDecodingStep) {
             is DecodingStep.DeserializeWriterField -> super.decodeNull()
+
             is DecodingStep.GetDefaultValue -> {
                 if (element.defaultValue != null) {
                     // Should not occur as decodeNotNullMark() should be called first
@@ -179,14 +181,23 @@ private fun Decoder.skip(s: Schema) {
     @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
     when (schema.type) {
         Schema.Type.BOOLEAN -> readBoolean()
+
         Schema.Type.INT -> readInt()
+
         Schema.Type.LONG -> readLong()
+
         Schema.Type.FLOAT -> readFloat()
+
         Schema.Type.DOUBLE -> readDouble()
+
         Schema.Type.STRING -> skipString()
+
         Schema.Type.BYTES -> skipBytes()
+
         Schema.Type.FIXED -> skipFixed(schema.fixedSize)
+
         Schema.Type.ENUM -> readEnum()
+
         Schema.Type.ARRAY -> {
             var arrayBlockItems: Long = skipArray()
             while (arrayBlockItems > 0L) {
@@ -209,6 +220,7 @@ private fun Decoder.skip(s: Schema) {
         }
 
         Schema.Type.NULL -> readNull()
+
         Schema.Type.RECORD -> {
             schema.fields.forEach {
                 skip(it.schema())

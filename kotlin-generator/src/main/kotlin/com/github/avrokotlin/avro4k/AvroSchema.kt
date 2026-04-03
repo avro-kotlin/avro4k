@@ -13,7 +13,7 @@ internal interface WithDoc {
     val doc: String?
 }
 
-internal val AvroSchema.isNullable: Boolean get() = this is AvroSchema.NullSchema || this is AvroSchema.UnionSchema && isNullable
+internal val AvroSchema.isNullable: Boolean get() = this is AvroSchema.NullSchema || (this is AvroSchema.UnionSchema && isNullable)
 
 internal val AvroSchema.actualJavaClassName: String?
     get() = (this as? WithProps)?.props[SpecificData.CLASS_PROP]?.jsonPrimitive?.contentOrNull

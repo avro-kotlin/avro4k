@@ -283,10 +283,15 @@ public class KotlinGenerator(
             -> schema.asClassName()
 
             is AvroSchema.StringSchema -> String::class.asClassName()
+
             is AvroSchema.IntSchema -> Int::class.asClassName()
+
             is AvroSchema.LongSchema -> Long::class.asClassName()
+
             is AvroSchema.BooleanSchema -> Boolean::class.asClassName()
+
             is AvroSchema.FloatSchema -> Float::class.asClassName()
+
             is AvroSchema.DoubleSchema -> Double::class.asClassName()
 
             is AvroSchema.BytesSchema,
@@ -503,11 +508,17 @@ public class KotlinGenerator(
             -> CodeBlock.of("byteArrayOf(%L)", (fieldDefault.jsonPrimitive.content.toByteArray(Charsets.ISO_8859_1)).joinToString(", "))
 
             is AvroSchema.EnumSchema -> CodeBlock.of("%T.%L", schema.asClassName(), fieldDefault.jsonPrimitive.content)
+
             is AvroSchema.StringSchema -> CodeBlock.of("%S", fieldDefault.jsonPrimitive.content)
+
             is AvroSchema.BooleanSchema -> CodeBlock.of("%L", fieldDefault.jsonPrimitive.boolean)
+
             is AvroSchema.DoubleSchema -> CodeBlock.of("%L", fieldDefault.jsonPrimitive.double)
+
             is AvroSchema.FloatSchema -> CodeBlock.of("%L", "${fieldDefault.jsonPrimitive.float}f")
+
             is AvroSchema.IntSchema -> CodeBlock.of("%L", fieldDefault.jsonPrimitive.int)
+
             is AvroSchema.LongSchema -> CodeBlock.of("%L", fieldDefault.jsonPrimitive.long)
 
             // for union, the default has to be of the first type

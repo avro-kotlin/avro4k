@@ -97,12 +97,19 @@ private fun from(schema: Schema, seenNamedTypes: MutableMap<String, NamedSchema>
             )
 
         Schema.Type.BOOLEAN -> BooleanSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.INT -> IntSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.LONG -> LongSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.FLOAT -> FloatSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.DOUBLE -> DoubleSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.STRING -> StringSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.BYTES -> BytesSchema(schema.objectProps.toJsonElementMap())
+
         Schema.Type.NULL -> NullSchema(schema.objectProps.toJsonElementMap())
     }
 }

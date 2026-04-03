@@ -29,13 +29,21 @@ private fun fromJsonElement(element: JsonElement, currentSpace: String?, knownNa
             // Handle shorthand primitive type or referenced named type
             when (val type = element.contentOrNull) {
                 "null" -> AvroSchema.NullSchema()
+
                 "boolean" -> AvroSchema.BooleanSchema()
+
                 "int" -> AvroSchema.IntSchema()
+
                 "long" -> AvroSchema.LongSchema()
+
                 "float" -> AvroSchema.FloatSchema()
+
                 "double" -> AvroSchema.DoubleSchema()
+
                 "bytes" -> AvroSchema.BytesSchema()
+
                 "string" -> AvroSchema.StringSchema()
+
                 else ->
                     knownNamedTypes[type]
                         ?: throw IllegalArgumentException("Unknown named type: $type")
@@ -51,12 +59,19 @@ private fun fromJsonElement(element: JsonElement, currentSpace: String?, knownNa
             val props = element.toMutableMap()
             when (val type = props.removeMandatory("type").stringPrimitive) {
                 "null" -> AvroSchema.NullSchema(props = props)
+
                 "boolean" -> AvroSchema.BooleanSchema(props = props)
+
                 "int" -> AvroSchema.IntSchema(props = props)
+
                 "long" -> AvroSchema.LongSchema(props = props)
+
                 "float" -> AvroSchema.FloatSchema(props = props)
+
                 "double" -> AvroSchema.DoubleSchema(props = props)
+
                 "bytes" -> AvroSchema.BytesSchema(props = props)
+
                 "string" -> AvroSchema.StringSchema(props = props)
 
                 "map" ->

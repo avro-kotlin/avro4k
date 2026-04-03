@@ -293,10 +293,15 @@ public object BigDecimalSerializer : AvroSerializer<BigDecimal>(BigDecimal::clas
                     )
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 Schema.Type.INT -> encodeInt(value.intValueExact())
+
                 Schema.Type.LONG -> encodeLong(value.longValueExact())
+
                 Schema.Type.FLOAT -> encodeFloat(value.toFloat())
+
                 Schema.Type.DOUBLE -> encodeDouble(value.toDouble())
+
                 else -> throw unsupportedWriterTypeError()
             }
         }

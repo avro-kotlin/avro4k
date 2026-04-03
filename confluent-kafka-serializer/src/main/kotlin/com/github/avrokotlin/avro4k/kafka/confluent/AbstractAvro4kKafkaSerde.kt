@@ -84,9 +84,13 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
     private fun getAnySchema(value: Any): Schema {
         when (value) {
             is GenericContainer -> return value.schema
+
             is ByteBuffer -> return Schema.create(Schema.Type.BYTES)
+
             is Utf8 -> return Schema.create(Schema.Type.STRING)
+
             is Collection<*> -> return Schema.createArray(inferItemSchema(value, "${GenericData.Array::class.qualifiedName} or ${NonRecordContainer::class.qualifiedName}"))
+
             is Map<*, *> -> return Schema.createMap(inferItemSchema(value.values, NonRecordContainer::class.qualifiedName!!))
 
             // All the rest should be serializable to have its schema inferred

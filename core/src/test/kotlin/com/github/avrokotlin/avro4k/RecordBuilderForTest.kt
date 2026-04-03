@@ -47,15 +47,23 @@ internal fun normalizeGenericData(value: Any?): Any? {
             )
 
         is Map<*, *> -> value.entries.associate { it.key.toString() to normalizeGenericData(it.value) }
+
         is Collection<*> -> value.map { normalizeGenericData(it) }
+
         is ByteArray -> value.toList()
+
         is ByteBuffer -> value.array().toList()
+
         is GenericFixed -> value.bytes().toList()
+
         is CharSequence -> value.toString()
 
         is RecordBuilderForTest -> RecordBuilderForTest(value.fields.map { normalizeGenericData(it) })
+
         is Byte -> value.toInt()
+
         is Short -> value.toInt()
+
         is GenericEnumSymbol<*>,
         is Boolean, is Char, is Number, null,
         -> value

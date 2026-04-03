@@ -20,8 +20,11 @@ internal fun RecordGenericEncoder(
 ): CompositeEncoder {
     return when (val encodingWorkflow = avro.recordResolver.resolveFields(schema, descriptor).encoding) {
         is EncodingWorkflow.ExactMatch -> RecordContiguousExactEncoder(schema, avro, onEncoded)
+
         is EncodingWorkflow.ContiguousWithSkips -> RecordContiguousSkippingEncoder(encodingWorkflow.fieldsToSkip, schema, avro, onEncoded)
+
         is EncodingWorkflow.NonContiguous -> RecordNonContiguousEncoder(encodingWorkflow.descriptorToWriterFieldIndex, schema, avro, onEncoded)
+
         is EncodingWorkflow.MissingWriterFields -> throw SerializationException(
             "Missing writer fields ${schema.fields.filter { it.pos() in encodingWorkflow.missingWriterFields }}} from the descriptor $descriptor"
         )

@@ -75,8 +75,11 @@ internal interface SerialDescriptorValueVisitor {
         } else {
             when (descriptor.kind) {
                 is PrimitiveKind -> visitPrimitive(descriptor, descriptor.kind as PrimitiveKind)
+
                 SerialKind.ENUM -> visitEnum(descriptor)
+
                 SerialKind.CONTEXTUAL -> visitValue(descriptor.getNonNullContextualDescriptor(serializersModule))
+
                 StructureKind.CLASS ->
                     visitClass(descriptor)?.apply {
                         for (elementIndex in (0 until descriptor.elementsCount)) {

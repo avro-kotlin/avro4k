@@ -105,6 +105,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             }
 
             is PolymorphicKind -> getPolymorphicEncoder(descriptor)
+
             else -> throw SerializationException("Unsupported structure kind: $descriptor")
         }
     }
@@ -220,6 +221,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
                 }
 
             Schema.Type.STRING -> encodeStringUnchecked(enumName)
+
             else -> throw unsupportedWriterTypeError(Schema.Type.ENUM, Schema.Type.STRING)
         }
     }
@@ -343,14 +345,23 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         }
         when (currentWriterSchema.type) {
             Schema.Type.BOOLEAN -> encodeBooleanUnchecked(value.toBooleanStrict())
+
             Schema.Type.INT -> encodeIntUnchecked(value.toInt())
+
             Schema.Type.LONG -> encodeLongUnchecked(value.toLong())
+
             Schema.Type.FLOAT -> encodeFloatUnchecked(value.toFloat())
+
             Schema.Type.DOUBLE -> encodeDoubleUnchecked(value.toDouble())
+
             Schema.Type.STRING -> encodeStringUnchecked(value)
+
             Schema.Type.BYTES -> encodeBytesUnchecked(value.encodeToByteArray())
+
             Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(value.encodeToByteArray()))
+
             Schema.Type.ENUM -> encodeEnumUnchecked(value)
+
             else -> throw unsupportedWriterTypeError(
                 Schema.Type.BOOLEAN,
                 Schema.Type.INT,

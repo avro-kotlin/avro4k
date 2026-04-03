@@ -89,6 +89,7 @@ internal abstract class AbstractAvroDirectDecoder(
                 }
 
             is PolymorphicKind -> PolymorphicDecoder(avro, descriptor, currentWriterSchema, binaryDecoder)
+
             else -> throw SerializationException("Unsupported descriptor for structure decoding: $descriptor")
         }
     }
@@ -176,14 +177,23 @@ internal abstract class AbstractAvroDirectDecoder(
     override fun decodeString(): String {
         return when (currentWriterSchema.type) {
             Schema.Type.STRING -> binaryDecoder.readString()
+
             Schema.Type.BYTES -> binaryDecoder.readBytes().decodeToString()
+
             Schema.Type.FIXED -> binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize).decodeToString()
+
             Schema.Type.BOOLEAN -> binaryDecoder.readBoolean().toString()
+
             Schema.Type.INT -> binaryDecoder.readInt().toString()
+
             Schema.Type.LONG -> binaryDecoder.readLong().toString()
+
             Schema.Type.FLOAT -> binaryDecoder.readFloat().toString()
+
             Schema.Type.DOUBLE -> binaryDecoder.readDouble().toString()
+
             Schema.Type.ENUM -> currentWriterSchema.enumSymbols[binaryDecoder.readEnum()]
+
             else -> throw unsupportedWriterTypeError(
                 Schema.Type.STRING,
                 Schema.Type.BYTES,

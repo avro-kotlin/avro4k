@@ -8,6 +8,7 @@ confluent-schema-registry = "8.1.1"
 kotlinpoet = "2.2.0"
 mockk = "1.14.6"
 junit = "5.13.4"
+ktlint = "1.8.0"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }
@@ -21,3 +22,7 @@ kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.re
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
+
+# library not explicitely used, present just for dependabot to detect a new version
+#noinspection UnusedVersionCatalogEntry
+ktlint = { group = "com.pinterest.ktlint", name = "ktlint-rule-engine-core", version.ref = "ktlint" }

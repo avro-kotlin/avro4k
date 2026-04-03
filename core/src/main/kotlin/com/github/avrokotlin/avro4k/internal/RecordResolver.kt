@@ -321,6 +321,7 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
             }
 
         is JsonNull -> null
+
         is JsonObject ->
             when (schema.type) {
                 Schema.Type.RECORD -> {
@@ -333,16 +334,22 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
                 }
 
                 Schema.Type.MAP -> entries.associate { (key, value) -> key to value.convertDefaultToObject(schema.valueType) }
+
                 Schema.Type.UNION -> this.convertDefaultToObject(schema.resolveUnion(this, Schema.Type.RECORD, Schema.Type.MAP))
+
                 else -> throw SerializationException("Not a valid record value for schema $schema: $this")
             }
 
         is JsonPrimitive ->
             when (schema.type) {
                 Schema.Type.BYTES -> this.content.toByteArray()
+
                 Schema.Type.FIXED -> GenericData.Fixed(schema, this.content.toByteArray())
+
                 Schema.Type.STRING -> this.content
+
                 Schema.Type.ENUM -> this.content
+
                 Schema.Type.BOOLEAN -> this.boolean
 
                 Schema.Type.INT ->
@@ -352,7 +359,9 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
                     }
 
                 Schema.Type.LONG -> this.long
+
                 Schema.Type.FLOAT -> this.float
+
                 Schema.Type.DOUBLE -> this.double
 
                 Schema.Type.UNION ->

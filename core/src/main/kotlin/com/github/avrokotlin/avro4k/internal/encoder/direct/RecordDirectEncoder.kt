@@ -17,7 +17,9 @@ internal fun RecordDirectEncoder(
 ): CompositeEncoder {
     return when (val encodingWorkflow = avro.recordResolver.resolveFields(schema, descriptor).encoding) {
         is EncodingWorkflow.ExactMatch -> RecordContiguousExactEncoder(schema, avro, binaryEncoder)
+
         is EncodingWorkflow.ContiguousWithSkips -> RecordContiguousSkippingEncoder(encodingWorkflow.fieldsToSkip, schema, avro, binaryEncoder)
+
         is EncodingWorkflow.NonContiguous ->
             ReorderingCompositeEncoder(
                 schema.fields.size,

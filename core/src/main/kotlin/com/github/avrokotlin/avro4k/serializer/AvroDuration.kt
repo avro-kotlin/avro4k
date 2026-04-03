@@ -157,6 +157,7 @@ public object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.FIXED, Schema.Type.STRING)
             }
         }

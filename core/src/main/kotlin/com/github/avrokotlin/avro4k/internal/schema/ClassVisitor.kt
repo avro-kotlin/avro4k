@@ -154,12 +154,17 @@ private fun AvroDefault.toAvroObject(): Any {
 private fun JsonElement.toAvroObject(): Any =
     when (this) {
         is JsonNull -> JsonProperties.NULL_VALUE
+
         is JsonObject -> this.entries.associate { it.key to it.value.toAvroObject() }
+
         is JsonArray -> this.map { it.toAvroObject() }
+
         is JsonPrimitive ->
             when {
                 this.isString -> this.content
+
                 this.booleanOrNull != null -> this.boolean
+
                 else -> {
                     this.content.toBigDecimal().stripTrailingZeros().let {
                         if (it.scale() <= 0) {

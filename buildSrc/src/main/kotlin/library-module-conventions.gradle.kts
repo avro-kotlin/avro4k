@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -35,11 +33,12 @@ tasks.withType<Test>().configureEach {
 }
 
 spotless {
+    val ktlintVersion = versionCatalogs.named("libs").findVersion("ktlint").get().toString()
     kotlin {
-        ktlint()
+        ktlint(ktlintVersion).setEditorConfigPath(rootProject.file(".editorconfig"))
     }
     kotlinGradle {
-        ktlint()
+        ktlint(ktlintVersion).setEditorConfigPath(rootProject.file(".editorconfig"))
     }
 }
 

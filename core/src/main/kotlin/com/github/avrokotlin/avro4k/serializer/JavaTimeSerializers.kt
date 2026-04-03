@@ -66,6 +66,7 @@ public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.q
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.STRING)
             }
         }
@@ -154,6 +155,7 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.q
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
             }
         }
@@ -246,6 +248,7 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }
@@ -316,6 +319,7 @@ public object InstantSerializer : AvroSerializer<Instant>(Instant::class.qualifi
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }
@@ -385,6 +389,7 @@ public object InstantToMicroSerializer : AvroSerializer<Instant>(Instant::class.
                     }
 
                 Schema.Type.STRING -> encodeString(value.toString())
+
                 else -> throw unsupportedWriterTypeError(Schema.Type.LONG, Schema.Type.STRING)
             }
         }

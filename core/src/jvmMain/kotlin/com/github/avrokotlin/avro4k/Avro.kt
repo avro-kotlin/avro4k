@@ -1,11 +1,10 @@
 package com.github.avrokotlin.avro4k
 
 import com.github.avrokotlin.avro4k.internal.Buffer
-import com.github.avrokotlin.avro4k.internal.Cache
 import com.github.avrokotlin.avro4k.internal.EnumResolver
 import com.github.avrokotlin.avro4k.internal.PolymorphicResolver
 import com.github.avrokotlin.avro4k.internal.RecordResolver
-import com.github.avrokotlin.avro4k.internal.WeakKeyCache
+import com.github.avrokotlin.avro4k.internal.WeakIdentityKeyCache
 import com.github.avrokotlin.avro4k.internal.schema.ValueVisitor
 import com.github.avrokotlin.avro4k.serializer.AnyTypeSerializersModule
 import com.github.avrokotlin.avro4k.serializer.JavaStdLibSerializersModule
@@ -39,7 +38,7 @@ public sealed class Avro(
     public val configuration: AvroConfiguration,
     public final override val serializersModule: SerializersModule,
 ) : BinaryFormat {
-    private val schemaCache: Cache<SerialDescriptor, Schema> = WeakKeyCache()
+    private val schemaCache = WeakIdentityKeyCache<SerialDescriptor, Schema>()
 
     internal val recordResolver = RecordResolver(this)
     internal val polymorphicResolver = PolymorphicResolver(serializersModule)

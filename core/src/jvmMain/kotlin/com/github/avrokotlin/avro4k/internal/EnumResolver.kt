@@ -4,7 +4,7 @@ import com.github.avrokotlin.avro4k.AvroEnumDefault
 import kotlinx.serialization.descriptors.SerialDescriptor
 
 internal class EnumResolver {
-    private val defaultIndexCache: Cache<SerialDescriptor, EnumDefault> = WeakKeyCache()
+    private val defaultIndexCache = WeakIdentityKeyCache<SerialDescriptor, EnumDefault>()
 
     private data class EnumDefault(val index: Int?)
 

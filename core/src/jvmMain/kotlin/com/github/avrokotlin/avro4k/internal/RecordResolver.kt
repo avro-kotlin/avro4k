@@ -28,7 +28,7 @@ internal class RecordResolver(
      *
      * Note: We use the descriptor in the key as we could have multiple descriptors for the same record schema, and multiple record schemas for the same descriptor.
      */
-    private val fieldCache: Cache<Schema, Cache<SerialDescriptor, SerializationWorkflow>> = WeakKeyCache()
+    private val fieldCache: WeakIdentityKeyCache<Schema, WeakIdentityKeyCache<SerialDescriptor, SerializationWorkflow>> = WeakIdentityKeyCache()
 
     /**
      * Maps the class fields to the schema fields.
@@ -47,7 +47,7 @@ internal class RecordResolver(
         classDescriptor: SerialDescriptor,
     ): SerializationWorkflow {
         return fieldCache.getOrPut(writerSchema) {
-            WeakKeyCache()
+            WeakIdentityKeyCache()
         }.getOrPut(classDescriptor) {
             loadCache(classDescriptor, writerSchema)
         }

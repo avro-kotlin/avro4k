@@ -5,8 +5,7 @@ import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDecoder
 import com.github.avrokotlin.avro4k.AvroEncoder
 import com.github.avrokotlin.avro4k.MissingFieldsEncodingException
-import com.github.avrokotlin.avro4k.internal.Cache
-import com.github.avrokotlin.avro4k.internal.WeakKeyCache
+import com.github.avrokotlin.avro4k.internal.WeakIdentityKeyCache
 import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.isNamedSchema
 import com.github.avrokotlin.avro4k.namedSchemaNotFoundInUnionError
@@ -203,7 +202,7 @@ internal object GenericFixedKSerializer : AvroSerializer<GenericFixed>(GenericFi
 internal class GenericRecordKSerializer(
     private val anySerializer: AnySerializer,
 ) : AvroSerializer<IndexedRecord>(IndexedRecord::class.qualifiedName!!) {
-    private val cache: Cache<Schema, SerialDescriptor> = WeakKeyCache()
+    private val cache = WeakIdentityKeyCache<Schema, SerialDescriptor>()
 
     override fun serializeAvro(encoder: AvroEncoder, value: IndexedRecord) {
         with(encoder) {

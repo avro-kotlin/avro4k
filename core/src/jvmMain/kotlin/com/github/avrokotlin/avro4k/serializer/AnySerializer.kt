@@ -2,7 +2,7 @@ package com.github.avrokotlin.avro4k.serializer
 
 import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
-import com.github.avrokotlin.avro4k.internal.WeakKeyCache
+import com.github.avrokotlin.avro4k.internal.WeakIdentityKeyCache
 import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -45,7 +45,7 @@ internal val AnyTypeSerializersModule: SerializersModule
 public open class AnySerializer : KSerializer<Any> {
     // No need to use a WeakHashMap with class keys
     private val encodingCache = ConcurrentHashMap<Class<out Any>, SerializationStrategy<Any>>()
-    private val decodingCache = WeakKeyCache<Schema, DeserializationStrategy<Any>>()
+    private val decodingCache = WeakIdentityKeyCache<Schema, DeserializationStrategy<Any>>()
 
     /**
      * Provides the nullable version of this [AnySerializer].

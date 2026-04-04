@@ -5,7 +5,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
 
 internal class PolymorphicResolver(private val serializersModule: SerializersModule) {
-    private val cache = WeakKeyCache<SerialDescriptor, Map<String, String>>()
+    private val cache = WeakIdentityKeyCache<SerialDescriptor, Map<String, String>>()
 
     fun getFullNamesAndAliasesToSerialName(descriptor: SerialDescriptor): Map<String, String> {
         return cache.getOrPut(descriptor) {

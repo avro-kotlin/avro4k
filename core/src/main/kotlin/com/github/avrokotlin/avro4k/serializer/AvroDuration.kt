@@ -169,14 +169,14 @@ public object AvroDurationSerializer : AvroSerializer<AvroDuration>(AvroDuration
                 when (it.type) {
                     Schema.Type.FIXED -> {
                         if (it.logicalType?.name == LOGICAL_TYPE_NAME && it.fixedSize == DURATION_BYTES) {
-                            AnyValueDecoder { decodeDuration(decodeFixed().bytes()) }
+                            AnyValueDecoder { decodeDuration(contextOf<AvroDecoder>().decodeFixed().bytes()) }
                         } else {
                             null
                         }
                     }
 
                     Schema.Type.STRING -> {
-                        AnyValueDecoder { AvroDuration.parse(decodeString()) }
+                        AnyValueDecoder { AvroDuration.parse(contextOf<AvroDecoder>().decodeString()) }
                     }
 
                     else -> throw SerializationException("Expected the duration logical type to be of type fixed or string, but had ${it.type}")

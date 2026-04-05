@@ -1,6 +1,7 @@
 
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithSimulatorTests
 import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     id("library-multiplatform-module-conventions")
@@ -76,23 +77,25 @@ kotlin {
 
 // Skip Apple simulator test tasks when the required simulator runtime is not installed
 run {
+    if (!HostManager.hostIsMac) return@run
     val simulatorFamilyPrefixes =
         mapOf(
             Family.IOS to "iOS ",
             Family.TVOS to "tvOS ",
             Family.WATCHOS to "watchOS "
         )
-
-    val installedFamilies: Set<Family> =
-        try {
-            val lines =
-                providers.exec {
-                    commandLine("xcrun", "simctl", "list", "runtimes")
-                }.standardOutput.asText.get().lines()
-            simulatorFamilyPrefixes.filterValues { prefix -> lines.any { it.startsWith(prefix) } }.keys
-        } catch (_: Exception) {
+    val installedFamilies: Set<Family> = providers.exec {
+        isIgnoreExitValue = true
+        commandLine("xcrun", "simctl", "list", "runtimes")
+    }.let { execOutput ->
+        if (execOutput.result.orNull?.exitValue != 0) {
             emptySet()
+        } else {
+            val lines =
+                execOutput.standardOutput.asText.get().lines()
+            simulatorFamilyPrefixes.filterValues { prefix -> lines.any { it.startsWith(prefix) } }.keys
         }
+    }
 
     kotlin.testableTargets
         .filterIsInstance<KotlinNativeTargetWithSimulatorTests>()

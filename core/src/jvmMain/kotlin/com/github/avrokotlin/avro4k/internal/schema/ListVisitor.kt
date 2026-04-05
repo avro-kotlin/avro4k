@@ -1,13 +1,14 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
+import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.AvroSchema.ArraySchema
 import kotlinx.serialization.descriptors.SerialDescriptor
-import org.apache.avro.Schema
 
 internal class ListVisitor(
     private val context: VisitorContext,
-    private val onSchemaBuilt: (Schema) -> Unit,
+    private val onSchemaBuilt: (AvroSchema) -> Unit,
 ) : SerialDescriptorListVisitor {
-    private lateinit var itemSchema: Schema
+    private lateinit var itemSchema: AvroSchema
 
     override fun visitListItem(
         listDescriptor: SerialDescriptor,
@@ -19,6 +20,6 @@ internal class ListVisitor(
     }
 
     override fun endListVisit(descriptor: SerialDescriptor) {
-        onSchemaBuilt(Schema.createArray(itemSchema))
+        onSchemaBuilt(ArraySchema(itemSchema))
     }
 }

@@ -95,9 +95,9 @@ public sealed class Avro(
      */
     public fun schema(descriptor: SerialDescriptor): Schema {
         return schemaCache.getOrPut(descriptor) {
-            lateinit var output: Schema
+            lateinit var output: AvroSchema
             ValueVisitor(this) { output = it }.visitValue(descriptor)
-            output
+            output.toApacheSchema()
         }
     }
 

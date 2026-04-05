@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AvroAlias
+import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import kotlinx.io.Buffer
@@ -18,6 +19,9 @@ import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.descriptors.getPolymorphicDescriptors
 import kotlinx.serialization.descriptors.nonNullOriginal
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.LogicalType
@@ -211,6 +215,22 @@ internal val AvroProp.jsonNode: JsonNode
             return objectMapper.readTree(value)
         }
         return TextNode.valueOf(value)
+    }
+
+internal val AvroProp.jsonElement: JsonElement
+    get() {
+        if (value.isStartingAsJson()) {
+            return Json.parseToJsonElement(value)
+        }
+        return JsonPrimitive(value)
+    }
+
+internal val AvroDefault.jsonElement: JsonElement
+    get() {
+        if (value.isStartingAsJson()) {
+            return Json.parseToJsonElement(value)
+        }
+        return JsonPrimitive(value)
     }
 
 @OptIn(UnsafeIoApi::class)

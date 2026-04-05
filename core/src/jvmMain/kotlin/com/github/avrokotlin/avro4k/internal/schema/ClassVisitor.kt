@@ -1,32 +1,31 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
-import com.github.avrokotlin.avro4k.AvroDefault
-import com.github.avrokotlin.avro4k.internal.asSchemaList
-import com.github.avrokotlin.avro4k.internal.isStartingAsJson
-import com.github.avrokotlin.avro4k.internal.jsonNode
+import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.AvroSchema.RecordSchema
+import com.github.avrokotlin.avro4k.AvroSchema.Type
+import com.github.avrokotlin.avro4k.AvroSchema.UnionSchema
+import com.github.avrokotlin.avro4k.LockableList
+import com.github.avrokotlin.avro4k.Name
+import com.github.avrokotlin.avro4k.ResolvedSchema
+import com.github.avrokotlin.avro4k.internal.jsonElement
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.isNullable
 import com.github.avrokotlin.avro4k.serializer.ElementLocation
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.booleanOrNull
-import org.apache.avro.JsonProperties
-import org.apache.avro.Schema
 
 internal class ClassVisitor(
     descriptor: SerialDescriptor,
     private val context: VisitorContext,
-    private val onSchemaBuilt: (Schema) -> Unit,
+    private val onSchemaBuilt: (AvroSchema) -> Unit,
 ) : SerialDescriptorClassVisitor {
-    private val fields = mutableListOf<Schema.Field>()
+    private val fields = LockableList<RecordSchema.Field>()
     private val schemaAlreadyResolved: Boolean
-    private val schema: Schema
+    private val schema: AvroSchema
 
     init {
         var schemaAlreadyResolved = true
@@ -36,18 +35,13 @@ internal class ClassVisitor(
 
                 val annotations = TypeAnnotations(descriptor)
                 val schema =
-                    Schema.createRecord(
-                        // name =
-                        descriptor.nonNullSerialName,
-                        // doc =
-                        annotations.doc?.value,
-                        // namespace =
-                        null,
-                        // isError =
-                        false
+                    RecordSchema(
+                        name = Name(descriptor.nonNullSerialName),
+                        doc = annotations.doc?.value,
+                        aliases = annotations.aliases?.value?.map { Name(it) }?.toSet() ?: emptySet(),
+                        props = annotations.props.associate { it.key to it.jsonElement },
+                        fields = fields
                     )
-                annotations.aliases?.value?.forEach { schema.addAlias(it) }
-                annotations.props.forEach { schema.addProp(it.key, it.jsonNode) }
                 schema
             }
         this.schemaAlreadyResolved = schemaAlreadyResolved
@@ -72,9 +66,7 @@ internal class ClassVisitor(
     }
 
     override fun endClassVisit(descriptor: SerialDescriptor) {
-        if (!schemaAlreadyResolved) {
-            schema.fields = fields
-        }
+        fields.lock()
         onSchemaBuilt(schema)
     }
 
@@ -90,95 +82,54 @@ internal class ClassVisitor(
     private fun createField(
         fieldName: String,
         annotations: FieldAnnotations,
-        elementSchema: Schema,
-    ): Schema.Field {
+        elementSchema: AvroSchema,
+    ): RecordSchema.Field {
         val (finalSchema, fieldDefault) = getDefaultAndReorderUnionIfNeeded(annotations, elementSchema)
 
-        val field =
-            Schema.Field(
-                fieldName,
-                finalSchema,
-                annotations.doc?.value,
-                fieldDefault
-            )
-        annotations.aliases?.value?.forEach { field.addAlias(it) }
-        annotations.props.forEach { field.addProp(it.key, it.jsonNode) }
-        return field
+        return RecordSchema.Field(
+            name = fieldName,
+            schema = finalSchema,
+            doc = annotations.doc?.value,
+            defaultValue = fieldDefault,
+            aliases = annotations.aliases?.value?.toSet() ?: emptySet(),
+            props = annotations.props.associate { it.key to it.jsonElement }
+        )
     }
 
     private fun getDefaultAndReorderUnionIfNeeded(
         annotations: FieldAnnotations,
-        elementSchema: Schema,
-    ): Pair<Schema, Any?> {
-        val defaultValue = annotations.default?.toAvroObject()
+        elementSchema: AvroSchema,
+    ): Pair<AvroSchema, JsonElement?> {
+        val defaultValue = annotations.default?.jsonElement
         if (defaultValue == null) {
+            // No default value, let's make implicit default
             if (context.configuration.implicitNulls && elementSchema.isNullable) {
-                return elementSchema.moveToHeadOfUnion { it.type == Schema.Type.NULL } to JsonProperties.NULL_VALUE
+                return elementSchema.moveToHeadOfUnion { it.type == Type.NULL } to JsonNull
             } else if (context.configuration.implicitEmptyCollections) {
-                elementSchema.asSchemaList().forEachIndexed { index, schema ->
-                    if (schema.type == Schema.Type.ARRAY) {
-                        return elementSchema.moveToHeadOfUnion(index) to emptyList<Any>()
+                (if (elementSchema is UnionSchema) elementSchema.types else listOf(elementSchema)).forEachIndexed { index, schema ->
+                    if (schema.type == Type.ARRAY) {
+                        return elementSchema.moveToHeadOfUnion(index) to JsonArray(emptyList())
                     }
-                    if (schema.type == Schema.Type.MAP) {
-                        return elementSchema.moveToHeadOfUnion(index) to emptyMap<Any, Any>()
+                    if (schema.type == Type.MAP) {
+                        return elementSchema.moveToHeadOfUnion(index) to JsonObject(emptyMap())
                     }
                 }
             }
-        } else if (defaultValue === JsonProperties.NULL_VALUE) {
+        } else if (defaultValue === JsonNull) {
             // If the user sets "null" but the field is not nullable, maybe the user wanted to set the "null" string default
-            val finalSchema = elementSchema.moveToHeadOfUnion { it.type == Schema.Type.NULL }
-            val adaptedDefault = if (!elementSchema.isNullable) "null" else defaultValue
+            val finalSchema = elementSchema.moveToHeadOfUnion { it.type == Type.NULL }
+            val adaptedDefault = if (!elementSchema.isNullable) JsonPrimitive("null") else defaultValue
             return finalSchema to adaptedDefault
-        } else if (elementSchema.asSchemaList().any { it.logicalType?.name == CHAR_LOGICAL_TYPE_NAME }) {
-            // requires a string default value with exactly 1 character, and map the character to the char code as it is an int
-            if (defaultValue is String && defaultValue.length == 1) {
-                return elementSchema.moveToHeadOfUnion { it.logicalType?.name == CHAR_LOGICAL_TYPE_NAME } to defaultValue.single().code
-            } else {
-                throw SerializationException("Default value for Char must be a single character string. Invalid value of type ${defaultValue::class.qualifiedName}: $defaultValue")
-            }
         } else if (elementSchema.isNullable) {
             // default is not null, so let's just put the null schema at the end of the union which should cover the main use cases
-            return elementSchema.moveToTailOfUnion { it.type === Schema.Type.NULL } to defaultValue
+            return elementSchema.moveToTailOfUnion { it.type === Type.NULL } to defaultValue
         }
         return elementSchema to defaultValue
     }
 }
 
-private fun AvroDefault.toAvroObject(): Any {
-    if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).toAvroObject()
-    }
-    return value
-}
-
-private fun JsonElement.toAvroObject(): Any =
-    when (this) {
-        is JsonNull -> JsonProperties.NULL_VALUE
-
-        is JsonObject -> this.entries.associate { it.key to it.value.toAvroObject() }
-
-        is JsonArray -> this.map { it.toAvroObject() }
-
-        is JsonPrimitive ->
-            when {
-                this.isString -> this.content
-
-                this.booleanOrNull != null -> this.boolean
-
-                else -> {
-                    this.content.toBigDecimal().stripTrailingZeros().let {
-                        if (it.scale() <= 0) {
-                            it.toBigInteger()
-                        } else {
-                            it
-                        }
-                    }
-                }
-            }
-    }
-
-private fun Schema.moveToHeadOfUnion(predicate: (Schema) -> Boolean): Schema {
-    if (!isUnion) {
+private fun AvroSchema.moveToHeadOfUnion(predicate: (ResolvedSchema) -> Boolean): AvroSchema {
+    if (this !is UnionSchema) {
         return this
     }
     types.indexOfFirst(predicate).let { index ->
@@ -189,15 +140,15 @@ private fun Schema.moveToHeadOfUnion(predicate: (Schema) -> Boolean): Schema {
     }
 }
 
-private fun Schema.moveToHeadOfUnion(typeIndex: Int): Schema {
-    if (!isUnion || typeIndex >= types.size) {
+private fun AvroSchema.moveToHeadOfUnion(typeIndex: Int): AvroSchema {
+    if (this !is UnionSchema || typeIndex >= types.size) {
         return this
     }
-    return Schema.createUnion(types.toMutableList().apply { add(0, removeAt(typeIndex)) })
+    return UnionSchema(types.toMutableList().apply { add(0, removeAt(typeIndex)) })
 }
 
-private fun Schema.moveToTailOfUnion(predicate: (Schema) -> Boolean): Schema {
-    if (!isUnion) {
+private fun AvroSchema.moveToTailOfUnion(predicate: (AvroSchema) -> Boolean): AvroSchema {
+    if (this !is UnionSchema) {
         return this
     }
     types.indexOfFirst(predicate).let { index ->
@@ -208,9 +159,9 @@ private fun Schema.moveToTailOfUnion(predicate: (Schema) -> Boolean): Schema {
     }
 }
 
-private fun Schema.moveToTailOfUnion(typeIndex: Int): Schema {
-    if (!isUnion || typeIndex >= types.size) {
+private fun AvroSchema.moveToTailOfUnion(typeIndex: Int): AvroSchema {
+    if (this !is UnionSchema || typeIndex >= types.size) {
         return this
     }
-    return Schema.createUnion(types.toMutableList().apply { add(removeAt(typeIndex)) })
+    return UnionSchema(types.toMutableList().apply { add(removeAt(typeIndex)) })
 }

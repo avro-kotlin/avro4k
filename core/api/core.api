@@ -228,6 +228,324 @@ public final synthetic class com/github/avrokotlin/avro4k/AvroProp$Impl : com/gi
 	public final synthetic fun value ()Ljava/lang/String;
 }
 
+public abstract class com/github/avrokotlin/avro4k/AvroSchema {
+	public static final field Companion Lcom/github/avrokotlin/avro4k/AvroSchema$Companion;
+	public fun getFullName ()Ljava/lang/String;
+	public abstract fun getSimpleName ()Ljava/lang/String;
+	public abstract fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$ArraySchema : com/github/avrokotlin/avro4k/ResolvedSchema {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$ArraySchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$ArraySchema;Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$ArraySchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElementSchema ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$BooleanSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$BooleanSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$BooleanSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$BooleanSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$BytesSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$BytesSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$BytesSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$BytesSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$Companion {
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$DoubleSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$DoubleSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$DoubleSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$DoubleSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$EnumSchema : com/github/avrokotlin/avro4k/AvroSchema$NamedSchema {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/Name;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$EnumSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$EnumSchema;Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$EnumSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAliases ()Ljava/util/Set;
+	public final fun getDefaultSymbol ()Ljava/lang/String;
+	public fun getDoc ()Ljava/lang/String;
+	public fun getName ()Lcom/github/avrokotlin/avro4k/Name;
+	public fun getProps ()Ljava/util/Map;
+	public final fun getSymbols ()Ljava/util/List;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$FixedSchema : com/github/avrokotlin/avro4k/AvroSchema$NamedSchema {
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Name;ILjava/lang/String;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Name;ILjava/lang/String;Ljava/util/Set;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/Name;
+	public final fun component2-pVg5ArA ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Set;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy-roUYKiI (Lcom/github/avrokotlin/avro4k/Name;ILjava/lang/String;Ljava/util/Set;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$FixedSchema;
+	public static synthetic fun copy-roUYKiI$default (Lcom/github/avrokotlin/avro4k/AvroSchema$FixedSchema;Lcom/github/avrokotlin/avro4k/Name;ILjava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$FixedSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAliases ()Ljava/util/Set;
+	public fun getDoc ()Ljava/lang/String;
+	public fun getName ()Lcom/github/avrokotlin/avro4k/Name;
+	public fun getProps ()Ljava/util/Map;
+	public final fun getSize-pVg5ArA ()I
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$FloatSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$FloatSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$FloatSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$FloatSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$IntSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$IntSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$IntSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$IntSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$LongSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$LongSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$LongSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$LongSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$MapSchema : com/github/avrokotlin/avro4k/ResolvedSchema {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$MapSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$MapSchema;Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$MapSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public final fun getValueSchema ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/github/avrokotlin/avro4k/AvroSchema$NamedSchema : com/github/avrokotlin/avro4k/ResolvedSchema, com/github/avrokotlin/avro4k/WithDoc {
+	public abstract fun getAliases ()Ljava/util/Set;
+	public fun getFullName ()Ljava/lang/String;
+	public abstract fun getName ()Lcom/github/avrokotlin/avro4k/Name;
+	public fun getSimpleName ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$NullSchema : com/github/avrokotlin/avro4k/ResolvedSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$NullSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$NullSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$NullSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema : com/github/avrokotlin/avro4k/ResolvedSchema {
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$RecordSchema : com/github/avrokotlin/avro4k/AvroSchema$NamedSchema {
+	public fun <init> (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/github/avrokotlin/avro4k/Name;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Set;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema;Lcom/github/avrokotlin/avro4k/Name;Ljava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAliases ()Ljava/util/Set;
+	public fun getDoc ()Ljava/lang/String;
+	public final fun getFieldByName (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema$Field;
+	public final fun getFields ()Ljava/util/List;
+	public fun getName ()Lcom/github/avrokotlin/avro4k/Name;
+	public fun getProps ()Ljava/util/Map;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$RecordSchema$Field : com/github/avrokotlin/avro4k/WithDoc, com/github/avrokotlin/avro4k/WithProps {
+	public fun <init> (Ljava/lang/String;Lcom/github/avrokotlin/avro4k/AvroSchema;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/github/avrokotlin/avro4k/AvroSchema;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Lcom/github/avrokotlin/avro4k/AvroSchema;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema$Field;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema$Field;Ljava/lang/String;Lcom/github/avrokotlin/avro4k/AvroSchema;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$RecordSchema$Field;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAliases ()Ljava/util/Set;
+	public final fun getDefaultValue ()Lkotlinx/serialization/json/JsonElement;
+	public fun getDoc ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun getProps ()Ljava/util/Map;
+	public final fun getSchema ()Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$StringSchema : com/github/avrokotlin/avro4k/AvroSchema$PrimitiveSchema {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema$StringSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$StringSchema;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$StringSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getProps ()Ljava/util/Map;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$Type : java/lang/Enum {
+	public static final field ARRAY Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field BOOLEAN Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field BYTES Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field DOUBLE Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field ENUM Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field FIXED Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field FLOAT Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field INT Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field LONG Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field MAP Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field NULL Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field RECORD Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field STRING Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static final field UNION Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public static fun values ()[Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchema$UnionSchema : com/github/avrokotlin/avro4k/AvroSchema {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Lcom/github/avrokotlin/avro4k/ResolvedSchema;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/github/avrokotlin/avro4k/AvroSchema$UnionSchema;
+	public static synthetic fun copy$default (Lcom/github/avrokotlin/avro4k/AvroSchema$UnionSchema;Ljava/util/List;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema$UnionSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndexOrNull (Ljava/lang/String;)Ljava/lang/Integer;
+	public fun getSimpleName ()Ljava/lang/String;
+	public fun getType ()Lcom/github/avrokotlin/avro4k/AvroSchema$Type;
+	public final fun getTypes ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun isNullable ()Z
+	public final fun isSimpleNullableType ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchemaApacheInteropKt {
+	public static final fun fromApacheSchema (Lcom/github/avrokotlin/avro4k/AvroSchema$Companion;Lorg/apache/avro/Schema;)Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public static final fun toApacheSchema (Lcom/github/avrokotlin/avro4k/AvroSchema;)Lorg/apache/avro/Schema;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchemaJsonDeserializerKt {
+	public static final fun fromJsonElement (Lcom/github/avrokotlin/avro4k/AvroSchema$Companion;Lkotlinx/serialization/json/JsonElement;Ljava/util/Map;)Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public static synthetic fun fromJsonElement$default (Lcom/github/avrokotlin/avro4k/AvroSchema$Companion;Lkotlinx/serialization/json/JsonElement;Ljava/util/Map;ILjava/lang/Object;)Lcom/github/avrokotlin/avro4k/AvroSchema;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchemaJsonSerializerKt {
+	public static final fun toJsonElement (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Set;)Lkotlinx/serialization/json/JsonElement;
+	public static synthetic fun toJsonElement$default (Lcom/github/avrokotlin/avro4k/AvroSchema;Ljava/util/Set;ILjava/lang/Object;)Lkotlinx/serialization/json/JsonElement;
+}
+
+public final class com/github/avrokotlin/avro4k/AvroSchemaKt {
+	public static final fun getLogicalTypeName (Lcom/github/avrokotlin/avro4k/ResolvedSchema;)Ljava/lang/String;
+	public static final fun getNullable (Lcom/github/avrokotlin/avro4k/AvroSchema;)Lcom/github/avrokotlin/avro4k/AvroSchema;
+	public static final fun isNullable (Lcom/github/avrokotlin/avro4k/AvroSchema;)Z
+}
+
 public final class com/github/avrokotlin/avro4k/AvroSingleObject : kotlinx/serialization/BinaryFormat {
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lcom/github/avrokotlin/avro4k/Avro;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -330,7 +648,21 @@ public final class com/github/avrokotlin/avro4k/MissingFieldsEncodingException :
 	public fun <init> (Ljava/util/List;Lorg/apache/avro/Schema;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
 }
 
+public final class com/github/avrokotlin/avro4k/Name {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFullName ()Ljava/lang/String;
+	public final fun getSimpleName ()Ljava/lang/String;
+	public final fun getSpace ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class com/github/avrokotlin/avro4k/Record : org/apache/avro/generic/GenericRecord, org/apache/avro/specific/SpecificRecord {
+}
+
+public abstract class com/github/avrokotlin/avro4k/ResolvedSchema : com/github/avrokotlin/avro4k/AvroSchema, com/github/avrokotlin/avro4k/WithProps {
 }
 
 public abstract interface class com/github/avrokotlin/avro4k/ShortValueDecoder {

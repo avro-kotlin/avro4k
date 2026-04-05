@@ -1,12 +1,24 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.AvroSchema.BooleanSchema
+import com.github.avrokotlin.avro4k.AvroSchema.DoubleSchema
+import com.github.avrokotlin.avro4k.AvroSchema.EnumSchema
+import com.github.avrokotlin.avro4k.AvroSchema.FloatSchema
+import com.github.avrokotlin.avro4k.AvroSchema.IntSchema
+import com.github.avrokotlin.avro4k.AvroSchema.LongSchema
+import com.github.avrokotlin.avro4k.AvroSchema.StringSchema
+import com.github.avrokotlin.avro4k.Name
+import com.github.avrokotlin.avro4k.fromApacheSchema
+import com.github.avrokotlin.avro4k.fromJsonString
 import com.github.avrokotlin.avro4k.internal.AvroGenerated
 import com.github.avrokotlin.avro4k.internal.SerializerLocatorMiddleware
 import com.github.avrokotlin.avro4k.internal.findAnnotation
-import com.github.avrokotlin.avro4k.internal.jsonNode
+import com.github.avrokotlin.avro4k.internal.jsonElement
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
-import com.github.avrokotlin.avro4k.internal.nullable
+import com.github.avrokotlin.avro4k.isNullable
+import com.github.avrokotlin.avro4k.nullable
 import com.github.avrokotlin.avro4k.serializer.AvroSchemaSupplier
 import com.github.avrokotlin.avro4k.serializer.stringable
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -14,21 +26,19 @@ import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.nonNullOriginal
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
-import org.apache.avro.LogicalType
-import org.apache.avro.Schema
-import org.apache.avro.SchemaBuilder
 
 internal class ValueVisitor internal constructor(
     private val context: VisitorContext,
-    private val onSchemaBuilt: (Schema) -> Unit,
+    private val onSchemaBuilt: (AvroSchema) -> Unit,
 ) : SerialDescriptorValueVisitor {
     private var isNullable: Boolean = false
 
     override val serializersModule: SerializersModule
         get() = context.avro.serializersModule
 
-    constructor(avro: Avro, onSchemaBuilt: (Schema) -> Unit) : this(
+    constructor(avro: Avro, onSchemaBuilt: (AvroSchema) -> Unit) : this(
         VisitorContext(
             avro,
             mutableMapOf()
@@ -44,14 +54,14 @@ internal class ValueVisitor internal constructor(
     override fun visitEnum(descriptor: SerialDescriptor) {
         val annotations = TypeAnnotations(descriptor)
 
-        val schema =
-            SchemaBuilder.enumeration(descriptor.nonNullSerialName)
-                .doc(annotations.doc?.value)
-                .defaultSymbol(context.avro.enumResolver.getDefaultValueIndex(descriptor)?.let { descriptor.getElementName(it) })
-                .symbols(*descriptor.elementNamesArray)
-
-        annotations.aliases?.value?.forEach { schema.addAlias(it) }
-        annotations.props.forEach { schema.addProp(it.key, it.jsonNode) }
+        val schema = EnumSchema(
+            name = Name(descriptor.nonNullSerialName),
+            symbols = descriptor.elementNamesArray.toList(),
+            defaultSymbol = context.avro.enumResolver.getDefaultValueIndex(descriptor)?.let { descriptor.getElementName(it) },
+            doc = annotations.doc?.value,
+            aliases = annotations.aliases?.value?.map { Name(it) }?.toSet() ?: emptySet(),
+            props = annotations.props.associate { it.key to it.jsonElement },
+        )
 
         setSchema(schema)
     }
@@ -78,7 +88,7 @@ internal class ValueVisitor internal constructor(
 
     override fun visitInlineClass(descriptor: SerialDescriptor) = InlineClassVisitor(context) { setSchema(it) }
 
-    private fun setSchema(schema: Schema) {
+    private fun setSchema(schema: AvroSchema) {
         if (isNullable && !schema.isNullable) {
             onSchemaBuilt(schema.nullable)
         } else {
@@ -90,17 +100,17 @@ internal class ValueVisitor internal constructor(
         val finalDescriptor = SerializerLocatorMiddleware.apply(unwrapNullable(descriptor))
         descriptor.findAnnotation<AvroGenerated>()?.let {
             // Ignore everything and use the provided schema
-            setSchema(Schema.Parser().parse(it.originalSchema))
+            setSchema(AvroSchema.fromJsonString(it.originalSchema))
             return
         }
 
         if (finalDescriptor is AvroSchemaSupplier) {
-            setSchema(finalDescriptor.getSchema(context))
+            setSchema(AvroSchema.fromApacheSchema(finalDescriptor.getSchema(context)))
             return
         }
 
         if (context.inlinedElements.any { it.stringable != null }) {
-            setSchema(Schema.create(Schema.Type.STRING))
+            setSchema(StringSchema())
             return
         }
 
@@ -118,17 +128,16 @@ internal class ValueVisitor internal constructor(
 }
 
 internal const val CHAR_LOGICAL_TYPE_NAME = "char"
-private val CHAR_LOGICAL_TYPE = LogicalType(CHAR_LOGICAL_TYPE_NAME)
 
-private fun PrimitiveKind.toSchema(): Schema =
+private fun PrimitiveKind.toSchema(): AvroSchema =
     when (this) {
-        PrimitiveKind.BOOLEAN -> Schema.create(Schema.Type.BOOLEAN)
-        PrimitiveKind.CHAR -> Schema.create(Schema.Type.INT).also { CHAR_LOGICAL_TYPE.addToSchema(it) }
-        PrimitiveKind.BYTE -> Schema.create(Schema.Type.INT)
-        PrimitiveKind.SHORT -> Schema.create(Schema.Type.INT)
-        PrimitiveKind.INT -> Schema.create(Schema.Type.INT)
-        PrimitiveKind.LONG -> Schema.create(Schema.Type.LONG)
-        PrimitiveKind.FLOAT -> Schema.create(Schema.Type.FLOAT)
-        PrimitiveKind.DOUBLE -> Schema.create(Schema.Type.DOUBLE)
-        PrimitiveKind.STRING -> Schema.create(Schema.Type.STRING)
+        PrimitiveKind.BOOLEAN -> BooleanSchema()
+        PrimitiveKind.CHAR -> IntSchema(props = mapOf("logicalType" to JsonPrimitive(CHAR_LOGICAL_TYPE_NAME)))
+        PrimitiveKind.BYTE -> IntSchema()
+        PrimitiveKind.SHORT -> IntSchema()
+        PrimitiveKind.INT -> IntSchema()
+        PrimitiveKind.LONG -> LongSchema()
+        PrimitiveKind.FLOAT -> FloatSchema()
+        PrimitiveKind.DOUBLE -> DoubleSchema()
+        PrimitiveKind.STRING -> StringSchema()
     }

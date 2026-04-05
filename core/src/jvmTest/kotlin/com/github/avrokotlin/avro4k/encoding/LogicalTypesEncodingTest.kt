@@ -41,7 +41,6 @@ internal class LogicalTypesEncodingTest : StringSpec({
     }
 
     "support non-nullable logical types" {
-        println(Avro.schema<LogicalTypes>())
         AvroAssertions.assertThat(
             LogicalTypes(
                 BigDecimal("123.45"),

@@ -1,14 +1,16 @@
 package com.github.avrokotlin.avro4k.internal.schema
 
+import com.github.avrokotlin.avro4k.AvroSchema
+import com.github.avrokotlin.avro4k.AvroSchema.MapSchema
+import com.github.avrokotlin.avro4k.AvroSchema.UnionSchema
 import com.github.avrokotlin.avro4k.internal.AvroSchemaGenerationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import org.apache.avro.Schema
 
 internal class MapVisitor(
     private val context: VisitorContext,
-    private val onSchemaBuilt: (Schema) -> Unit,
+    private val onSchemaBuilt: (AvroSchema) -> Unit,
 ) : SerialDescriptorMapVisitor {
-    private lateinit var valueSchema: Schema
+    private lateinit var valueSchema: AvroSchema
 
     override fun visitMapKey(
         mapDescriptor: SerialDescriptor,
@@ -20,10 +22,7 @@ internal class MapVisitor(
         // stringify (e.g. when .toString() makes sense).
         // Here we are just checking if the schema is string-compatible. We don't need to
         // store the schema as it is always a string.
-        if (it.isNullable()) {
-            throw AvroSchemaGenerationException("Map key cannot be nullable. Actual generated map key schema: $it")
-        }
-        if (!it.isNonNullScalarType()) {
+        if (!it.isAcceptedMapKeyType()) {
             throw AvroSchemaGenerationException("Map key must be a non-null scalar type (e.g. not a record, map or array). Actual generated map key schema: $it")
         }
     }
@@ -36,29 +35,30 @@ internal class MapVisitor(
     }
 
     override fun endMapVisit(descriptor: SerialDescriptor) {
-        onSchemaBuilt(Schema.createMap(valueSchema))
+        onSchemaBuilt(MapSchema(valueSchema))
     }
 }
 
-internal fun Schema.isNonNullScalarType(): Boolean =
+internal fun AvroSchema.isAcceptedMapKeyType(): Boolean =
+    isNonNullScalarType()
+private fun AvroSchema.isNonNullScalarType(): Boolean =
     when (type) {
-        Schema.Type.BOOLEAN,
-        Schema.Type.INT,
-        Schema.Type.LONG,
-        Schema.Type.FLOAT,
-        Schema.Type.DOUBLE,
-        Schema.Type.STRING,
-        Schema.Type.ENUM,
-        Schema.Type.BYTES,
-        Schema.Type.FIXED,
-        -> true
+        AvroSchema.Type.BOOLEAN,
+        AvroSchema.Type.INT,
+        AvroSchema.Type.LONG,
+        AvroSchema.Type.FLOAT,
+        AvroSchema.Type.DOUBLE,
+        AvroSchema.Type.STRING,
+        AvroSchema.Type.ENUM,
+        AvroSchema.Type.BYTES,
+        AvroSchema.Type.FIXED,
+            -> true
 
-        Schema.Type.NULL,
-        Schema.Type.ARRAY,
-        Schema.Type.MAP,
-        Schema.Type.RECORD,
-        null,
-        -> false
+        AvroSchema.Type.NULL,
+        AvroSchema.Type.ARRAY,
+        AvroSchema.Type.MAP,
+        AvroSchema.Type.RECORD,
+            -> false
 
-        Schema.Type.UNION -> types.all { it.isNonNullScalarType() }
+        AvroSchema.Type.UNION -> (this as UnionSchema).types.all { it.isNonNullScalarType() }
     }

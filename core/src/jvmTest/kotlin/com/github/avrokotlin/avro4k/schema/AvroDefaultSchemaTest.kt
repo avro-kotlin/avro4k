@@ -9,7 +9,6 @@ import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.serialization.Serializable
-import org.apache.avro.AvroTypeException
 import java.math.BigDecimal
 import kotlin.io.path.Path
 
@@ -60,8 +59,8 @@ internal class AvroDefaultSchemaTest : FunSpec({
     }
 
     test("schema for data class with @AvroDefault should throw error when array type does not match default value type") {
-        shouldThrow<AvroTypeException> { Avro.schema(BarInvalidArrayType.serializer()) }
-        shouldThrow<AvroTypeException> { Avro.schema(BarInvalidNonArrayType.serializer()) }
+        shouldThrow<IllegalArgumentException> { Avro.schema(BarInvalidArrayType.serializer()) }
+        shouldThrow<IllegalArgumentException> { Avro.schema(BarInvalidNonArrayType.serializer()) }
     }
 }) {
     @Serializable

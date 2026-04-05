@@ -78,9 +78,9 @@ internal class AvroDefaultEncodingTest : StringSpec({
         val shouldBe1AndNot42: Int = 42,
         @AvroDefault("true")
         val booleanDefault: Boolean,
-        @AvroDefault("a")
+        @AvroDefault("97")
         val charDefault: Char,
-        @AvroDefault("a")
+        @AvroDefault("97")
         val charDefaultNullable: Char?,
         @AvroDefault("null")
         val charDefaultNullableNull: Char?,

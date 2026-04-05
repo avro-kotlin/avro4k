@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.AvroConfiguration
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroDoc
 import com.github.avrokotlin.avro4k.AvroProp
+import com.github.avrokotlin.avro4k.AvroSchema
 import com.github.avrokotlin.avro4k.internal.findAnnotation
 import com.github.avrokotlin.avro4k.internal.findAnnotations
 import com.github.avrokotlin.avro4k.internal.findElementAnnotation
@@ -15,11 +16,10 @@ import com.github.avrokotlin.avro4k.serializer.SchemaSupplierContext
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
-import org.apache.avro.Schema
 
 internal data class VisitorContext(
     val avro: Avro,
-    val resolvedSchemas: MutableMap<String, Schema>,
+    val resolvedSchemas: MutableMap<String, AvroSchema>,
     override val inlinedElements: List<ElementLocation> = emptyList(),
 ) : SchemaSupplierContext {
     override val configuration: AvroConfiguration

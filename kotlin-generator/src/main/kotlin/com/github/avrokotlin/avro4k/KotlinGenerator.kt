@@ -228,7 +228,7 @@ public class KotlinGenerator(
                         schema.fields.flatMap { field ->
                             // the union schema is already generated as a subtype of the record, no need to generate it again. However, we need to generate the types used in the union
                             if (field.schema is AvroSchema.UnionSchema) {
-                                field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords) }
+                                field.schema.types.flatMap { generateNestedKotlinClasses(it, potentialAnonymousBaseName, generatedRecords + (schema.asClassName() to recordType)) }
                             } else {
                                 generateNestedKotlinClasses(field.schema, field.name.toPascalCase(), generatedRecords + (schema.asClassName() to recordType))
                             }

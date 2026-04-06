@@ -1,0 +1,13 @@
+{
+    "type": "record",
+    "name": "theNestedUnion",
+    "namespace": "ns",
+    "doc": "doc",
+    "fields": [
+        {
+            "name": "s",
+            "type": ["null", "ns.theNestedUnion"],
+            "default": null
+        }
+    ]
+}

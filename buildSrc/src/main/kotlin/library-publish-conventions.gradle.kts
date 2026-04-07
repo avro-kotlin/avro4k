@@ -12,39 +12,42 @@ mavenPublishing {
     }
 }
 
-mavenPublishing {
-    coordinates(
-        artifactId = "avro4k-${project.name}",
-    )
-    pom {
-        val projectUrl = "https://github.com/avro-kotlin/avro4k"
-        name = project.name
-        description = project.description?.ifEmpty { null } ?: error("Missing ${project.name} project description")
-        url = projectUrl
-
-        scm {
-            connection = "scm:git:$projectUrl"
-            developerConnection = "scm:git:$projectUrl"
+// Needed to wrap in afterEvaluate as the project.description is not evaluated early enough in kmp I don't know why
+afterEvaluate {
+    mavenPublishing {
+        coordinates(
+            artifactId = "avro4k-${project.name}",
+        )
+        pom {
+            val projectUrl = "https://github.com/avro-kotlin/avro4k"
+            name = project.name
+            description = project.description?.ifEmpty { null } ?: error("Missing ${project.name} project description")
             url = projectUrl
-        }
 
-        licenses {
-            license {
-                name = "Apache-2.0"
-                url = "https://opensource.org/licenses/Apache-2.0"
+            scm {
+                connection = "scm:git:$projectUrl"
+                developerConnection = "scm:git:$projectUrl"
+                url = projectUrl
             }
-        }
 
-        developers {
-            developer {
-                id = "thake"
-                name = "Thorsten Hake"
-                email = "mail@thorsten-hake.com"
+            licenses {
+                license {
+                    name = "Apache-2.0"
+                    url = "https://opensource.org/licenses/Apache-2.0"
+                }
             }
-            developer {
-                id = "chuckame"
-                name = "Antoine Michaud"
-                email = "contact@antoine-michaud.fr"
+
+            developers {
+                developer {
+                    id = "thake"
+                    name = "Thorsten Hake"
+                    email = "mail@thorsten-hake.com"
+                }
+                developer {
+                    id = "chuckame"
+                    name = "Antoine Michaud"
+                    email = "contact@antoine-michaud.fr"
+                }
             }
         }
     }

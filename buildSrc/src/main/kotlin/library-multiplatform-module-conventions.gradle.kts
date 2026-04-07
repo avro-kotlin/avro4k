@@ -1,8 +1,6 @@
 plugins {
-    id("java-library")
-    kotlin("jvm")
+    kotlin("multiplatform")
     id("org.jetbrains.dokka")
-    id("org.jetbrains.dokka-javadoc")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
     id("com.diffplug.spotless")
 }
@@ -23,7 +21,10 @@ kotlin {
             "com.github.avrokotlin.avro4k.InternalAvro4kApi",
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
         )
-        freeCompilerArgs.add("-Xcontext-parameters")
+        freeCompilerArgs = listOf(
+            "-Xcontext-parameters",
+            "-Xexpect-actual-classes",
+        )
     }
 
     jvmToolchain(11)
@@ -34,7 +35,7 @@ tasks.withType<Test>().configureEach {
 }
 
 spotless {
-    val ktlintVersion = versionCatalogs.named("libs").findVersion("ktlint").get().toString()
+    val ktlintVersion = extensions.getByType<VersionCatalogsExtension>().named("libs").findVersion("ktlint").get().toString()
     kotlin {
         ktlint(ktlintVersion).setEditorConfigPath(rootProject.file(".editorconfig"))
     }

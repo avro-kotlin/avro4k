@@ -1,5 +1,5 @@
 [versions]
-kotlinx-serialization = "1.10.0"
+kotlinx-serialization = "1.11.0"
 kotlinx-io = "0.8.2"
 kotest = "6.1.11"
 okio = "3.17.0"

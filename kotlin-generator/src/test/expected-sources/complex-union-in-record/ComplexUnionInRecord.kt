@@ -3,6 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
@@ -25,18 +26,21 @@ public data class ComplexUnionInRecord(
     @Serializable
     @AvroGenerated("""["null",{"type":"record","name":"NestedRecord","fields":[{"name":"id","type":"string"},{"name":"value","type":"int"}]},{"type":"enum","name":"Status","symbols":["ACTIVE","INACTIVE","PENDING"]},{"type":"array","items":"string"}]""")
     public sealed interface TheFieldUnion {
+        @AvroAlias("NestedRecord")
         @JvmInline
         @Serializable
         public value class ForNestedRecord(
             public val `value`: NestedRecord,
         ) : TheFieldUnion
 
+        @AvroAlias("Status")
         @JvmInline
         @Serializable
         public value class ForStatus(
             public val `value`: Status,
         ) : TheFieldUnion
 
+        @AvroAlias("array")
         @JvmInline
         @Serializable
         public value class ForArray(

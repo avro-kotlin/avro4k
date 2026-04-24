@@ -332,6 +332,7 @@ public class KotlinGenerator(
      * ```kotlin
      * @Serializable
      * sealed interface <potentialAnonymousBaseName>Union {
+     *     @AvroAlias("<Type full name>")
      *     @JvmInline
      *     @Serializable
      *     value class For<Type name>(val value: <Type full name>) : <potentialAnonymousBaseName>Union
@@ -356,6 +357,7 @@ public class KotlinGenerator(
                         TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.simpleName.toPascalCase()))
                             .addSuperinterface(ClassName.fromFullName(className))
                             .addModifiers(KModifier.VALUE)
+                            .addAnnotation(buildAvroAliasAnnotation(listOf(subSchema.fullName))!!)
                             .addAnnotation(JvmInline::class)
                             .addAnnotation(Serializable::class)
                             .addPrimaryProperty(

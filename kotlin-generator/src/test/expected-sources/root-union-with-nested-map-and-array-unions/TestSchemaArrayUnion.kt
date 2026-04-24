@@ -3,6 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
@@ -15,12 +16,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""["long","null","double"]""")
 public sealed interface TestSchemaArrayUnion {
+    @AvroAlias("long")
     @JvmInline
     @Serializable
     public value class ForLong(
         public val `value`: Long,
     ) : TestSchemaArrayUnion
 
+    @AvroAlias("double")
     @JvmInline
     @Serializable
     public value class ForDouble(

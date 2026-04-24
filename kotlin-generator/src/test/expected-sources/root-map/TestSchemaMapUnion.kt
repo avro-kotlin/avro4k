@@ -3,6 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
@@ -15,12 +16,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""["double","null","int"]""")
 public sealed interface TestSchemaMapUnion {
+    @AvroAlias("double")
     @JvmInline
     @Serializable
     public value class ForDouble(
         public val `value`: Double,
     ) : TestSchemaMapUnion
 
+    @AvroAlias("int")
     @JvmInline
     @Serializable
     public value class ForInt(

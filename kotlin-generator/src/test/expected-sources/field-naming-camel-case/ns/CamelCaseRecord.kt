@@ -48,12 +48,14 @@ public data class CamelCaseRecord(
     @Serializable
     @AvroGenerated("""["string",{"type":"enum","name":"StatusFlag","namespace":"ns","symbols":["ACTIVE","INACTIVE"]},"null"]""")
     public sealed interface AccountStatusUnion {
+        @AvroAlias("string")
         @JvmInline
         @Serializable
         public value class ForString(
             public val `value`: String,
         ) : AccountStatusUnion
 
+        @AvroAlias("ns.StatusFlag")
         @JvmInline
         @Serializable
         public value class ForStatusFlag(

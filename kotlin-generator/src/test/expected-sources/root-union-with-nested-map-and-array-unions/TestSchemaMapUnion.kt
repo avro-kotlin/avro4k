@@ -3,6 +3,7 @@
     ExperimentalAvro4kApi::class,
 )
 
+import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
 import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
@@ -15,12 +16,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""["string","null",{"type":"array","items":["long","null",{"type":"map","values":["boolean","null"]}]}]""")
 public sealed interface TestSchemaMapUnion {
+    @AvroAlias("string")
     @JvmInline
     @Serializable
     public value class ForString(
         public val `value`: String,
     ) : TestSchemaMapUnion
 
+    @AvroAlias("array")
     @JvmInline
     @Serializable
     public value class ForArray(

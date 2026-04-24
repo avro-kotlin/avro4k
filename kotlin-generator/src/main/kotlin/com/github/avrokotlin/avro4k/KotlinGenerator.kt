@@ -357,7 +357,7 @@ public class KotlinGenerator(
                         TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.simpleName.toPascalCase()))
                             .addSuperinterface(ClassName.fromFullName(className))
                             .addModifiers(KModifier.VALUE)
-                            .addAnnotation(buildAvroAliasAnnotation(listOf(subSchema.fullName))!!)
+                            .addAnnotationIfNotNull(buildAvroAliasAnnotation(listOf(subSchema.fullName)))
                             .addAnnotation(JvmInline::class)
                             .addAnnotation(Serializable::class)
                             .addPrimaryProperty(

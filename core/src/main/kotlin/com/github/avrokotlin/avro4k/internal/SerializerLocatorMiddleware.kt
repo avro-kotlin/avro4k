@@ -8,12 +8,14 @@ import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDe
 import com.github.avrokotlin.avro4k.serializer.AvroDuration
 import com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer
 import com.github.avrokotlin.avro4k.serializer.AvroSerializer
+import com.github.avrokotlin.avro4k.serializer.KotlinInstantSerializer
 import com.github.avrokotlin.avro4k.serializer.KotlinUuidSerializer
 import com.github.avrokotlin.avro4k.serializer.SchemaSupplierContext
 import com.github.avrokotlin.avro4k.serializer.SerialDescriptorWithAvroSchemaDelegate
 import com.github.avrokotlin.avro4k.serializer.createSchema
 import com.github.avrokotlin.avro4k.serializer.fixed
 import com.github.avrokotlin.avro4k.serializer.stringable
+import kotlinx.datetime.Instant
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -44,6 +46,7 @@ internal object SerializerLocatorMiddleware {
             serializer === ByteArraySerializer() -> AvroByteArraySerializer
             serializer === Duration.serializer() -> KotlinDurationSerializer
             serializer === Uuid.serializer() -> KotlinUuidSerializer
+            serializer === Instant.serializer() -> KotlinInstantSerializer
             else -> serializer
         } as SerializationStrategy<T>
     }
@@ -54,6 +57,7 @@ internal object SerializerLocatorMiddleware {
             deserializer === ByteArraySerializer() -> AvroByteArraySerializer
             deserializer === Duration.serializer() -> KotlinDurationSerializer
             deserializer === Uuid.serializer() -> KotlinUuidSerializer
+            deserializer === Instant.serializer() -> KotlinInstantSerializer
             deserializer is AbstractCollectionSerializer<*, T, *> -> AvroCollectionSerializer(deserializer)
             else -> deserializer
         } as DeserializationStrategy<T>
@@ -65,6 +69,7 @@ internal object SerializerLocatorMiddleware {
             descriptor === String.serializer().descriptor -> AvroStringSerialDescriptor
             descriptor === Duration.serializer().descriptor -> KotlinDurationSerializer.descriptor
             descriptor === Uuid.serializer().descriptor -> KotlinUuidSerializer.descriptor
+            descriptor === Instant.serializer().descriptor -> KotlinInstantSerializer.descriptor
             else -> descriptor
         }
     }

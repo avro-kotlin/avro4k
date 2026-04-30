@@ -7,6 +7,7 @@ import com.github.avrokotlin.avro4k.recordWithSchema
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.Serializable
+import org.apache.avro.generic.GenericData
 
 internal class SealedClassEncodingTest : StringSpec({
     "encode/decode sealed classes" {
@@ -14,6 +15,13 @@ internal class SealedClassEncodingTest : StringSpec({
             .isEncodedAs(record(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2)))
         AvroAssertions.assertThat<Operation>(Operation.Binary.Add(1, 2))
             .isEncodedAs(recordWithSchema(Avro.schema<Operation.Binary.Add>(), 1, 2))
+    }
+    "encode/decode sealed class union with value class primitive, enum and record subtypes" {
+        val shapeSchema = Avro.schema<Shape>()
+        val colorSchema = shapeSchema.types.first { it.name == "Color" }
+        AvroAssertions.assertThat<Shape>(Shape.Label("hello")).isEncodedAs("hello")
+        AvroAssertions.assertThat<Shape>(Shape.Color.RED).isEncodedAs(GenericData.get().createEnum("RED", colorSchema))
+        AvroAssertions.assertThat<Shape>(Shape.Circle(5)).isEncodedAs(recordWithSchema(Avro.schema<Shape.Circle>(), 5))
     }
     "encode/decode nullable sealed classes" {
         AvroAssertions.assertThat(ReferencingNullableSealedClass(Operation.Binary.Add(1, 2)))
@@ -27,6 +35,19 @@ internal class SealedClassEncodingTest : StringSpec({
             .isEncodedAs(null)
     }
 }) {
+    @Serializable
+    private sealed interface Shape {
+        @JvmInline
+        @Serializable
+        value class Label(val value: String) : Shape
+
+        @Serializable
+        enum class Color : Shape { RED, BLUE }
+
+        @Serializable
+        data class Circle(val radius: Int) : Shape
+    }
+
     @Serializable
     private data class ReferencingSealedClass(
         val notNullable: Operation,

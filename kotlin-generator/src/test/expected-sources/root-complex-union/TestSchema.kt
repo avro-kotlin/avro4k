@@ -3,7 +3,6 @@
     ExperimentalAvro4kApi::class,
 )
 
-import com.github.avrokotlin.avro4k.AvroAlias
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
@@ -21,35 +20,30 @@ import kotlinx.serialization.Serializable
 @Serializable
 @AvroGenerated("""["null","string","int",{"type":"record","name":"NestedRecord","fields":[{"name":"field","type":"string","doc":"field doc"}]},{"type":"enum","name":"AnEnum","symbols":["A","B","C"]},{"type":"fixed","name":"AFixed","size":5},{"type":"array","items":"int"},{"type":"map","values":["null","double"]}]""")
 public sealed interface TestSchema {
-    @AvroAlias("string")
     @JvmInline
     @Serializable
     public value class ForString(
         public val `value`: String,
     ) : TestSchema
 
-    @AvroAlias("int")
     @JvmInline
     @Serializable
     public value class ForInt(
         public val `value`: Int,
     ) : TestSchema
 
-    @AvroAlias("NestedRecord")
     @JvmInline
     @Serializable
     public value class ForNestedRecord(
         public val `value`: NestedRecord,
     ) : TestSchema
 
-    @AvroAlias("AnEnum")
     @JvmInline
     @Serializable
     public value class ForAnEnum(
         public val `value`: AnEnum,
     ) : TestSchema
 
-    @AvroAlias("AFixed")
     @JvmInline
     @Serializable
     public value class ForAFixed(
@@ -57,14 +51,12 @@ public sealed interface TestSchema {
         public val `value`: ByteArray,
     ) : TestSchema
 
-    @AvroAlias("array")
     @JvmInline
     @Serializable
     public value class ForArray(
         public val `value`: List<Int>,
     ) : TestSchema
 
-    @AvroAlias("map")
     @JvmInline
     @Serializable
     public value class ForMap(

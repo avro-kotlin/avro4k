@@ -331,8 +331,8 @@ public class KotlinGenerator(
      *
      * ```kotlin
      * @Serializable
- * sealed interface <potentialAnonymousBaseName>Union {
- *     @JvmInline
+     * sealed interface <potentialAnonymousBaseName>Union {
+     *     @JvmInline
      *     @Serializable
      *     value class For<Type name>(val value: <Type full name>) : <potentialAnonymousBaseName>Union
      *

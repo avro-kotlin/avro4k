@@ -13,9 +13,9 @@ public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4
 	public fun close ()V
 	public fun configure (Ljava/util/Map;Z)V
 	protected final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
+	protected fun getDatumWriter (Ljava/lang/Object;Lorg/apache/avro/Schema;ZZ)Lorg/apache/avro/io/DatumWriter;
 	public fun serialize (Ljava/lang/String;Ljava/lang/Object;)[B
 	public fun serialize (Ljava/lang/String;Lorg/apache/kafka/common/header/Headers;Ljava/lang/Object;)[B
-	protected fun serializeImpl (Ljava/lang/String;Ljava/lang/String;Lorg/apache/kafka/common/header/Headers;Ljava/lang/Object;Lio/confluent/kafka/schemaregistry/avro/AvroSchema;)[B
 }
 
 public final class com/github/avrokotlin/avro4k/kafka/confluent/GenericAvro4kKafkaDeserializer : com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaDeserializer {

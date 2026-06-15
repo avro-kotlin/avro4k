@@ -6,7 +6,7 @@ okio = "3.17.0"
 apache-avro = "1.12.1"
 confluent-schema-registry = "8.1.1"
 kotlinpoet = "2.2.0"
-mockk = "1.14.9"
+mockk = "1.14.11"
 junit = "5.13.4"
 ktlint = "1.8.0"
 

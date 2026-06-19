@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
@@ -7,8 +9,8 @@ import com.github.avrokotlin.avro4k.encodeToBytesUsingApacheLib
 import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -27,7 +29,11 @@ internal class KotlinInstantDecodingTest : StringSpec({
     val instantWithNanos = Instant.fromEpochSeconds(1577882096, 424)
     val instantNanos = 1577882096000000424L
 
-    "decode kotlinx.datetime.Instant from timestamp-millis" {
+    val negativeMillis = -877L
+    val negativeMicros = -876_544L
+    val negativeNanos = -876_543_211L
+
+    "decode kotlin.time.Instant from timestamp-millis" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampMillis().addToSchema(schema)
 
@@ -37,7 +43,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe instant
     }
 
-    "decode nullable kotlinx.datetime.Instant" {
+    "decode nullable kotlin.time.Instant" {
         val schema = Avro.schema<Instant?>()
 
         // With value
@@ -51,7 +57,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decodedWithNull shouldBe null
     }
 
-    "decode kotlinx.datetime.Instant from timestamp-micros" {
+    "decode kotlin.time.Instant from timestamp-micros" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampMicros().addToSchema(schema)
 
@@ -61,7 +67,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe instantWithMicros
     }
 
-    "decode kotlinx.datetime.Instant from timestamp-nanos" {
+    "decode kotlin.time.Instant from timestamp-nanos" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampNanos().addToSchema(schema)
 
@@ -71,7 +77,37 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe instantWithNanos
     }
 
-    "decode kotlinx.datetime.Instant from string" {
+    "decode negative timestamp-millis as kotlin.time.Instant" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMillis().addToSchema(schema)
+
+        val bytes = encodeToBytesUsingApacheLib(schema, negativeMillis)
+        val decoded = Avro.decodeFromByteArray<Instant>(schema, bytes)
+
+        decoded shouldBe Instant.fromEpochSeconds(-1, 123_000_000)
+    }
+
+    "decode negative timestamp-micros as kotlin.time.Instant" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMicros().addToSchema(schema)
+
+        val bytes = encodeToBytesUsingApacheLib(schema, negativeMicros)
+        val decoded = Avro.decodeFromByteArray<Instant>(schema, bytes)
+
+        decoded shouldBe Instant.fromEpochSeconds(-1, 123_456_000)
+    }
+
+    "decode negative timestamp-nanos as kotlin.time.Instant" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampNanos().addToSchema(schema)
+
+        val bytes = encodeToBytesUsingApacheLib(schema, negativeNanos)
+        val decoded = Avro.decodeFromByteArray<Instant>(schema, bytes)
+
+        decoded shouldBe Instant.fromEpochSeconds(-1, 123_456_789)
+    }
+
+    "decode kotlin.time.Instant from string" {
         val schema = Schema.create(Schema.Type.STRING)
 
         val bytes = encodeToBytesUsingApacheLib(schema, instant.toString())
@@ -80,7 +116,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe instant
     }
 
-    "decode kotlinx.datetime.Instant from long without logical type" {
+    "decode kotlin.time.Instant from long without logical type" {
         val schema = Schema.create(Schema.Type.LONG)
 
         val bytes = encodeToBytesUsingApacheLib(schema, instantMillis)
@@ -89,7 +125,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe instant
     }
 
-    "decode kotlinx.datetime.Instant from array" {
+    "decode kotlin.time.Instant from array" {
         val instant2 = Instant.fromEpochSeconds(1577882097)
         val schema = Avro.schema<List<Instant>>()
 
@@ -99,7 +135,7 @@ internal class KotlinInstantDecodingTest : StringSpec({
         decoded shouldBe listOf(instant, instant2)
     }
 
-    "decode kotlinx.datetime.Instant from record" {
+    "decode kotlin.time.Instant from record" {
         val schema = Avro.schema<InstantRecord>()
         val bytes = encodeToBytesUsingApacheLib(
             schema,

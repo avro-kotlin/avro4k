@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
@@ -12,10 +14,10 @@ import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MILLI
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToByteArray
+import kotlin.time.Instant
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
@@ -33,7 +35,12 @@ internal class KotlinInstantEncodingTest : StringSpec({
     val instantWithNanos = Instant.fromEpochSeconds(1577882096, 424)
     val instantNanos = 1577882096000000424L
 
-    "encode kotlinx.datetime.Instant as timestamp-millis" {
+    val preEpochFractionalInstant = Instant.fromEpochSeconds(-1, 123_456_789)
+    val preEpochMillis = -877L
+    val preEpochMicros = -876_544L
+    val preEpochNanos = -876_543_211L
+
+    "encode kotlin.time.Instant as timestamp-millis" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampMillis().addToSchema(schema)
 
@@ -43,7 +50,7 @@ internal class KotlinInstantEncodingTest : StringSpec({
         encoded shouldBe expectedBytes
     }
 
-    "encode nullable kotlinx.datetime.Instant" {
+    "encode nullable kotlin.time.Instant" {
         val schema = Avro.schema<Instant?>()
 
         // With value
@@ -57,7 +64,7 @@ internal class KotlinInstantEncodingTest : StringSpec({
         encodedWithNull shouldBe expectedWithNull
     }
 
-    "encode kotlinx.datetime.Instant as timestamp-micros using writer schema" {
+    "encode kotlin.time.Instant as timestamp-micros using writer schema" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampMicros().addToSchema(schema)
 
@@ -67,7 +74,7 @@ internal class KotlinInstantEncodingTest : StringSpec({
         encoded shouldBe expectedBytes
     }
 
-    "encode kotlinx.datetime.Instant as timestamp-nanos using writer schema" {
+    "encode kotlin.time.Instant as timestamp-nanos using writer schema" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampNanos().addToSchema(schema)
 
@@ -77,7 +84,37 @@ internal class KotlinInstantEncodingTest : StringSpec({
         encoded shouldBe expectedBytes
     }
 
-    "reject kotlinx.datetime.Instant outside timestamp-nanos range" {
+    "encode pre-epoch fractional kotlin.time.Instant as timestamp-millis" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMillis().addToSchema(schema)
+
+        val encoded = Avro.encodeToByteArray<Instant>(schema, preEpochFractionalInstant)
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, preEpochMillis)
+
+        encoded shouldBe expectedBytes
+    }
+
+    "encode pre-epoch fractional kotlin.time.Instant as timestamp-micros" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMicros().addToSchema(schema)
+
+        val encoded = Avro.encodeToByteArray<Instant>(schema, preEpochFractionalInstant)
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, preEpochMicros)
+
+        encoded shouldBe expectedBytes
+    }
+
+    "encode pre-epoch fractional kotlin.time.Instant as timestamp-nanos" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampNanos().addToSchema(schema)
+
+        val encoded = Avro.encodeToByteArray<Instant>(schema, preEpochFractionalInstant)
+        val expectedBytes = encodeToBytesUsingApacheLib(schema, preEpochNanos)
+
+        encoded shouldBe expectedBytes
+    }
+
+    "reject kotlin.time.Instant outside timestamp-nanos range" {
         val schema = SchemaBuilder.builder().longType()
         LogicalTypes.timestampNanos().addToSchema(schema)
         val outOfRangeInstant = Instant.parse("2262-04-12T00:00:00Z")
@@ -87,12 +124,32 @@ internal class KotlinInstantEncodingTest : StringSpec({
         }
     }
 
-    "encode kotlinx.datetime.Instant as string using @AvroStringable" {
+    "reject kotlin.time.Instant outside timestamp-millis range" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMillis().addToSchema(schema)
+        val outOfRangeInstant = Instant.fromEpochSeconds(Long.MAX_VALUE / 1_000L + 1)
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray<Instant>(schema, outOfRangeInstant)
+        }
+    }
+
+    "reject kotlin.time.Instant outside timestamp-micros range" {
+        val schema = SchemaBuilder.builder().longType()
+        LogicalTypes.timestampMicros().addToSchema(schema)
+        val outOfRangeInstant = Instant.fromEpochSeconds(Long.MAX_VALUE / 1_000_000L + 1)
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray<Instant>(schema, outOfRangeInstant)
+        }
+    }
+
+    "encode kotlin.time.Instant as string using @AvroStringable" {
         AvroAssertions.assertThat(InstantStringable(instant))
             .isEncodedAs(record(instant.toString()))
     }
 
-    "encode kotlinx.datetime.Instant in array" {
+    "encode kotlin.time.Instant in array" {
         val instant2 = Instant.fromEpochSeconds(1577882097)
         val data = listOf(instant, instant2)
 
@@ -103,7 +160,7 @@ internal class KotlinInstantEncodingTest : StringSpec({
         encoded shouldBe expectedBytes
     }
 
-    "encode kotlinx.datetime.Instant in record" {
+    "encode kotlin.time.Instant in record" {
         AvroAssertions.assertThat(InstantRecord(instant, instant.toString()))
             .isEncodedAs(record(instantMillis, instant.toString()))
     }

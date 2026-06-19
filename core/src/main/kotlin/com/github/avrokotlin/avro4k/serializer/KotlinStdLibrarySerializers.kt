@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class, kotlin.time.ExperimentalTime::class)
 
 package com.github.avrokotlin.avro4k.serializer
 
@@ -14,7 +14,6 @@ import com.github.avrokotlin.avro4k.trySelectFixedSchemaForSize
 import com.github.avrokotlin.avro4k.trySelectLogicalTypeFromUnion
 import com.github.avrokotlin.avro4k.trySelectTypeNameFromUnion
 import com.github.avrokotlin.avro4k.unsupportedWriterTypeError
-import kotlinx.datetime.Instant
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -22,6 +21,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.apache.avro.LogicalType
 import org.apache.avro.Schema
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 internal val KotlinStdLibSerializersModule: SerializersModule
@@ -113,12 +113,14 @@ public object KotlinUuidSerializer : AvroSerializer<Uuid>(Uuid::class.qualifiedN
     }
 }
 
+private const val NANOS_PER_MILLISECOND = 1_000_000L
 private const val NANOS_PER_MICROSECOND = 1_000L
+private const val MILLIS_PER_SECOND = 1_000L
 private const val MICROS_PER_SECOND = 1_000_000L
 private const val NANOS_PER_SECOND = 1_000_000_000L
 
 /**
- * Serializes a [kotlinx.datetime.Instant] as a long logical type of `timestamp-millis` by default.
+ * Serializes a [kotlin.time.Instant] as a long logical type of `timestamp-millis` by default.
  *
  * Supports the following Avro logical types:
  * - `timestamp-millis` (default)
@@ -149,7 +151,7 @@ public object KotlinInstantSerializer : AvroSerializer<Instant>(Instant::class.q
                     when (currentWriterSchema.logicalType?.name) {
                         LOGICAL_TYPE_NAME_TIMESTAMP_NANOS -> encodeLong(value.toEpochNanos())
                         LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toEpochMicros())
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toEpochMilliseconds())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toEpochMillis())
                         else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }
 
@@ -201,8 +203,20 @@ public object KotlinInstantSerializer : AvroSerializer<Instant>(Instant::class.q
         return Instant.parse(decoder.decodeString())
     }
 
+    private fun Instant.toEpochMillis(): Long {
+        return toAvroTimestamp(
+            MILLIS_PER_SECOND,
+            nanosecondsOfSecond.toLong() / NANOS_PER_MILLISECOND,
+            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS
+        )
+    }
+
     private fun Instant.toEpochMicros(): Long {
-        return toAvroTimestamp(MICROS_PER_SECOND, nanosecondsOfSecond / NANOS_PER_MICROSECOND, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS)
+        return toAvroTimestamp(
+            MICROS_PER_SECOND,
+            nanosecondsOfSecond.toLong() / NANOS_PER_MICROSECOND,
+            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS
+        )
     }
 
     private fun Instant.Companion.fromEpochMicros(micros: Long): Instant {

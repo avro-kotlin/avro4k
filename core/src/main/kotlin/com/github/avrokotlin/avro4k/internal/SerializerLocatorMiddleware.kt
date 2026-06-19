@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class, kotlin.time.ExperimentalTime::class)
 
 package com.github.avrokotlin.avro4k.internal
 
@@ -15,7 +15,6 @@ import com.github.avrokotlin.avro4k.serializer.SerialDescriptorWithAvroSchemaDel
 import com.github.avrokotlin.avro4k.serializer.createSchema
 import com.github.avrokotlin.avro4k.serializer.fixed
 import com.github.avrokotlin.avro4k.serializer.stringable
-import kotlinx.datetime.Instant
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -33,6 +32,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 /**

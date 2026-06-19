@@ -1,7 +1,6 @@
 [versions]
 kotlinx-serialization = "1.10.0"
 kotlinx-io = "0.8.2"
-kotlinx-datetime = "0.6.2"
 kotest = "6.1.11"
 okio = "3.17.0"
 apache-avro = "1.12.1"
@@ -18,7 +17,6 @@ okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotest-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }

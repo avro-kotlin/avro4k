@@ -10,7 +10,6 @@ dependencies {
     api(libs.apache.avro)
     api(libs.kotlinx.serialization.core)
     api(libs.kotlinx.io)
-    api(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okio)
 

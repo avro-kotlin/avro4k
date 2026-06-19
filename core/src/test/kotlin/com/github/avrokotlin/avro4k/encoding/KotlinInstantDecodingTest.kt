@@ -10,11 +10,11 @@ import com.github.avrokotlin.avro4k.schema
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
-import kotlin.time.Instant
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
+import kotlin.time.Instant
 
 internal class KotlinInstantDecodingTest : StringSpec({
     // 2020-01-01T12:34:56Z

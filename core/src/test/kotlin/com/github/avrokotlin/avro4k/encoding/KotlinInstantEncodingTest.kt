@@ -17,10 +17,10 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToByteArray
-import kotlin.time.Instant
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
+import kotlin.time.Instant
 
 internal class KotlinInstantEncodingTest : StringSpec({
     // 2020-01-01T12:34:56Z

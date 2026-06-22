@@ -4,7 +4,10 @@ import com.github.avrokotlin.avro4k.AvroAlias
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.modules.SerializersModule
 
-internal class PolymorphicResolver(private val serializersModule: SerializersModule) {
+internal class PolymorphicResolver(
+    private val serializersModule: SerializersModule,
+    private val schemaNameResolver: (SerialDescriptor) -> String,
+) {
     private val cache = WeakKeyCache<SerialDescriptor, Map<String, String>>()
 
     fun getFullNamesAndAliasesToSerialName(descriptor: SerialDescriptor): Map<String, String> {
@@ -12,7 +15,7 @@ internal class PolymorphicResolver(private val serializersModule: SerializersMod
             descriptor.possibleSerializationSubclasses(serializersModule)
                 .flatMap {
                     sequence {
-                        yield(it.nonNullSerialName to it.nonNullSerialName)
+                        yield(schemaNameResolver(it) to it.nonNullSerialName)
                         it.findAnnotation<AvroAlias>()?.value?.forEach { alias ->
                             yield(alias to it.nonNullSerialName)
                         }

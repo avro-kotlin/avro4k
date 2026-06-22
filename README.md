@@ -375,6 +375,10 @@ Add the avro4k dependency:
 | `>= 2.0.0` | `>= 2.0` | `>= 1.9`            | `>= 1.7.0`           |
 | `< 2.0.0`  | `>= 1.6` | `>= 1.6`            | `>= 1.3`             |
 
+> [!NOTE]
+> Native `kotlin.time.Instant` support requires Kotlin `>= 2.3`.
+> Avro4k can still be loaded with earlier Kotlin versions when this type is not used.
+
 > [!WARNING]
 > Starting from avro4k v2, you need to ensure that `kotlinx-serialization-core` dependency has the version at least to `1.7.0`, or you will get `NoSuchMethodError: SerialDescriptorsKt.getNonNullOriginal` by checking it using `./gradlew dependencies`. If the version is not the good one, please explicit the dependency with the version. It is generally due to dependency management plugins like spring, or other transitive constraints.
 > You can enhance your search using `./gradlew dependencies --scan` to have a web ui to search and understand the origin of the issue.
@@ -533,6 +537,9 @@ yourAvroInstance.schema<MyData>()
 | `java.time.Period`           | `fixed(12)`                                 | `string` (ISO8601)                                           | `duration`               | To use it, just annotate the field with `@Contextual`                                                                                               |
 | `kotlin.time.Duration`       | `fixed(12)`                                 | `string` (ISO8601)                                           | `duration`               |                                                                                                                                                     |
 | `kotlin.uuid.Uuid`           | `string`, `fixed(16)` with `@AvroFixed(16)` |                                                              | `uuid`                   | Native support, no annotation required                                                                                                              |
+| `kotlin.time.Instant`       | `long`                                      | `string` (ISO8601)                                           | `timestamp-millis`       | Native support, no annotation required                                                                                                              |
+| `kotlin.time.Instant`       | `long`                                      | `string` (ISO8601)                                           | `timestamp-micros`       | Use writer schema with `timestamp-micros` logical type                                                                                              |
+| `kotlin.time.Instant`       | `long`                                      | `string` (ISO8601)                                           | `timestamp-nanos`        | Use writer schema with `timestamp-nanos` logical type                                                                                               |
 
 > [!NOTE]
 > For more details, check the [built-in classes in kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/builtin-classes.md)

@@ -28,7 +28,7 @@ internal val KotlinStdLibSerializersModule: SerializersModule
     get() =
         SerializersModule {
             contextual(KotlinUuidSerializer)
-            contextual(KotlinInstantSerializer)
+            runCatching { contextual(KotlinInstantSerializer) }
         }
 
 /**

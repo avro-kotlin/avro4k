@@ -27,6 +27,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.AbstractCollectionSerializer
 import org.apache.avro.Schema
+import java.util.IdentityHashMap
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
@@ -41,37 +42,44 @@ import kotlin.uuid.Uuid
  */
 @Suppress("UNCHECKED_CAST")
 internal object SerializerLocatorMiddleware {
+    private val serializers = IdentityHashMap<SerializationStrategy<*>, SerializationStrategy<*>>().apply {
+        this[ByteArraySerializer()] = AvroByteArraySerializer
+        this[Duration.serializer()] = KotlinDurationSerializer
+        this[Uuid.serializer()] = KotlinUuidSerializer
+        runCatching { this[Instant.serializer()] = KotlinInstantSerializer }
+    }
+
+    private val deserializers = IdentityHashMap<DeserializationStrategy<*>, DeserializationStrategy<*>>().apply {
+        this[ByteArraySerializer()] = AvroByteArraySerializer
+        this[Duration.serializer()] = KotlinDurationSerializer
+        this[Uuid.serializer()] = KotlinUuidSerializer
+        runCatching { this[Instant.serializer()] = KotlinInstantSerializer }
+    }
+
+    private val descriptors = IdentityHashMap<SerialDescriptor, SerialDescriptor>().apply {
+        this[ByteArraySerializer().descriptor] = AvroByteArraySerializer.descriptor
+        this[String.serializer().descriptor] = AvroStringSerialDescriptor
+        this[Duration.serializer().descriptor] = KotlinDurationSerializer.descriptor
+        this[Uuid.serializer().descriptor] = KotlinUuidSerializer.descriptor
+        runCatching { this[Instant.serializer().descriptor] = KotlinInstantSerializer.descriptor }
+    }
+
     fun <T> apply(serializer: SerializationStrategy<T>): SerializationStrategy<T> {
-        return when {
-            serializer === ByteArraySerializer() -> AvroByteArraySerializer
-            serializer === Duration.serializer() -> KotlinDurationSerializer
-            serializer === Uuid.serializer() -> KotlinUuidSerializer
-            serializer === Instant.serializer() -> KotlinInstantSerializer
-            else -> serializer
-        } as SerializationStrategy<T>
+        return (serializers[serializer] ?: serializer) as SerializationStrategy<T>
     }
 
     @OptIn(InternalSerializationApi::class)
     fun <T> apply(deserializer: DeserializationStrategy<T>): DeserializationStrategy<T> {
+        val mapped = deserializers[deserializer]
         return when {
-            deserializer === ByteArraySerializer() -> AvroByteArraySerializer
-            deserializer === Duration.serializer() -> KotlinDurationSerializer
-            deserializer === Uuid.serializer() -> KotlinUuidSerializer
-            deserializer === Instant.serializer() -> KotlinInstantSerializer
+            mapped != null -> mapped
             deserializer is AbstractCollectionSerializer<*, T, *> -> AvroCollectionSerializer(deserializer)
             else -> deserializer
         } as DeserializationStrategy<T>
     }
 
     fun apply(descriptor: SerialDescriptor): SerialDescriptor {
-        return when {
-            descriptor === ByteArraySerializer().descriptor -> AvroByteArraySerializer.descriptor
-            descriptor === String.serializer().descriptor -> AvroStringSerialDescriptor
-            descriptor === Duration.serializer().descriptor -> KotlinDurationSerializer.descriptor
-            descriptor === Uuid.serializer().descriptor -> KotlinUuidSerializer.descriptor
-            descriptor === Instant.serializer().descriptor -> KotlinInstantSerializer.descriptor
-            else -> descriptor
-        }
+        return descriptors[descriptor] ?: descriptor
     }
 }
 

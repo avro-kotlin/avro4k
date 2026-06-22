@@ -41,7 +41,15 @@ internal class SealedClassEncodingTest : StringSpec({
     "decode polymorphic type when schema alias matches kotlin serial name" {
         val currentSchema = Avro.schema<Polygon>()
         val trapezoidSchema = currentSchema.types.first { it.name == "Trapezoid" }
-        val legacyTrapezoidSchema = Schema.createRecord("LegacyTrapezoid", null, trapezoidSchema.namespace, false, trapezoidSchema.fields.map { Schema.Field(it.name(), it.schema()) })
+        val legacyTrapezoidSchema = Schema.createRecord(
+            "LegacyTrapezoid",
+            null,
+            trapezoidSchema.namespace,
+            false,
+            trapezoidSchema.fields.map {
+                Schema.Field(it.name(), it.schema())
+            }
+        )
             .also { it.addAlias("Trapezoid") }
         val legacySchema = Schema.createUnion(currentSchema.types.map { if (it.name == "Trapezoid") legacyTrapezoidSchema else it })
 

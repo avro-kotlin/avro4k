@@ -70,7 +70,7 @@ public inline fun <reified T> Avro.decodeFromStream(
 }
 
 /**
- * Decode the value [T] from the given ByteBuffer.
+ * Decode the value [T] from the given ByteBuffer, helpful when expecting zero-copy decoding from the jvm.
  * The [input] MUST follow the [writerSchema] to ensure the bytes to be readable, or it may end up to unexpected results or an exception.
  *
  * @param input the ByteBuffer to decode from. The [ByteBuffer.position] will be updated based on the decoded data bytes length.

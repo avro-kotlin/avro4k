@@ -42,7 +42,7 @@ public sealed class Avro(
     private val schemaCache: Cache<SerialDescriptor, Schema> = WeakKeyCache()
 
     internal val recordResolver = RecordResolver(this)
-    internal val polymorphicResolver = PolymorphicResolver(serializersModule)
+    internal val polymorphicResolver = PolymorphicResolver(serializersModule) { schema(it).fullName }
     internal val enumResolver = EnumResolver()
 
     public companion object Default : Avro(

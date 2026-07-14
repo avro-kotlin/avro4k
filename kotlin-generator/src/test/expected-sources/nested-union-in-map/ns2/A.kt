@@ -1,0 +1,19 @@
+@file:OptIn(
+    InternalAvro4kApi::class,
+    ExperimentalAvro4kApi::class,
+)
+
+package ns2
+
+import com.github.avrokotlin.avro4k.ExperimentalAvro4kApi
+import com.github.avrokotlin.avro4k.InternalAvro4kApi
+import com.github.avrokotlin.avro4k.`internal`.AvroGenerated
+import kotlin.Int
+import kotlin.OptIn
+import kotlinx.serialization.Serializable
+
+@Serializable
+@AvroGenerated("""{"type":"record","name":"A","namespace":"ns2","fields":[{"name":"field","type":"int"}]}""")
+public data class A(
+    public val `field`: Int,
+)

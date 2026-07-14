@@ -42,14 +42,7 @@ import kotlin.uuid.Uuid
  */
 @Suppress("UNCHECKED_CAST")
 internal object SerializerLocatorMiddleware {
-    private val serializers = IdentityHashMap<SerializationStrategy<*>, SerializationStrategy<*>>().apply {
-        this[ByteArraySerializer()] = AvroByteArraySerializer
-        this[Duration.serializer()] = KotlinDurationSerializer
-        this[Uuid.serializer()] = KotlinUuidSerializer
-        runCatching { this[Instant.serializer()] = KotlinInstantSerializer }
-    }
-
-    private val deserializers = IdentityHashMap<DeserializationStrategy<*>, DeserializationStrategy<*>>().apply {
+    private val serializers: Map<in KSerializer<*>, KSerializer<*>> = IdentityHashMap<KSerializer<*>, KSerializer<*>>().apply {
         this[ByteArraySerializer()] = AvroByteArraySerializer
         this[Duration.serializer()] = KotlinDurationSerializer
         this[Uuid.serializer()] = KotlinUuidSerializer
@@ -65,17 +58,17 @@ internal object SerializerLocatorMiddleware {
     }
 
     fun <T> apply(serializer: SerializationStrategy<T>): SerializationStrategy<T> {
-        return (serializers[serializer] ?: serializer) as SerializationStrategy<T>
+        (serializer as? KSerializer<*>)?.let(serializers::get)?.let { return it as SerializationStrategy<T> }
+
+        return serializer
     }
 
     @OptIn(InternalSerializationApi::class)
     fun <T> apply(deserializer: DeserializationStrategy<T>): DeserializationStrategy<T> {
-        val mapped = deserializers[deserializer]
-        return when {
-            mapped != null -> mapped
-            deserializer is AbstractCollectionSerializer<*, T, *> -> AvroCollectionSerializer(deserializer)
-            else -> deserializer
-        } as DeserializationStrategy<T>
+        (deserializer as? KSerializer<*>)?.let(serializers::get)?.let { return it as DeserializationStrategy<T> }
+        (deserializer as? AbstractCollectionSerializer<*, T, *>)?.let { return AvroCollectionSerializer(deserializer) }
+
+        return deserializer
     }
 
     fun apply(descriptor: SerialDescriptor): SerialDescriptor {

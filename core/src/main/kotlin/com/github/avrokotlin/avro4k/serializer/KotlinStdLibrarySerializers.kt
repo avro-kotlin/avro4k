@@ -113,12 +113,6 @@ public object KotlinUuidSerializer : AvroSerializer<Uuid>(Uuid::class.qualifiedN
     }
 }
 
-private const val NANOS_PER_MILLISECOND = 1_000_000L
-private const val NANOS_PER_MICROSECOND = 1_000L
-private const val MILLIS_PER_SECOND = 1_000L
-private const val MICROS_PER_SECOND = 1_000_000L
-private const val NANOS_PER_SECOND = 1_000_000_000L
-
 /**
  * Serializes a [kotlin.time.Instant] as a long logical type of `timestamp-millis` by default.
  *
@@ -149,9 +143,15 @@ public object KotlinInstantSerializer : AvroSerializer<Instant>(Instant::class.q
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
                     when (currentWriterSchema.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_TIMESTAMP_NANOS -> encodeLong(value.toEpochNanos())
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toEpochMicros())
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toEpochMillis())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_NANOS ->
+                            encodeLong(value.toEpochUnits(NANOSECONDS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_NANOS))
+
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS ->
+                            encodeLong(value.toEpochUnits(MICROS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS))
+
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS ->
+                            encodeLong(value.toEpochUnits(MILLIS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
+
                         else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }
 
@@ -201,49 +201,5 @@ public object KotlinInstantSerializer : AvroSerializer<Instant>(Instant::class.q
 
     override fun deserializeGeneric(decoder: Decoder): Instant {
         return Instant.parse(decoder.decodeString())
-    }
-
-    private fun Instant.toEpochMillis(): Long {
-        return toAvroTimestamp(
-            MILLIS_PER_SECOND,
-            nanosecondsOfSecond.toLong() / NANOS_PER_MILLISECOND,
-            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS
-        )
-    }
-
-    private fun Instant.toEpochMicros(): Long {
-        return toAvroTimestamp(
-            MICROS_PER_SECOND,
-            nanosecondsOfSecond.toLong() / NANOS_PER_MICROSECOND,
-            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS
-        )
-    }
-
-    private fun Instant.Companion.fromEpochMicros(micros: Long): Instant {
-        val seconds = micros / MICROS_PER_SECOND
-        val nanos = (micros % MICROS_PER_SECOND) * NANOS_PER_MICROSECOND
-        return fromEpochSeconds(seconds, nanos)
-    }
-
-    private fun Instant.toEpochNanos(): Long {
-        return toAvroTimestamp(NANOS_PER_SECOND, nanosecondsOfSecond.toLong(), LOGICAL_TYPE_NAME_TIMESTAMP_NANOS)
-    }
-
-    private fun Instant.toAvroTimestamp(
-        unitsPerSecond: Long,
-        unitsOfSecond: Long,
-        logicalType: String,
-    ): Long {
-        try {
-            return Math.addExact(Math.multiplyExact(epochSeconds, unitsPerSecond), unitsOfSecond)
-        } catch (e: ArithmeticException) {
-            throw SerializationException("$this is out of range for Avro $logicalType", e)
-        }
-    }
-
-    private fun Instant.Companion.fromEpochNanos(nanos: Long): Instant {
-        val seconds = nanos / NANOS_PER_SECOND
-        val nanosOfSecond = nanos % NANOS_PER_SECOND
-        return fromEpochSeconds(seconds, nanosOfSecond)
     }
 }

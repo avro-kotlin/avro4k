@@ -144,13 +144,13 @@ public object KotlinInstantSerializer : AvroSerializer<Instant>(Instant::class.q
                 Schema.Type.LONG ->
                     when (currentWriterSchema.logicalType?.name) {
                         LOGICAL_TYPE_NAME_TIMESTAMP_NANOS ->
-                            encodeLong(value.toEpochUnits(NANOSECONDS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_NANOS))
+                            encodeLong(value.toExactEpochNanos())
 
                         LOGICAL_TYPE_NAME_TIMESTAMP_MICROS ->
-                            encodeLong(value.toEpochUnits(MICROS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_MICROS))
+                            encodeLong(value.toExactEpochMicros())
 
                         LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS ->
-                            encodeLong(value.toEpochUnits(MILLIS_PER_SECOND, LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS))
+                            encodeLong(value.toExactEpochMillis())
 
                         else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }

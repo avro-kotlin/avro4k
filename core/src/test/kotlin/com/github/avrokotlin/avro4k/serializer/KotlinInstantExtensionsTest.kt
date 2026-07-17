@@ -8,40 +8,40 @@ import kotlin.time.Instant
 
 internal class KotlinInstantExtensionsTest : StringSpec({
     listOf(
-        MILLIS_PER_SECOND to NANOSECONDS_PER_MILLISECOND,
-        MICROS_PER_SECOND to NANOSECONDS_PER_MICROSECOND,
-        NANOSECONDS_PER_SECOND to 1L
-    ).forEach { (unitsPerSecond, nanosPerUnit) ->
-        "convert the minimum representable $unitsPerSecond-units timestamp without intermediate overflow" {
+        EpochConversion("milliseconds", 1_000L, 1_000_000L) { toExactEpochMillis() },
+        EpochConversion("microseconds", 1_000_000L, 1_000L) { toExactEpochMicros() },
+        EpochConversion("nanoseconds", 1_000_000_000L, 1L) { toExactEpochNanos() }
+    ).forEach { conversion ->
+        "convert the minimum representable ${conversion.name} timestamp without intermediate overflow" {
             val instant = Instant.fromEpochSeconds(
-                Math.floorDiv(Long.MIN_VALUE, unitsPerSecond),
-                Math.floorMod(Long.MIN_VALUE, unitsPerSecond) * nanosPerUnit
+                Math.floorDiv(Long.MIN_VALUE, conversion.unitsPerSecond),
+                Math.floorMod(Long.MIN_VALUE, conversion.unitsPerSecond) * conversion.nanosPerUnit
             )
 
-            instant.toEpochUnits(unitsPerSecond, "test") shouldBe Long.MIN_VALUE
+            conversion.convert(instant) shouldBe Long.MIN_VALUE
         }
 
-        "convert the maximum representable $unitsPerSecond-units timestamp" {
+        "convert the maximum representable ${conversion.name} timestamp" {
             val instant = Instant.fromEpochSeconds(
-                Math.floorDiv(Long.MAX_VALUE, unitsPerSecond),
-                Math.floorMod(Long.MAX_VALUE, unitsPerSecond) * nanosPerUnit
+                Math.floorDiv(Long.MAX_VALUE, conversion.unitsPerSecond),
+                Math.floorMod(Long.MAX_VALUE, conversion.unitsPerSecond) * conversion.nanosPerUnit
             )
 
-            instant.toEpochUnits(unitsPerSecond, "test") shouldBe Long.MAX_VALUE
+            conversion.convert(instant) shouldBe Long.MAX_VALUE
         }
     }
 
     "floor a fractional pre-epoch instant when converting to milliseconds" {
         val instant = Instant.fromEpochSeconds(-1, 123_456_789)
 
-        instant.toEpochUnits(MILLIS_PER_SECOND, "test") shouldBe -877L
+        instant.toExactEpochMillis() shouldBe -877L
     }
 
     "create instants from the full microsecond timestamp range" {
         listOf(Long.MIN_VALUE, -876_544L, Long.MAX_VALUE).forEach { micros ->
             Instant.fromEpochMicros(micros) shouldBe Instant.fromEpochSeconds(
-                Math.floorDiv(micros, MICROS_PER_SECOND),
-                Math.floorMod(micros, MICROS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND
+                Math.floorDiv(micros, 1_000_000L),
+                Math.floorMod(micros, 1_000_000L) * 1_000L
             )
         }
     }
@@ -49,9 +49,16 @@ internal class KotlinInstantExtensionsTest : StringSpec({
     "create instants from the full nanosecond timestamp range" {
         listOf(Long.MIN_VALUE, -876_543_211L, Long.MAX_VALUE).forEach { nanos ->
             Instant.fromEpochNanos(nanos) shouldBe Instant.fromEpochSeconds(
-                Math.floorDiv(nanos, NANOSECONDS_PER_SECOND),
-                Math.floorMod(nanos, NANOSECONDS_PER_SECOND)
+                Math.floorDiv(nanos, 1_000_000_000L),
+                Math.floorMod(nanos, 1_000_000_000L)
             )
         }
     }
 })
+
+private data class EpochConversion(
+    val name: String,
+    val unitsPerSecond: Long,
+    val nanosPerUnit: Long,
+    val convert: Instant.() -> Long,
+)

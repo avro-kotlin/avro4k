@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    val kotlinVersion = "2.3.20"
+    val kotlinVersion = "2.3.21"
 
     implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:$kotlinVersion")
     implementation("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:$kotlinVersion")
@@ -24,7 +24,7 @@ dependencies {
 
     implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.36.0")
 
-    val dokkaVersion = "2.1.0"
+    val dokkaVersion = "2.2.0"
     implementation("org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:$dokkaVersion")
     implementation("org.jetbrains.dokka-javadoc:org.jetbrains.dokka-javadoc.gradle.plugin:$dokkaVersion")
 }

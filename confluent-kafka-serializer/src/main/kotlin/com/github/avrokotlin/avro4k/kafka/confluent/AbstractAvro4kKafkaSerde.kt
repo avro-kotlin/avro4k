@@ -119,7 +119,7 @@ public abstract class AbstractAvro4kKafkaSerializer<T : Any>(
                 data
             }
         val avroSchema = AvroSchema(schema)
-        return serializeImpl(getSubjectName(topic, isKey, data, avroSchema), topic, headers, data, avroSchema)
+        return serializeImpl(getSubjectName(topic, isKey, data, avroSchema), topic, isKey, headers, data, avroSchema)
     }
 
     private fun unwrapRootByteArray(schema: Schema, data: T): ByteArray {

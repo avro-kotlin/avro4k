@@ -4,9 +4,15 @@
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
+registries:
+  confluent:
+    type: maven-repository
+    url: https://packages.confluent.io/maven
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
+    registries:
+      - confluent
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"

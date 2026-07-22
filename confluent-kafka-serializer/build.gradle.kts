@@ -11,6 +11,11 @@ dependencies {
     implementation(kotlin("reflect"))
 
     api(libs.confluent.kafka.avro.serializer) {
+        version {
+            // AbstractKafkaAvroSerializer.serializeImpl has a breaking change starting from 8.3.0
+            strictly("[8.3.0,)")
+            prefer(libs.confluent.kafka.avro.serializer.get().version!!)
+        }
         // avro4k declares its own avro dependency
         exclude(group = "org.apache.avro")
         exclude(group = "org.apache.commons", module = "commons-compress")
@@ -18,7 +23,6 @@ dependencies {
     testImplementation(libs.kotest.junit5)
     testImplementation(libs.kotest.core)
     testImplementation(libs.mockk)
-    testImplementation(kotlin("reflect"))
 }
 
 repositories {

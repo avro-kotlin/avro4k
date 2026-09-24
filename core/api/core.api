@@ -185,6 +185,7 @@ public final class com/github/avrokotlin/avro4k/AvroObjectContainerBuilder {
 	public final fun metadata (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun metadata (Ljava/lang/String;[B)V
 	public final fun syncInterval (I)V
+	public final fun syncMarker ([B)V
 }
 
 public final class com/github/avrokotlin/avro4k/AvroObjectContainerKt {

@@ -121,6 +121,48 @@ internal class AvroObjectContainerTest : StringSpec({
         writer.close()
         os.closed shouldBe false
     }
+    "a fixed sync marker produces byte-for-byte deterministic output" {
+        val syncMarker = ByteArray(16) { it.toByte() }
+
+        fun encode() =
+            ByteArrayOutputStream().use {
+                val writer =
+                    AvroObjectContainer.openWriter<UserProfile>(it) {
+                        syncMarker(syncMarker)
+                    }
+                writer.writeValue(firstProfile)
+                writer.writeValue(secondProfile)
+                writer.close()
+                it.toByteArray()
+            }
+
+        encode() shouldBe encode()
+
+        // random marker (the default) is not deterministic
+        fun encodeRandom() =
+            ByteArrayOutputStream().use {
+                val writer = AvroObjectContainer.openWriter<UserProfile>(it)
+                writer.writeValue(firstProfile)
+                writer.close()
+                it.toByteArray()
+            }
+        (encodeRandom() contentEquals encodeRandom()) shouldBe false
+
+        val dataFile =
+            DataFileStream<GenericRecord>(encode().inputStream(), GenericDatumReader(Avro.schema<UserProfile>()))
+        normalizeGenericData(dataFile.next()) shouldBe firstProfileGenericData
+        normalizeGenericData(dataFile.next()) shouldBe secondProfileGenericData
+        dataFile.hasNext() shouldBe false
+    }
+    "an invalid sync marker length is rejected" {
+        shouldThrow<IllegalArgumentException> {
+            ByteArrayOutputStream().use {
+                AvroObjectContainer.openWriter<UserProfile>(it) {
+                    syncMarker(ByteArray(8))
+                }
+            }
+        }
+    }
     "decoding error is not closing the stream" {
         class SimpleInputStream : InputStream() {
             var closed = false

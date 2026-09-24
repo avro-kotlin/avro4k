@@ -268,6 +268,16 @@ fun main() {
 
 </details>
 
+The writer builder also allows customizing the file `codec`, `syncInterval`, `metadata`, and the block `syncMarker`.
+By default a random 16-byte sync marker is generated per file, so encoding the same data twice produces different bytes.
+Pass a fixed `syncMarker` to get byte-for-byte deterministic output (useful for tests or content-addressed storage):
+
+```kotlin
+AvroObjectContainer.openWriter(fileStream) {
+    syncMarker(ByteArray(16) { 0 })
+}.use { writer -> /* ... */ }
+```
+
 > For more details, see the Avro spec on [object container files](https://avro.apache.org/docs/1.12.1/specification/#object-container-files).
 
 # Important notes

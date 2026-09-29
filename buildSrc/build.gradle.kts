@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    val kotlinVersion = "2.3.21"
+    val kotlinVersion = "2.4.20"
 
     implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:$kotlinVersion")
     implementation("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:$kotlinVersion")
@@ -17,10 +17,10 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin:0.18.1")
 
-    implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.9")
-    implementation("com.gradle.plugin-publish:com.gradle.plugin-publish.gradle.plugin:2.0.0")
+    implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.1.2")
+    implementation("com.gradle.plugin-publish:com.gradle.plugin-publish.gradle.plugin:2.1.1")
 
-    implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:7.2.1")
+    implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.10.3")
 
     implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.37.0")
 

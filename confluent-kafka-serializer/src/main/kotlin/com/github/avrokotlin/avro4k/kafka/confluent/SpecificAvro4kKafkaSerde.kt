@@ -6,6 +6,7 @@ import com.github.avrokotlin.avro4k.internal.aliases
 import com.github.avrokotlin.avro4k.internal.decodeWithApacheDecoder
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
+import io.confluent.kafka.serializers.schema.id.SchemaId
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -226,23 +227,24 @@ public class SpecificAvro4kKafkaDeserializer<T : Any>(
         }
     }
 
-    override fun getDatumReader(writerSchema: Schema, readerSchema: Schema?): DatumReader<*> {
-        when (writerSchema.type) {
+    override fun getDatumReader(writerSchemaId: SchemaId?, writerSchema: Schema?, readerSchema: Schema?): DatumReader<*> {
+        val schema = requireNotNull(writerSchema ?: readerSchema) { "Required either writer or reader schema, got both null for schemaId $writerSchemaId" }
+        when (schema.type) {
             Schema.Type.STRING -> {
-                currentWriterSchema.set(writerSchema)
+                currentWriterSchema.set(schema)
                 // confluent applies result.toString() for root STRING schemas
                 // so we force the DatumReader to return a String, and then we will decode it properly in deserialize() using the given k-deserializer
-                return avro.getDatumReader(writerSchema, String.serializer())
+                return avro.getDatumReader(schema, String.serializer())
             }
 
             Schema.Type.BYTES -> {
-                currentWriterSchema.set(writerSchema)
+                currentWriterSchema.set(schema)
                 // confluent bypasses the DatumReader, always returning ByteArray for root BYTES schemas
                 // so we force the DatumReader to return a ByteArray, and then we will decode it properly in deserialize() using the given k-deserializer
-                return avro.getDatumReader(writerSchema, ByteArraySerializer())
+                return avro.getDatumReader(schema, ByteArraySerializer())
             }
 
-            else -> return super.getDatumReader(writerSchema, readerSchema)
+            else -> return super.getDatumReader(writerSchemaId, writerSchema, readerSchema)
         }
     }
 

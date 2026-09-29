@@ -11,6 +11,7 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroDeserializer
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerializer
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.NonRecordContainer
+import io.confluent.kafka.serializers.schema.id.SchemaId
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -187,9 +188,14 @@ public abstract class AbstractAvro4kKafkaDeserializer<T : Any>(
         super<AbstractKafkaAvroDeserializer>.configure(deserializerConfig(configs))
     }
 
-    override fun getDatumReader(writerSchema: Schema, readerSchema: Schema?): DatumReader<*> {
+    override fun getDatumReader(writerSchemaId: SchemaId?, writerSchema: Schema?, readerSchema: Schema?): DatumReader<*> {
         // Avro4k natively supports schema evolution, and it needs to rely on the writer schema only to decode the data.
-        return avro.getDatumReader<Any>(writerSchema, deserializer)
+        return avro.getDatumReader<Any>(
+            requireNotNull(writerSchema ?: readerSchema) {
+                "Required either writer or reader schema, got both null for schemaId $writerSchemaId"
+            },
+            deserializer
+        )
     }
 
     @InternalAvro4kApi

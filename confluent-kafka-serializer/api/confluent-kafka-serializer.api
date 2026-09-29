@@ -5,7 +5,7 @@ public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4
 	public fun deserialize (Ljava/lang/String;Lorg/apache/kafka/common/header/Headers;[B)Ljava/lang/Object;
 	public fun deserialize (Ljava/lang/String;[B)Ljava/lang/Object;
 	protected final fun getAvro ()Lcom/github/avrokotlin/avro4k/Avro;
-	protected fun getDatumReader (Lorg/apache/avro/Schema;Lorg/apache/avro/Schema;)Lorg/apache/avro/io/DatumReader;
+	protected fun getDatumReader (Lio/confluent/kafka/serializers/schema/id/SchemaId;Lorg/apache/avro/Schema;Lorg/apache/avro/Schema;)Lorg/apache/avro/io/DatumReader;
 }
 
 public abstract class com/github/avrokotlin/avro4k/kafka/confluent/AbstractAvro4kKafkaSerializer : io/confluent/kafka/serializers/AbstractKafkaAvroSerializer, org/apache/kafka/common/serialization/Serializer {

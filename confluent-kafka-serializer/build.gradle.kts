@@ -13,7 +13,8 @@ dependencies {
     api(libs.confluent.kafka.avro.serializer) {
         version {
             // AbstractKafkaAvroSerializer.serializeImpl has a breaking change starting from 8.3.0
-            strictly("[8.3.0,)")
+            // AbstractKafkaAvroSerializer.getDatumReader has a breaking change starting from 8.3.2 where they added a writerSchemaId param
+            strictly("[8.3.2,)")
             prefer(libs.confluent.kafka.avro.serializer.get().version!!)
         }
         // avro4k declares its own avro dependency

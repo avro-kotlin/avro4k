@@ -66,8 +66,24 @@ class SpecificAvro4kKafkaDeserializerTest : StringSpec() {
 
             deserialized shouldBe Reader("test")
         }
+
+        "serde should be able to serialize and deserialize a record" {
+            val serde = SpecificAvro4kKafkaSerde<ExampleRecord>(
+                isKey = false,
+                props = mapOf("schema.registry.url" to "mock://avro4k-repro")
+            )
+
+            val original = ExampleRecord("example-id")
+            val bytes = serde.serializer().serialize("test-topic", original)
+            val deserialized = serde.deserializer().deserialize("test-topic", bytes)
+
+            deserialized shouldBe original
+        }
     }
 }
+
+@Serializable
+private data class ExampleRecord(val id: String)
 
 @JvmInline
 @Serializable

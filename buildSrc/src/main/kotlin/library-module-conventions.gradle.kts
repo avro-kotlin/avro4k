@@ -23,7 +23,6 @@ kotlin {
             "com.github.avrokotlin.avro4k.InternalAvro4kApi",
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
         )
-        freeCompilerArgs.add("-Xcontext-parameters")
         jvmToolchain(11)
     }
 }

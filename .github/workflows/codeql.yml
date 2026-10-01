@@ -71,7 +71,8 @@ jobs:
             --no-daemon \
             --no-build-cache \
             --no-configuration-cache \
-            -Pkotlin.compiler.execution.strategy=in-process
+            -Pkotlin.compiler.execution.strategy=in-process \ # Allow CodeQL can see the compiler
+            -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g" # as kotlin compiler is now in the same process of gradle, default 512Mi heap is not enough 
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

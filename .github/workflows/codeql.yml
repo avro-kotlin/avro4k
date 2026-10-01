@@ -66,11 +66,11 @@ jobs:
           build-mode: manual
 
       - name: Build
-        run: >
-          ./gradlew classes
-            --no-daemon
-            --no-build-cache
-            --no-configuration-cache
+        run: |
+          ./gradlew classes \
+            --no-daemon \
+            --no-build-cache \
+            --no-configuration-cache \
             -Pkotlin.compiler.execution.strategy=in-process
 
       - name: Perform CodeQL Analysis

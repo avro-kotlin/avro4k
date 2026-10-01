@@ -1,0 +1,82 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '36 15 * * 6'
+
+permissions:
+  # required for all workflows
+  security-events: write
+
+  # required to fetch internal or private CodeQL packs
+  packages: read
+
+  # only required for workflows in private repositories
+  actions: read
+  contents: read
+
+jobs:
+  analyze-actions:
+    name: Analyze (actions)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: actions
+          build-mode: none
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:actions"
+
+  analyze-kotlin:
+    name: Analyze (kotlin)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: |
+            11
+            21
+            17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: manual
+
+      - name: Build
+        env:
+           # as kotlin compiler is now in the same process of gradle, default 512Mi heap is not enough
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+        run: |
+          ./gradlew classes \
+            --no-daemon \
+            --no-build-cache \
+            --no-configuration-cache \
+            -Pkotlin.compiler.execution.strategy=in-process `# Allow CodeQL see the compiler`
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:java-kotlin"

@@ -18,9 +18,17 @@ public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4
 	public fun logicalTypes (Lorg/gradle/api/Action;)V
 }
 
+public final class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension$DefaultImpls {
+	public static fun logicalTypes (Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationExtension;Lorg/gradle/api/Action;)V
+}
+
 public abstract interface class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension {
 	public abstract fun getMappings ()Lorg/gradle/api/provider/MapProperty;
 	public fun register (Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder;
+}
+
+public final class com/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension$DefaultImpls {
+	public static fun register (Lcom/github/avrokotlin/avro4k/plugin/gradle/Avro4kPluginSourcesGenerationLogicalTypesExtension;Ljava/lang/String;)Lcom/github/avrokotlin/avro4k/plugin/gradle/LogicalTypeBuilder;
 }
 
 public abstract class com/github/avrokotlin/avro4k/plugin/gradle/GenerateKotlinAvroSourcesTask : org/gradle/api/DefaultTask {

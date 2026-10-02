@@ -13,6 +13,7 @@ updates:
     directory: "/"
     registries:
       - confluent
+      - "*" # allows checking public repos for libraries outside Confluent
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"

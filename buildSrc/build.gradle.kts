@@ -20,7 +20,7 @@ dependencies {
     implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.9")
     implementation("com.gradle.plugin-publish:com.gradle.plugin-publish.gradle.plugin:2.0.0")
 
-    implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:7.2.1")
+    implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.10.3")
 
     implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.37.0")
 

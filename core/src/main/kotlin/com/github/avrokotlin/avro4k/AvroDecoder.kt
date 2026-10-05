@@ -1,6 +1,5 @@
 package com.github.avrokotlin.avro4k
 
-import com.github.avrokotlin.avro4k.internal.decoder.direct.AbstractAvroDirectDecoder
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import org.apache.avro.Schema
@@ -298,11 +297,7 @@ internal inline fun <T : Any> AvroDecoder.findValueDecoder(
 
     val foundResolver =
         if (schema.isUnion) {
-            if (this is AbstractAvroDirectDecoder) {
-                throw UnsupportedOperationException("The union should be already resolved, which means a misusage of avro4k")
-            } else {
-                currentWriterSchema.types.firstNotNullOfOrNull(resolver)
-            }
+            currentWriterSchema.types.firstNotNullOfOrNull(resolver)
         } else {
             resolver(schema)
         }

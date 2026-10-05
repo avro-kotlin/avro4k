@@ -15,7 +15,8 @@ updates:
       - confluent
       - "*" # allows checking public repos for libraries outside Confluent
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    open-pull-requests-limit: 15
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

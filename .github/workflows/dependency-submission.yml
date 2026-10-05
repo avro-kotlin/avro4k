@@ -21,4 +21,4 @@ jobs:
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v6
         with:
-          dependency-graph-exclude-projects: 'benchmark'
+          dependency-graph-exclude-projects: ':(benchmark|buildSrc|gradle-plugin)'

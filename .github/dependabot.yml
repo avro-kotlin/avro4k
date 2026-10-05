@@ -13,7 +13,6 @@ updates:
     directory: "/"
     registries:
       - confluent
-      - "*" # allows checking public repos for libraries outside Confluent
     schedule:
       interval: "daily"
     open-pull-requests-limit: 15

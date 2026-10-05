@@ -1,7 +1,7 @@
 plugins {
     java
     kotlin("jvm")
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.17"
+    id("org.jetbrains.kotlinx.benchmark") version "0.5.0"
     kotlin("plugin.allopen")
     kotlin("plugin.serialization")
     kotlin("plugin.noarg")
@@ -54,7 +54,7 @@ benchmark {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.17")
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.5.0")
 
     val jacksonVersion = "2.22.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")

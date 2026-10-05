@@ -14,7 +14,7 @@ updates:
     registries:
       - confluent
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 15
   - package-ecosystem: "github-actions"
     directory: "/"

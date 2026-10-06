@@ -216,13 +216,15 @@ public class KotlinGenerator(
             .addModifiers(KModifier.VALUE)
             .addAnnotation(JvmInline::class)
             .addAnnotation(Serializable::class)
-            .addPrimaryProperty(
-                PropertySpec.builder("value", wrappedType)
-                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(nonNullSchema))
-                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(nonNullSchema))
-                    .addAnnotations((nonNullSchema as? WithProps)?.let { buildAvroPropAnnotations(it) } ?: emptyList())
-                    .build(),
-                defaultValue = buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
+            .addPrimaryProperties(
+                listOf(
+                    PropertySpec.builder("value", wrappedType)
+                        .addAnnotationIfNotNull(buildAvroDecimalAnnotation(nonNullSchema))
+                        .addAnnotationIfNotNull(buildAvroFixedAnnotation(nonNullSchema))
+                        .addAnnotations((nonNullSchema as? WithProps)?.let { buildAvroPropAnnotations(it) } ?: emptyList())
+                        .build() to
+                        buildImplicitAvroDefaultCodeBlock(schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
+                )
             )
             .addAnnotation(buildAvroGeneratedAnnotation(schema))
             .build()
@@ -396,11 +398,13 @@ public class KotlinGenerator(
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(JvmInline::class)
                             .addAnnotation(Serializable::class)
-                            .addPrimaryProperty(
-                                PropertySpec.builder("value", typeName)
-                                    .addAnnotationIfNotNull(buildAvroDecimalAnnotation(subSchema))
-                                    .addAnnotationIfNotNull(buildAvroFixedAnnotation(subSchema))
-                                    .build()
+                            .addPrimaryProperties(
+                                listOf(
+                                    PropertySpec.builder("value", typeName)
+                                        .addAnnotationIfNotNull(buildAvroDecimalAnnotation(subSchema))
+                                        .addAnnotationIfNotNull(buildAvroFixedAnnotation(subSchema))
+                                        .build() to null
+                                )
                             )
                             .build()
                     }
@@ -458,11 +462,11 @@ public class KotlinGenerator(
             .addKDocIfNotNull(schema.doc)
             .addAnnotationIfNotNull(buildAvroAliasAnnotation(schema))
             .addAnnotation(buildAvroGeneratedAnnotation(schema))
-            .let {
-                schema.fields.fold(it) { builder, field ->
+            .addPrimaryProperties(
+                schema.fields.fold(mutableMapOf<String, Pair<PropertySpec, CodeBlock?>>()) { properties, field ->
                     val kotlinFieldName = fieldNamingStrategy.format(field.name)
 
-                    require(it.propertySpecs.none { it.name == kotlinFieldName }) {
+                    require(kotlinFieldName !in properties) {
                         "The record ${schema.fullName} contains duplicated fields when applying custom naming strategy. " +
                             "The actual avro field ${field.name} has been mapped to $kotlinFieldName which has already been added. " +
                             "Schema: $schema"
@@ -471,7 +475,7 @@ public class KotlinGenerator(
                     val typeName = getTypeName(field.schema, kotlinFieldName.toPascalCase())
                     val nonNullFieldSchema = (field.schema as? AvroSchema.UnionSchema)?.unwrapIfSimpleNullableType ?: field.schema
 
-                    builder.addPrimaryProperty(
+                    properties[kotlinFieldName] =
                         PropertySpec.builder(kotlinFieldName, typeName)
                             .initializer(kotlinFieldName)
                             .addAnnotations(buildAvroPropAnnotations(field))
@@ -509,22 +513,21 @@ public class KotlinGenerator(
                                     )
                                 }
                             }
-                            .build(),
-                        defaultValue =
-                            if (field.defaultValue != null) {
-                                if (typeName.isNativelySerializable()) {
-                                    // TODO recursive types needs to have a default value, or it's not possible to instantiate them
-                                    getRecordFieldDefault(field.schema, field.defaultValue)
-                                } else {
-                                    // Non-natively serializable types are from user code, so they also need custom code to instantiate them
-                                    null
-                                }
+                            .build() to
+                        if (field.defaultValue != null) {
+                            if (typeName.isNativelySerializable()) {
+                                // TODO recursive types needs to have a default value, or it's not possible to instantiate them
+                                getRecordFieldDefault(field.schema, field.defaultValue)
                             } else {
-                                buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
+                                // Non-natively serializable types are from user code, so they also need custom code to instantiate them
+                                null
                             }
-                    )
-                }
-            }
+                        } else {
+                            buildImplicitAvroDefaultCodeBlock(field.schema, implicitNulls = implicitNulls, implicitEmptyCollections = implicitEmptyCollections)
+                        }
+                    properties
+                }.values.toList()
+            )
             .addTypes(
                 schema.fields.mapNotNull { field ->
                     val unionBaseName = field.name.toPascalCase()

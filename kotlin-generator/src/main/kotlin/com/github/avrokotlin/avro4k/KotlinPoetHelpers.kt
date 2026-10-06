@@ -16,25 +16,25 @@ import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.joinToCode
 
 /**
- * Adds a property to the class and also adds it as a parameter to the primary constructor.
+ * Adds the properties to the class and sets the primary constructor with one parameter per property, in the same order.
  * This is helpful for data or value classes where properties are typically defined in the primary constructor.
+ *
+ * Each property is paired with the default value of its constructor parameter, or `null` if there is no default value.
+ * Any previously set primary constructor is replaced.
  */
-internal fun TypeSpec.Builder.addPrimaryProperty(property: PropertySpec, defaultValue: CodeBlock? = null): TypeSpec.Builder {
-    val typeSpec =
-        addProperty(property.toBuilder().initializer(property.name).build())
-            .build()
-    val ctor =
-        typeSpec
-            .primaryConstructor
-            ?.toBuilder()
-            ?: FunSpec.constructorBuilder()
-    return typeSpec.toBuilder()
+internal fun TypeSpec.Builder.addPrimaryProperties(properties: List<Pair<PropertySpec, CodeBlock?>>): TypeSpec.Builder {
+    if (properties.isEmpty()) return this
+    return addProperties(properties.map { (property, _) -> property.toBuilder().initializer(property.name).build() })
         .primaryConstructor(
-            ctor.addParameter(
-                ParameterSpec.builder(property.name, property.type)
-                    .defaultValue(defaultValue)
-                    .build()
-            ).build()
+            FunSpec.constructorBuilder()
+                .addParameters(
+                    properties.map { (property, defaultValue) ->
+                        ParameterSpec.builder(property.name, property.type)
+                            .defaultValue(defaultValue)
+                            .build()
+                    }
+                )
+                .build()
         )
 }
 

@@ -1,0 +1,23 @@
+{
+    "type": "record",
+    "name": "CamelCaseRecord",
+    "namespace": "ns",
+    "fields": [
+        {
+            "name": "id",
+            "type": "int"
+        },
+        {
+            "name": "user_id",
+            "type": "int"
+        },
+        {
+            "name": "account_status",
+            "type": "string"
+        },
+        {
+            "name": "userId",
+            "type": "int"
+        }
+    ]
+}

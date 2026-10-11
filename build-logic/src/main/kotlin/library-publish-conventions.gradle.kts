@@ -10,12 +10,11 @@ mavenPublishing {
     if (version != "local-SNAPSHOT") {
         signAllPublications()
     }
-}
 
-mavenPublishing {
     coordinates(
         artifactId = "avro4k-${project.name}",
     )
+
     pom {
         val projectUrl = "https://github.com/avro-kotlin/avro4k"
         name = project.name

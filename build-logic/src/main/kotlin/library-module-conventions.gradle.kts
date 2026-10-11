@@ -1,3 +1,4 @@
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,6 +10,8 @@ plugins {
     id("com.diffplug.spotless")
 }
 
+val libs = the<LibrariesForLibs>()
+
 apiValidation {
     nonPublicMarkers += "com.github.avrokotlin.avro4k.InternalAvro4kApi"
 }
@@ -19,13 +22,13 @@ java {
 
 kotlin {
     explicitApi()
+    jvmToolchain(11)
 
     compilerOptions {
         optIn = listOf(
             "com.github.avrokotlin.avro4k.InternalAvro4kApi",
             "com.github.avrokotlin.avro4k.ExperimentalAvro4kApi",
         )
-        jvmToolchain(11)
     }
 }
 
@@ -48,7 +51,7 @@ tasks.withType<Test>().configureEach {
 }
 
 spotless {
-    val ktlintVersion = versionCatalogs.named("libs").findVersion("ktlint").get().toString()
+    val ktlintVersion = libs.versions.ktlint.get()
     kotlin {
         ktlint(ktlintVersion).setEditorConfigPath(rootProject.file(".editorconfig"))
     }

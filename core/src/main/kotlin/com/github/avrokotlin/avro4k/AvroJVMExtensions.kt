@@ -14,7 +14,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-@Deprecated("Use encodeToSink instead", ReplaceWith("encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())"))
+@Deprecated("Use encodeToSink instead", ReplaceWith("outputStream.asSink().buffered().also { encodeToSink(writerSchema, serializer, value, it) }.flush()"))
 @ExperimentalAvro4kApi
 public fun <T> Avro.encodeToStream(
     writerSchema: Schema,
@@ -22,26 +22,32 @@ public fun <T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
-    encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())
+    outputStream.asSink().buffered()
+        .also { encodeToSink(writerSchema, serializer, value, it) }
+        .flush()
 }
 
-@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("encodeToSink(value, outputStream.asSink().buffered())"))
+@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("outputStream.asSink().buffered().also { encodeToSink(value, it) }.flush()"))
 @ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToStream(
     value: T,
     outputStream: OutputStream,
 ) {
-    encodeToSink(value, outputStream.asSink().buffered())
+    outputStream.asSink().buffered()
+        .also { encodeToSink(value, it) }
+        .flush()
 }
 
-@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("encodeToSink(writerSchema, value, outputStream.asSink().buffered())"))
+@Deprecated("Use encodeToSink instead", replaceWith = ReplaceWith("outputStream.asSink().buffered().also { encodeToSink(writerSchema, value, it) }.flush()"))
 @ExperimentalAvro4kApi
 public inline fun <reified T> Avro.encodeToStream(
     writerSchema: Schema,
     value: T,
     outputStream: OutputStream,
 ) {
-    encodeToSink(writerSchema, value, outputStream.asSink().buffered())
+    outputStream.asSink().buffered()
+        .also { encodeToSink(writerSchema, value, it) }
+        .flush()
 }
 
 @Deprecated("Use decodeFromSource instead", replaceWith = ReplaceWith("decodeFromSource(deserializer, inputStream.asSource().buffered())"))

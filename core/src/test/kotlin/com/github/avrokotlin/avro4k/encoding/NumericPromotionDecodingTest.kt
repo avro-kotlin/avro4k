@@ -33,6 +33,24 @@ internal class NumericPromotionDecodingTest : StringSpec({
         Avro.decodeFromByteArray<Double>(longSchema, encodeToBytesUsingApacheLib(longSchema, 2L)) shouldBe 2.0
     }
 
+    "decode max int and long values, truncating precision" {
+        Avro.decodeFromByteArray<Float>(intSchema, encodeToBytesUsingApacheLib(intSchema, Int.MAX_VALUE)) shouldBe 2.14748365E9f
+        Avro.decodeFromByteArray<Double>(intSchema, encodeToBytesUsingApacheLib(intSchema, Int.MAX_VALUE)) shouldBe 2.147483647E9
+        Avro.decodeFromByteArray<Float>(longSchema, encodeToBytesUsingApacheLib(longSchema, Long.MAX_VALUE)) shouldBe 9.223372E18f
+        Avro.decodeFromByteArray<Double>(longSchema, encodeToBytesUsingApacheLib(longSchema, Long.MAX_VALUE)) shouldBe 9.223372036854776E18
+    }
+
+    "decode max int and long generic values, truncating precision" {
+        @Suppress("DEPRECATION")
+        Avro.decodeFromGenericData<Float>(intSchema, Int.MAX_VALUE) shouldBe 2.14748365E9f
+        @Suppress("DEPRECATION")
+        Avro.decodeFromGenericData<Double>(intSchema, Int.MAX_VALUE) shouldBe 2.147483647E9
+        @Suppress("DEPRECATION")
+        Avro.decodeFromGenericData<Float>(longSchema, Long.MAX_VALUE) shouldBe 9.223372E18f
+        @Suppress("DEPRECATION")
+        Avro.decodeFromGenericData<Double>(longSchema, Long.MAX_VALUE) shouldBe 9.223372036854776E18
+    }
+
     "decode nullable int as nullable double" {
         val schema = Schema.createUnion(Schema.create(Schema.Type.NULL), intSchema)
         Avro.decodeFromByteArray<Double?>(schema, encodeToBytesUsingApacheLib(schema, 3)) shouldBe 3.0

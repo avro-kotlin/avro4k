@@ -152,8 +152,10 @@ internal abstract class AbstractAvroDirectDecoder(
         return when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> binaryDecoder.readFloat()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble().toFloatExact()
+            Schema.Type.INT -> binaryDecoder.readInt().toFloat()
+            Schema.Type.LONG -> binaryDecoder.readLong().toFloat()
             Schema.Type.STRING -> binaryDecoder.readString().toFloat()
-            else -> throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.STRING)
+            else -> throw unsupportedWriterTypeError(Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
         }
     }
 
@@ -161,8 +163,10 @@ internal abstract class AbstractAvroDirectDecoder(
         return when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> binaryDecoder.readFloat().toDouble()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble()
+            Schema.Type.INT -> binaryDecoder.readInt().toDouble()
+            Schema.Type.LONG -> binaryDecoder.readLong().toDouble()
             Schema.Type.STRING -> binaryDecoder.readString().toDouble()
-            else -> throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.STRING)
+            else -> throw unsupportedWriterTypeError(Schema.Type.DOUBLE, Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.LONG, Schema.Type.STRING)
         }
     }
 

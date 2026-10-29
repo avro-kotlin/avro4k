@@ -147,9 +147,11 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         return when (val value = decodeValue()) {
             is Float -> value
             is Double -> value.toFloatExact()
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
             is BigDecimal -> value.toFloatExact()
             is CharSequence -> value.toString().toFloat()
-            else -> throw BadDecodedValueError(value, PrimitiveKind.FLOAT, Float::class, Double::class, BigDecimal::class, CharSequence::class)
+            else -> throw BadDecodedValueError(value, PrimitiveKind.FLOAT, Float::class, Double::class, Int::class, Long::class, BigDecimal::class, CharSequence::class)
         }
     }
 
@@ -157,9 +159,11 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         return when (val value = decodeValue()) {
             is Double -> value
             is Float -> value.toDouble()
+            is Int -> value.toDouble()
+            is Long -> value.toDouble()
             is BigDecimal -> value.toDoubleExact()
             is CharSequence -> value.toString().toDouble()
-            else -> throw BadDecodedValueError(value, PrimitiveKind.DOUBLE, Float::class, Double::class, BigDecimal::class, CharSequence::class)
+            else -> throw BadDecodedValueError(value, PrimitiveKind.DOUBLE, Float::class, Double::class, Int::class, Long::class, BigDecimal::class, CharSequence::class)
         }
     }
 

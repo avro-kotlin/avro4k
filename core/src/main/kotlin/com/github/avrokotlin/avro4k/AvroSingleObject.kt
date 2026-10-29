@@ -41,13 +41,16 @@ public class AvroSingleObject(
 
     private fun Schema.crc64avro(): ByteArray = SchemaNormalization.parsingFingerprint("CRC-64-AVRO", this)
 
-    @Deprecated("Use encodeToSink instead", ReplaceWith("encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())"))
+    @Deprecated("Use encodeToSink instead", ReplaceWith("outputStream.asSink().buffered().also { encodeToSink(writerSchema, serializer, value, it) }.flush()"))
     public fun <T> encodeToStream(
         writerSchema: Schema,
         serializer: SerializationStrategy<T>,
         value: T,
         outputStream: OutputStream,
-    ): Unit = encodeToSink(writerSchema, serializer, value, outputStream.asSink().buffered())
+    ): Unit =
+        outputStream.asSink().buffered()
+            .also { encodeToSink(writerSchema, serializer, value, it) }
+            .flush()
 
     public fun <T> encodeToSink(
         writerSchema: Schema,

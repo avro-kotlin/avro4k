@@ -184,22 +184,12 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
         }
     }
 
-    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        return when (val value = decodeValue()) {
-            is GenericEnumSymbol<*>, is CharSequence -> {
-                enumDescriptor.getElementIndex(value.toString()).takeIf { it >= 0 }
-                    ?: avro.enumResolver.getDefaultValueIndex(enumDescriptor)
-                    ?: throw SerializationException("Unknown enum symbol '$value' for Enum '${enumDescriptor.serialName}'")
-            }
-
-            else -> throw BadDecodedValueError(value, SerialKind.ENUM, GenericEnumSymbol::class, CharSequence::class)
-        }
-    }
-
     override fun decodeBytes(): ByteArray {
         return when (val value = decodeValue()) {
             is ByteArray -> value
-            is ByteBuffer -> value.array()
+            is ByteBuffer -> value.duplicate().let { buffer ->
+                ByteArray(buffer.remaining()).also { buffer.get(it) }
+            }
             is GenericFixed -> value.bytes()
             is CharSequence -> value.toString().toByteArray()
             else -> throw BadDecodedValueError<ByteArray>(value, ByteArray::class, GenericFixed::class, CharSequence::class)

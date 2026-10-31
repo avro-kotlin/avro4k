@@ -324,7 +324,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                trySelectFixedSchemaForSize(value.length) ||
+                trySelectFixedSchemaForSize(value.encodeToByteArray().size) ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||

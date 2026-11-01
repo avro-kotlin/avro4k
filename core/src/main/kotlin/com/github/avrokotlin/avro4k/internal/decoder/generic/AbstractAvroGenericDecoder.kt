@@ -199,11 +199,15 @@ internal abstract class AbstractAvroGenericDecoder : AbstractDecoder(), AvroDeco
     override fun decodeBytes(): ByteArray {
         return when (val value = decodeValue()) {
             is ByteArray -> value
+
             is ByteBuffer -> value.duplicate().let { buffer ->
                 ByteArray(buffer.remaining()).also { buffer.get(it) }
             }
+
             is GenericFixed -> value.bytes()
+
             is CharSequence -> value.toString().toByteArray()
+
             else -> throw BadDecodedValueError<ByteArray>(value, ByteArray::class, GenericFixed::class, CharSequence::class)
         }
     }

@@ -11,12 +11,9 @@ internal class DecodeFromGenericDataByteBufferTest : StringSpec({
     val bytesSchema = Schema.create(Schema.Type.BYTES)
 
     "decodes only the remaining bytes from a positioned heap buffer" {
-        val buffer = ByteBuffer.wrap(byteArrayOf(9, 1, 2, 9)).apply {
-            position(1)
-            limit(3)
-        }
+        val buffer = ByteBuffer.wrap(byteArrayOf(9, 1, 2, 9), 1, 2)
 
-        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer).contentToString() shouldBe "[1, 2]"
+        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer) shouldBe byteArrayOf(1, 2)
         buffer.position() shouldBe 1
         buffer.limit() shouldBe 3
     }
@@ -29,7 +26,7 @@ internal class DecodeFromGenericDataByteBufferTest : StringSpec({
                 limit(3)
             }
 
-        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer).contentToString() shouldBe "[1, 2]"
+        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer) shouldBe byteArrayOf(1, 2)
     }
 
     "decodes only the remaining bytes from a read-only buffer" {
@@ -38,6 +35,6 @@ internal class DecodeFromGenericDataByteBufferTest : StringSpec({
             limit(3)
         }.asReadOnlyBuffer()
 
-        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer).contentToString() shouldBe "[1, 2]"
+        Avro.decodeFromGenericData<ByteArray>(bytesSchema, buffer) shouldBe byteArrayOf(1, 2)
     }
 })

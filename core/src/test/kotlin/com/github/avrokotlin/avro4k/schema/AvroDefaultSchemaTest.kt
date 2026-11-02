@@ -29,6 +29,11 @@ internal class AvroDefaultSchemaTest : FunSpec({
             .generatesSchema(Path("/avro_default_annotation_float.json"))
     }
 
+    test("schema for data class with @AvroDefault should include negative numbers as numbers") {
+        AvroAssertions.assertThat<BarNegativeNumbers>()
+            .generatesSchema(Path("/avro_default_annotation_negative_numbers.json"))
+    }
+
     test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
         AvroAssertions.assertThat<BarDecimal>()
             .generatesSchema(Path("/avro_default_annotation_big_decimal.json"))
@@ -95,6 +100,24 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val nullableFloat: Float?,
         @AvroDefault("3.14")
         val c: Float?,
+    )
+
+    @Serializable
+    private data class BarNegativeNumbers(
+        @AvroDefault("-5")
+        val int: Int,
+        @AvroDefault("-5")
+        val long: Long,
+        @AvroDefault("-3.14")
+        val float: Float,
+        @AvroDefault("-3.14")
+        val double: Double,
+        @AvroDefault("-5")
+        val nullableInt: Int?,
+        @AvroDefault("-hello")
+        val string: String,
+        @AvroDefault("-05:00")
+        val notANumber: String,
     )
 
     private enum class FooEnum {

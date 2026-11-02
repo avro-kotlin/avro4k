@@ -20,6 +20,25 @@ internal class AvroPropsSchemaTest : StringSpec({
         AvroAssertions.assertThat<TypeAnnotated>()
             .generatesSchema(Path("/props_json_annotation_class.json"))
     }
+    "should read negative numbers in props as numbers" {
+        @SerialName("NegativeProps")
+        @Serializable
+        @AvroProp("offset", "-2")
+        data class NegativeProps(
+            @AvroProp("min", "-1")
+            @AvroProp("ratio", "-0.5")
+            @AvroProp("label", "-foo")
+            @AvroProp("timezone", "-05:00")
+            @AvroProp("ttl", "-1 day")
+            val field: Int,
+        )
+        AvroAssertions.assertThat<NegativeProps>()
+            .generatesSchema(
+                Schema.Parser().parse(
+                    """{"type":"record","name":"NegativeProps","fields":[{"name":"field","type":"int","min":-1,"ratio":-0.5,"label":"-foo","timezone":"-05:00","ttl":"-1 day"}],"offset":-2}"""
+                )
+            )
+    }
     "should add props on the contained type of a value class" {
         val stringSchema =
             Schema.create(Schema.Type.STRING).also {

@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "BarNegativeNumbers",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "int",
+      "type": "int",
+      "default": -5
+    },
+    {
+      "name": "long",
+      "type": "long",
+      "default": -5
+    },
+    {
+      "name": "float",
+      "type": "float",
+      "default": -3.14
+    },
+    {
+      "name": "double",
+      "type": "double",
+      "default": -3.14
+    },
+    {
+      "name": "nullableInt",
+      "type": ["int", "null"],
+      "default": -5
+    },
+    {
+      "name": "string",
+      "type": "string",
+      "default": "-hello"
+    },
+    {
+      "name": "notANumber",
+      "type": "string",
+      "default": "-05:00"
+    }
+  ]
+}

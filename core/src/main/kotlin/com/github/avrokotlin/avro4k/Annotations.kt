@@ -102,6 +102,7 @@ public annotation class AvroFixed(val size: Int)
  * - Records and maps have to be represented as a json object
  * - Arrays have to be represented as a json array
  * - Nulls have to be represented as a json `null`. To set the string `"null"`, don't forget to quote the string, example: `""""null""""` or `"\"null\""`.
+ * - Numbers, including negative ones, are read as json numbers. To set a string that is a number, quote it the same way, example: `"\"-1\""`.
  * - Any non json content will be treated as a string
  *
  * Only works with data class properties (not enum values). Ignored in value classes.

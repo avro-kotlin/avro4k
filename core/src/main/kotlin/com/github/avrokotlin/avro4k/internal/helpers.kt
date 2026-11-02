@@ -190,7 +190,7 @@ internal fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: 
     }
 
 /**
- * Returns true if the given content is starting with `"`, {`, `[`, a digit or equals to `null`.
+ * Returns true if the given content is starting with `"`, `{`, `[` or a digit, is a negative json number, or equals to `null`, `true` or `false`.
  * It doesn't check if the content is valid json.
  * It skips the whitespaces at the beginning of the content.
  */
@@ -200,8 +200,11 @@ internal fun String.isStartingAsJson(): Boolean {
         return false
     }
     val c = this[i]
-    return c == '{' || c == '"' || c == '[' || c.isDigit() || this == "null" || this == "true" || this == "false"
+    val isNegativeNumber = c == '-' && negativeJsonNumberRegex.matches(trim())
+    return c == '{' || c == '"' || c == '[' || c.isDigit() || isNegativeNumber || this == "null" || this == "true" || this == "false"
 }
+
+private val negativeJsonNumberRegex = Regex("-(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?")
 
 private val objectMapper by lazy { ObjectMapper() }
 

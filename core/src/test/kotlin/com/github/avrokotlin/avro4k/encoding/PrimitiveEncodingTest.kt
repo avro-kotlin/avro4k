@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.basicScalarEncodeDecodeTests
 import com.github.avrokotlin.avro4k.internal.copy
@@ -79,6 +80,13 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
+    val utf8FixedSchema = Schema.createFixed("utf8Fixed", null, null, "é".encodeToByteArray().size)
+    val fixedOrIntUnionSchema = Schema.createUnion(utf8FixedSchema, Schema.create(Schema.Type.INT))
+    AvroAssertions.assertThat("é")
+        .isEncodedAs(
+            GenericData.Fixed(utf8FixedSchema, "é".encodeToByteArray()),
+            writerSchema = fixedOrIntUnionSchema
+        )
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

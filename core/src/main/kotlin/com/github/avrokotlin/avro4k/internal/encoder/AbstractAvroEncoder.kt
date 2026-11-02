@@ -321,10 +321,15 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeString(value: String) {
+        var encodedBytes: ByteArray? = null
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                trySelectFixedSchemaForSize(value.encodeToByteArray().size) ||
+                run {
+                    val bytes = value.encodeToByteArray()
+                    encodedBytes = bytes
+                    trySelectFixedSchemaForSize(bytes.size)
+                } ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||
@@ -356,9 +361,9 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
 
             Schema.Type.STRING -> encodeStringUnchecked(value)
 
-            Schema.Type.BYTES -> encodeBytesUnchecked(value.encodeToByteArray())
+            Schema.Type.BYTES -> encodeBytesUnchecked(encodedBytes ?: value.encodeToByteArray())
 
-            Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(value.encodeToByteArray()))
+            Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(encodedBytes ?: value.encodeToByteArray()))
 
             Schema.Type.ENUM -> encodeEnumUnchecked(value)
 

@@ -375,7 +375,6 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             )
         }
     }
-
 }
 
 private fun String.utf8ByteLength(): Int {

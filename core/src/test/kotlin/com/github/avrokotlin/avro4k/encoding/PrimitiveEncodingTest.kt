@@ -87,6 +87,13 @@ internal class PrimitiveEncodingTest : StringSpec({
             GenericData.Fixed(utf8FixedSchema, "é".encodeToByteArray()),
             writerSchema = fixedOrIntUnionSchema
         )
+    val supplementaryCharacter = "😀"
+    val supplementaryFixedSchema = Schema.createFixed("supplementaryFixed", null, null, supplementaryCharacter.encodeToByteArray().size)
+    AvroAssertions.assertThat(supplementaryCharacter)
+        .isEncodedAs(
+            GenericData.Fixed(supplementaryFixedSchema, supplementaryCharacter.encodeToByteArray()),
+            writerSchema = Schema.createUnion(supplementaryFixedSchema, Schema.create(Schema.Type.INT))
+        )
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

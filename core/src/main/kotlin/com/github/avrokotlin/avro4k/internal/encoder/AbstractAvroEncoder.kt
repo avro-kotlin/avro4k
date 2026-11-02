@@ -321,15 +321,10 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
     }
 
     override fun encodeString(value: String) {
-        var encodedBytes: ByteArray? = null
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                run {
-                    val bytes = value.encodeToByteArray()
-                    encodedBytes = bytes
-                    trySelectFixedSchemaForSize(bytes.size)
-                } ||
+                trySelectFixedSchemaForSize(value.utf8ByteLength()) ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||
@@ -361,9 +356,9 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
 
             Schema.Type.STRING -> encodeStringUnchecked(value)
 
-            Schema.Type.BYTES -> encodeBytesUnchecked(encodedBytes ?: value.encodeToByteArray())
+            Schema.Type.BYTES -> encodeBytesUnchecked(value.encodeToByteArray())
 
-            Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(encodedBytes ?: value.encodeToByteArray()))
+            Schema.Type.FIXED -> encodeFixedUnchecked(ensureFixedSize(value.encodeToByteArray()))
 
             Schema.Type.ENUM -> encodeEnumUnchecked(value)
 
@@ -380,4 +375,26 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             )
         }
     }
+
+private fun String.utf8ByteLength(): Int {
+    var byteLength = 0L
+    var index = 0
+    while (index < length) {
+        val codeUnit = this[index].code
+        byteLength += when {
+            codeUnit <= 0x7F -> 1
+            codeUnit <= 0x7FF -> 2
+            codeUnit in 0xD800..0xDBFF &&
+                index + 1 < length &&
+                this[index + 1].code in 0xDC00..0xDFFF -> {
+                index++
+                4
+            }
+            codeUnit in 0xD800..0xDFFF -> 3
+            else -> 3
+        }
+        if (byteLength > Int.MAX_VALUE.toLong()) return -1
+        index++
+    }
+    return byteLength.toInt()
 }

@@ -376,6 +376,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         }
     }
 
+}
+
 private fun String.utf8ByteLength(): Int {
     var byteLength = 0L
     var index = 0

@@ -41,6 +41,8 @@ internal const val LOGICAL_TYPE_NAME_TIME_MICROS = "time-micros"
 internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS = "timestamp-millis"
 internal const val LOGICAL_TYPE_NAME_TIMESTAMP_MICROS = "timestamp-micros"
 internal const val LOGICAL_TYPE_NAME_TIMESTAMP_NANOS = "timestamp-nanos"
+internal const val LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS = "local-timestamp-millis"
+internal const val LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS = "local-timestamp-micros"
 
 public object LocalDateSerializer : AvroSerializer<LocalDate>(LocalDate::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {
@@ -243,8 +245,8 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
             when (currentWriterSchema.type) {
                 Schema.Type.LONG ->
                     when (currentWriterSchema.logicalType?.name) {
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMicros())
-                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMicros())
+                        LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS -> encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli())
                         else -> throw logicalTypeMismatchError(LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, Schema.Type.LONG)
                     }
 
@@ -264,15 +266,15 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
 
     override fun deserializeAvro(decoder: AvroDecoder): LocalDateTime {
         return with(decoder) {
-            decodeResolvingAny({ UnexpectedDecodeSchemaError("Instant", Schema.Type.LONG) }) {
+            decodeResolvingAny({ UnexpectedDecodeSchemaError("LocalDateTime", Schema.Type.LONG, Schema.Type.STRING) }) {
                 when (it.type) {
                     Schema.Type.LONG ->
                         when (it.logicalType?.name) {
-                            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, null -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS, LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS, null -> {
                                 AnyValueDecoder { LocalDateTime.ofInstant(Instant.ofEpochMilli(decoder.decodeLong()), ZoneOffset.UTC) }
                             }
 
-                            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS -> {
+                            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS, LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS -> {
                                 AnyValueDecoder { LocalDateTime.ofInstant(Instant.EPOCH.plus(decoder.decodeLong(), ChronoUnit.MICROS), ZoneOffset.UTC) }
                             }
 
@@ -291,6 +293,40 @@ public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateT
 
     override fun deserializeGeneric(decoder: Decoder): LocalDateTime {
         return LocalDateTime.parse(decoder.decodeString())
+    }
+}
+
+/**
+ * Serializes a [LocalDateTime] as a `long` with the `local-timestamp-millis` logical type, which Avro defines for a date and time without a time zone.
+ * It reads and writes the same writer types as [LocalDateTimeSerializer].
+ */
+public object LocalDateTimeToLocalTimestampMillisSerializer : AvroSerializer<LocalDateTime>(LocalDateTime::class.qualifiedName!!) {
+    override fun getSchema(context: SchemaSupplierContext): Schema {
+        return context.inlinedElements.firstNotNullOfOrNull {
+            it.stringable?.createSchema()
+        } ?: Schema.create(Schema.Type.LONG).copy(logicalType = LogicalType(LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS))
+    }
+
+    override fun serializeAvro(
+        encoder: AvroEncoder,
+        value: LocalDateTime,
+    ) {
+        LocalDateTimeSerializer.serializeAvro(encoder, value)
+    }
+
+    override fun serializeGeneric(
+        encoder: Encoder,
+        value: LocalDateTime,
+    ) {
+        LocalDateTimeSerializer.serializeGeneric(encoder, value)
+    }
+
+    override fun deserializeAvro(decoder: AvroDecoder): LocalDateTime {
+        return LocalDateTimeSerializer.deserializeAvro(decoder)
+    }
+
+    override fun deserializeGeneric(decoder: Decoder): LocalDateTime {
+        return LocalDateTimeSerializer.deserializeGeneric(decoder)
     }
 }
 

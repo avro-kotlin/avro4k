@@ -538,7 +538,7 @@ public class KotlinGenerator(
                         if (field.defaultValue != null) {
                             if (typeName.isNativelySerializable()) {
                                 // TODO recursive types needs to have a default value, or it's not possible to instantiate them
-                                getRecordFieldDefault(field.schema, field.defaultValue)
+                                getRecordFieldDefault(field.schema, field.defaultValue, typeName)
                             } else {
                                 // Non-natively serializable types are from user code, so they also need custom code to instantiate them
                                 null
@@ -575,7 +575,10 @@ public class KotlinGenerator(
             .build()
     }
 
-    private fun getRecordFieldDefault(schema: AvroSchema, fieldDefault: JsonElement): CodeBlock? {
+    /**
+     * @param unionTypeName the sealed interface generated for [schema] when it is a non-nullable union, as it is needed to instantiate its default
+     */
+    private fun getRecordFieldDefault(schema: AvroSchema, fieldDefault: JsonElement, unionTypeName: TypeName?): CodeBlock? {
         return when (schema) {
             is AvroSchema.FixedSchema,
             is AvroSchema.BytesSchema,
@@ -596,16 +599,26 @@ public class KotlinGenerator(
             is AvroSchema.LongSchema -> CodeBlock.of("%L", fieldDefault.jsonPrimitive.long)
 
             // for union, the default has to be of the first type
-            is AvroSchema.UnionSchema -> getRecordFieldDefault(schema.types.first(), fieldDefault)
+            is AvroSchema.UnionSchema -> {
+                val firstType = schema.types.first()
+                val firstTypeDefault = getRecordFieldDefault(firstType, fieldDefault, null) ?: return null
+                if (schema.isSimpleNullableType || firstType is AvroSchema.NullSchema) {
+                    firstTypeDefault
+                } else {
+                    // A non-nullable union is generated as a sealed interface, so the default has to be wrapped in its first type's subtype
+                    val nonNullUnionTypeName = unionTypeName?.copy(nullable = false) ?: return null
+                    CodeBlock.of("%T.%N(%L)", nonNullUnionTypeName, unionSubTypeName(schema, firstType), firstTypeDefault)
+                }
+            }
 
             is AvroSchema.ArraySchema ->
                 fieldDefault.jsonArray
-                    .map { getRecordFieldDefault(schema.elementSchema, it) ?: return null }
+                    .map { getRecordFieldDefault(schema.elementSchema, it, null) ?: return null }
                     .let { getListOfCodeBlock(it) }
 
             is AvroSchema.MapSchema ->
                 fieldDefault.jsonObject
-                    .mapValues { getRecordFieldDefault(schema.valueSchema, it.value) ?: return null }
+                    .mapValues { getRecordFieldDefault(schema.valueSchema, it.value, null) ?: return null }
                     .let { getMapOfCodeBlock(it) }
 
             is AvroSchema.NullSchema -> {
@@ -626,7 +639,12 @@ public class KotlinGenerator(
                         if (!getTypeName(field.schema, fieldNamingStrategy.format(fieldName).toPascalCase()).isNativelySerializable()) {
                             return null
                         }
-                        val valueBlock = getRecordFieldDefault(field.schema, fieldValue) ?: return null
+                        // The union's sealed interface is nested in its record, so it needs qualifying when instantiated from another class
+                        val unionTypeName =
+                            (field.schema as? AvroSchema.UnionSchema)
+                                ?.takeUnless { it.isSimpleNullableType }
+                                ?.let { schema.asClassName().nestedClass(unionNameFormatter(fieldNamingStrategy.format(fieldName).toPascalCase())) }
+                        val valueBlock = getRecordFieldDefault(field.schema, fieldValue, unionTypeName) ?: return null
                         CodeBlock.of("%N = %L", fieldNamingStrategy.format(field.name), valueBlock)
                     }
                     .let {

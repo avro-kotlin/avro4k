@@ -390,10 +390,9 @@ public class KotlinGenerator(
             .addAnnotation(buildAvroGeneratedAnnotation(schema))
             .addTypes(
                 run {
-                    val hasSimilarNames = schema.types.groupBy { it.fullName }.any { it.value.size > 1 }
                     schema.nonNullTypes.map { subSchema ->
                         val typeName = getTypeName(subSchema, potentialAnonymousBaseName)
-                        TypeSpec.classBuilder(unionSubTypeNameFormatter(if (hasSimilarNames) subSchema.fullName else subSchema.simpleName.toPascalCase()))
+                        TypeSpec.classBuilder(unionSubTypeName(schema, subSchema))
                             .addSuperinterface(ClassName.fromFullName(className))
                             .addModifiers(KModifier.VALUE)
                             .addAnnotation(JvmInline::class)
@@ -411,6 +410,28 @@ public class KotlinGenerator(
                 }
             )
             .build()
+    }
+
+    /**
+     * Returns the name of the union's subtype wrapping [subSchema], using the simple name unless another type of the union shares it.
+     * Avro forbids duplicated full names in a union, but types from different namespaces may share their simple name.
+     *
+     * ```kotlin
+     * // union of com.example.Unknown, com.example.se.Push and com.example.nl.Push
+     * value class ForUnknown(val value: com.example.Unknown)
+     * value class ForComExampleSePush(val value: com.example.se.Push)
+     * value class ForComExampleNlPush(val value: com.example.nl.Push)
+     * ```
+     */
+    private fun unionSubTypeName(union: AvroSchema.UnionSchema, subSchema: AvroSchema): String {
+        val hasSimilarNames = union.nonNullTypes.count { it.simpleName.toPascalCase() == subSchema.simpleName.toPascalCase() } > 1
+        val name =
+            if (hasSimilarNames) {
+                subSchema.fullName.split('.').joinToString("") { it.toPascalCase() }
+            } else {
+                subSchema.simpleName.toPascalCase()
+            }
+        return unionSubTypeNameFormatter(name)
     }
 
     /**

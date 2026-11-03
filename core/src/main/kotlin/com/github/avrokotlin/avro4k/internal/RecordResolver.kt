@@ -13,10 +13,6 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.float
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.long
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 
@@ -352,17 +348,18 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
 
                 Schema.Type.BOOLEAN -> this.boolean
 
+                // Numbers are read as the schema builder reads them, so a default that gives a valid schema, like -1.0 or -1.5e3, also decodes
                 Schema.Type.INT ->
                     when (schema.logicalType?.name) {
                         CHAR_LOGICAL_TYPE_NAME -> this.content.single().code
-                        else -> this.int
+                        else -> this.content.toBigDecimal().intValueExact()
                     }
 
-                Schema.Type.LONG -> this.long
+                Schema.Type.LONG -> this.content.toBigDecimal().longValueExact()
 
-                Schema.Type.FLOAT -> this.float
+                Schema.Type.FLOAT -> this.content.toBigDecimal().toFloat()
 
-                Schema.Type.DOUBLE -> this.double
+                Schema.Type.DOUBLE -> this.content.toBigDecimal().toDouble()
 
                 Schema.Type.UNION ->
                     this.convertDefaultToObject(

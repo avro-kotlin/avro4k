@@ -34,6 +34,10 @@ internal class AvroDefaultSchemaTest : FunSpec({
             .generatesSchema(Path("/avro_default_annotation_negative_numbers.json"))
     }
 
+    test("schema for data class with @AvroDefault should not read a comma as a decimal separator") {
+        shouldThrow<AvroTypeException> { Avro.schema(BarCommaDecimal.serializer()) }
+    }
+
     test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
         AvroAssertions.assertThat<BarDecimal>()
             .generatesSchema(Path("/avro_default_annotation_big_decimal.json"))
@@ -126,6 +130,12 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val notANumber: String,
         @AvroDefault("-1")
         val numberLikeString: String,
+    )
+
+    @Serializable
+    private data class BarCommaDecimal(
+        @AvroDefault("-1,5")
+        val double: Double,
     )
 
     private enum class FooEnum {

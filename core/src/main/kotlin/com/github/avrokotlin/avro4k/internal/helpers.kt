@@ -222,7 +222,7 @@ internal val AvroProp.jsonNode: JsonNode
  * A value like `-05:00` or `-1 day` is not a json number, so it stays a string.
  */
 private fun String.toNegativeNumberNodeOrNull(): JsonNode? {
-    if (!trimStart().startsWith('-')) {
+    if (firstOrNull { !it.isWhitespace() } != '-') {
         return null
     }
     return try {

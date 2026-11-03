@@ -47,7 +47,7 @@ internal class AvroDefaultEncodingTest : StringSpec({
     "negative number defaults are decoded as numbers" {
         AvroAssertions.assertThat(ContainerWithoutDefaultFields("abc"))
             .isEncodedAs(record("abc"))
-            .isDecodedAs(ContainerWithNegativeDefaults("abc", -1, -1L, Long.MIN_VALUE, -1.5f, -1.5, -1500.0, -1))
+            .isDecodedAs(ContainerWithNegativeDefaults("abc", -1, -1L, Long.MIN_VALUE, -1.5f, -1.5, -1500.0, -1, -1, -1500L, 1))
     }
 }) {
     @Serializable
@@ -79,6 +79,12 @@ internal class AvroDefaultEncodingTest : StringSpec({
         val doubleExponentDefault: Double,
         @AvroDefault("-1")
         val intDefaultNullable: Int?,
+        @AvroDefault("-1.0")
+        val intFromDecimal: Int,
+        @AvroDefault("-1.5e3")
+        val longFromExponent: Long,
+        @AvroDefault("1.0")
+        val positiveIntFromDecimal: Int,
     )
 
     @Serializable

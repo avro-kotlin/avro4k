@@ -6,22 +6,37 @@ avro4k is maintained by a small number of people on their free time. Reviewing a
 
 ## TL;DR
 
-1. **Open (or find) an issue first** and wait for a maintainer to accept it before writing code. Typo fixes and small documentation tweaks are the only exception.
-2. **One pull request = one concern**, linked to its issue.
+1. **Prefer opening (or finding) an issue first** to agree on the problem and the approach before writing code.
+2. **One pull request = one concern**, linked to its issue when there is one.
 3. **Disclose any AI assistance** in the pull request description.
-4. **You must understand and own your change**: you answer review comments yourself, in your own words.
-5. **Run the whole test suite locally** with `./gradlew actionsBeforeCommit check` before pushing, and make sure it passes.
+4. **You must understand and own your change**: explain why you chose this approach over simpler alternatives, and answer review comments yourself, in your own words.
+5. **Keep it simple**: the right balance between performance, readability and maintenance, not the most clever code.
+6. **Run the whole test suite locally** with `./gradlew actionsBeforeCommit check` before pushing, and make sure it passes.
 
 ## Issues first
 
-Before opening a pull request, open an issue (or comment on an existing one) describing the problem and the solution you have in mind. Wait until a maintainer confirms that:
+We recommend opening an issue (or commenting on an existing one) describing the problem and the solution you have in mind before writing code, and waiting for a maintainer to confirm that:
 
 - the problem is real and in scope for avro4k,
 - the proposed approach fits the library design (public API, binary compatibility, Avro spec compliance, performance).
 
-This avoids wasted effort on both sides. Pull requests changing code without a linked, accepted issue will be closed.
+This avoids wasted effort on both sides, especially for new features and public API changes.
 
-Exceptions that don't need an issue: typo fixes, broken links, and small clarifications in documentation.
+Opening a pull request directly is fine too: good-faith contributions are welcome. In that case, the pull request description must explain the problem it solves, as an issue would. Be aware that a pull request without prior discussion is more likely to be asked for a different approach, or to be closed if it's out of scope.
+
+Typo fixes, broken links and small documentation clarifications never need an issue.
+
+## Keep it simple
+
+avro4k is maintained on free time, so every line of code has a maintenance cost. We look for the right compromise between performance, readability and maintainability, not the most optimized or clever code.
+
+- **Prefer the straightforward solution**, using the standard library, kotlinx-serialization or Apache Avro, over custom helpers re-implementing what they already do.
+- **Optimize only with evidence.** A micro-optimization is welcome when a [benchmark](benchmark/README.md) shows a real gain on a hot path. Otherwise, it's added complexity for nothing.
+- **Don't add abstractions "for later".** Solve the problem at hand.
+
+For example, a hand-written helper computing the UTF-8 byte length of a string, just to avoid `string.encodeToByteArray().size` and its short-lived array, is extra code to maintain and test (surrogate pairs, invalid characters, …) for a gain that the JVM mostly absorbs. Unless a benchmark proves the opposite, the one-liner wins.
+
+In the pull request description, **explain the choices you made** and the simpler alternatives you considered. If you can't explain why the extra complexity is worth it, it probably isn't.
 
 ## AI-assisted contributions
 
@@ -31,7 +46,7 @@ We don't ban AI tools: many of us use them. But we've seen a growing number of p
 - **A human is accountable.** The pull request must be opened by a human who has read, understood and tested every line of it. "The AI did it" is not an answer to a review comment.
 - **Answer reviews yourself.** Review discussions are between humans. Don't paste AI-generated replies to review comments; we'd rather read short, imperfect answers in your own words.
 - **No autonomous agents.** Pull requests, issues or comments opened by bots or agents acting without a human in the loop are not accepted. Accounts behaving like this may be blocked.
-- **Keep it focused.** No drive-by refactorings, mass renames, reformatting, or "improvements" unrelated to the linked issue.
+- **Keep it focused.** No drive-by refactorings, mass renames, reformatting, or "improvements" unrelated to the problem being solved.
 
 Undisclosed AI-generated contributions, or authors who can't explain their own change, will be closed without further review.
 

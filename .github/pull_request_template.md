@@ -5,12 +5,12 @@ Pull requests that don't fill in this template may be closed without review.
 
 ## Linked issue
 
-<!-- Code changes require an issue accepted by a maintainer. Only typo/doc fixes can skip this. -->
+<!-- Recommended: an issue discussed with a maintainer. If there is none, explain the problem below as an issue would. -->
 Closes #
 
 ## What and why
 
-<!-- Explain the change in your own words: the problem, your approach, and any trade-off. -->
+<!-- Explain the change in your own words: the problem, your approach, the simpler alternatives you considered and why you didn't pick them. -->
 
 ## How it was tested
 
@@ -25,7 +25,8 @@ Closes #
 ## Checklist
 
 - [ ] I am a human, I have read and understood every line of this change, and I will answer review comments myself.
-- [ ] The change is limited to the linked issue (no unrelated refactoring or reformatting).
+- [ ] The change is limited to the problem it solves (no unrelated refactoring or reformatting).
+- [ ] I chose the simplest solution that works; any extra complexity (e.g. optimizations) is justified above, with benchmarks if performance-related.
 - [ ] I ran the full test suite locally with `./gradlew actionsBeforeCommit check` and it passes.
 - [ ] I added tests covering this change, and I didn't disable, skip or weaken any existing test.
 - [ ] Public API changes (`*.api` files) are committed and intended.

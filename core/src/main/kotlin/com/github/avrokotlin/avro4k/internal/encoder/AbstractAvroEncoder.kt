@@ -324,7 +324,7 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                trySelectFixedSchemaForSize(value.utf8ByteLength()) ||
+                trySelectFixedSchemaForBytesSizeAndEncode(value).also { if (it) return } ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||
@@ -375,27 +375,13 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
             )
         }
     }
-}
 
-private fun String.utf8ByteLength(): Int {
-    var byteLength = 0L
-    var index = 0
-    while (index < length) {
-        val codeUnit = this[index].code
-        byteLength += when {
-            codeUnit <= 0x7F -> 1
-            codeUnit <= 0x7FF -> 2
-            codeUnit in 0xD800..0xDBFF &&
-                index + 1 < length &&
-                this[index + 1].code in 0xDC00..0xDFFF -> {
-                index++
-                4
-            }
-            codeUnit in 0xD800..0xDFFF -> 3
-            else -> 3
+    private fun trySelectFixedSchemaForBytesSizeAndEncode(value: String): Boolean {
+        val bytes = value.encodeToByteArray()
+        if (trySelectFixedSchemaForSize(bytes.size)) {
+            encodeFixedUnchecked(bytes)
+            return true
         }
-        if (byteLength > Int.MAX_VALUE.toLong()) return -1
-        index++
+        return false
     }
-    return byteLength.toInt()
 }

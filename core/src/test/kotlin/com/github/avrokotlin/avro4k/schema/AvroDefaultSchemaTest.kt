@@ -34,6 +34,11 @@ internal class AvroDefaultSchemaTest : FunSpec({
             .generatesSchema(Path("/avro_default_annotation_negative_numbers.json"))
     }
 
+    test("schema for data class with @AvroDefault should write float and double defaults as doubles") {
+        AvroAssertions.assertThat<BarFloatingPoint>()
+            .generatesSchema(Path("/avro_default_annotation_floating_point.json"))
+    }
+
     test("schema for data class with @AvroDefault should not read a comma as a decimal separator") {
         shouldThrow<AvroTypeException> { Avro.schema(BarCommaDecimal.serializer()) }
     }
@@ -130,6 +135,22 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val notANumber: String,
         @AvroDefault("-1")
         val numberLikeString: String,
+    )
+
+    @Serializable
+    private data class BarFloatingPoint(
+        @AvroDefault("1.0")
+        val wholeDouble: Double,
+        @AvroDefault("2")
+        val integerDouble: Double,
+        @AvroDefault("1.7976931348623157E308")
+        val maxDouble: Double,
+        @AvroDefault("-1.7976931348623157E308")
+        val minDouble: Double,
+        @AvroDefault("1.0")
+        val wholeFloat: Float,
+        @AvroDefault("1.0")
+        val nullableWholeDouble: Double?,
     )
 
     @Serializable

@@ -31,7 +31,7 @@
     {
       "name": "doubleExponent",
       "type": "double",
-      "default": -1500
+      "default": -1500.0
     },
     {
       "name": "floatExponent",

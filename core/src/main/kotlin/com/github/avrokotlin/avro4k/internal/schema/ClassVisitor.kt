@@ -146,20 +146,29 @@ internal class ClassVisitor(
 }
 
 private fun AvroDefault.toAvroObject(schema: Schema): Any {
-    if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).toAvroObject()
+    val avroObject =
+        when {
+            value.isStartingAsJson() -> Json.parseToJsonElement(value).toAvroObject()
+
+            // A number that does not start like json, such as a negative one, is still a number for a numeric field
+            schema.isNumeric() -> value.trim().toBigDecimalOrNull()?.toAvroNumber() ?: value
+
+            else -> value
+        }
+    // A float or double default is written as a double, so it keeps its fraction and exponent, like 1.0 or 1.7976931348623157E308
+    if (avroObject is Number && schema.isFloatingPoint()) {
+        return avroObject.toDouble()
     }
-    if (schema.isNumeric()) {
-        // A number that does not start like json, such as a negative one, is still a number for a numeric field
-        value.trim().toBigDecimalOrNull()?.let { return it.toAvroNumber() }
-    }
-    return value
+    return avroObject
 }
 
-private fun Schema.isNumeric(): Boolean {
+private fun Schema.isNumeric(): Boolean = nonNullTypesAll { it.type in NUMERIC_TYPES && it.logicalType?.name != CHAR_LOGICAL_TYPE_NAME }
+
+private fun Schema.isFloatingPoint(): Boolean = nonNullTypesAll { it.type == Schema.Type.FLOAT || it.type == Schema.Type.DOUBLE }
+
+private inline fun Schema.nonNullTypesAll(predicate: (Schema) -> Boolean): Boolean {
     val types = asSchemaList().filter { it.type != Schema.Type.NULL }
-    return types.isNotEmpty() &&
-        types.all { it.type in NUMERIC_TYPES && it.logicalType?.name != CHAR_LOGICAL_TYPE_NAME }
+    return types.isNotEmpty() && types.all(predicate)
 }
 
 private val NUMERIC_TYPES = setOf(Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)

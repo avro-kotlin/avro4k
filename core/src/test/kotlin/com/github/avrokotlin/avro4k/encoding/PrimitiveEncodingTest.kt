@@ -80,8 +80,10 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
+
+    // A four-byte UTF-8 character must select the matching size-4 branch over size 1.
     "string with big code points selects the matching fixed branch" {
-        val largeCodePointString = "😀"
+        val largeCodePointString = "\uD83D\uDE00"
         val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
         val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
         val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
@@ -96,14 +98,15 @@ internal class PrimitiveEncodingTest : StringSpec({
             )
     }
 
+    // U+00E9 encodes to two UTF-8 bytes, which match neither fixed branch.
     "string with no matching fixed branch throws" {
+        val twoByteString = "\u00E9"
         val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
         val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
         val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
 
-        // No fixed branch matches the two-byte UTF-8 encoding of "é".
         shouldThrow<SerializationException> {
-            Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), "é")
+            Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), twoByteString)
         }
     }
 

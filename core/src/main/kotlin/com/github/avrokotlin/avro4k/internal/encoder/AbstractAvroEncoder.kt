@@ -381,7 +381,8 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         if (trySelectFixedSchemaForSize(bytes.size)) {
             encodeFixedUnchecked(bytes)
             return true
+        } else {
+            return false
         }
-        return false
     }
 }

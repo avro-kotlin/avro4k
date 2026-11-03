@@ -26,6 +26,7 @@ Closes #
 
 - [ ] I am a human, I have read and understood every line of this change, and I will answer review comments myself.
 - [ ] The change is limited to the linked issue (no unrelated refactoring or reformatting).
-- [ ] `./gradlew actionsBeforeCommit check` passes locally.
+- [ ] I ran the full test suite locally with `./gradlew actionsBeforeCommit check` and it passes.
+- [ ] I added tests covering this change, and I didn't disable, skip or weaken any existing test.
 - [ ] Public API changes (`*.api` files) are committed and intended.
 - [ ] Documentation is updated if user-facing behavior changed.

@@ -10,7 +10,7 @@ avro4k is maintained by a small number of people on their free time. Reviewing a
 2. **One pull request = one concern**, linked to its issue.
 3. **Disclose any AI assistance** in the pull request description.
 4. **You must understand and own your change**: you answer review comments yourself, in your own words.
-5. Run `./gradlew actionsBeforeCommit check` locally before pushing.
+5. **Run the whole test suite locally** with `./gradlew actionsBeforeCommit check` before pushing, and make sure it passes.
 
 ## Issues first
 
@@ -63,6 +63,7 @@ Undisclosed AI-generated contributions, or authors who can't explain their own c
 `actionsBeforeCommit` formats the code (Spotless + ktlint) and updates the public API dumps (`apiDump`). `check` runs the tests and verifies the API dumps.
 
 - **Public API changes** are visible in the `*.api` files. Commit them. Any change there is reviewed carefully: breaking changes require a strong justification and a discussion in the issue first.
+- **Run the tests yourself, all of them.** `check` runs the full test suite of every module, not only the ones you touched: a change in `core` can break the generator, the gradle plugin or the Kafka serializer. Don't rely on CI to find failures for you, and don't open a pull request with failing tests. Never disable, skip or weaken an existing test to make the build green: if a test needs to change, explain why in the pull request.
 - **Tests are required** for bug fixes (a test that fails without the fix) and new features.
 - **Performance-sensitive changes** to encoding/decoding should come with benchmark results (see [benchmark](benchmark/README.md)).
 - **Documentation**: update the README (or the module README) when you change user-facing behavior.

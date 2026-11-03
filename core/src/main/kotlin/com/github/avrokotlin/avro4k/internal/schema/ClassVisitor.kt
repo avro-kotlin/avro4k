@@ -18,6 +18,7 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
+import java.math.BigDecimal
 
 internal class ClassVisitor(
     descriptor: SerialDescriptor,
@@ -110,7 +111,7 @@ internal class ClassVisitor(
         annotations: FieldAnnotations,
         elementSchema: Schema,
     ): Pair<Schema, Any?> {
-        val defaultValue = annotations.default?.toAvroObject()
+        val defaultValue = annotations.default?.toAvroObject(elementSchema)
         if (defaultValue == null) {
             if (context.configuration.implicitNulls && elementSchema.isNullable) {
                 return elementSchema.moveToHeadOfUnion { it.type == Schema.Type.NULL } to JsonProperties.NULL_VALUE
@@ -144,12 +145,33 @@ internal class ClassVisitor(
     }
 }
 
-private fun AvroDefault.toAvroObject(): Any {
+private fun AvroDefault.toAvroObject(schema: Schema): Any {
     if (value.isStartingAsJson()) {
         return Json.parseToJsonElement(value).toAvroObject()
     }
+    if (schema.isNumeric()) {
+        // A number that does not start like json, such as a negative one, is still a number for a numeric field
+        value.trim().toBigDecimalOrNull()?.let { return it.toAvroNumber() }
+    }
     return value
 }
+
+private fun Schema.isNumeric(): Boolean {
+    val types = asSchemaList().filter { it.type != Schema.Type.NULL }
+    return types.isNotEmpty() &&
+        types.all { it.type in NUMERIC_TYPES && it.logicalType?.name != CHAR_LOGICAL_TYPE_NAME }
+}
+
+private val NUMERIC_TYPES = setOf(Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
+
+private fun BigDecimal.toAvroNumber(): Any =
+    stripTrailingZeros().let {
+        if (it.scale() <= 0) {
+            it.toBigInteger()
+        } else {
+            it
+        }
+    }
 
 private fun JsonElement.toAvroObject(): Any =
     when (this) {
@@ -162,18 +184,8 @@ private fun JsonElement.toAvroObject(): Any =
         is JsonPrimitive ->
             when {
                 this.isString -> this.content
-
                 this.booleanOrNull != null -> this.boolean
-
-                else -> {
-                    this.content.toBigDecimal().stripTrailingZeros().let {
-                        if (it.scale() <= 0) {
-                            it.toBigInteger()
-                        } else {
-                            it
-                        }
-                    }
-                }
+                else -> this.content.toBigDecimal().toAvroNumber()
             }
     }
 

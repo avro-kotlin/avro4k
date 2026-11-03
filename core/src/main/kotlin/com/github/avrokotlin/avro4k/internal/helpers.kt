@@ -1,5 +1,7 @@
 package com.github.avrokotlin.avro4k.internal
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
@@ -190,7 +192,7 @@ internal fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: 
     }
 
 /**
- * Returns true if the given content is starting with `"`, `{`, `[` or a digit, is a negative json number, or equals to `null`, `true` or `false`.
+ * Returns true if the given content is starting with `"`, {`, `[`, a digit or equals to `null`.
  * It doesn't check if the content is valid json.
  * It skips the whitespaces at the beginning of the content.
  */
@@ -200,21 +202,35 @@ internal fun String.isStartingAsJson(): Boolean {
         return false
     }
     val c = this[i]
-    val isNegativeNumber = c == '-' && negativeJsonNumberRegex.matches(trim())
-    return c == '{' || c == '"' || c == '[' || c.isDigit() || isNegativeNumber || this == "null" || this == "true" || this == "false"
+    return c == '{' || c == '"' || c == '[' || c.isDigit() || this == "null" || this == "true" || this == "false"
 }
 
-private val negativeJsonNumberRegex = Regex("-(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?")
-
 private val objectMapper by lazy { ObjectMapper() }
+
+private val strictObjectReader by lazy { objectMapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS) }
 
 internal val AvroProp.jsonNode: JsonNode
     get() {
         if (value.isStartingAsJson()) {
             return objectMapper.readTree(value)
         }
-        return TextNode.valueOf(value)
+        return value.toNegativeNumberNodeOrNull() ?: TextNode.valueOf(value)
     }
+
+/**
+ * Returns the number node if the whole content is a negative json number, like `-1` or `-2.5e-3`, otherwise null.
+ * A value like `-05:00` or `-1 day` is not a json number, so it stays a string.
+ */
+private fun String.toNegativeNumberNodeOrNull(): JsonNode? {
+    if (!trimStart().startsWith('-')) {
+        return null
+    }
+    return try {
+        strictObjectReader.readTree(this).takeIf { it.isNumber }
+    } catch (_: JsonProcessingException) {
+        null
+    }
+}
 
 @OptIn(UnsafeIoApi::class)
 internal fun Buffer(bytes: ByteArray): Buffer =

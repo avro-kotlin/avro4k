@@ -27,6 +27,8 @@ internal class AvroPropsSchemaTest : StringSpec({
         data class NegativeProps(
             @AvroProp("min", "-1")
             @AvroProp("ratio", "-0.5")
+            @AvroProp("big", "-1e3")
+            @AvroProp("small", "-2.5E-3")
             @AvroProp("label", "-foo")
             @AvroProp("timezone", "-05:00")
             @AvroProp("ttl", "-1 day")
@@ -35,7 +37,7 @@ internal class AvroPropsSchemaTest : StringSpec({
         AvroAssertions.assertThat<NegativeProps>()
             .generatesSchema(
                 Schema.Parser().parse(
-                    """{"type":"record","name":"NegativeProps","fields":[{"name":"field","type":"int","min":-1,"ratio":-0.5,"label":"-foo","timezone":"-05:00","ttl":"-1 day"}],"offset":-2}"""
+                    """{"type":"record","name":"NegativeProps","fields":[{"name":"field","type":"int","min":-1,"ratio":-0.5,"big":-1e3,"small":-2.5E-3,"label":"-foo","timezone":"-05:00","ttl":"-1 day"}],"offset":-2}"""
                 )
             )
     }

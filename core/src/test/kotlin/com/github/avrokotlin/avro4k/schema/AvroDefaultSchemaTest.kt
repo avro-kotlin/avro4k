@@ -108,16 +108,24 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val int: Int,
         @AvroDefault("-5")
         val long: Long,
+        @AvroDefault("-9223372036854775808")
+        val longMin: Long,
         @AvroDefault("-3.14")
         val float: Float,
         @AvroDefault("-3.14")
         val double: Double,
+        @AvroDefault("-1.5e3")
+        val doubleExponent: Double,
+        @AvroDefault("-2.5E-3")
+        val floatExponent: Float,
         @AvroDefault("-5")
         val nullableInt: Int?,
         @AvroDefault("-hello")
         val string: String,
         @AvroDefault("-05:00")
         val notANumber: String,
+        @AvroDefault("-1")
+        val numberLikeString: String,
     )
 
     private enum class FooEnum {

@@ -14,6 +14,11 @@
       "default": -5
     },
     {
+      "name": "longMin",
+      "type": "long",
+      "default": -9223372036854775808
+    },
+    {
       "name": "float",
       "type": "float",
       "default": -3.14
@@ -22,6 +27,16 @@
       "name": "double",
       "type": "double",
       "default": -3.14
+    },
+    {
+      "name": "doubleExponent",
+      "type": "double",
+      "default": -1500
+    },
+    {
+      "name": "floatExponent",
+      "type": "float",
+      "default": -0.0025
     },
     {
       "name": "nullableInt",
@@ -37,6 +52,11 @@
       "name": "notANumber",
       "type": "string",
       "default": "-05:00"
+    },
+    {
+      "name": "numberLikeString",
+      "type": "string",
+      "default": "-1"
     }
   ]
 }

@@ -80,20 +80,24 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
-    val utf8FixedSchema = Schema.createFixed("utf8Fixed", null, null, "é".encodeToByteArray().size)
-    val fixedOrIntUnionSchema = Schema.createUnion(utf8FixedSchema, Schema.create(Schema.Type.INT))
-    AvroAssertions.assertThat("é")
+    // A supplementary Unicode character selects a fixed branch by UTF-8 byte length.
+    val largeCodePointString = "\\uD83D\\uDE00"
+    val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
+    val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
+    val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
+    AvroAssertions.assertThat(largeCodePointString)
         .isEncodedAs(
-            GenericData.Fixed(utf8FixedSchema, "é".encodeToByteArray()),
-            writerSchema = fixedOrIntUnionSchema
+            GenericData.Fixed(
+                fourByteFixedSchema,
+                byteArrayOf(0xF0.toByte(), 0x9F.toByte(), 0x98.toByte(), 0x80.toByte())
+            ),
+            writerSchema = fixedUnionSchema
         )
-    val supplementaryCharacter = "😀"
-    val supplementaryFixedSchema = Schema.createFixed("supplementaryFixed", null, null, supplementaryCharacter.encodeToByteArray().size)
-    AvroAssertions.assertThat(supplementaryCharacter)
-        .isEncodedAs(
-            GenericData.Fixed(supplementaryFixedSchema, supplementaryCharacter.encodeToByteArray()),
-            writerSchema = Schema.createUnion(supplementaryFixedSchema, Schema.create(Schema.Type.INT))
-        )
+
+    // No fixed branch matches the two-byte UTF-8 encoding of "é".
+    shouldThrow<SerializationException> {
+        Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), "é")
+    }
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

@@ -6,8 +6,8 @@ avro4k is maintained by a small number of people on their free time. Reviewing a
 
 ## TL;DR
 
-1. **Prefer opening (or finding) an issue first** to agree on the problem and the approach before writing code.
-2. **One pull request = one concern**, linked to its issue when there is one.
+1. **Every pull request needs an issue.** Ideally, discuss it with a maintainer before writing code, but you can also open the issue and the pull request at the same time.
+2. **One pull request = one concern**, linked to its issue.
 3. **Disclose any AI assistance** in the pull request description.
 4. **You must understand and own your change**: explain why you chose this approach over simpler alternatives, and answer review comments yourself, in your own words.
 5. **Keep it simple**: the right balance between performance, readability and maintenance, not the most clever code.
@@ -15,16 +15,16 @@ avro4k is maintained by a small number of people on their free time. Reviewing a
 
 ## Issues first
 
-We recommend opening an issue (or commenting on an existing one) describing the problem and the solution you have in mind before writing code, and waiting for a maintainer to confirm that:
+Every pull request must be linked to an issue describing the problem (or the feature) and the solution you have in mind. The issue is where we agree that:
 
 - the problem is real and in scope for avro4k,
 - the proposed approach fits the library design (public API, binary compatibility, Avro spec compliance, performance).
 
-This avoids wasted effort on both sides, especially for new features and public API changes.
+The recommended path is to open the issue (or comment on an existing one) and wait for a maintainer's feedback before writing code. This avoids wasted effort on both sides, especially for new features and public API changes.
 
-Opening a pull request directly is fine too: good-faith contributions are welcome. In that case, the pull request description must explain the problem it solves, as an issue would. Be aware that a pull request without prior discussion is more likely to be asked for a different approach, or to be closed if it's out of scope.
+If you already have a fix ready, you can open the issue and the pull request at the same time: good-faith contributions are welcome. Just be aware that a pull request without prior discussion is more likely to be asked for a different approach, or to be closed if the issue turns out to be out of scope.
 
-Typo fixes, broken links and small documentation clarifications never need an issue.
+Pull requests without a linked issue will be closed. The only exceptions are typo fixes, broken links and small documentation clarifications.
 
 ## Keep it simple
 

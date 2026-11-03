@@ -5,7 +5,7 @@ Pull requests that don't fill in this template may be closed without review.
 
 ## Linked issue
 
-<!-- Recommended: an issue discussed with a maintainer. If there is none, explain the problem below as an issue would. -->
+<!-- Required (except typo/doc fixes). Ideally discussed with a maintainer first, but you can open the issue together with this pull request. -->
 Closes #
 
 ## What and why

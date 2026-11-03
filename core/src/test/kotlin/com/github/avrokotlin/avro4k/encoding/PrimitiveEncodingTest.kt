@@ -81,7 +81,7 @@ internal class PrimitiveEncodingTest : StringSpec({
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
     "string with big code points selects the matching fixed branch" {
-        val largeCodePointString = "\\uD83D\\uDE00"
+        val largeCodePointString = "😀"
         val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
         val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
         val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)

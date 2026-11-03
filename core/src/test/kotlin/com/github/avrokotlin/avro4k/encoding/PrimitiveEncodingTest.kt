@@ -106,6 +106,7 @@ internal class PrimitiveEncodingTest : StringSpec({
             Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), "é")
         }
     }
+
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

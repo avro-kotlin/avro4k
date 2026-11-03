@@ -145,14 +145,7 @@ internal class ClassVisitor(
     }
 }
 
-private fun AvroDefault.toAvroObject(schema: Schema): Any {
-    val json = toJsonElement(schema)
-    // A float or double default is written as a double, so it keeps its fraction, exponent and sign, like 1.0, 1.7976931348623157E308 or -0.0
-    if (schema.isFloatingPoint() && json is JsonPrimitive && json !is JsonNull && !json.isString) {
-        json.content.toDoubleOrNull()?.let { return it }
-    }
-    return json.toAvroObject()
-}
+private fun AvroDefault.toAvroObject(schema: Schema): Any = toJsonElement(schema).toAvroObject(schema)
 
 private fun BigDecimal.toAvroNumber(): Any =
     stripTrailingZeros().let {
@@ -163,7 +156,7 @@ private fun BigDecimal.toAvroNumber(): Any =
         }
     }
 
-private fun JsonElement.toAvroObject(): Any =
+private fun JsonElement.toAvroObject(schema: Schema? = null): Any =
     when (this) {
         is JsonNull -> JsonProperties.NULL_VALUE
 
@@ -174,7 +167,12 @@ private fun JsonElement.toAvroObject(): Any =
         is JsonPrimitive ->
             when {
                 this.isString -> this.content
+
                 this.booleanOrNull != null -> this.boolean
+
+                // A float or double default is written as a double, so it keeps its fraction, exponent and sign, like 1.0, 1.7976931348623157E308 or -0.0
+                schema?.isFloatingPoint() == true -> this.content.toDouble()
+
                 else -> this.content.toBigDecimal().toAvroNumber()
             }
     }

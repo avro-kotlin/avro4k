@@ -6,12 +6,15 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.TextNode
 import com.github.avrokotlin.avro4k.AvroAlias
+import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.AvroProp
 import com.github.avrokotlin.avro4k.InternalAvro4kApi
+import com.github.avrokotlin.avro4k.internal.schema.CHAR_LOGICAL_TYPE_NAME
 import kotlinx.io.Buffer
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -20,6 +23,13 @@ import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.getContextualDescriptor
 import kotlinx.serialization.descriptors.getPolymorphicDescriptors
 import kotlinx.serialization.descriptors.nonNullOriginal
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializerOrNull
 import org.apache.avro.LogicalType
@@ -191,46 +201,64 @@ internal fun SerialDescriptor.getNonNullContextualDescriptor(serializersModule: 
         "No descriptor found in serialization context for $this"
     }
 
-/**
- * Returns true if the given content is starting with `"`, {`, `[`, a digit or equals to `null`.
- * It doesn't check if the content is valid json.
- * It skips the whitespaces at the beginning of the content.
- */
-internal fun String.isStartingAsJson(): Boolean {
-    val i = this.indexOfFirst { !it.isWhitespace() }
-    if (i == -1) {
-        return false
-    }
-    val c = this[i]
-    return c == '{' || c == '"' || c == '[' || c.isDigit() || this == "null" || this == "true" || this == "false"
-}
-
-private val objectMapper by lazy { ObjectMapper() }
-
-private val strictObjectReader by lazy { objectMapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS) }
+private val strictObjectReader by lazy { ObjectMapper().reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS) }
 
 internal val AvroProp.jsonNode: JsonNode
-    get() {
-        if (value.isStartingAsJson()) {
-            return objectMapper.readTree(value)
-        }
-        return value.toNegativeNumberNodeOrNull() ?: TextNode.valueOf(value)
-    }
+    get() =
+        try {
+            strictObjectReader.readTree(value)?.takeUnless { it.isMissingNode }
+        } catch (_: JsonProcessingException) {
+            null
+        } ?: TextNode.valueOf(value)
 
 /**
- * Returns the number node if the whole content is a negative json number, like `-1` or `-2.5e-3`, otherwise null.
- * A value like `-05:00` or `-1 day` is not a json number, so it stays a string.
+ * Reads the default of a field with the given schema, so that the schema and the decoder read it the same way:
+ * - a string field keeps the value as written, unless it is a json string or `null`
+ * - a value that is json is read as json
+ * - a numeric field reads a number that is not json, such as `+1`, as that number
+ * - anything else is the value as written
  */
-private fun String.toNegativeNumberNodeOrNull(): JsonNode? {
-    if (firstOrNull { !it.isWhitespace() } != '-') {
-        return null
-    }
-    return try {
-        strictObjectReader.readTree(this).takeIf { it.isNumber }
-    } catch (_: JsonProcessingException) {
-        null
+internal fun AvroDefault.toJsonElement(schema: Schema): JsonElement {
+    val json = value.toJsonElementOrNull()
+    return when {
+        schema.isString() && json !is JsonNull && !(json is JsonPrimitive && json.isString) -> JsonPrimitive(value)
+        json != null -> json
+        schema.isNumeric() -> value.trim().toBigDecimalOrNull()?.let { JsonPrimitive(it) } ?: JsonPrimitive(value)
+        else -> JsonPrimitive(value)
     }
 }
+
+/**
+ * Parses the content as json, or returns null when it is not json, such as `hello`, `12abc` or `1 day`.
+ */
+private fun String.toJsonElementOrNull(): JsonElement? =
+    try {
+        Json.parseToJsonElement(this).takeIf { it.isJson() }
+    } catch (_: SerializationException) {
+        null
+    }
+
+// kotlinx reads a word that is not quoted, like `hello` or `12abc`, as a literal, which json does not allow
+private fun JsonElement.isJson(): Boolean =
+    when (this) {
+        is JsonObject -> values.all { it.isJson() }
+        is JsonArray -> all { it.isJson() }
+        is JsonNull -> true
+        is JsonPrimitive -> isString || booleanOrNull != null || content.toBigDecimalOrNull() != null
+    }
+
+internal fun Schema.isString(): Boolean = nonNullTypesAll { it.type == Schema.Type.STRING }
+
+internal fun Schema.isNumeric(): Boolean = nonNullTypesAll { it.type in NUMERIC_TYPES && it.logicalType?.name != CHAR_LOGICAL_TYPE_NAME }
+
+internal fun Schema.isFloatingPoint(): Boolean = nonNullTypesAll { it.type == Schema.Type.FLOAT || it.type == Schema.Type.DOUBLE }
+
+private inline fun Schema.nonNullTypesAll(predicate: (Schema) -> Boolean): Boolean {
+    val types = asSchemaList().filter { it.type != Schema.Type.NULL }
+    return types.isNotEmpty() && types.all(predicate)
+}
+
+private val NUMERIC_TYPES = setOf(Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
 
 @OptIn(UnsafeIoApi::class)
 internal fun Buffer(bytes: ByteArray): Buffer =

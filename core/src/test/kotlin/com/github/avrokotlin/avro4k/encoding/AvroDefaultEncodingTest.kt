@@ -49,7 +49,47 @@ internal class AvroDefaultEncodingTest : StringSpec({
             .isEncodedAs(record("abc"))
             .isDecodedAs(ContainerWithNegativeDefaults("abc", -1, -1L, Long.MIN_VALUE, -1.5f, -1.5, -1500.0, -Double.MAX_VALUE, -1, -1, -1500L, 1))
     }
+    "string defaults that look like numbers are decoded as written" {
+        AvroAssertions.assertThat(ContainerWithoutDefaultFields("abc"))
+            .isEncodedAs(record("abc"))
+            .isDecodedAs(ContainerWithStringDefaults("abc", "1", "-1", "12abc"))
+    }
+    "the schema and the decoder read a default the same way" {
+        AvroAssertions.assertThat(ContainerWithoutDefaultFields("abc"))
+            .isEncodedAs(record("abc"))
+            .isDecodedAs(ContainerWithEdgeDefaults("abc", "a\tb", listOf(1L, 7L), "[1,2]", " 1", 1, -0.0))
+    }
 }) {
+    @Serializable
+    @SerialName("container")
+    private data class ContainerWithEdgeDefaults(
+        val name: String,
+        @AvroDefault("\"a\tb\"")
+        val tab: String,
+        @AvroDefault("[1, 007]")
+        val leadingZeros: List<Long>,
+        @AvroDefault("[1,2]")
+        val arrayLikeString: String,
+        @AvroDefault(" 1")
+        val spacedString: String,
+        @AvroDefault(" +1 ")
+        val plusOne: Int,
+        @AvroDefault("-0.0")
+        val negativeZero: Double,
+    )
+
+    @Serializable
+    @SerialName("container")
+    private data class ContainerWithStringDefaults(
+        val name: String,
+        @AvroDefault("1")
+        val digits: String,
+        @AvroDefault("-1")
+        val negativeNumber: String,
+        @AvroDefault("12abc")
+        val startsWithDigits: String,
+    )
+
     @Serializable
     private data class FooElement(
         val content: String,

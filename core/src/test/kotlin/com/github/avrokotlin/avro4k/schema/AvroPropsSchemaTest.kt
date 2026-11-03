@@ -41,6 +41,24 @@ internal class AvroPropsSchemaTest : StringSpec({
                 )
             )
     }
+    "should keep a prop as a string when the whole value is not json" {
+        @SerialName("NotJsonProps")
+        @Serializable
+        data class NotJsonProps(
+            @AvroProp("code", "12abc")
+            @AvroProp("ttl", "1 day")
+            @AvroProp("empty", "")
+            @AvroProp("flag", "true")
+            @AvroProp("broken", "[1, 2")
+            val field: Int,
+        )
+        AvroAssertions.assertThat<NotJsonProps>()
+            .generatesSchema(
+                Schema.Parser().parse(
+                    """{"type":"record","name":"NotJsonProps","fields":[{"name":"field","type":"int","code":"12abc","ttl":"1 day","empty":"","flag":true,"broken":"[1, 2"}]}"""
+                )
+            )
+    }
     "should add props on the contained type of a value class" {
         val stringSchema =
             Schema.create(Schema.Type.STRING).also {

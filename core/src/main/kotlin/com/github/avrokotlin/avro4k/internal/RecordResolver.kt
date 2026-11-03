@@ -6,7 +6,6 @@ import com.github.avrokotlin.avro4k.internal.encoder.ReorderingCompositeEncoder
 import com.github.avrokotlin.avro4k.internal.schema.CHAR_LOGICAL_TYPE_NAME
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -300,12 +299,7 @@ internal sealed interface DecodingStep {
     ) : DecodingStep
 }
 
-private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? {
-    if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).convertDefaultToObject(schema)
-    }
-    return JsonPrimitive(value).convertDefaultToObject(schema)
-}
+private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? = toJsonElement(schema).convertDefaultToObject(schema)
 
 private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
     when (this) {
@@ -357,9 +351,9 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
 
                 Schema.Type.LONG -> this.content.toBigDecimal().longValueExact()
 
-                Schema.Type.FLOAT -> this.content.toBigDecimal().toFloat()
+                Schema.Type.FLOAT -> this.content.toFloat()
 
-                Schema.Type.DOUBLE -> this.content.toBigDecimal().toDouble()
+                Schema.Type.DOUBLE -> this.content.toDouble()
 
                 Schema.Type.UNION ->
                     this.convertDefaultToObject(

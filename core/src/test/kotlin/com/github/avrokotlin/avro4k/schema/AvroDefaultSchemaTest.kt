@@ -39,6 +39,16 @@ internal class AvroDefaultSchemaTest : FunSpec({
             .generatesSchema(Path("/avro_default_annotation_floating_point.json"))
     }
 
+    test("schema for data class with @AvroDefault should keep a string field's value as written") {
+        AvroAssertions.assertThat<BarStringValues>()
+            .generatesSchema(Path("/avro_default_annotation_string_values.json"))
+    }
+
+    test("schema for data class with @AvroDefault should read the json it read before") {
+        AvroAssertions.assertThat<BarEdgeDefaults>()
+            .generatesSchema(Path("/avro_default_annotation_edge_values.json"))
+    }
+
     test("schema for data class with @AvroDefault should not read a comma as a decimal separator") {
         shouldThrow<AvroTypeException> { Avro.schema(BarCommaDecimal.serializer()) }
     }
@@ -151,6 +161,36 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val wholeFloat: Float,
         @AvroDefault("1.0")
         val nullableWholeDouble: Double?,
+    )
+
+    @Serializable
+    private data class BarStringValues(
+        @AvroDefault("1")
+        val digits: String,
+        @AvroDefault("-1")
+        val negativeNumber: String,
+        @AvroDefault("12abc")
+        val startsWithDigits: String,
+        @AvroDefault("true")
+        val boolean: String,
+        @AvroDefault(""""quoted"""")
+        val quoted: String,
+        @AvroDefault("1")
+        val nullableDigits: String?,
+    )
+
+    @Serializable
+    private data class BarEdgeDefaults(
+        @AvroDefault("\"a\tb\"")
+        val tab: String,
+        @AvroDefault("[1, 007]")
+        val leadingZeros: List<Long>,
+        @AvroDefault("[1,2]")
+        val arrayLikeString: String,
+        @AvroDefault(" +1 ")
+        val plusOne: Int,
+        @AvroDefault("-0.0")
+        val negativeZero: Double,
     )
 
     @Serializable

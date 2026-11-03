@@ -2,13 +2,13 @@ package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.internal.asSchemaList
-import com.github.avrokotlin.avro4k.internal.isStartingAsJson
+import com.github.avrokotlin.avro4k.internal.isFloatingPoint
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.internal.toJsonElement
 import com.github.avrokotlin.avro4k.serializer.ElementLocation
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -146,32 +146,13 @@ internal class ClassVisitor(
 }
 
 private fun AvroDefault.toAvroObject(schema: Schema): Any {
-    val avroObject =
-        when {
-            value.isStartingAsJson() -> Json.parseToJsonElement(value).toAvroObject()
-
-            // A number that does not start like json, such as a negative one, is still a number for a numeric field
-            schema.isNumeric() -> value.trim().toBigDecimalOrNull()?.toAvroNumber() ?: value
-
-            else -> value
-        }
-    // A float or double default is written as a double, so it keeps its fraction and exponent, like 1.0 or 1.7976931348623157E308
-    if (avroObject is Number && schema.isFloatingPoint()) {
-        return avroObject.toDouble()
+    val json = toJsonElement(schema)
+    // A float or double default is written as a double, so it keeps its fraction, exponent and sign, like 1.0, 1.7976931348623157E308 or -0.0
+    if (schema.isFloatingPoint() && json is JsonPrimitive && json !is JsonNull && !json.isString) {
+        json.content.toDoubleOrNull()?.let { return it }
     }
-    return avroObject
+    return json.toAvroObject()
 }
-
-private fun Schema.isNumeric(): Boolean = nonNullTypesAll { it.type in NUMERIC_TYPES && it.logicalType?.name != CHAR_LOGICAL_TYPE_NAME }
-
-private fun Schema.isFloatingPoint(): Boolean = nonNullTypesAll { it.type == Schema.Type.FLOAT || it.type == Schema.Type.DOUBLE }
-
-private inline fun Schema.nonNullTypesAll(predicate: (Schema) -> Boolean): Boolean {
-    val types = asSchemaList().filter { it.type != Schema.Type.NULL }
-    return types.isNotEmpty() && types.all(predicate)
-}
-
-private val NUMERIC_TYPES = setOf(Schema.Type.INT, Schema.Type.LONG, Schema.Type.FLOAT, Schema.Type.DOUBLE)
 
 private fun BigDecimal.toAvroNumber(): Any =
     stripTrailingZeros().let {

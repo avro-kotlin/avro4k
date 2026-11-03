@@ -225,6 +225,15 @@ public object LocalTimeSerializer : AvroSerializer<LocalTime>(LocalTime::class.q
     }
 }
 
+/**
+ * Serializes a [LocalDateTime] as a `long` with the `timestamp-millis` logical type, or as an ISO-8601 `string` when annotated with [com.github.avrokotlin.avro4k.AvroStringable].
+ *
+ * It writes and reads a `long` with the `timestamp-millis`, `timestamp-micros`, `local-timestamp-millis` or `local-timestamp-micros` logical type,
+ * taking the date and time as UTC, and an ISO-8601 `string`. A `long` without a logical type is read as milliseconds.
+ * To derive `local-timestamp-millis` instead, use [LocalDateTimeToLocalTimestampMillisSerializer].
+ *
+ * [avro spec](https://avro.apache.org/docs/1.12.0/specification/#local_timestamp)
+ */
 public object LocalDateTimeSerializer : AvroSerializer<LocalDateTime>(LocalDateTime::class.qualifiedName!!) {
     override fun getSchema(context: SchemaSupplierContext): Schema {
         return context.inlinedElements.firstNotNullOfOrNull {

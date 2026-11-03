@@ -80,23 +80,31 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
-    // A supplementary Unicode character selects a fixed branch by UTF-8 byte length.
-    val largeCodePointString = "\\uD83D\\uDE00"
-    val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
-    val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
-    val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
-    AvroAssertions.assertThat(largeCodePointString)
-        .isEncodedAs(
-            GenericData.Fixed(
-                fourByteFixedSchema,
-                byteArrayOf(0xF0.toByte(), 0x9F.toByte(), 0x98.toByte(), 0x80.toByte())
-            ),
-            writerSchema = fixedUnionSchema
-        )
+    "string with big code points selects the matching fixed branch" {
+        val largeCodePointString = "\\uD83D\\uDE00"
+        val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
+        val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
+        val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
 
-    // No fixed branch matches the two-byte UTF-8 encoding of "é".
-    shouldThrow<SerializationException> {
-        Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), "é")
+        AvroAssertions.assertThat(largeCodePointString)
+            .isEncodedAs(
+                GenericData.Fixed(
+                    fourByteFixedSchema,
+                    byteArrayOf(0xF0.toByte(), 0x9F.toByte(), 0x98.toByte(), 0x80.toByte())
+                ),
+                writerSchema = fixedUnionSchema
+            )
+    }
+
+    "string with no matching fixed branch throws" {
+        val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
+        val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
+        val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
+
+        // No fixed branch matches the two-byte UTF-8 encoding of "é".
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), "é")
+        }
     }
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))

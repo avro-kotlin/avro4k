@@ -324,13 +324,13 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                trySelectFixedSchemaForBytesSizeAndEncode(value).also { if (it) return } ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||
                 trySelectTypeNameFromUnion(Schema.Type.LONG) ||
                 trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
                 trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
+                trySelectFixedSchemaForBytesSizeAndEncode(value).also { if (it) return } ||
                 throw unsupportedWriterTypeError(
                     Schema.Type.BOOLEAN,
                     Schema.Type.INT,

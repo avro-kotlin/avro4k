@@ -1,0 +1,91 @@
+{
+    "type": "record",
+    "name": "Notification",
+    "namespace": "com.example",
+    "fields": [
+        {
+            "name": "value",
+            "type": [
+                {
+                    "type": "record",
+                    "name": "UnknownNotification",
+                    "fields": []
+                },
+                {
+                    "type": "record",
+                    "name": "EmailNotification",
+                    "fields": [
+                        {
+                            "name": "to",
+                            "type": "string"
+                        }
+                    ]
+                }
+            ],
+            "default": {}
+        },
+        {
+            "name": "nullableValue",
+            "type": [
+                "null",
+                "string",
+                "int"
+            ],
+            "default": null
+        },
+        {
+            "name": "primitive",
+            "type": [
+                "string",
+                "int"
+            ],
+            "default": "abc"
+        },
+        {
+            "name": "arrayOfUnion",
+            "type": {
+                "type": "array",
+                "items": [
+                    "string",
+                    "int"
+                ]
+            },
+            "default": [
+                "abc"
+            ]
+        },
+        {
+            "name": "mapOfUnion",
+            "type": {
+                "type": "map",
+                "values": [
+                    "string",
+                    "int"
+                ]
+            },
+            "default": {
+                "key": "abc"
+            }
+        },
+        {
+            "name": "nested",
+            "type": {
+                "type": "record",
+                "name": "Holder",
+                "fields": [
+                    {
+                        "name": "inner",
+                        "type": [
+                            "int",
+                            "string"
+                        ],
+                        "default": 1
+                    }
+                ]
+            },
+            "default": {
+                "inner": 7
+            }
+        }
+    ]
+}

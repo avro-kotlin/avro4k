@@ -324,13 +324,13 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
         if (currentWriterSchema.isUnion) {
             trySelectTypeNameFromUnion(Schema.Type.STRING) ||
                 trySelectTypeNameFromUnion(Schema.Type.BYTES) ||
-                trySelectFixedSchemaForSize(value.length) ||
                 trySelectEnumSchemaForSymbol(value) ||
                 trySelectTypeNameFromUnion(Schema.Type.BOOLEAN) ||
                 trySelectTypeNameFromUnion(Schema.Type.INT) ||
                 trySelectTypeNameFromUnion(Schema.Type.LONG) ||
                 trySelectTypeNameFromUnion(Schema.Type.FLOAT) ||
                 trySelectTypeNameFromUnion(Schema.Type.DOUBLE) ||
+                trySelectFixedSchemaForBytesSizeAndEncode(value).also { if (it) return } ||
                 throw unsupportedWriterTypeError(
                     Schema.Type.BOOLEAN,
                     Schema.Type.INT,
@@ -373,6 +373,16 @@ internal abstract class AbstractAvroEncoder : AbstractEncoder(), AvroEncoder {
                 Schema.Type.FIXED,
                 Schema.Type.ENUM
             )
+        }
+    }
+
+    private fun trySelectFixedSchemaForBytesSizeAndEncode(value: String): Boolean {
+        val bytes = value.encodeToByteArray()
+        if (trySelectFixedSchemaForSize(bytes.size)) {
+            encodeFixedUnchecked(bytes)
+            return true
+        } else {
+            return false
         }
     }
 }

@@ -88,7 +88,7 @@ Undisclosed AI-generated contributions, or authors who can't explain their own c
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for the pull request title, scoped by module when relevant, e.g. `feat(core): support kotlin.time.Instant` or `fix(gradle-plugin): ...`. The title is used for the squash-merge commit and the release notes.
 - Fill in the pull request template entirely.
 - Keep pull requests small. Large changes should be split, after agreeing on a plan in the issue.
-- Don't force-push once a review has started, so reviewers can see what changed.
+- Once a review has started, push new commits instead of rewriting existing ones, so reviewers can see what changed. Force-pushing is fine when rebasing onto `main` to resolve conflicts or catch up.
 
 ## Reporting bugs
 

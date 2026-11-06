@@ -1061,3 +1061,5 @@ Contributions to avro4k are always welcome. Good ways to contribute include:
 - Fixing bugs and enhancing the API
 - Improving the performance of avro4k
 - Adding documentation
+
+Before opening a pull request, please read the [contributing guide](CONTRIBUTING.md), including the policy on AI-assisted contributions.

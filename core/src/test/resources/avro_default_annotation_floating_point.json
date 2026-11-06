@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "BarFloatingPoint",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "wholeDouble",
+      "type": "double",
+      "default": 1.0
+    },
+    {
+      "name": "integerDouble",
+      "type": "double",
+      "default": 2.0
+    },
+    {
+      "name": "maxDouble",
+      "type": "double",
+      "default": 1.7976931348623157E308
+    },
+    {
+      "name": "minDouble",
+      "type": "double",
+      "default": -1.7976931348623157E308
+    },
+    {
+      "name": "wholeFloat",
+      "type": "float",
+      "default": 1.0
+    },
+    {
+      "name": "nullableWholeDouble",
+      "type": ["double", "null"],
+      "default": 1.0
+    }
+  ]
+}

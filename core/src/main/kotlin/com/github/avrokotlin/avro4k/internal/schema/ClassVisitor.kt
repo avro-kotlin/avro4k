@@ -2,13 +2,13 @@ package com.github.avrokotlin.avro4k.internal.schema
 
 import com.github.avrokotlin.avro4k.AvroDefault
 import com.github.avrokotlin.avro4k.internal.asSchemaList
-import com.github.avrokotlin.avro4k.internal.isStartingAsJson
+import com.github.avrokotlin.avro4k.internal.isFloatingPoint
 import com.github.avrokotlin.avro4k.internal.jsonNode
 import com.github.avrokotlin.avro4k.internal.nonNullSerialName
+import com.github.avrokotlin.avro4k.internal.toJsonElement
 import com.github.avrokotlin.avro4k.serializer.ElementLocation
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -18,6 +18,7 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
+import java.math.BigDecimal
 
 internal class ClassVisitor(
     descriptor: SerialDescriptor,
@@ -110,7 +111,7 @@ internal class ClassVisitor(
         annotations: FieldAnnotations,
         elementSchema: Schema,
     ): Pair<Schema, Any?> {
-        val defaultValue = annotations.default?.toAvroObject()
+        val defaultValue = annotations.default?.toAvroObject(elementSchema)
         if (defaultValue == null) {
             if (context.configuration.implicitNulls && elementSchema.isNullable) {
                 return elementSchema.moveToHeadOfUnion { it.type == Schema.Type.NULL } to JsonProperties.NULL_VALUE
@@ -144,14 +145,18 @@ internal class ClassVisitor(
     }
 }
 
-private fun AvroDefault.toAvroObject(): Any {
-    if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).toAvroObject()
-    }
-    return value
-}
+private fun AvroDefault.toAvroObject(schema: Schema): Any = toJsonElement(schema).toAvroObject(schema)
 
-private fun JsonElement.toAvroObject(): Any =
+private fun BigDecimal.toAvroNumber(): Any =
+    stripTrailingZeros().let {
+        if (it.scale() <= 0) {
+            it.toBigInteger()
+        } else {
+            it
+        }
+    }
+
+private fun JsonElement.toAvroObject(schema: Schema? = null): Any =
     when (this) {
         is JsonNull -> JsonProperties.NULL_VALUE
 
@@ -165,15 +170,10 @@ private fun JsonElement.toAvroObject(): Any =
 
                 this.booleanOrNull != null -> this.boolean
 
-                else -> {
-                    this.content.toBigDecimal().stripTrailingZeros().let {
-                        if (it.scale() <= 0) {
-                            it.toBigInteger()
-                        } else {
-                            it
-                        }
-                    }
-                }
+                // A float or double default is written as a double, so it keeps its fraction, exponent and sign, like 1.0, 1.7976931348623157E308 or -0.0
+                schema?.isFloatingPoint() == true -> this.content.toDouble()
+
+                else -> this.content.toBigDecimal().toAvroNumber()
             }
     }
 

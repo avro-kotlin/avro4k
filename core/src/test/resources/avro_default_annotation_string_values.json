@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "BarStringValues",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "digits",
+      "type": "string",
+      "default": "1"
+    },
+    {
+      "name": "negativeNumber",
+      "type": "string",
+      "default": "-1"
+    },
+    {
+      "name": "startsWithDigits",
+      "type": "string",
+      "default": "12abc"
+    },
+    {
+      "name": "boolean",
+      "type": "string",
+      "default": "true"
+    },
+    {
+      "name": "quoted",
+      "type": "string",
+      "default": "quoted"
+    },
+    {
+      "name": "nullableDigits",
+      "type": ["string", "null"],
+      "default": "1"
+    }
+  ]
+}

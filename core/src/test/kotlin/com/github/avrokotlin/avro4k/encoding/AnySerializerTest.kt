@@ -436,6 +436,13 @@ class AnySerializerTest : StringSpec() {
 
             Avro.decodeFromByteArray(schema, AnySerializer(), bytes) shouldBe value
         }
+        "deserializing a schema with the logicalType 'timestamp-nanos' should return an Instant" {
+            val schema = Schema.create(Schema.Type.LONG).copy(logicalTypeName = "timestamp-nanos")
+            val value = Instant.ofEpochSecond(1577882096, 424_123)
+            val bytes = Avro.encodeToByteArray(schema, 1577882096000424123L)
+
+            Avro.decodeFromByteArray(schema, AnySerializer(), bytes) shouldBe value
+        }
         "deserializing a schema with the logicalType 'local-timestamp-millis' should return a LocalDateTime" {
             val schema = Schema.create(Schema.Type.LONG).copy(logicalTypeName = "local-timestamp-millis")
             val value = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)

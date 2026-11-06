@@ -107,6 +107,22 @@ internal class LocalDateTimeEncodingTest : StringSpec({
         decoded shouldBe preEpochDateTime
     }
 
+    "encode LocalDateTime as timestamp-nanos using writer schema" {
+        val schema = LogicalTypes.timestampNanos().addToSchema(SchemaBuilder.builder().longType())
+
+        val encoded = Avro.encodeToByteArray(schema, LocalDateTimeSerializer, dateTimeWithNanos)
+
+        encoded shouldBe encodeToBytesUsingApacheLib(schema, dateTimeNanos)
+    }
+
+    "decode timestamp-nanos to LocalDateTime" {
+        val schema = LogicalTypes.timestampNanos().addToSchema(SchemaBuilder.builder().longType())
+
+        val decoded = Avro.decodeFromByteArray(schema, LocalDateTimeSerializer, encodeToBytesUsingApacheLib(schema, dateTimeNanos))
+
+        decoded shouldBe dateTimeWithNanos
+    }
+
     "encode and decode LocalDateTime at both ends of the local-timestamp-nanos range" {
         val schema = LogicalTypes.localTimestampNanos().addToSchema(SchemaBuilder.builder().longType())
 

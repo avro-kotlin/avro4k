@@ -10,6 +10,7 @@ import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_NANOS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MICROS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_NANOS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MICROS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MILLIS
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
@@ -74,6 +75,7 @@ public data class AvroConfiguration(
             LOGICAL_TYPE_NAME_TIME_MICROS to LocalTimeSerializer,
             LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS to InstantSerializer,
             LOGICAL_TYPE_NAME_TIMESTAMP_MICROS to InstantSerializer,
+            LOGICAL_TYPE_NAME_TIMESTAMP_NANOS to InstantSerializer,
             LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS to LocalDateTimeSerializer,
             LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS to LocalDateTimeSerializer,
             LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_NANOS to LocalDateTimeSerializer

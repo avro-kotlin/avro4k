@@ -21,4 +21,8 @@ jobs:
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v6
         with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
           dependency-graph-exclude-projects: ':(benchmark|build-logic|gradle-plugin)'
+          dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'

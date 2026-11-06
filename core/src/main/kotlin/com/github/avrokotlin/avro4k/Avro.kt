@@ -266,6 +266,10 @@ public class AvroBuilder internal constructor(avro: Avro) {
      * - `time-micros` as [java.time.LocalTime]
      * - `timestamp-millis` as [java.time.Instant]
      * - `timestamp-micros` as [java.time.Instant]
+     * - `timestamp-nanos` as [java.time.Instant]
+     * - `local-timestamp-millis` as [java.time.LocalDateTime]
+     * - `local-timestamp-micros` as [java.time.LocalDateTime]
+     * - `local-timestamp-nanos` as [java.time.LocalDateTime]
      * - `decimal` as [java.math.BigDecimal] with specific scale and precision
      * - `big-decimal` as [java.math.BigDecimal] which allows any scale or precision
      *

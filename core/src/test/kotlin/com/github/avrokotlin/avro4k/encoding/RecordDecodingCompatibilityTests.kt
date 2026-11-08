@@ -92,6 +92,14 @@ class RecordDecodingCompatibilityTests : FunSpec() {
                 ReadDataClass("test", 42)
             )
         }
+        test("should decode non-nullable fields written as nullable unions") {
+            val writerSchema = Avro.schema<NullableFields>()
+            val bytes = Avro.encodeToByteArray(writerSchema, NullableFields(true, 1, 2, 300, 4L, 5.5f, 6.6, 'c', "text"))
+
+            val decoded = Avro.decodeFromByteArray(writerSchema, NonNullFields.serializer(), bytes)
+
+            decoded shouldBe NonNullFields(true, 1, 2, 300, 4L, 5.5f, 6.6, 'c', "text")
+        }
     }
 
     private inline fun <reified T> testCompatibility(
@@ -118,4 +126,32 @@ class RecordDecodingCompatibilityTests : FunSpec() {
     @Serializable
     @AvroAlias("WrittenDataClass")
     private data class ReadDataClass(val firstField: String, val secondField: Int)
+
+    @Serializable
+    @SerialName("Fields")
+    private data class NullableFields(
+        val boolean: Boolean?,
+        val byte: Byte?,
+        val short: Short?,
+        val int: Int?,
+        val long: Long?,
+        val float: Float?,
+        val double: Double?,
+        val char: Char?,
+        val string: String?,
+    )
+
+    @Serializable
+    @SerialName("Fields")
+    private data class NonNullFields(
+        val boolean: Boolean,
+        val byte: Byte,
+        val short: Short,
+        val int: Int,
+        val long: Long,
+        val float: Float,
+        val double: Double,
+        val char: Char,
+        val string: String,
+    )
 }

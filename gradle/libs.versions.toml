@@ -16,7 +16,7 @@ buildconfig = "6.1.2"
 pluginPublish = "2.2.1"
 spotless = "8.10.3"
 mavenPublish = "0.37.0"
-dokka = "2.2.0"
+dokka = "2.3.0"
 
 [libraries]
 apache-avro = { group = "org.apache.avro", name = "avro", version.ref = "apache-avro" }

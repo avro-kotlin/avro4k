@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.21"
-kotlinx-serialization = "1.12.0"
+kotlinx-serialization = "1.13.0"
 kotlinx-io = "0.9.3"
 kotest = "6.2.7"
 okio = "3.18.2"

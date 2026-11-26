@@ -110,6 +110,15 @@ internal class PrimitiveEncodingTest : StringSpec({
         }
     }
 
+    // Scalar branches are selected by type only, so a fixed branch matching the size must be tried before them.
+    "string selects the fixed branch matching its size over an int branch" {
+        val fixedSchema = Schema.createFixed("threeByteFixed", null, null, 3)
+        val intAndFixedUnionSchema = Schema.createUnion(Schema.create(Schema.Type.INT), fixedSchema)
+
+        AvroAssertions.assertThat("abc")
+            .isEncodedAs(GenericData.Fixed(fixedSchema, "abc".encodeToByteArray()), writerSchema = intAndFixedUnionSchema)
+    }
+
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

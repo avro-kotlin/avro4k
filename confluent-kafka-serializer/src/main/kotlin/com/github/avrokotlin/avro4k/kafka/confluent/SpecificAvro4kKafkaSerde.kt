@@ -249,16 +249,19 @@ public class SpecificAvro4kKafkaDeserializer<T : Any>(
     }
 
     override fun deserialize(topic: String?, headers: Headers?, data: ByteArray?): T? {
-        val result = super.deserialize(topic, headers, data)
-        currentWriterSchema.get()?.let { writerSchema ->
-            currentWriterSchema.set(null)
-            return when (writerSchema.type) {
-                Schema.Type.STRING -> wrapRootString(result as String, writerSchema)
-                Schema.Type.BYTES -> wrapRootByteArray(result as ByteArray, writerSchema)
-                else -> result
+        try {
+            val result = super.deserialize(topic, headers, data)
+            currentWriterSchema.get()?.let { writerSchema ->
+                return when (writerSchema.type) {
+                    Schema.Type.STRING -> wrapRootString(result as String, writerSchema)
+                    Schema.Type.BYTES -> wrapRootByteArray(result as ByteArray, writerSchema)
+                    else -> result
+                }
             }
+            return result
+        } finally {
+            currentWriterSchema.remove()
         }
-        return result
     }
 
     private fun wrapRootString(rootString: String, writerSchema: Schema): T {

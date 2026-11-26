@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.kafka.confluent
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -65,6 +66,17 @@ class SpecificAvro4kKafkaDeserializerTest : StringSpec() {
             val deserialized = readerDeserializer.deserialize("topic", bytes)
 
             deserialized shouldBe Reader("test")
+        }
+
+        "a failed root string read should not break the next record read" {
+            val schemaRegistry = MockSchemaRegistryClient()
+            val stringBytes = GenericAvro4kKafkaSerializer(isKey = false, schemaRegistry = schemaRegistry).serialize("string-topic", "hello")!!
+            val recordBytes = SpecificAvro4kKafkaSerializer<ExampleRecord>(isKey = false, schemaRegistry = schemaRegistry).serialize("record-topic", ExampleRecord("ok"))!!
+            val deserializer = SpecificAvro4kKafkaDeserializer(ExampleRecord.serializer(), isKey = false, schemaRegistry = schemaRegistry)
+
+            shouldThrowAny { deserializer.deserialize("string-topic", stringBytes.copyOfRange(0, stringBytes.size - 3)) }
+
+            deserializer.deserialize("record-topic", recordBytes) shouldBe ExampleRecord("ok")
         }
 
         "serde should be able to serialize and deserialize a record" {

@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: '36 15 * * 6'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   # required for all workflows
   security-events: write

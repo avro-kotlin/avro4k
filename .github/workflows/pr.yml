@@ -8,6 +8,11 @@ on:
 permissions:
   pull-requests: write
 
+# A new push to the same PR supersedes the previous run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

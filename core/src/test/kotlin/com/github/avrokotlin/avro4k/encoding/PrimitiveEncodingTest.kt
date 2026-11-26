@@ -1,6 +1,7 @@
 package com.github.avrokotlin.avro4k.encoding
 
 import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroAssertions
 import com.github.avrokotlin.avro4k.AvroFixed
 import com.github.avrokotlin.avro4k.basicScalarEncodeDecodeTests
 import com.github.avrokotlin.avro4k.internal.copy
@@ -98,6 +99,45 @@ internal class PrimitiveEncodingTest : StringSpec({
     testSerializationTypeCompatibility(stringValue, ByteBuffer.wrap(stringValue.encodeToByteArray()), Schema.create(Schema.Type.BYTES))
     val fixedStringSchema = Schema.createFixed("fixed", null, null, stringValue.length)
     testSerializationTypeCompatibility(stringValue, GenericData.Fixed(fixedStringSchema, stringValue.encodeToByteArray()), fixedStringSchema)
+
+    // A four-byte UTF-8 character must select the matching size-4 branch over size 1.
+    "string with big code points selects the matching fixed branch" {
+        val largeCodePointString = "\uD83D\uDE00"
+        val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
+        val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
+        val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
+
+        AvroAssertions.assertThat(largeCodePointString)
+            .isEncodedAs(
+                GenericData.Fixed(
+                    fourByteFixedSchema,
+                    byteArrayOf(0xF0.toByte(), 0x9F.toByte(), 0x98.toByte(), 0x80.toByte())
+                ),
+                writerSchema = fixedUnionSchema
+            )
+    }
+
+    // U+00E9 encodes to two UTF-8 bytes, which match neither fixed branch.
+    "string with no matching fixed branch throws" {
+        val twoByteString = "\u00E9"
+        val oneByteFixedSchema = Schema.createFixed("oneByteFixed", null, null, 1)
+        val fourByteFixedSchema = Schema.createFixed("fourByteFixed", null, null, 4)
+        val fixedUnionSchema = Schema.createUnion(oneByteFixedSchema, fourByteFixedSchema)
+
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(fixedUnionSchema, String.serializer(), twoByteString)
+        }
+    }
+
+    // Scalar branches are selected by type only, so a fixed branch matching the size must be tried before them.
+    "string selects the fixed branch matching its size over an int branch" {
+        val fixedSchema = Schema.createFixed("threeByteFixed", null, null, 3)
+        val intAndFixedUnionSchema = Schema.createUnion(Schema.create(Schema.Type.INT), fixedSchema)
+
+        AvroAssertions.assertThat("abc")
+            .isEncodedAs(GenericData.Fixed(fixedSchema, "abc".encodeToByteArray()), writerSchema = intAndFixedUnionSchema)
+    }
+
     // string can be encoded to boolean, int, long, float, double, enum
     testSerializationTypeCompatibility("true", true, Schema.create(Schema.Type.BOOLEAN))
     testSerializationTypeCompatibility("false", false, Schema.create(Schema.Type.BOOLEAN))

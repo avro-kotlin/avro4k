@@ -100,6 +100,35 @@ class RecordDecodingCompatibilityTests : FunSpec() {
 
             decoded shouldBe NonNullFields(true, 1, 2, 300, 4L, 5.5f, 6.6, 'c', "text")
         }
+        test("should decode non-nullable enum and bytes written as nullable unions") {
+            val writerSchema = Avro.schema<NullableEnumAndBytes>()
+            val bytes = Avro.encodeToByteArray(writerSchema, NullableEnumAndBytes(FieldEnum.B, byteArrayOf(1, 2, 3)))
+
+            val decoded = Avro.decodeFromByteArray(writerSchema, NonNullEnumAndBytes.serializer(), bytes)
+
+            decoded.enum shouldBe FieldEnum.B
+            decoded.bytes shouldBe byteArrayOf(1, 2, 3)
+        }
+        test("should decode non-nullable collection items written as nullable unions") {
+            val writerSchema = Avro.schema<NullableItems>()
+            val bytes = Avro.encodeToByteArray(writerSchema, NullableItems(listOf(1, 2), mapOf("key" to 3)))
+
+            val decoded = Avro.decodeFromByteArray(writerSchema, NonNullItems.serializer(), bytes)
+
+            decoded shouldBe NonNullItems(listOf(1, 2), mapOf("key" to 3))
+        }
+        test("should decode non-nullable field written as a union without null") {
+            val writerSchema =
+                SchemaBuilder.record("IntValue")
+                    .fields()
+                    .name("value").type().unionOf().stringType().and().intType().endUnion().noDefault()
+                    .endRecord()
+            val bytes = Avro.encodeToByteArray(writerSchema, IntValue(42))
+
+            val decoded = Avro.decodeFromByteArray(writerSchema, IntValue.serializer(), bytes)
+
+            decoded shouldBe IntValue(42)
+        }
     }
 
     private inline fun <reified T> testCompatibility(
@@ -154,4 +183,38 @@ class RecordDecodingCompatibilityTests : FunSpec() {
         val char: Char,
         val string: String,
     )
+
+    private enum class FieldEnum { A, B }
+
+    @Serializable
+    @SerialName("EnumAndBytes")
+    private class NullableEnumAndBytes(
+        val enum: FieldEnum?,
+        val bytes: ByteArray?,
+    )
+
+    @Serializable
+    @SerialName("EnumAndBytes")
+    private class NonNullEnumAndBytes(
+        val enum: FieldEnum,
+        val bytes: ByteArray,
+    )
+
+    @Serializable
+    @SerialName("Items")
+    private data class NullableItems(
+        val list: List<Int?>,
+        val map: Map<String, Int?>,
+    )
+
+    @Serializable
+    @SerialName("Items")
+    private data class NonNullItems(
+        val list: List<Int>,
+        val map: Map<String, Int>,
+    )
+
+    @Serializable
+    @SerialName("IntValue")
+    private data class IntValue(val value: Int)
 }

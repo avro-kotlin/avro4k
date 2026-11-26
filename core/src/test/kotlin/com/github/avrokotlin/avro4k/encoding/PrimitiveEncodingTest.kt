@@ -7,6 +7,7 @@ import com.github.avrokotlin.avro4k.internal.copy
 import com.github.avrokotlin.avro4k.testSerializationTypeCompatibility
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -53,6 +54,24 @@ internal class PrimitiveEncodingTest : StringSpec({
     basicScalarEncodeDecodeTests(6.0, Schema.create(Schema.Type.DOUBLE))
     testSerializationTypeCompatibility(6.0, "6.0", Schema.create(Schema.Type.STRING))
     testSerializationTypeCompatibility(6.0, 6.0F, Schema.create(Schema.Type.FLOAT))
+
+    "double NaN can be encoded to float, and decoded from double to float" {
+        val floatSchema = Schema.create(Schema.Type.FLOAT)
+        val doubleSchema = Schema.create(Schema.Type.DOUBLE)
+
+        val encodedAsFloat = Avro.encodeToByteArray(floatSchema, Double.serializer(), Double.NaN)
+        encodedAsFloat shouldBe Avro.encodeToByteArray(floatSchema, Float.serializer(), Float.NaN)
+        Avro.decodeFromByteArray(floatSchema, Double.serializer(), encodedAsFloat).isNaN() shouldBe true
+
+        val encodedAsDouble = Avro.encodeToByteArray(doubleSchema, Double.serializer(), Double.NaN)
+        Avro.decodeFromByteArray(doubleSchema, Float.serializer(), encodedAsDouble).isNaN() shouldBe true
+    }
+
+    "double that does not fit exactly in a float cannot be encoded to float" {
+        shouldThrow<SerializationException> {
+            Avro.encodeToByteArray(Schema.create(Schema.Type.FLOAT), Double.serializer(), 0.1)
+        }
+    }
 
     // char can be encoded to int or string
     basicScalarEncodeDecodeTests('A', Schema.create(Schema.Type.INT).copy(logicalType = LogicalType("char")), apacheCompatibleValue = 'A'.code)

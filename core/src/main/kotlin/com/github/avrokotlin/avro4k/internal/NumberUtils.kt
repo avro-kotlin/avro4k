@@ -67,10 +67,12 @@ internal fun BigDecimal.toLongExact(): Long {
 }
 
 internal fun Double.toFloatExact(): Float {
-    if (this.toFloat().toDouble() != this) {
+    val asFloat = this.toFloat()
+    // NaN is never equal to itself, but it is a valid float
+    if (!this.isNaN() && asFloat.toDouble() != this) {
         return invalidTypeError()
     }
-    return this.toFloat()
+    return asFloat
 }
 
 internal fun BigDecimal.toDoubleExact(): Double {

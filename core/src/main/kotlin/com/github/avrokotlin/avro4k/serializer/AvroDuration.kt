@@ -58,7 +58,7 @@ public data class AvroDuration(
                 val millisPart = millis % 1000u
                 if (millisPart != 0u) {
                     append('.')
-                    append(millisPart)
+                    append(millisPart.toString().padStart(3, '0').trimEnd('0'))
                 }
                 append("S")
             }
@@ -99,7 +99,7 @@ public data class AvroDuration(
             return AvroDuration(
                 months = years * 12u + months.toUIntOrZero(),
                 days = weeks * 7u + days.toUIntOrZero(),
-                millis = hours * 60u * 60u * 1000u + minutes * 60u * 1000u + seconds * 1000u + millis.toUIntOrZero()
+                millis = hours * 60u * 60u * 1000u + minutes * 60u * 1000u + seconds * 1000u + millis.padEnd(3, '0').toUInt()
             )
         }
 

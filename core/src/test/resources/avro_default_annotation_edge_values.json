@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "BarEdgeDefaults",
+  "namespace": "com.github.avrokotlin.avro4k.schema.AvroDefaultSchemaTest",
+  "fields": [
+    {
+      "name": "tab",
+      "type": "string",
+      "default": "a\tb"
+    },
+    {
+      "name": "leadingZeros",
+      "type": {"type": "array", "items": "long"},
+      "default": [1, 7]
+    },
+    {
+      "name": "arrayLikeString",
+      "type": "string",
+      "default": "[1,2]"
+    },
+    {
+      "name": "plusOne",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "negativeZero",
+      "type": "double",
+      "default": -0.0
+    }
+  ]
+}

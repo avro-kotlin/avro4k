@@ -29,6 +29,30 @@ internal class AvroDefaultSchemaTest : FunSpec({
             .generatesSchema(Path("/avro_default_annotation_float.json"))
     }
 
+    test("schema for data class with @AvroDefault should include negative numbers as numbers") {
+        AvroAssertions.assertThat<BarNegativeNumbers>()
+            .generatesSchema(Path("/avro_default_annotation_negative_numbers.json"))
+    }
+
+    test("schema for data class with @AvroDefault should write float and double defaults as doubles") {
+        AvroAssertions.assertThat<BarFloatingPoint>()
+            .generatesSchema(Path("/avro_default_annotation_floating_point.json"))
+    }
+
+    test("schema for data class with @AvroDefault should keep a string field's value as written") {
+        AvroAssertions.assertThat<BarStringValues>()
+            .generatesSchema(Path("/avro_default_annotation_string_values.json"))
+    }
+
+    test("schema for data class with @AvroDefault should read the json it read before") {
+        AvroAssertions.assertThat<BarEdgeDefaults>()
+            .generatesSchema(Path("/avro_default_annotation_edge_values.json"))
+    }
+
+    test("schema for data class with @AvroDefault should not read a comma as a decimal separator") {
+        shouldThrow<AvroTypeException> { Avro.schema(BarCommaDecimal.serializer()) }
+    }
+
     test("schema for data class with @AvroDefault should include default value as a BigDecimal") {
         AvroAssertions.assertThat<BarDecimal>()
             .generatesSchema(Path("/avro_default_annotation_big_decimal.json"))
@@ -95,6 +119,84 @@ internal class AvroDefaultSchemaTest : FunSpec({
         val nullableFloat: Float?,
         @AvroDefault("3.14")
         val c: Float?,
+    )
+
+    @Serializable
+    private data class BarNegativeNumbers(
+        @AvroDefault("-5")
+        val int: Int,
+        @AvroDefault("-5")
+        val long: Long,
+        @AvroDefault("-9223372036854775808")
+        val longMin: Long,
+        @AvroDefault("-3.14")
+        val float: Float,
+        @AvroDefault("-3.14")
+        val double: Double,
+        @AvroDefault("-1.5e3")
+        val doubleExponent: Double,
+        @AvroDefault("-2.5E-3")
+        val floatExponent: Float,
+        @AvroDefault("-5")
+        val nullableInt: Int?,
+        @AvroDefault("-hello")
+        val string: String,
+        @AvroDefault("-05:00")
+        val notANumber: String,
+        @AvroDefault("-1")
+        val numberLikeString: String,
+    )
+
+    @Serializable
+    private data class BarFloatingPoint(
+        @AvroDefault("1.0")
+        val wholeDouble: Double,
+        @AvroDefault("2")
+        val integerDouble: Double,
+        @AvroDefault("1.7976931348623157E308")
+        val maxDouble: Double,
+        @AvroDefault("-1.7976931348623157E308")
+        val minDouble: Double,
+        @AvroDefault("1.0")
+        val wholeFloat: Float,
+        @AvroDefault("1.0")
+        val nullableWholeDouble: Double?,
+    )
+
+    @Serializable
+    private data class BarStringValues(
+        @AvroDefault("1")
+        val digits: String,
+        @AvroDefault("-1")
+        val negativeNumber: String,
+        @AvroDefault("12abc")
+        val startsWithDigits: String,
+        @AvroDefault("true")
+        val boolean: String,
+        @AvroDefault(""""quoted"""")
+        val quoted: String,
+        @AvroDefault("1")
+        val nullableDigits: String?,
+    )
+
+    @Serializable
+    private data class BarEdgeDefaults(
+        @AvroDefault("\"a\tb\"")
+        val tab: String,
+        @AvroDefault("[1, 007]")
+        val leadingZeros: List<Long>,
+        @AvroDefault("[1,2]")
+        val arrayLikeString: String,
+        @AvroDefault(" +1 ")
+        val plusOne: Int,
+        @AvroDefault("-0.0")
+        val negativeZero: Double,
+    )
+
+    @Serializable
+    private data class BarCommaDecimal(
+        @AvroDefault("-1,5")
+        val double: Double,
     )
 
     private enum class FooEnum {

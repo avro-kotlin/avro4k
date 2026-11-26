@@ -6,7 +6,6 @@ import com.github.avrokotlin.avro4k.internal.encoder.ReorderingCompositeEncoder
 import com.github.avrokotlin.avro4k.internal.schema.CHAR_LOGICAL_TYPE_NAME
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -15,8 +14,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.float
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.long
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 
@@ -304,12 +301,7 @@ internal sealed interface DecodingStep {
     ) : DecodingStep
 }
 
-private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? {
-    if (value.isStartingAsJson()) {
-        return Json.parseToJsonElement(value).convertDefaultToObject(schema)
-    }
-    return JsonPrimitive(value).convertDefaultToObject(schema)
-}
+private fun AvroDefault.parseValueToGenericData(schema: Schema): Any? = toJsonElement(schema).convertDefaultToObject(schema)
 
 private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
     when (this) {
@@ -352,13 +344,14 @@ private fun JsonElement.convertDefaultToObject(schema: Schema): Any? =
 
                 Schema.Type.BOOLEAN -> this.boolean
 
+                // kotlinx's int and long reject a default like -1.0 or +1 that gives a valid schema, so they are read through BigDecimal as the schema builder reads them
                 Schema.Type.INT ->
                     when (schema.logicalType?.name) {
                         CHAR_LOGICAL_TYPE_NAME -> this.content.single().code
-                        else -> this.int
+                        else -> this.content.toBigDecimal().intValueExact()
                     }
 
-                Schema.Type.LONG -> this.long
+                Schema.Type.LONG -> this.content.toBigDecimal().longValueExact()
 
                 Schema.Type.FLOAT -> this.float
 

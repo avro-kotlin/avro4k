@@ -36,6 +36,10 @@ By default, those logical types are registered:
 - `time-micros` as [java.time.LocalTime]
 - `timestamp-millis` as [java.time.Instant]
 - `timestamp-micros` as [java.time.Instant]
+- `timestamp-nanos` as [java.time.Instant]
+- `local-timestamp-millis` as [java.time.LocalDateTime]
+- `local-timestamp-micros` as [java.time.LocalDateTime]
+- `local-timestamp-nanos` as [java.time.LocalDateTime]
 
 Then, for generic deserialization, if there isn't any logical type indicated, or the one set in the schema is not registered, it can deserialize following schema types:
 - schema `BOOLEAN`, `INT`, `LONG`, `FLOAT`, `DOUBLE`, `STRING` are deserialized as their corresponding kotlin types `Boolean`, `Int`, `Long`, `Float`, `Double`, `String`

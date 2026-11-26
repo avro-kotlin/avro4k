@@ -5,11 +5,16 @@ import com.github.avrokotlin.avro4k.serializer.AvroDurationSerializer
 import com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer
 import com.github.avrokotlin.avro4k.serializer.InstantSerializer
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_DATE
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_NANOS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MICROS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS
+import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIMESTAMP_NANOS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MICROS
 import com.github.avrokotlin.avro4k.serializer.LOGICAL_TYPE_NAME_TIME_MILLIS
 import com.github.avrokotlin.avro4k.serializer.LocalDateSerializer
+import com.github.avrokotlin.avro4k.serializer.LocalDateTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer
 import com.github.avrokotlin.avro4k.serializer.UUIDSerializer
 import kotlinx.serialization.KSerializer
@@ -69,7 +74,11 @@ public data class AvroConfiguration(
             LOGICAL_TYPE_NAME_TIME_MILLIS to LocalTimeSerializer,
             LOGICAL_TYPE_NAME_TIME_MICROS to LocalTimeSerializer,
             LOGICAL_TYPE_NAME_TIMESTAMP_MILLIS to InstantSerializer,
-            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS to InstantSerializer
+            LOGICAL_TYPE_NAME_TIMESTAMP_MICROS to InstantSerializer,
+            LOGICAL_TYPE_NAME_TIMESTAMP_NANOS to InstantSerializer,
+            LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MILLIS to LocalDateTimeSerializer,
+            LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_MICROS to LocalDateTimeSerializer,
+            LOGICAL_TYPE_NAME_LOCAL_TIMESTAMP_NANOS to LocalDateTimeSerializer
         ),
 )
 

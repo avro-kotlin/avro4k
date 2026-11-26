@@ -7,6 +7,11 @@ on:
 permissions:
   contents: write
 
+# Only the latest dependency graph matters
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dependency-submission:
     runs-on: ubuntu-latest
@@ -26,3 +31,5 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
           dependency-graph-exclude-projects: ':(benchmark|build-logic|gradle-plugin)'
           dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
+          # The Gradle cache is written by build-main only, to keep a single writer and avoid evicting entries
+          cache-read-only: true

@@ -7,6 +7,12 @@ on:
     paths-ignore:
       - '*.md'
 
+# Bursts of merges (e.g. dependabot) queue instead of running in parallel: only the latest pending run is kept.
+# In-progress runs are not cancelled to avoid interrupting a snapshot publication.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest

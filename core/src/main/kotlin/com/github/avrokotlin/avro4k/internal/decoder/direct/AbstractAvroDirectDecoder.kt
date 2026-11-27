@@ -40,7 +40,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        decodeAndResolveUnion()
         return SerializerLocatorMiddleware.apply(deserializer)
             .deserialize(this)
     }
@@ -94,15 +93,18 @@ internal abstract class AbstractAvroDirectDecoder(
         }
     }
 
-    private fun decodeAndResolveUnion() {
-        if (currentWriterSchema.type == Schema.Type.UNION) {
-            currentWriterSchema = currentWriterSchema.types[binaryDecoder.readIndex()]
+    /**
+     * Reads the union index when [schema] is a union, so [currentWriterSchema] is never a union while decoding a value.
+     * Must be called when the value starts, right before reading its content.
+     */
+    protected fun resolveUnion(schema: Schema): Schema =
+        if (schema.isUnion) {
+            schema.types[binaryDecoder.readIndex()]
+        } else {
+            schema
         }
-    }
 
     override fun decodeNotNullMark(): Boolean {
-        decodeAndResolveUnion()
-
         return currentWriterSchema.type != Schema.Type.NULL
     }
 

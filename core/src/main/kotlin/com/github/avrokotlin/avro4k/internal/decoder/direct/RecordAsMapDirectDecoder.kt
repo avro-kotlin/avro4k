@@ -29,7 +29,7 @@ internal class RecordAsMapDirectDecoder(
             currentWriterSchema = KEY_SCHEMA
             fieldNameToRead = field.name()
         } else {
-            currentWriterSchema = field.schema()
+            currentWriterSchema = resolveUnion(field.schema())
             fieldNameToRead = null
         }
     }

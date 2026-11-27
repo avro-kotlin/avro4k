@@ -27,8 +27,7 @@ internal class ArrayBlockDirectDecoder(
         descriptor: SerialDescriptor,
         index: Int,
     ) {
-        // reset the current writer schema in of the element is a union (as a union is resolved)
-        currentWriterSchema = arraySchema.elementType
+        currentWriterSchema = resolveUnion(arraySchema.elementType)
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -60,8 +59,7 @@ internal class MapBlockDirectDecoder(
         descriptor: SerialDescriptor,
         index: Int,
     ) {
-        // reset the current writer schema in of the element is a union (as a union is resolved)
-        currentWriterSchema = if (index % 2 == 0) KEY_SCHEMA else mapSchema.valueType
+        currentWriterSchema = if (index % 2 == 0) KEY_SCHEMA else resolveUnion(mapSchema.valueType)
     }
 
     @OptIn(ExperimentalSerializationApi::class)

@@ -40,7 +40,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        decodeAndResolveUnion()
         return SerializerLocatorMiddleware.apply(deserializer)
             .deserialize(this)
     }
@@ -94,15 +93,18 @@ internal abstract class AbstractAvroDirectDecoder(
         }
     }
 
-    private fun decodeAndResolveUnion() {
-        if (currentWriterSchema.type == Schema.Type.UNION) {
-            currentWriterSchema = currentWriterSchema.types[binaryDecoder.readIndex()]
+    /**
+     * Reads the union index when [schema] is a union, so [currentWriterSchema] is never a union while decoding a value.
+     * Must be called when the value starts, right before reading its content.
+     */
+    protected fun resolveUnion(schema: Schema): Schema =
+        if (schema.isUnion) {
+            schema.types[binaryDecoder.readIndex()]
+        } else {
+            schema
         }
-    }
 
     override fun decodeNotNullMark(): Boolean {
-        decodeAndResolveUnion()
-
         return currentWriterSchema.type != Schema.Type.NULL
     }
 
@@ -115,7 +117,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeBoolean(): Boolean {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.BOOLEAN -> binaryDecoder.readBoolean()
             Schema.Type.STRING -> binaryDecoder.readString().toBooleanStrict()
@@ -132,7 +133,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeInt(): Int {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.INT -> binaryDecoder.readInt()
             Schema.Type.LONG -> binaryDecoder.readLong().toIntExact()
@@ -142,7 +142,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeLong(): Long {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.LONG -> binaryDecoder.readLong()
             Schema.Type.INT -> binaryDecoder.readInt().toLong()
@@ -152,7 +151,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeFloat(): Float {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> binaryDecoder.readFloat()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble().toFloatExact()
@@ -164,7 +162,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeDouble(): Double {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.FLOAT -> binaryDecoder.readFloat().toDouble()
             Schema.Type.DOUBLE -> binaryDecoder.readDouble()
@@ -176,7 +173,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeChar(): Char {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.INT -> binaryDecoder.readInt().toChar()
             Schema.Type.STRING -> binaryDecoder.readString(null).single()
@@ -185,7 +181,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeString(): String {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.STRING -> binaryDecoder.readString()
 
@@ -220,7 +215,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.ENUM -> {
                 if (currentWriterSchema.isFullNameOrAliasMatch(enumDescriptor)) {
@@ -251,7 +245,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeBytes(): ByteArray {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.BYTES -> binaryDecoder.readBytes()
             Schema.Type.FIXED -> binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize)
@@ -261,7 +254,6 @@ internal abstract class AbstractAvroDirectDecoder(
     }
 
     override fun decodeFixed(): GenericFixed {
-        decodeAndResolveUnion()
         return when (currentWriterSchema.type) {
             Schema.Type.BYTES -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readBytes())
             Schema.Type.FIXED -> GenericData.Fixed(currentWriterSchema, binaryDecoder.readFixedBytes(currentWriterSchema.fixedSize))

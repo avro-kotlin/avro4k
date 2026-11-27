@@ -51,7 +51,7 @@ internal class RecordDirectDecoder(
 
                 is DecodingStep.DeserializeWriterField -> {
                     currentDecodingStep = field
-                    currentWriterSchema = field.schema
+                    currentWriterSchema = resolveUnion(field.schema)
                     return field.elementIndex
                 }
 

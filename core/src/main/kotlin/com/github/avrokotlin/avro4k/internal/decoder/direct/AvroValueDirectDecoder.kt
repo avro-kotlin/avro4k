@@ -14,5 +14,5 @@ internal class AvroValueDirectDecoder(
         throw IllegalIndexedAccessError()
     }
 
-    override var currentWriterSchema: Schema = writerSchema
+    override var currentWriterSchema: Schema = resolveUnion(writerSchema)
 }

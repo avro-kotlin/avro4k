@@ -14,7 +14,7 @@ ktlint = "1.8.0"
 binary-compatibility-validator = "0.18.2"
 buildconfig = "6.1.2"
 pluginPublish = "2.2.1"
-spotless = "8.11.0"
+spotless = "8.12.0"
 mavenPublish = "0.37.0"
 dokka = "2.3.0"
 
